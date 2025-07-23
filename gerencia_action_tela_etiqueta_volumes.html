@@ -1,0 +1,100 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardetiquetagem.html">Home</a></li>
+  <li class="breadcrumb-item active">Etiquetas Volumes</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Etiquetas Volumes <span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i>Etiquetas Volumes</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div id="avisoPesquisa" class="d-none"></div>
+            <div class="row mb-2">
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="tpEtiquetaVolume">Tipo</label>
+                <select class="form-control" id="tpEtiquetaVolume" type="text" title="Tipo da Etiqueta" value=""
+                  style="height: 39px;" onchange="tipoEtiquetaVolume(this.value)">
+                  <option value="DEVOLUÇÃO">DEVOLUÇÃO</option>
+                  <option value="REMANEJAMENTO">REMANEJAMENTO</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="numOREtiquetaVolume">Nº OR</label>
+                <input class="form-control" id="numOREtiquetaVolume" type="number" title="Número da OR" value="" autocomplete="off"
+                  autofill="off" placeholder="Número da OR" min="1" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="numOTEtiquetaVolume">Nº OT</label>
+                <input class="form-control" id="numOTEtiquetaVolume" type="number" title="Número da OT" value="" autocomplete="off" autofill="off"
+                  placeholder="Número da OT" min="1" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="descricaoEtiquetaVolume">Descrição</label>
+                <input class="form-control text-uppercase" id="descricaoEtiquetaVolume" type="text" title="Descrição do Volume" value="" autocomplete="off"
+                  autofill="off" placeholder="Descrição do Volume" maxlength="29" style="height: 39px;" >
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="categoriaEtiquetaVolume">Categoria</label>
+                <input class="form-control text-uppercase" id="categoriaEtiquetaVolume" type="text" title="Categoria do Volume" value=""
+                  autocomplete="off" autofill="off" placeholder="Categoria do Volume" maxlength="29" maxlength="20" style="height: 39px;">
+              </div>
+              <div class="d-none col-sm-3 col-xl-2">
+                <label class="form-label" for="solicitanteEtiquetaVolume">Solicitante</label>
+                <select class="select form-control" id="solicitanteEtiquetaVolume" type="text"title="Solicitante" value=""
+                  style="height: 39px;">
+                  <option value="">Selecione...</option>
+                  <option value="VM">VM</option>
+                  <option value="Supervisão">Supervisão</option>
+                  <option value="Compras">Compras</option>
+                  <option value="Diretoria">Diretoria</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="idEmpresaOrigemEtiquetaVolume">Empresa Origem</label>
+                <select class="form-control" id="idEmpresaOrigemEtiquetaVolume" type="text"title="Empresa de Origem" value=""
+                  style="height: 39px;">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="idEmpresaDestinoEtiquetaVolume">Empresa Destino</label>
+                <select class="form-control" id="idEmpresaDestinoEtiquetaVolume" type="text" title="Empresa de Destino" value=""
+                  style="height: 39px;">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-1">
+                <label class="form-label" for="qtdEtiquetaVolume">Volumes</label>
+                <input class="form-control" id="qtdEtiquetaVolume" type="number" title="Descrição do Volume" value="1"
+                  autocomplete="off" autofill="off" placeholder="" style="height: 39px;" min="1" max="9999">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-xl-12">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="modalPreviaEtiquetaRemanejamento()">
+                  <span class="fal fa-print mr-1"></span>Emitir Etiqueta
+                </button>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,93 @@
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-5">
+      <label class="form-label" for="idSelectBancoModal">Bancos</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="idSelectBancoModal" id="idSelectBancoModal" >
+          <option value="">Selecione...</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="tpPessoaContaBancoModal">Tipo Pessoa</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="tpPessoaContaBancoModal" id="tpPessoaContaBancoModal">
+          <option value="">Selecione...</option>
+          <option value="FISICA">Física</option>
+          <option value="JURIDICA">Jurídica</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+      <label class="form-label" for="tpContaBancoModal">Tipo Conta</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="tpContaBancoModal" id="tpContaBancoModal">
+          <option value="">Selecione...</option>
+          <option value="BANCO">Banco</option>
+          <option value="TRANSPORTEVALORES">Transporte de Valores</option>
+          <option value="DEVSOBRA">Devolução Sobra</option>
+          <option value="Premiações/Promoções">Premiações/Promoções</option>
+          <option value="Conta Transitória">Transitória</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="numAgenciaContaBanco">Nº Agência</label>
+      <div class="input-group">
+        <input type="number" id="numAgenciaContaBanco" name="numAgenciaContaBanco" class="form-control" value="" placeholder="Digite o Nº Agência">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="numDigitoAgenciaContaBanco">Nº Digito Agência</label>
+      <div class="input-group">
+        <input type="number" id="numDigitoAgenciaContaBanco" name="numDigitoAgenciaContaBanco" class="form-control" value="" placeholder="Digite o Digito Agência">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="numContaBanco">Nº Conta</label>
+      <div class="input-group">
+        <input type="number" id="numContaBanco" name="numContaBanco" class="form-control" value="" placeholder="Digite o Nº Conta">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="numDigitoContaBanco">Nº Digito Conta</label>
+      <div class="input-group">
+        <input type="number" id="numDigitoContaBanco" name="numDigitoContaBanco" class="form-control" value="" placeholder="Digite o Digito Conta">
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="nuContaSapModal">Nº Conta SAP</label>
+      <div class="input-group">
+        <input type="text" id="nuContaSapModal" name="nuContaSapModal" class="form-control" value=""
+          placeholder="Digite o Digito Conta">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="dsContaBancoModal">Descrição da Conta</label>
+      <div class="input-group">
+        <input type="text" id="dsContaBancoModal" name="dsContaBancoModal" class="form-control input" maxlength="200" placeholder="Digite a Descrição">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="stContaBancoModal">Status Conta</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="stContaBancoModal" id="stContaBancoModal" disabled>
+          <option value="">Selecione...</option>
+          <option value="True" selected>Ativa</option>
+          <option value="False">Inativa</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div id="containerEmpresasVinculoConta"></div>
+</div>

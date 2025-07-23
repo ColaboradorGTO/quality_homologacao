@@ -1,0 +1,47 @@
+
+        <ol class="breadcrumb page-breadcrumb">
+            <input type="hidden" name="Tipo" id="Tipo" value="">
+            <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+            <li class="breadcrumb-item active">Faturas</li>
+            <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+        </ol>
+        <div class="subheader">
+            <h1 class="subheader-title DescTituloFaturas">
+                <i class='subheader-icon fal fa-chart-area'></i> Lista de Faturas da Loja - <span class='fw-300'></span>
+            </h1>
+        </div>
+        <div class="row">
+            <div class="col-xl-12">
+                <div id="panel-1" class="panel">
+                    <div class="panel-hdr">
+                        <h2>
+                            Faturas <span class="fw-300"><i> da Loja</i></span>
+                        </h2>
+                    </div>
+                    <div class="panel-container show">
+                        <div class="panel-content">
+                            <div class="panel-tag">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="tpdateinicio">Data Início</label>
+                                        <input class="form-control" id="DTInicioFat" type="date" name="DTInicioFat" value="<?= $parametro_dia; ?>">
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="tpdatefim">Data Fim</label>
+                                        <input class="form-control" id="DTFimFat" type="date" name="DTFimFat" value="<?= $parametro_dia; ?>">
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                    <br>
+                                        <button class="btn btn-primary" type="button" onclick="pesq_list_fatura()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                </div>
+                            </div>
+                            <div id="resultado">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>

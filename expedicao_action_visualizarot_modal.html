@@ -1,0 +1,62 @@
+<div id="resultadocadestrutura"></div>
+
+<div class="form-group">
+    <div class="row">
+        <div class="col-sm-6 col-xl-6">
+            <!-- Loja Origem -->
+            <label class="form-label" for="tploja">Loja Origem</label>
+            <div class="input-group">
+                <select class="select2 form-control" name="idlojaorigemmodal" id="idlojaorigemmodal">
+                    <option value="-1">Selecione a Loja Origem</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-6">
+            <!-- Loja Destino -->
+            <label class="form-label" for="tploja">Loja Destino</label>
+            <div class="input-group">
+                <select class="select2 form-control" name="idlojadestinomodal" id="idlojadestinomodal">
+                    <option value="-2">Selecione a Loja Destino</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <br>
+    <!--div class="row">
+        <div class="col-sm-6 col-xl-4">
+            <label class="form-label" for="dsProduto">Produto</label>
+            <div class="input-group">
+                <input type="text" id="descProduto" onchange="pesqProduto(1)" name="descProduto" class="form-control input" value="">&nbsp;&nbsp;
+                <button class="btn btn-primary" type="button" onclick="abrirPesqProduto()">
+                    <span class="fal fa-search mr-1"></span>
+                    Pesquisar
+                </button>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-sm-8 col-xl-8">
+            <button class="btn btn-info" type="button" onclick="salvarot()" id="salvarot"><span class="fal fa-save mr-1"></span>Salvar</button>
+        </div>
+        <div class="col-sm-8 col-xl-8">
+            <label class="form-label" style="color: red">Para confirmar as Alterações e Inclusõess dos Produtos, favor clicar no botão Salvar!</label>
+        </div>
+    </div-->
+</div>
+
+<table id="tabelaprodutos" class="table table-bordered table-hover table-striped w-100" style="width:100%">
+    <thead class="bg-primary-600">
+        <tr>
+            <th width="10%">Produto</th>
+            <th width="10%">Cód. Barras</th>
+            <th width="15%">Descrição</th>
+            <th width="10%">R$ Custo</th>
+            <th width="10%">R$ Venda</th>
+            <th width="10%">Qtd Expedição</th>
+            <th width="10%">Qtd Recepção</th>
+            <th width="10%">Qtd Diferença</th>
+            <th width="10%">Qtd Ajuste</th>
+        </tr>
+    </thead>
+</table>

@@ -1,0 +1,7 @@
+host = "sapsltesoura";
+port = 50000;
+pathPrefix = "/b1s/v1";
+authType = none;
+useSSL = true;
+sslHostCheck = false;
+sslAuth = anonymous;

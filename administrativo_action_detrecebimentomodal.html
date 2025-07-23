@@ -1,0 +1,314 @@
+
+                            
+                            
+                            
+                            <div class="row">
+                                    <input type="hidden" name="IDResVenda" id="IDResVenda" value="">
+                                    <input type="hidden" name="IDEmpResumo" id="IDEmpResumo" value="">
+                                    <input type="hidden" name="IDCaixaWebVenda" id="IDCaixaWebVenda" value="">
+                                    <input type="hidden" name="IDOperadorVenda" id="IDOperadorVenda" value="">
+                                    <input type="hidden" name="NItem" id="NItem" value="">
+                                <div class="col-xl-12">
+                                    <div id="panel-1" class="panel">
+                                        <div class="panel-hdr textoCabecalhoPagamento">
+                                        
+                                        </div>
+                                        <div class="panel-container show">
+                                            <div class="panel-content">
+                                                <div id="">
+                                                    <!-- datatable start -->
+                                                    <table id="" class="table table-bordered table-hover table-striped w-100">
+                                                        <thead class="bg-primary-600">
+                                                            <tr>
+                                                                <th>Vr. Dinheiro</th>
+                                                                <th>Vr. Cartão</th>
+                                                                <th>Vr. POS</th>
+                                                                <th>Vr. PIX</th>
+                                                                <th>Vr. MP</th>
+                                                                <th>Vr. Convênio</th>
+                                                                <th>Vr. Voucher</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="resultListPagamentoVenda">
+                                                        </tbody>
+                                                    </table>
+                                                    <table id="" class="table table-bordered table-hover table-striped w-100">
+                                                        <thead class="bg-primary-600">
+                                                            <tr>
+                                                                <th>Pagamento</th>
+                                                                <th>Parcelas</th>
+                                                                <th>NSU_CTF</th>
+                                                                <th>Autorização</th>
+                                                                <th>Vr Recebido</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="resultListPagamento">
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="idbuttonalterar" >
+                                <button type="button" class="btn btn-danger" onclick="alterar_pagamentos()">Alterar Pagamentos</button>
+                            </div>
+                            <div id="idbuttonalterar2" style="display: none">
+                                <button type="button" class="btn btn-danger" onclick="alterar_pagamentos_fechar()">Fechar Alterar Pagamentos</button>
+                            </div>
+                            <hr>
+                            <div id="idpag" style="display: none">
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-4">
+                                            <label class="form-label" for="restdistribuir">Restante a Distribuir (menos Voucher)</label>
+                                            <div class="input-group">
+                                                <input type="text" id="VrDistribuir" name="VrDistribuir" class="form-control input" value="" readonly>
+                                                <input type="hidden" id="VrDistribuir2" name="VrDistribuir2" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-6">
+                                            <div id="resultadodetvendarecebimento"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-3">
+                                            <label class="form-label" for="vrdinheiro">Valor Dinheiro</label>
+                                                <div class="input-group">
+                                                    <input type="text" id="VrRecDinheiro" name="VrRecDinheiro" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
+                                                </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-6">
+                                            <label class="form-label" for="dscartao">Descrição Cartão</label>
+                                            <div class="input-group">
+                                                <select class="select2 form-control" name="DSTipoPagamentoTEF" id="DSTipoPagamentoTEF">
+                                                    <option value="0">Selecione...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="noperacao">NSU_CTF</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuOperacao" name="NuOperacao" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="nautorizacao">Nº Autorização</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuAutorizacao" name="NuAutorizacao" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="vrcartao">Valor Cartão</label>
+                                            <div class="input-group">
+                                                <input type="text" id="VrRecCartao" name="VrRecCartao" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="qtdparc">Qtd Parcelas</label>
+                                            <div class="input-group">
+                                                <input type="number" id="QtdParcelaCartao" name="QtdParcelaCartao" class="form-control input" value="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="dtprimeiraparc">Data 1ª Parcela</label>
+                                            <div class="input-group">
+                                                <input type="date" id="DTParcelaCartao" name="DTParcelaCartao" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="btntef"></label>
+                                            <div class="input-group">
+                                                <button id="idbuttoncart1" type="button" class="btn btn-success" onclick="incluir_cartao()">Incluir + Cartão</button>
+                                                <button id="idbuttoncart2" style="display: none" type="button" class="btn btn-warning" onclick="tirar_cartao()">Tirar Cartão</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div id="cart2" class="form-group" style="display: none">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-6">
+                                            <label class="form-label" for="dscartao2">Descrição Cartão 2</label>
+                                            <div class="input-group">
+                                                <select class="select2 form-control" name="DSTipoPagamentoTEF2" id="DSTipoPagamentoTEF2">
+                                                    <option value="0">Selecione...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="noperacao2">NSU_CTF 2</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuOperacao2" name="NuOperacao2" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="nautorizacao2">Nº Autorização 2</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuAutorizacao2" name="NuAutorizacao2" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="cart3" class="form-group" style="display: none">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="vrcartao2">Valor Cartão 2</label>
+                                            <div class="input-group">
+                                                <input type="text" id="VrRecCartao2" name="VrRecCartao2" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="qtdparc2">Qtd Parcelas 2</label>
+                                            <div class="input-group">
+                                                <input type="number" id="QtdParcelaCartao2" name="QtdParcelaCartao2" class="form-control input" value="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="dtprimeiraparc2">Data 1ª Parcela 2</label>
+                                            <div class="input-group">
+                                                <input type="date" id="DTParcelaCartao2" name="DTParcelaCartao2" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-6">
+                                            <label class="form-label" for="dspos">Descrição POS</label>
+                                            <div class="input-group">
+                                                <select class="select2 form-control" name="DSTipoPagamentoPOS" id="DSTipoPagamentoPOS">
+                                                    <option value="0">Selecione...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="noperacaopos">NSU_CTF</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuOperacaoPOS" name="NuOperacaoPOS" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="nautorizacaopos">Nº Autorização</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuAutorizacaoPOS" name="NuAutorizacaoPOS" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="vrpos">Valor POS</label>
+                                            <div class="input-group">
+                                                <input type="text" id="VrRecPOS" name="VrRecPOS" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="qtdparcpos">Qtd Parcelas</label>
+                                            <div class="input-group">
+                                                <input type="number" id="QtdParcelaPOS" name="QtdParcelaPOS" class="form-control input" value="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="dtprimeiraparcpos">Data 1ª Parcela</label>
+                                            <div class="input-group">
+                                                <input type="date" id="DTParcelaPOS" name="DTParcelaPOS" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="btntef"></label>
+                                            <div class="input-group">
+                                                <button id="idbuttonpos1" type="button" class="btn btn-success" onclick="incluir_pos()">Incluir + POS</button>
+                                                <button id="idbuttonpos2" style="display: none" type="button" class="btn btn-warning" onclick="tirar_pos()">Tirar POS</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div id="pos2" class="form-group" style="display: none">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-6">
+                                            <label class="form-label" for="dspos2">Descrição POS 2</label>
+                                            <div class="input-group">
+                                                <select class="select2 form-control" name="DSTipoPagamentoPOS2" id="DSTipoPagamentoPOS2">
+                                                    <option value="0">Selecione...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="noperacaopos2">NSU_CTF 2</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuOperacaoPOS2" name="NuOperacaoPOS2" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="nautorizacaopos2">Nº Autorização 2</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuAutorizacaoPOS2" name="NuAutorizacaoPOS2" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="pos3" class="form-group" style="display: none">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="vrpos2">Valor POS 2</label>
+                                            <div class="input-group">
+                                                <input type="text" id="VrRecPOS2" name="VrRecPOS2" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="qtdparcpos2">Qtd Parcelas 2</label>
+                                            <div class="input-group">
+                                                <input type="number" id="QtdParcelaPOS2" name="QtdParcelaPOS2" class="form-control input" value="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="dtprimeiraparcpos2">Data 1ª Parcela 2</label>
+                                            <div class="input-group">
+                                                <input type="date" id="DTParcelaPOS2" name="DTParcelaPOS2" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="vrvoucher">Valor Voucher</label>
+                                            <div class="input-group">
+                                                <input type="text" id="VrRecVoucher" name="VrRecVoucher" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="nvoucher">Nº Voucher</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuVoucher" name="NuVoucher" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer" id="footerdetvendarecebimento">
+                                <button type="button" class="btn btn-success" data-dismiss="modal"  id="buttonpag" style="display: none"  onclick="cancelar_VendaPagamento()">Finalizar Ateração de Pagamentos</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                            </div>
+
+    <script>
+            $("#VrRecDinheiro,#VrRecCartao,#VrRecPOS,#VrRecCartao2,#VrRecPOS2,#VrRecVoucher").mask('#.##0,00', {reverse: true});
+    </script>

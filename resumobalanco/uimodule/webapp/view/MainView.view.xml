@@ -1,0 +1,91 @@
+ <mvc:View controllerName="com.arvo.resumobalanco.controller.MainView"
+  displayBlock="true"
+  xmlns="sap.m"
+  xmlns:mvc="sap.ui.core.mvc">
+  <App id="idAppControl" >
+    <pages>
+      <Page title="{i18n>title}">
+        <content>
+          <Table
+            id="resumobalancoList"
+            class="sapUiResponsiveMargin"
+            width="auto"
+            growing="true"
+            growingThreshold="15"
+                       busy="{crudModel>/isTableLoad}"
+            alternateRowColors="true"
+            growingStarted="onGrowingStarted"
+            items="{
+              path : 'crudModel>/resumobalancoCollection',
+               sorter : {
+                path : 'IDRESUMOBALANCO',
+                group : false,
+                descending: false
+              }
+             
+            }">
+            <headerToolbar>
+              <Toolbar>
+                <Title text="{i18n>resumobalanco.ListTitle}"/>
+                <ToolbarSpacer/>
+                <SearchField liveChange="onFilterResumobalanco" width="50%" search="onFilterResumobalanco"/>
+  							<Button text="Novo" width="100px" press="onShowFormCreate" icon="sap-icon://add"/>
+              </Toolbar>
+            </headerToolbar>
+            <columns>
+              <Column
+                hAlign="End"
+                minScreenWidth="Small"
+                demandPopin="true"
+                width="4em">
+                <Text text="{i18n>resumobalanco.ColumnId}"/>
+              </Column>
+              <Column>
+                <Text text="{i18n>resumobalanco.ColumnEmpresa}"/>
+              </Column>
+              <Column>
+                <Text text="{i18n>resumobalanco.ColumnResumo}"/>
+              </Column>
+              <Column width="170px">
+                <Text text="{i18n>resumobalanco.ColumnDtAbertura}"/>
+              </Column>
+              <Column width="170px">
+                <Text text="{i18n>resumobalanco.ColumnDtFechamento}"/>
+              </Column>
+              <Column width="170px">
+                <Text text="Quantidade Itens"/>
+                <footer> <Text wrapping="false" text="{ path: 'crudModel>/resumobalancoCollection', targetType: 'any', formatter: '.sunTotalItens' }" /></footer>
+              </Column>
+              <Column width="100px">
+                <Text text="{i18n>resumobalanco.ColumnAtivo}"/>
+              </Column>
+              <!--<Column width="100px"></Column>-->
+            </columns>
+            <items>
+              <ColumnListItem type="Navigation" press="onShowFormUpdate">
+                <cells>
+                  <ObjectNumber number="{crudModel>IDRESUMOBALANCO}" emphasized="false"/>
+                  <ObjectIdentifier title="{crudModel>resumobalanco_empresas/NOFANTASIA}"/>
+                  <Text text="{crudModel>DSRESUMOBALANCO}"/>
+                  <Text wrapping="false" text="{ path: 'crudModel>DTABERTURA', targetType: 'any', formatter: '.formatDateTime' }" />
+                  <Text wrapping="false" text="{ path: 'crudModel>DTFECHAMENTO', targetType: 'any', formatter: '.formatDateTime' }" />
+                   <Text wrapping="false" text="{crudModel>QTDTOTALITENS}" />
+                  <Text text="{= ${crudModel>STATIVO} ? 'Ativo' : 'Inativo'}" wrapping="false"/>
+                  <!--<Button
+                  press="onShowDeleteConfirm"
+                  id="BadgedButton"
+                  class="sapUiTinyMarginBeginEnd"
+                  icon="sap-icon://delete"
+                  type="Reject"
+                  text="{i18n>resumobalanco.btnDelete}">
+                </Button>-->
+                
+                </cells>
+              </ColumnListItem>
+            </items>
+          </Table>
+        </content>
+      </Page>
+    </pages>
+  </App>
+</mvc:View>

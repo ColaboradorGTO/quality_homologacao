@@ -1,0 +1,182 @@
+<section>
+  <style>
+     @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .loading-text {
+    animation: blink 1s infinite;
+  }
+
+
+    #table  DigitacaoDistribuicao thead th {
+      text-align: center;
+    }
+
+    #tableDigitacaoDistribuicao thead tr {
+      border-top: 2px solid #fff;
+    }
+
+    #tableDigitacaoDistribuicao thead tr:first-child th:first-child {
+      border-radius: 8px 0px 0px 8px;
+    }
+
+    #tableDigitacaoDistribuicao thead tr:first-child th:last-child {
+      border-radius: 0px 8px 8px 0px;
+    }
+
+    #tableDigitacaoDistribuicao thead th:nth-child(1),
+    th:nth-child(2) {
+      min-width: 150px;
+      max-width: 100%;
+    }
+
+    #tableDigitacaoDistribuicao tbody td:nth-child(1),
+    td:nth-child(2) {
+      min-width: 150px;
+      max-width: 100%;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    #tableDigitacaoDistribuicao tbody td {
+      text-align: center;
+    }
+
+    #tableDigitacaoDistribuicao thead th:nth-child(3) {
+      min-width: 400px;
+      max-width: 100%;
+    }
+
+    #tableDigitacaoDistribuicao tbody td:nth-child(3) {
+      min-width: 400px;
+      max-width: 100%;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+
+    #tableNotasCompra thead {
+      text-align: center;
+    }
+
+    #tableNotasCompra thead th {
+      min-width: auto;
+      max-width: 100%;
+    }
+
+    #tableNotasCompra tbody td {
+      min-width: auto;
+      max-width: 100%;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    #tableNotasCompra thead th:nth-child(5) {
+      min-width: 400px;
+      max-width: 100%;
+    }
+
+    #tableNotasCompra tbody td:nth-child(5) {
+      min-width: 400px;
+      max-width: 100%;
+      text-align: left;
+    }
+
+    #tableFiliaisDestino thead {
+      text-align: center;
+    }
+
+    #tableFiliaisDestino thead th:nth-child(2) {
+      min-width: 500px !important;
+    }
+
+    #tableFiliaisDestino tbody td:nth-child(2) {
+      min-width: 500px !important;
+      text-align: left;
+    }
+
+    #tableFiliaisDestino tbody td {
+      text-align: center;
+    }
+
+    .td-text-left{
+      text-align: left !important;
+    }
+
+    .td-text-center{
+      text-align: center !important;
+    }
+
+  </style>
+
+  <ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Lista Distribuições de Compras</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+  </ol>
+
+  <div class="subheader">
+    <h1 class="subheader-title">
+      <i class='subheader-icon fal fa-chart-area'></i>Listagem de Distribuições
+    </h1>
+  </div>
+
+    <div class="col-sm-12 col-xl-12">
+      <!-- Filtro Pedido de Compras -->
+      <div id="panel-1" class="panel">
+        <div class="panel-hdr">
+          <h2 class="pl-2">Distribuições</h2>
+        </div>
+        <div class="panel-container show">
+          <div class="panel-content">
+            <div class="panel-tag">
+              <div class="row">
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="dtInicioDistribuicao">Data Inicial:</label>
+                  <div class="input-group">
+                    <input class="form-control" id="dtInicioDistribuicao" type="date" name="Data Inicial" value="">
+                  </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="dtInicioFimDistribuicao">Data Final:</label>
+                  <div class="input-group">
+                    <input class="form-control" id="dtFimDistribuicao" type="date" name="Data Final" value="">
+                  </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="idDistribuicao">Nº Distribuição:</label>
+                  <div class="input-group">
+                    <input class="form-control" id="idDistribuicao" type="text" value="" onkeyup="(this.value = this.value.replace(/[^0-9]/g, '') != 0 ? parseInt(this.value) : '')">
+                  </div>
+                </div>
+
+              </div>
+              <br>
+              <div class="row">
+                <div class="col-sm-6 col-xl-3" style="display: flex; align-items: flex-end;">
+                  <button class="btn btn-primary mr-2" type="button" onclick="pesquisarDistribuicoes()"><span
+                      class="fal fa-search mr-1"></span>Pesquisar</button>
+
+                  <button class="btn btn-success" type="button" onclick="AdicionarDistribuicao()"><span
+                      class="fal fa-plus mr-1"></span>Adicionar</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-12 col-xl-12 p-0">
+              <div id="resultadoListaDistribuicao" style="overflow-x: auto;"></div>
+            </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="col-sm-12 col-xl-12">
+      <div class="panel">
+        <div class="panel-content">
+
+        </div>
+      </div>
+    </div>
+</section>

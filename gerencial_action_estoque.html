@@ -1,0 +1,110 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Relatório Estoque da Loja</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class='subheader-icon fal fa-chart-area'></i>Estoque
+  </h1>
+</div>
+
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="idEmpresaEstoque">Empresa</label>
+                <div class="input-group">
+                  <select class="select2 form-control" data-width="100%" id="idEmpresaEstoque" name="idEmpresaEstoque"
+                    data-live-search="true" data-actions-box="true">
+                    <option value=""></option>
+                  </select>
+                </div>
+              </div>
+              <!-- Estrutura Mercadológica -->
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="tpgrupo">Grupo</label>
+                <div class="input-group">
+                  <select class="select2 form-control" data-width="100%" id="idgrupograde" name="idgrupo" multiple
+                    data-live-search="true" data-live-search-placeholder="Pesquisar" data-actions-box="true">
+                    <option value=""></option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="tpsubgrupo">Subgrupo</label>
+                <div class="input-group">
+                  <select class="select2-placeholder-multiple form-control" data-width="100%" id="idgrade"
+                    name="idgrade" multiple="multiple" data-live-search="true" data3-live-search-placeholder="Pesquisar"
+                    data-actions-box="true">
+                    <option value=""></option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <!-- Marca -->
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="tpmarcaproduto">Marca</label>
+                <div class="input-group">
+                  <select class="select2 form-control" data-width="100%" id="idmarcaproduto" name="idmarcaproduto"
+                    multiple data-live-search="true" data-live-search-placeholder="Pesquisar" data-actions-box="true">
+                    <option value=""></option>
+                  </select>
+                </div>
+              </div>
+              <!-- Fornecedor -->
+              <div class="col-sm-6 col-xl-6">
+                <label class="form-label" for="tpfornec">Por Fornecedor</label>
+                <div class="input-group">
+                  <select class="select2 form-control" data-width="100%" id="idforn" name="idforn" multiple
+                    data-live-search="true" data-live-search-placeholder="Pesquisar" data-actions-box="true">
+                    <option value=""></option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <!-- Código de Barras ou Nome do Produto -->
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="pesqproduto">Cód.Barras / Nome Produto</label>
+                <div class="input-group">
+                  <input type="text" id="descProduto" name="descProduto" class="form-control input" value="">
+                </div>
+              </div>
+              <!-- Data Inicial -->
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="tpdate">Data Início</label>
+                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+              </div>
+              <!-- Data Final -->
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="tpdate">Data Fim</label>
+                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-8 col-xl-8">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="estoqueatual(1)"><span
+                    class="fal fa-search mr-1"></span>Estoque Atual</button>
+                <button class="btn btn-info" type="button" onclick="estoquerotatividade(1)"><span
+                    class="fal fa-search mr-1"></span>Rotatividade Estoque</button>
+                <button class="btn btn-warning" type="button" onclick="estoqueanterior(1)"><span
+                    class="fal fa-search mr-1"></span>Estoque Anterior</button>
+
+              </div>
+            </div>
+          </div>
+          <div id="resultado">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,51 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Lista de Unidades de Medidas</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i>Relatórios - Unidades de Medidas
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                <div class="panel-tag">
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-6">
+                                    <label class="form-label" for="tpunidmed">Por Unidade</label>
+                                    <div class="input-group">
+                                        <select class="select2" data-width="100%" id="idunidmed"
+                                                name="idunidmed"
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>   
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="pesqunidmed">Descrição / Sigla</label>
+                                    <div class="input-group">
+                                        <input type="text" id="descUnidMed" name="descUnidMed" class="form-control input" value="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-8 col-xl-8">
+                                <br>
+                                        <button class="btn btn-primary" type="button" onclick="pesq_unidademedida(1)"><span class="fal fa-search mr-1"></span>Pesquisar Unidades de Medidas</button>
+                                        <button class="btn btn-success" type="button" onclick="modal_Cad_UnidadeMedida()"><span class="fal fa-plus mr-1"></span>Cadastrar Unidade de Medida</button>
+                                </div>
+                            </div>
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

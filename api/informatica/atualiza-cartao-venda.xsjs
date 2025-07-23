@@ -1,0 +1,48 @@
+var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+
+var idGrupoEmpresarial = $.request.parameters.get("idGrupoEmpresarial");
+
+function fnHandlePut() {
+    var conn = $.db.getConnection();
+    var query = 'UPDATE "VAR_DB_NAME"."VENDA" SET ' + 
+        ' "VRRECCARTAO" = ? ' + 
+        ' WHERE "IDVENDA" =  ? ';
+    	
+    var pStmt = conn.prepareStatement(api.replaceDbName(query));
+    var bodyJson = JSON.parse($.request.body.asString()); 
+
+	var registro = bodyJson;
+
+    pStmt.setFloat(1, registro.VRRECCARTAO);
+    pStmt.setInt(2, registro.IDVENDA);
+    
+	pStmt.execute();
+   
+	pStmt.close();
+
+	conn.commit();
+	
+	return {
+	    msg : "Atualização realizada com sucesso!"
+	};
+}
+
+
+$.response.contentType = 'application/json';
+$.response.status = $.net.http.OK;
+
+try {
+    switch ( $.request.method ) {
+        //Handle your PUT calls here
+        case $.net.http.PUT:
+            var docReturn = fnHandlePut();
+            $.response.setBody(JSON.stringify(docReturn));
+            break;
+        
+    }
+    
+} catch(e) {
+    $.response.contentType = 'application/json';
+    $.response.setBody(JSON.stringify({ message : e.message }));
+    $.response.status = 400;
+}

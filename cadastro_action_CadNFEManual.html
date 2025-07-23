@@ -1,0 +1,307 @@
+<style>
+  #dt-lista-produtos-nfe-entrada td, #dt-lista-prods-do-pedido-para-nfe td{
+    vertical-align: middle !important;
+  }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.9.0/jquery.contextMenu.min.js"></script>
+<link rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.9.0/jquery.contextMenu.min.css">
+
+<div id="contextMenu" class="context-menu" style="display: none;">
+  <div id="editOption">Editar</div>
+  <div id="deleteOption">Deletar</div>
+</div>
+
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <!-- <input class="form-control" name="idResPedNFEManual" id="idResPedNFEManual" hidden> -->
+            <form id="formNFEDeEntrada">
+              <div class="row">
+                <div class="col-sm-6 col-xl-8">
+                  <label class="form-label" for="idforn">Fornecedor</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idforn" id="idforn">
+                      <option value=""> </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-4">
+                  <label class="form-label" for="idcondicaopagamento">Condições de Pagamento</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idcondicaopagamento" id="idcondicaopagamento">
+                      <option value=""> </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <hr>
+              <div class="row">
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="idResPedNFEManual">Nº Pedido</label>
+                  <input class="form-control" name="idResPedNFEManual" id="idResPedNFEManual" disabled>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="fabprod">Marca</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="fabprod" id="fabprod">
+                      <option value=""></option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-4">
+                  <label class="form-label" for="IdCompradorPedido">Comprador</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="IdCompradorPedido" id="IdCompradorPedido">
+                      <option value=""> </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="idUsoPrincipal">Uso Principal</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idUsoPrincipal" id="idUsoPrincipal">
+                      <option value="">Selecione</option>
+                      <option value="10">Compra Comercial</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <hr>
+              <div class="row">
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="idTpFrete">Frete</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idTpFrete" id="idTpFrete">
+                      <option value="" selected disabled>Selecione</option>
+                      <option value="0">Emitente</option>
+                      <option value="1">Destinatario</option>
+                      <option value="2">Terceiros</option>
+                      <option value="9">Sem Frete</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="idStatusNota">Status</label>
+                  <div class="input-group">
+                    <input type="text" id="idStatusNota" name="idStatusNota" class="form-control input" value="Aberta"  readonly disabled>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="idStatusSaldo">Saldo</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idStatusSaldo" id="idStatusSaldo">
+                      <option value="">Selecione</option>
+                      <option value="True">Sim</option>
+                      <option value="False">Não</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="dtCadastro">Data Cadastro</label>
+                  <input class="form-control" id="dtCadastro" type="date" name="dtCadastro" value="">
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="dtNotaEntrada">Data Emissão</label>
+                  <input class="form-control" id="dtNotaEntrada" type="date" name="dtNotaEntrada" value="">
+                </div>
+              </div>
+              <hr>
+              <div class="row">
+                <div class="col-sm-6 col-xl-8">
+                  <label class="form-label" for="depositoDestinoNF">Filial</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="depositoDestinoNF" id="depositoDestinoNF"
+                      onchange="trocaCnpjDepositoDestinoNF(this.value)">
+                      <option value="" disabled>Selecione a Filial de Destino</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-4">
+                  <label class="form-label" for="cnpjdepositoDestinoNF">CNPJ Filial</label>
+                  <div class="input-group">
+                    <input type="text" id="cnpjDepositoDestinoNF" name="cnpjDepositoDestinoNF" class="form-control" value=""
+                      readonly>
+                  </div>
+                </div>
+              </div>
+              <hr>
+              <div class="row">
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="tipoNF">Tipo NF</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="tipoNF" id="tipoNF">
+                      <option value="-2">Externo</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="numNF">Nº NF</label>
+                  <div class="input-group">
+                    <input type="text" id="numNF" name="numNF" class="form-control" value="">
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-1">
+                  <label class="form-label" for="serieNF">Série NF</label>
+                  <div class="input-group">
+                    <input type="text" id="serieNF" name="serieNF" class="form-control" value="">
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="modeloNF">Modelo NF</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="modeloNF" id="modeloNF">
+                      <option value="55">NFe(55) </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-5">
+                  <label class="form-label" for="chaveNF">Chave NF</label>
+                  <div class="input-group">
+                    <input type="text" id="chaveNF" name="chaveNF" class="form-control" value="" onblur="preencheDadosComCHNFE(this.value)">
+                  </div>
+                </div>
+              </div>
+            </form>
+            <BR></BR>
+            <div class="row">
+              <div class="col-xl-12">
+                <div id="panel-1" class="panel">
+                  <div class="panel-hdr pl-3 textTitleTableProdutosNFEEntrada">
+                    <h2>
+                      LISTA DOS PRODUTOS DA NOTA
+                    </h2>
+                  </div>
+                  <div class="panel-container show">
+                    <div class="panel-content">
+                      <div id="resultadoProdParaNFE" style="overflow: auto;">
+                        <table id="dt-lista-produtos-nfe-entrada"
+                          class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                          <thead class="bg-primary-600">
+                            <tr>
+                              <th>#</th>
+                              <th class="text-center">ID Produto</th>
+                              <th class="text-center">Produto</th>
+                              <th class="text-center">Cod.Barras</th>
+                              <th class="text-center">Quantidade</th>
+                              <th class="text-center">Depósito</th>
+                              <th class="text-center">Vr.Unitário</th>
+                              <th class="text-center">Vr.Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>#</td>
+                              <td>
+                                <div class="input-group">
+                                  <input type="text" class="form-control" value=""
+                                    onpaste="formataDadosCopiadosDeTabela(event, this, insereLinhaComIdProdNFEntrada)"
+                                    onkeypress="pressEnterInLine(event, insereLinhaComIdProdNFEntrada, this)"
+                                    onchange="insereLinhaComIdProdNFEntrada(this)">
+                                </div>
+                              </td>
+                              <td>
+                                <div class="input-group">
+                                  <input type="text" typeElement="descricaoProd" class="form-control" value=""
+                                    onchange="insereLinhaComDescProdNFEntrada(this)">
+                                </div>
+                              </td>
+                              <td>
+                                <div class="input-group">
+                                  <input type="text" class="form-control" value="" onchange="insereLinhaComCodBarrasNFEntrada(this)">
+                                </div>
+                              </td>
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row d-flex justify-content-between">
+              <div class="col-sm-6 col-xl-5">
+                <label class="form-label" for="obsNotaEntrada">Observações</label>
+                <div class="input-group">
+                  <textarea class="form-control" name="obsNotaEntrada" id="obsNotaEntrada" cols="30"
+                    rows="11"></textarea>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-6 d-flex flex-column-column">
+                <div class="col-sm-6 col-xl-6">
+                  <div class="col-sm-12 col-xl-12">
+                    <label class="form-label" for="vrTotalNotaEntrada">Total Antes do Desconto</label>
+                    <div class="input-group">
+                      <input class="form-control" name="vrTotalNotaEntrada" id="vrTotalNotaEntrada" readonly></input>
+                    </div>
+                  </div>
+                  <div class="col-sm-12 col-xl-12">
+                    <label class="form-label" for="vrDescontoNotaEntrada">Desconto</label>
+                    <div class="input-group">
+                      <input class="form-control" name="vrDescontoNotaEntrada" id="vrDescontoNotaEntrada"
+                        readonly></input>
+                    </div>
+                  </div>
+                  <div class="col-sm-12 col-xl-12">
+                    <label class="form-label" for="vrAdiantamentoNotaEntrada">Adiantamento Total</label>
+                    <div class="input-group">
+                      <input class="form-control" name="vrAdiantamentoNotaEntrada" id="vrAdiantamentoNotaEntrada"
+                        readonly></input>
+                    </div>
+                  </div>
+                  <div class="col-sm-12 col-xl-12">
+                    <label class="form-label" for="vrAdiantamentoNotaEntrada">Despesas Adicionais</label>
+                    <div class="input-group">
+                      <input class="form-control" name="vrAdiantamentoNotaEntrada" id="vrAdiantamentoNotaEntrada"
+                        readonly></input>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-6">
+                  <div class="col-sm-12 col-xl-12">
+                    <label class="form-label" for="vrImposto">Imposto</label>
+                    <div class="input-group">
+                      <input class="form-control" name="vrImposto" id="vrImposto" readonly></input>
+                    </div>
+                  </div>
+                  <div class="col-sm-12 col-xl-12">
+                    <label class="form-label" for="vrImpostoRetido">Valor de Imposto Retido</label>
+                    <div class="input-group">
+                      <input class="form-control" name="vrImpostoRetido" id="vrImpostoRetido" readonly></input>
+                    </div>
+                  </div>
+                  <div class="col-sm-12 col-xl-12">
+                    <label class="form-label" for="vrTotalaPagar">Total a Pagar</label>
+                    <div class="input-group">
+                      <input class="form-control" name="vrTotalaPagar" id="vrTotalaPagar" readonly></input>
+                    </div>
+                  </div>
+                  <div class="col-sm-12 col-xl-12">
+                    <label class="form-label" for="vrAplicado">Valor Aplicado</label>
+                    <div class="input-group">
+                      <input class="form-control" name="vrAplicado" id="vrAplicado" readonly></input>
+                    </div>
+                  </div>
+                  <div class="col-sm-12 col-xl-12">
+                    <label class="form-label" for="vrSaldo">Saldo</label>
+                    <div class="input-group">
+                      <input class="form-control" name="vrSaldo" id="vrSaldo" readonly></input>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

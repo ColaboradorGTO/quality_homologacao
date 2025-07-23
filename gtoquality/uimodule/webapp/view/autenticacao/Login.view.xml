@@ -1,0 +1,43 @@
+<mvc:View
+        controllerName="com.quality.quality.controller.autenticacao.Login"
+        xmlns:mvc="sap.ui.core.mvc"
+        xmlns="sap.m" xmlns:grid="sap.ui.layout.cssgrid" xmlns:core="sap.ui.core">
+        <App id="idAppControl">
+         <Page title="{i18n>login}" showHeader="false">				
+				<content>
+					<grid:CSSGrid id="grid1" gridGap="1rem" class="whiteBg">
+					
+						<VBox class="demoBox alignImage whiteBg">
+							<layoutData>
+								<grid:GridItemLayoutData gridColumn="1 / 8" />
+							</layoutData>
+							<Image src="/img/logogto.jpg" width="300px" id="image1"/>
+						</VBox>
+
+						<VBox class="demoBox borderLogin grayBg" busy="{loginModel>/isTableLoad}">
+							<layoutData>
+								<grid:GridItemLayoutData gridColumn="8 / 12" />
+							</layoutData>
+							<VBox fitContainer="true" justifyContent="Center" alignItems="Center" alignContent="Center" class="alignCenter">
+								<items>
+									<Text text="{i18n>login}" wrapping="true" class="fontColor" />
+									<Input id="uid" placeholder="{i18n>username}"></Input>
+									<Input id="pasw" placeholder="{i18n>password}" type="Password"></Input>
+									<Text text="{loginModel>/msgLogin}" visible="{loginModel>/errorLogin}" wrapping="true" class="errorMessage" />
+									<Button width="12rem" text="{i18n>login}" type="Emphasized" press="onLoginTap"></Button>
+								</items>
+							</VBox>
+						</VBox>
+
+
+						
+				
+				
+					</grid:CSSGrid>
+
+
+				</content>
+				
+			</Page>
+            </App>
+      </mvc:View> 

@@ -1,0 +1,75 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+  <li class="breadcrumb-item active"> Produtos </li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Lista de Produtos <span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i> Produtos</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div id="avisoPesquisa" class="d-none"></div>
+            <div class="row">
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="dtInicio">Data Inicio</label>
+                <input class="form-control" id="dtInicio" type="date" value="" style="height: 39px;" />
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="dtFim">Data Final</label>
+                <input class="form-control" id="dtFim" type="date" value="" style="height: 39px;" />
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idFilial">Filial</label>
+                <select class="form-control" id="idFilial" value="" style="height: 39px;">
+                  <option value="">Selecione...</option>
+                  <option value="0">TODAS</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idPedido">Nº: Pedido</label>
+                <input class="form-control" id="idPedido" type="text" value="" placeholder="Número do Pedido"
+                  style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idProd">Id. Prod</label>
+                <input class="form-control" id="idProd" type="text" name="Id do Produto" value="" placeholder="Id do Produto" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="descProd">Descrição</label>
+                <input class="form-control" id="descProd" type="text" name="Id do Produto" value="" placeholder="Descrição do Produto" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="codBarrasProd">Cod.Barras</label>
+                <input class="form-control" id="codBarrasProd" type="text" name="Codigo de Barras do Produto" value="" placeholder="Código de Barras" style="height: 39px;">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-xl-12">
+                <br>
+                <div>
+                <button class="btn btn-primary" type="button" onclick="pesquisaProdutosPorPedido()">
+                  <span class="fal fa-search mr-1"></span>Pesquisar
+                </button>
+              </div>
+              </div>
+            </div>
+          </div>
+          <div id="resultado">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

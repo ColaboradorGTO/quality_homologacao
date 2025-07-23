@@ -1,0 +1,81 @@
+<core:FragmentDefinition
+  xmlns="sap.m"
+  xmlns:f="sap.ui.layout.form"
+  xmlns:core="sap.ui.core"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns:html="http://www.w3.org/1999/xhtml"
+  xmlns:l="sap.ui.layout"
+  width="100%">
+  <Dialog title="{i18n>resumobalanco.CreateTitle}" id="dialog">
+    <content>
+
+      <f:SimpleForm id="SimpleFormDisplay354"
+			editable="false"
+      minWidth="1024"
+			layout="ResponsiveGridLayout"
+			title="{i18n>resumobalanco.ListTitle}"
+			labelSpanXL="3"
+			labelSpanL="3"
+			labelSpanM="3"
+			labelSpanS="12"
+			adjustLabelSpan="false"
+			emptySpanXL="4"
+			emptySpanL="4"
+			emptySpanM="4"
+			emptySpanS="0"
+			columnsXL="1"
+			columnsL="1"
+			columnsM="1"
+			singleContainerFullSize="true" width="100%" >
+			<f:content>
+			  <Label text="{i18n>resumobalanco.ColumnEmpresa}" width="100%"/>
+          <ComboBox
+            id="IDEMPRESA"
+            items="{
+              path: '/empresas',
+              sorter: { path: 'NOFANTASIA' }
+            }">
+            <core:Item key="{IDEMPRESA}" text="{NOFANTASIA}" />
+          </ComboBox>
+          <Label text="{i18n>resumobalanco.ColumnResumo}" width="100%"/>
+          <TextArea width="100%" id="DSRESUMOBALANCO" maxLength="150"/>
+          <Label text="{i18n>resumobalanco.ColumnDtAbertura}" width="100%"/>
+          <DateTimePicker
+            id="DTABERTURA"
+            showCurrentDateButton="true"
+            valueFormat="YYYY-MM-DDTHH:mm:ss.sssZ"
+            displayFormat="dd/MM/yyyy HH:mm:ss"
+           
+            class="sapUiSmallMarginBottom"/>
+          <Label text="{i18n>resumobalanco.ColumnDtFechamento}" width="100%"/>
+          <DateTimePicker
+            id="DTFECHAMENTO"
+            showCurrentDateButton="true"
+            valueFormat="YYYY-MM-DDTHH:mm:ss.sssZ"
+            displayFormat="dd/MM/yyyy HH:mm:ss"
+           
+            class="sapUiSmallMarginBottom"/>
+          <Label text="{i18n>resumobalanco.ColumnTotalItens}" width="100%"/>
+          <MaskInput width="100px" id="QTDTOTALITENS" mask="999999"/>
+          <Label text="{i18n>resumobalanco.ColumnTotalSobra}" width="100%"/>
+          <MaskInput width="100px" id="QTDTOTALSOBRA" mask="999999"/>
+          <Label text="{i18n>resumobalanco.ColumnTotalFalta}" width="100%"/>
+          <MaskInput width="100px" id="QTDTOTALFALTA" mask="999999"/>
+          <Label text="{i18n>resumobalanco.ColumnObservacao}" width="100%"/>
+          <TextArea width="100%" id="TXTOBSERVACAO" maxLength="150"/>
+          <Label text="{i18n>resumobalanco.ColumnAtivo}" width="100%"/>
+          <ComboBox id="STATIVO">
+            <core:Item key="True" text="Ativo" />
+            <core:Item key="False" text="Inativo" />
+          </ComboBox>
+			</f:content>
+		</f:SimpleForm>
+    </content>
+    <beginButton>
+      <Button text="Gravar" press="onSave" icon="sap-icon://save"/>
+    </beginButton>
+    <endButton>
+      <Button text="Cancelar" press="onCloseViewDialog"/>
+    </endButton>
+  </Dialog>
+</core:FragmentDefinition>

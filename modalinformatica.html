@@ -1,0 +1,552 @@
+
+<!-- Modal Cadastro Empresa Notas-->
+<div class="modal fade" id="cadEmpresas" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                        <h4 class="modal-title">
+                            Dados de Empresa
+                            <small class="m-0 text-muted">
+                                Atualização dos Dados da Empresa
+                            </small>
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                        </button>
+                    </div>                
+                    <div class="modal-body" id="resulmodalempresa">
+                       
+                    </div>
+                
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" onclick="atualizar_empresa()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+               
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="UpEmpresasAtualiza" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                        <h4 class="modal-title">
+                            Dados de Empresa
+                            <small class="m-0 text-muted">
+                                Atualização Diária dos PDVs da Empresa
+                            </small>
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                        </button>
+                    </div>                
+                    <div class="modal-body" id="resulmodalempresaatualiza">
+                       
+                    </div>
+                
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" onclick="atualizar_diaria_empresa()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+               
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cadastro Certificado Notas-->
+<div class="modal fade" id="cadCertificado" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados do Certificado
+                    <small class="m-0 text-muted">
+                        Cadastrar ou Atualizar informações do certificado para emissão das notas fiscais
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formCertificado" name="formCertificado" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcertificado">
+
+                    </div>
+                    <div class="modal-footer" id="footercertificado">
+                        <button type="button" class="btn btn-success" onclick="atualizar_certificado()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cadastro Caixas-->
+<div class="modal fade" id="updateCaixa" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados do Caixa
+                    <small class="m-0 text-muted">
+                        Atualizar informações do Caixa - PDV
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formUpdateCaixa" name="formUpdateCaixa" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalupdatecaixa">
+
+                    </div>
+                    <div class="modal-footer" id="footerupdatecaixa">
+                        <button type="button" class="btn btn-success" onclick="atualizar_caixa()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cadastro Caixas-->
+<div class="modal fade" id="cadCaixa" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados do Caixa
+                    <small class="m-0 text-muted">
+                        Cadastrar informações do Caixa - PDV
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formCadCaixa" name="formCadCaixa" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcadcaixa">
+
+                    </div>
+                    <div class="modal-footer" id="footercadcaixa">
+                        <button type="button" class="btn btn-success" onclick="cadastrar_caixa()">Cadastrar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhar Venda-->
+<div class="modal fade" id="detVenda" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Detalhe da Venda
+                    <small class="m-0 text-muted">
+                        Relação de Produtos da Venda
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetVenda" name="formDetVenda" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaldetvenda">
+
+                    </div>
+                    <div class="modal-footer" id="footerdetvenda">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cadastro Funcionario-->
+<div class="modal fade" id="cadFuncionario" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados do Funcionário
+                    <small class="m-0 text-muted">
+                        Cadastrar ou Atualizar informações do Funcionário
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formFuncionario" name="formFuncionario" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="NotificacaoModalFuncionario">
+
+                    </div>
+                    <div class="modal-body" id="resulmodalfuncionario">
+
+                    </div>
+                    <div class="modal-footer" id="footerfuncionario">
+                        <button type="button" class="btn btn-success" onclick="cadastrar_funcionario()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Cadastro Parceiros-->
+<div class="modal fade" id="cadParceiro" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados do Funcionário
+                    <small class="m-0 text-muted">
+                        Cadastrar ou Atualizar informações do Parceiro de Negócios
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formParceiro" name="formParceiro" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalparceiro">
+
+                    </div>
+                    <div class="modal-footer" id="footerparceiro">
+                        <button type="button" class="btn btn-success" onclick="cadastrar_parceiro()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhar Recebimento-->
+<div class="modal fade" id="detVendaRecebimento" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Detalhe da Venda
+                    <small class="m-0 text-muted">
+                        Relação de Recebimentos da Venda
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetVendaRecebimento" name="formDetVendaRecebimento" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaldetvendarecebimento">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Alterar Recebimento-->
+<div class="modal fade" id="alterarRecebimento" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Detalhes do Recebimento
+                    <small class="m-0 text-muted">
+                        Alterar Recebimentos da Venda
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formalterarRecebimento" name="formalterarRecebimento" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalalterarecebimento">
+
+                    </div>
+                    <div class="modal-footer" id="footeralterarrecebimento">
+                        <button type="button" class="btn btn-success" data-dismiss="modal"  onclick="alterar_Recebimento()">Confirmar Alteração</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cancelar Venda-->
+<div class="modal fade" id="cancelVenda" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Cancelamento da Vendas
+                    <small class="m-0 text-muted">
+                        As Vendas só poderão ser canceladas até 24 depois de ser emitida
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formCancelVenda" name="formCancelVenda" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcancelvenda">
+
+                    </div>
+                    <div class="modal-footer" id="footercancelvenda">
+                        <button type="button" class="btn btn-success" onclick="cancelar_vendas()">Cancelar Venda</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cancelar Voucher-->
+<div class="modal fade" id="cancelVoucher" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Cancelamento da Voucher
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formCancelVoucher" name="formCancelVoucher" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcancelvoucher">
+
+                    </div>
+                    <div class="modal-footer" id="footercancelvoucher">
+                        <button type="button" class="btn btn-success" onclick="cancelar_Voucher()">Cancelar Voucher</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Bônus Funcionario-->
+<div class="modal fade" id="cadBonusFuncionario" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Funcionário
+                    <small class="m-0 text-muted">
+                        Crédito Bônus de Funcionário
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formBonusFuncionario" name="formBonusFuncionario" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="NotificacaoModalbonusFuncionario">
+
+                    </div>
+                    <div class="modal-body" id="resulmodalbonusfuncionario">
+
+                    </div>
+                    <div class="modal-footer" id="footerBonusfuncionario">
+                        <button type="button" class="btn btn-success" onclick="cadastrar_Bonus_funcionario()">Creditar(R$)</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cliente -->
+<div class="modal fade" id="cadcliente" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modalcliente">
+                    Cliente:
+                    <small class="m-0 text-muted">
+                        <div class="input-group">
+
+                            <input type="text" id="nome_cliente" name="RazaoSocial" class="form-control input" style="text-transform: uppercase" value="" readonly>
+                            
+                        </div>
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formcliente" name="formcliente" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resultadomodalcliente">
+                    </div>
+                    <div class="modal-footer" id="footermodalcliente">
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhar Venda Cancelada-->
+<div class="modal fade" id="modalVendaCancelada" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Detalhes da Venda: <span class="textoCabecalhoDetalhe"></span>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetVendaCancelada" name="formDetVendaCancelada" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaldetvendacancelada">
+
+                    </div>
+                    <div class="modal-footer" id="footerdetvendacancelada">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Cadastro Empresa-->
+<div class="modal fade" id="cadEmpresa" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 class="modal-title">
+                  Dados da Empresa
+                  <small class="m-0 text-muted">
+                      Cadastrar ou Atualizar informações da Empresa
+                  </small>
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <form id="formEmpresa" name="formEmpresa" method="post" enctype="multipart/form-data" onsubmit="return false;">
+              <fieldset>
+                  <div class="modal-body" id="resultadoModalEmpresa">
+
+                  </div>
+                  <div class="modal-footer" id="footerEmpresa">
+                      <button type="button" class="btn btn-success" onclick="cadastrar_empresa()">Cadastrar</button>
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                  </div>
+              </fieldset>
+          </form> 
+      </div>
+  </div>
+</div>
+
+<!-- Modal Relatorio BI -->
+<div class="modal fade" id="cadrelatoriobi" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modalrelatoriobi">
+                    Relatório BI
+                    <small class="m-0 text-muted">
+                        Cadastrar / Alterar
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formrelatoriobi" name="formrelatoriobi" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resultadomodalrelatoriobi">
+                    </div>
+                    <div class="modal-footer" id="footermodalrelatoriobi">
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Link Relatorio BI -->
+<div class="modal fade" id="cadlinkrelatoriobi" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modallinkrelatoriobi">
+                    Link Relatório BI
+                    <small class="m-0 text-muted">
+                        Cadastrar / Alterar
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formlinkrelatoriobi" name="formlinkrelatoriobi" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resultadomodallinkrelatoriobi">
+                    </div>
+                    <div class="modal-footer" id="footermodallinkrelatoriobi">
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Importar Link Relatorio BI -->
+<div class="modal fade" id="cadimportarlinkrelatoriobi" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modalimportarlinkrelatoriobi">
+                    Link Relatório BI
+                    <small class="m-0 text-muted">
+                        Importar
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formlinkrelatoriobi" name="formimportarlinkrelatoriobi" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resultadomodalimportarlinkrelatoriobi">
+                    </div>
+                    <div class="modal-footer" id="footermodalimportarlinkrelatoriobi">
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>

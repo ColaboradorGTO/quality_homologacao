@@ -1,0 +1,10 @@
+{
+    "description": "Alteracao de preco de produtos Quality",
+    "action": "quality.concentrador.api.service-layer.devolucao.devolucao-produtos-voucher.jobs:transferir-produtos-entre-lojas.xsjs::executeGerarTransferencia",
+    "schedules": [
+       {
+          "description": "Todo dia as 00:01:00",
+          "xscron": "* * * * 00 01 00"
+       }
+    ]
+}

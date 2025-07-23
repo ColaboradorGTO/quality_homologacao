@@ -1,0 +1,89 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+  <li class="breadcrumb-item active"> Produtos </li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 id="DescTitlePage" class="subheader-title">
+    <i class='subheader-icon fal fa-chart-area'></i>Lista de Produtos <span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i> Produtos</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div id="avisoPesquisa" class="d-none"></div>
+            <div class="row">
+              <!-- <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idListaPreco">Lista de Preço</label>
+                <select class="form-control" id="idListaPreco" type="text" name="Id do Produto" value="" style="height: 39px;">
+                  <option value="">Selecione...</option>
+                  <option   title="GRUPO" value="0">TODOS</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idProdEtiqueta">Id. Prod</label>
+                <input class="form-control" id="idProdEtiqueta" type="text" name="Id do Produto" value="" placeholder="Id do Produto" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="descProdEtiqueta">Descrição</label>
+                <input class="form-control" id="descProdEtiqueta" type="text" name="Id do Produto" value="" placeholder="Descrição do Produto" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="codBarrasProdEtiqueta">Cod.Barras</label>
+                <input class="form-control" id="codBarrasProdEtiqueta" type="text" name="Codigo de Barras do Produto" value="" placeholder="Código de Barras" style="height: 39px;">
+              </div>-->
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idforn">Fornecedor</label>
+                <select class="form-control" id="idforn" title="Fornecedor" style="height: 39px;">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idPedido">Nº Pedido</label>
+                <input class="form-control" id="idPedido" type="text" value="" placeholder="Número do Pedido" style="height: 39px;">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-xl-12">
+                <br>
+                <div>
+                <button class="btn btn-primary" type="button" onclick="pesquisaProdutos()">
+                  <span class="fal fa-search mr-1"></span>Pesquisar
+                </button>
+
+                <button id="btnAcumuladorImpEtiqueta" class="btn btn-success d-none" type="button" onclick="acumuladorImpEtiquetas()">
+                  <span class="fal fa-download mr-1"></span>Guardar
+                </button>
+
+                <button id="btnImpEtiqueta" class="btn btn-info d-none" type="button" onclick="listarProdsParaImprimir()">
+                  <span class="fal fa-print mr-1"></span>Imprimir
+                </button>
+
+                <button id="btnDeletarAcumuladorImpEtiquetas" class="btn btn-danger d-none" style="margin-left: 20%;" type="button" onclick="deletarAcumuladorImpEtiquetas()">
+                  <span class="fal fa-trash mr-1"></span>Limpar Histórico
+                </button>
+              </div>
+              </div>
+            </div>
+          </div>
+          <div id="containerQtdCopias" class="row align-items-center mb-2 pl-4 d-none">
+            <label class="form-label h6 mr-1" for="qtdCopias">QTD CÓPIAS:</label>
+            <input class="form-control h5 text-center border-dark" id="qtdCopias" type="number" min="1"
+              name="Quantidade de Cópias" value="1" style="height: 25px; width: 90px" autocomplete="off" autofill="off" />
+          </div>
+          <div id="resultado">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

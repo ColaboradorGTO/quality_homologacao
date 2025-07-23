@@ -1,0 +1,177 @@
+<div id="resultadoprodcadavulsopedido"></div>
+
+<div class="form-group">
+  <input type="hidden" name="idDetProdPedido" id="idDetProdPedido" value="">
+  <input type="hidden" name="idResProdPedido" id="idResProdPedido" value="">
+  <div class="row">
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="qtdprodpedido">Quantidade</label>
+      <div class="input-group">
+        <input type="text" id="qtdprodpedido" name="qtdprodpedido" class="form-control" value="0">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="refproduto">Referência</label>
+      <div class="input-group">
+        <input type="text" id="refproduto" name="refproduto" class="form-control" value="">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="codbproduto">Cod. Barras</label>
+      <div class="input-group">
+        <input type="text" id="codbproduto" name="codbproduto" class="form-control" value="" readonly>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="dsprodpedido">Descrição Produto</label>
+      <div class="input-group">
+        <input type="text" id="dsprodpedido" name="dsprodpedido" class="form-control" value="">
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="dsfornedit">Fornecedor</label>
+      <div class="input-group">
+        <input type="text" id="dsfornedit" name="dsfornedit" class="form-control" value="" readonly>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="dsfabedit">Fabricante</label>
+      <div class="input-group">
+        <input type="text" id="dsfabedit" name="dsfabedit" class="form-control" value="" readonly>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="corprodcad">Cor</label>
+      <div class="input-group">
+        <select class="select form-control" name="corprodcad" id="corprodcad"></select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="idtipopedidoedit">Categoria Produto</label>
+      <div class="input-group">
+        <select class="select form-control" name="idtipopedidoedit" id="idtipopedidoedit"></select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="tamprod">Tamanho</label>
+      <div class="input-group">
+        <select class="select form-control" name="tamprod" id="tamprod"></select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="unidprod">Unidade</label>
+      <div class="input-group">
+        <select class="select form-control" name="unidprod" id="unidprod"></select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="tptecidoprodcad">Tipo de Tecido</label>
+      <div class="input-group">
+        <select class="select form-control" name="tptecidoprodcad" id="tptecidoprodcad"></select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="dsestiedit">Estilos</label>
+      <div class="input-group">
+        <input type="text" id="dsestiedit" name="dsestiedit" class="form-control" value="" readonly>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="dsestredit">Estrutura</label>
+      <div class="input-group">
+        <input type="text" id="dsestredit" name="dsestredit" class="form-control" value="" readonly>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="categoriasprod">Categorias</label>
+      <div class="input-group">
+        <select class="select form-control" name="categoriasprod" id="categoriasprod"></select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="localexp">Local Exposição</label>
+      <div class="input-group">
+        <select class="select form-control" name="localexp" id="localexp"></select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="stecommerce">E-commerce</label>
+      <div class="input-group">
+        <select class="select form-control" name="stecommerce" id="stecommerce">
+          <option value="True">SIM</option>
+          <option value="False">NÃO</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="stredesocial">Rede Social</label>
+      <div class="input-group">
+        <select class="select form-control" name="stredesocial" id="stredesocial">
+          <option value="True">SIM</option>
+          <option value="False">NÃO</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="idncm">NCM</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="idncm" id="idncm">
+          <option value=""> </option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="idtipoprod">Tipo Produto</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="idtipoprod" id="idtipoprod">
+          <option value=""> </option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="idtipofiscal">Tipo Fiscal</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="idtipofiscal" id="idtipofiscal">
+          <option value=""> </option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="vrunitcusto">Vr Custo</label>
+      <div class="input-group">
+        <input type="text" id="vrunitcusto" name="vrunitcusto" class="form-control" value="0">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="vrunitvenda">Vr Venda</label>
+      <div class="input-group">
+        <input type="text" id="vrunitvenda" name="vrunitvenda" class="form-control" value="0">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $("#vrunitcusto").mask('#.##0,00', { reverse: true });
+  $("#vrunitvenda").mask('#.##0,00', { reverse: true });
+</script>

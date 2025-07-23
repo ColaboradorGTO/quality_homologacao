@@ -1,0 +1,69 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Lista de Fornecedores</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i>Relatórios - Fornecedores
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                <div class="panel-tag">
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-4">
+                                    <label class="form-label" for="tpfornec">Por Fornecedor</label>
+                                    <div class="input-group">
+                                        <select class="select2" data-width="100%" id="idfornselect"
+                                                name="idfornselect"
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>   
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="pesqforn">Razão Social / Nome Fantasia</label>
+                                    <div class="input-group">
+                                        <input type="text" id="descForn" name="descForn" class="form-control input" value="">
+                                    </div>
+                                </div>  
+                                <div class="col-sm-6 col-xl-2">
+                                    <label class="form-label" for="pesqcnpjforn">CNPJ</label>
+                                    <div class="input-group">
+                                        <input type="text" id="cnpjForn" name="cnpjForn" class="form-control input" value="">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpfornec">Por Fabricante</label>
+                                    <div class="input-group">
+                                        <select class="select2" data-width="100%" id="idfabselect"
+                                                name="idfabselect"
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>  
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-8 col-xl-8">
+                                <br>
+                                        <button class="btn btn-primary" type="button" onclick="pesq_fornecedor(1)"><span class="fal fa-search mr-1"></span>Pesquisar Fornecedor</button>
+                                        <button class="btn btn-success" type="button" onclick="modal_Cad_Fornecedor()"><span class="fal fa-plus mr-1"></span>Cadastrar Fornecedor</button>
+                                        <button class="btn btn-warning" type="button" onclick="vincular_For_Fab()"><span class="fal fa-plus mr-1"></span>Vincular Fornecedor / Fabricante</button>
+                                </div>
+                            </div>
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

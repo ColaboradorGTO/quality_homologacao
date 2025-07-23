@@ -1,0 +1,66 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+    <li class="breadcrumb-item active"><a href="javascript:ListaVendasCanceladasPorEmpresa();">Vendas Canceladas por Loja e Período</a></li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i> Vendas Canceladas por Loja e Período
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                    <div class="panel-tag">
+                        <div class="row">
+                          <div class="col-sm-6 col-xl-2">
+                            <label class="form-label" for="dtconsultainicio">Data Início</label>
+                            <div class="input-group" style="height: 37.5px;">
+                              <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" />
+                            </div>
+                          </div>
+                          <div class="col-sm-6 col-xl-2">
+                            <label class="form-label" for="dtconsultafim">Data Fim</label>
+                            <div class="input-group" style="height: 37.5px;">
+                              <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" />
+                            </div>
+                          </div>
+                          <div class="col-sm-6 col-xl-3">
+                            <label class="form-label" for="idmarca">Por Marca</label>
+                            <div class="input-group">
+                                <select class="form-control" name="idmarca" id="idmarca" onChange="selecionamarcavendas();">
+                                  <option value="0">Todos </option>
+                                </select>
+                            </div>
+                          </div>
+                          <div class="col-sm-6 col-xl-3">
+                            <label class="form-label" for="idloja">Empresa</label>
+                            <div class="input-group">
+                                <select class="form-control" name="idloja" id="idloja">
+                                  <option value="0">Todos </option>
+                                </select>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-sm-12 col-xl-12">
+                            <br>
+                            <button class="btn btn-primary" type="button" onclick="pesq_vendas_canceladas_por_empresa()" title="Pesquisar todos os tipos de vendas canceladas"><span class="fal fa-search mr-1"></span>Pesquisar Todas</button>
+                            <button class="btn btn-info" type="button" onclick="pesq_vendas_canceladas_por_empresa('30Min')" title="Pesquisar vendas emitidas e que foram canceladas após os 30 minutos"><span class="fal fa-search mr-1"></span>Pesquisar Canc. +30 min.</button>
+                            <button class="btn btn-success" type="button" onclick="pesq_vendas_canceladas_por_empresa('Web')" title="Pesquisar vendas canceladas pela web"><span class="fal fa-search mr-1"></span>Pesquisar Canc. Web</button>
+                            <button class="btn btn-danger" type="button" onclick="pesq_vendas_canceladas_por_empresa('PdvEmitida')" title="Pesquisar vendas que foram Emitidas e depois canceladas no pdv"><span class="fal fa-search mr-1"></span>Pesquisar Canc. Emitidas PDV</button>
+                            <button class="btn btn-secondary" type="button" onclick="pesq_vendas_canceladas_por_empresa('PdvEmTela')" title="Pesquisar vendas que não foram finalizadas e nem emitidas, e foram canceladas em tela no pdv"><span class="fal fa-search mr-1"></span>Pesquisar Canc. Em Tela PDV</button>
+                          </div>
+                        </div>
+
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,187 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Distribuição de Compras</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class='subheader-icon fal fa-chart-area'></i>Planejamento
+  </h1>
+</div>
+
+<div class="row">
+  <div class="col-xl-12">
+    <!-- Filtro Pedido de Compras -->
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          Filtro PEDIDO DE COMPRAS
+        </h2>
+        <div class="panel-toolbar">
+          <button class="btn btn-panel waves-effect waves-themed" data-action="panel-collapse" data-toggle="tooltip"
+            data-offset="0,10" data-original-title="Collapse"></button>
+        </div>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="datainicial">Data Inicial</label>
+                <input class="form-control" id="datainicial" type="date" name="datainicial" value="">
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="datafinal">Data Final</label>
+                <input class="form-control" id="datafinal" type="date" name="datafinal" value="">
+              </div>
+              <div class="col-sm-6 col-xl-6">
+                <label class="form-label" for="idfornecedorpedido">Fornecedor</label>
+                <select class="select2 form-control" name="idfornecedorpedido" id="idfornecedorpedido">
+                  <option value="">Selecione o Fornecedor</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-xl-12">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisarpedidocompra()"><span
+                    class="fal fa-search mr-1"></span>Pesquisar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-sm-12 col-xl-12">
+    <div id="resultadopedido">
+    </div>
+  </div>
+</div>
+<br>
+<div class="row" id="filtrovendas">
+  <div class="col-xl-12">
+    <!-- Filtro Vendas -->
+    <div id="panel-2" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          Filtro VENDAS
+        </h2>
+        <div class="panel-toolbar">
+          <button class="btn btn-panel waves-effect waves-themed" data-action="panel-collapse" data-toggle="tooltip"
+            data-offset="0,10" data-original-title="Collapse"></button>
+        </div>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="idGrupoEmpresarial">Grupo</label>
+                <select class="select2 form-control" name="idGrupoEmpresarial" id="idGrupoEmpresarial"
+                  onChange="filtrarfilial(this.value);">
+                  <option value="0">Selecione a Marca</option>
+                </select>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="idfilial">Filial</label>
+                <select class="select2 form-control" name="idfilial" id="idfilial" multiple>
+                  <option value="0"></option>
+                </select>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="idmarca">Marca</label>
+                <select class="select2 form-control" name="idmarca" id="idmarca">
+                  <option value="0">Selecione a Marca</option>
+                </select>
+              </div>
+              <div class="col-sm-6 col-xl-4">
+                <label class="form-label" for="idfornecedor">Fornecedor</label>
+                <select class="select2 form-control" name="idfornecedor" id="idfornecedor">
+                  <option value="0">Selecione o Fornecedor</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-6 col-xl-2">
+                <br>
+                <div class="custom-control custom-checkbox">
+                 <input type="checkbox" class="custom-control-input" id="idsubgrupo" checked disabled>
+                <label class="custom-control-label" for="idsubgrupo">Estrutura Mercadológica</label>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <br>
+                <div class="custom-control custom-checkbox">
+                 <input type="checkbox" class="custom-control-input" id="idcategoria" checked disabled>
+                <label class="custom-control-label" for="idcategoria">Categorias</label>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <br>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="idtipotecido" checked>
+                <label class="custom-control-label" for="idtipotecido">Tipo Tecido</label>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <br>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="idcor" checked>
+                  <label class="custom-control-label" for="idcor">Cor</label>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <br>
+                <div class="custom-control custom-checkbox">
+                  <input type="checkbox" class="custom-control-input" id="idestilo" checked />
+                  <label class="custom-control-label" for="idestilo">Estilo</label>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-6 col-xl-2">
+                <br>
+                <label class="form-label" for="datainicialvenda">Data Inicial</label>
+                <input class="form-control" id="datainicialvenda" type="date" name="datainicialvenda" value="">
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <br>
+                <label class="form-label" for="datafinalvenda">Data Final</label>
+                <input class="form-control" id="datafinalvenda" type="date" name="datafinalvenda" value="">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-xl-12">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisarvenda()"><span
+                    class="fal fa-search mr-1"></span>Pesquisar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div id="btnvisualizar" class="col-sm-6 col-xl-6">
+    <button class="btn btn-info" type="button" onclick="visualizardistribuicaocompras()"><span
+        class="fal fa-list mr-1"></span>Visualizar</button>
+  </div>
+  <div id="btnfinalizar" class="col-sm-6 col-xl-6">
+    <button class="btn btn-success" type="button" onclick="finalizardistribuicaocompras()"><span
+        class="fal fa-check mr-1"></span>Finalizar</button>
+  </div>
+</div>
+<br>
+<div class="row">
+  <div class="col-sm-12 col-xl-12">
+    <div id="resultadodistribuicaocompras">
+    </div>
+  </div>
+</div>

@@ -1,0 +1,80 @@
+ID: UI5
+_schema-version: 3.2.0
+version: 0.0.1
+parameters:
+  enable-parallel-deployments: true
+modules:
+  - name: webapp_deployer
+    type: com.sap.application.content
+    path: deployer
+    requires:
+      - name: UI5_html5_repo_host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - name: uimodule
+          artifacts:
+            - dist/uimodule.zip
+          target-path: resources/
+  - name: UI5destination-content
+    type: com.sap.application.content
+    build-parameters:
+      no-source: true
+    requires:
+      - name: UI5_uaa
+        parameters:
+          service-key:
+            name: UI5_uaa-key
+      - name: UI5_html5_repo_host
+        parameters:
+          service-key:
+            name: UI5_html5_repo_host-key
+      - name: UI5_destination
+        parameters:
+          content-target: true
+    parameters:
+      content:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+            - Name: UI5_html5_repo_host
+              ServiceInstanceName: UI5_html5_repo_host
+              ServiceKeyName: UI5_html5_repo_host-key
+              sap.cloud.service: UI5.service
+            - Name: UI5_uaa
+              Authentication: OAuth2UserTokenExchange
+              ServiceInstanceName: UI5_uaa
+              ServiceKeyName: UI5_uaa-key
+              sap.cloud.service: UI5.service
+  - name: uimodule
+    type: html5
+    path: uimodule
+    build-parameters:
+      builder: custom
+      commands:
+        - npm run build:uimodule --prefix ..
+      supported-platforms: []
+resources:
+  - name: UI5_destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service-plan: lite
+      service: destination
+      config:
+        HTML5Runtime_enabled: true
+        version: 1.0.0
+  - name: UI5_html5_repo_host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service-plan: app-host
+      service: html5-apps-repo
+      config:
+        sizeLimit: 2
+  - name: UI5_uaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      path: ./xs-security.json
+      service-plan: application
+      service: xsuaa

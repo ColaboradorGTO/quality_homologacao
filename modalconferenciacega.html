@@ -1,0 +1,315 @@
+<!-- Modal Ordem de Transferência -->
+<div class="modal fade" id="ot" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Ordem de Transferência
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body" id="resultadoot">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ordem de TransferÃªncia Pesquisar Produto -->
+<div class="modal fade" id="abrirpesqproduto" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Pesquisar Produto
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-6 col-xl-10">
+                        <label class="form-label" for="pesqProduto">Informe a Descrição ou Código de Barras do Produto</label>
+                        <div class="input-group">
+                            <input type="text" id="pesqProduto" name="pesqProduto" class="form-control input" value="">&nbsp;&nbsp;
+                            <button class="btn btn-primary" type="button" onclick="pesquisarProduto()">
+                                <span class="fal fa-search mr-1"></span>
+                                Pesquisar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body" id="resultado">
+                
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Status DivergÃªncia -->
+<div class="modal fade" id="cadSD" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Status de DivergÃªncia
+                    <small class="m-0 text-muted">
+                        Cadastrar ou Atualizar informaÃ§Ãµes do Status de DivergÃªncia
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formSD" name="formSD" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resultadomodalSD">
+
+                    </div>
+                    <div class="modal-footer" id="footerSD">
+
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Motivo Encerramento OT -->
+<div class="modal fade" id="motivoencerrarOT" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Motivo Encerramento
+                    <small class="m-0 text-muted">
+                        Preencher com o Status da DivergÃªncia e ObservaÃ§Ã£o
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formSD" name="formSD" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resultadomotivoencerrarOT">
+
+                    </div>
+                    <div class="modal-footer" id="footermotivoencerrarOT">
+
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ordem de Transferência Deposito -->
+<div class="modal fade" id="otdeposito" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Ordem de Transferência
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body" id="resultadootdeposito">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Conferir Ordem de Transferência Deposito -->
+<div class="modal fade" id="cotdeposito" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Conferir Ordem de Transferência
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body" id="resultadocotdeposito">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ordem de Transferência Pesquisar Produto Deposito -->
+<div class="modal fade" id="abrirpesqproduto" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Pesquisar Produto
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-6 col-xl-10">
+                        <label class="form-label" for="pesqProduto">Informe a Descrição ou Código de Barras do Produto</label>
+                        <div class="input-group">
+                            <input type="text" id="pesqProduto" name="pesqProduto" class="form-control input" value="">&nbsp;&nbsp;
+                           
+                            <button class="btn btn-primary" type="button" onclick="pesquisarProdutoDeposito()">
+                                <span class="fal fa-search mr-1"></span>
+                                Pesquisar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body" id="resultadodeposito">
+                
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Conferir Ordem de Transferência Pesquisar Produto Deposito -->
+<div class="modal fade" id="conferirabrirpesqprodutodeposito" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Pesquisar Produto
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-6 col-xl-10">
+                        <label class="form-label" for="pesqProduto">Informe a Descrição ou Código de Barras do Produto</label>
+                        <div class="input-group">
+                            <input type="text" id="conferirpesqProduto" name="conferirpesqProduto" class="form-control input" value="">&nbsp;&nbsp;
+                           
+                            <button class="btn btn-primary" type="button" onclick="conferirpesquisarProdutoDeposito()">
+                                <span class="fal fa-search mr-1"></span>
+                                Pesquisar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body" id="conferirresultadodeposito">
+                
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Observacao Ordem de Transferência -->
+<div class="modal fade" id="observacaoot" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Observação da Ordem de Transferência
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body" id="resultadoobservacaoot">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Quantidade Volume OT -->
+<div class="modal fade" id="volumeot" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Informar os Volumes da OT
+                    <small class="m-0 text-muted">
+                        Preencher com a Quantidade e Descrição dos Volumes
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formSD" name="formSD" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resultadovolumeot">
+
+                    </div>
+                    <div class="modal-footer" id="footervolumeot">
+
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Imprime Etiqueta OT -->
+<div class="modal fade" id="impEtiquetaOT" role="dialog" aria-hidden="true">
+  <div id="dialogModalEtiquetaOT" class="modal-dialog modal-lg" role="document" style="align-content: center; ">
+      <div id="contentModalEtiquetaOT" class="modal-content">
+          <div class="modal-header hidden-print p-1">
+          <div>
+              <button id="btnPrint" type="button" class="btn btn-primary btn-sm hidden-print p-1 fw-700" title="Imprimir" onclick="selecionaTipoEtiquetaOT()">
+                <span class="fal fa-print pr-1"></span>
+                Imprimir
+              </button>
+
+          </div>
+          
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+
+          </div>
+          <div class="modal-subheader hidden-print" >
+            
+            <hr style="border: 1px solid">
+            
+            <h2 class="modal-title " style="text-align: center;">
+              Etiqueta
+            </h2>
+            <br>
+          </div>
+          <div class="modal-body p-0 m-3">
+            <div id="etiquetaImp"></div>
+            
+          </div>
+          
+          <hr style="border: 1px solid; width: 100%;">
+          
+          <div class="modal-footer hidden-print" style="margin: auto">
+            <div>
+              <button id="btnPrint" type="button" class="btn btn-primary btn-xl hidden-print p-1 fw-700" title="Imprimir" onclick="selecionaTipoEtiquetaOT()">
+                <span class="fal fa-print pr-1"></span>
+                Imprimir
+              </button>
+            </div>
+          </div>
+      </div>
+  </div>
+</div>

@@ -1,0 +1,139 @@
+{
+  "_version": "1.4.0",
+  "sap.app": {
+    "id": "com.arvo.resumobalanco",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "1.0.0"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "crossNavigation": {
+      "inbounds": {
+        "intent1": {
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          },
+          "semanticObject": "uimodule",
+          "action": "display",
+          "title": "App",
+          "icon": "sap-icon://add"
+        }
+      }
+    },
+    "dataSources": {
+        "mainService": {
+          "uri": "http://b1.ativy.com:7502/integracao_quality_sap/crud.xsodata/",
+          "type": "OData",
+          "settings": {
+              "odataVersion": "2.0",
+              "localUri": "localService/metadata.xml"
+          }
+      }
+    
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+			"icon": "sap-icon://detail-view",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    },
+    "fullWidth": true
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "rootView": {
+      "viewName": "com.arvo.resumobalanco.view.MainView",
+      "type": "XML",
+      "async": true,
+      "id": "idAppControl"
+    },
+    "dependencies": {
+      "minUI5Version": "1.60.0",
+      "libs": {
+        "sap.ui.core": {},
+        "sap.m": {},
+        "sap.ui.layout": {},
+				"sap.ushell": {
+					"minVersion": "1.42.0"
+				},
+				"sap.collaboration": {
+					"minVersion": "1.42",
+					"lazy": true
+				}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "com.arvo.resumobalanco.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+			"useBatch": false,
+			"metadataUrlParams": {
+				"sap-documentation": "heading"
+			},
+			"defaultBindingMode": "TwoWay"
+		}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "viewPath": "com.arvo.resumobalanco.view",
+        "controlId": "idAppControl",
+        "controlAggregation": "pages",
+        "async": true
+      },
+      "routes": [
+        {
+          "name": "RouteMainView",
+          "pattern": "RouteMainView",
+          "target": [
+            "TargetMainView"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetMainView": {
+          "viewType": "XML",
+          "viewLevel": 1,
+          "viewId": "idAppControl",
+          "viewName": "MainView"
+        }
+      }
+    }
+  },
+  "sap.cloud": {
+    "service": "UI5.service"
+  }
+}

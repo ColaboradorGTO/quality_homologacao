@@ -1,0 +1,66 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Ordem de Transferência</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i>Controle de Transferência
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="panel-tag">
+                        <div class="row">
+                            <!-- Loja Origem -->
+                            <div class="col-sm-6 col-xl-4">
+                                <label class="form-label" for="tploja">Loja Origem</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idlojaorigem" id="idlojaorigem">
+                                        <option value="-1">Seleciona a Loja Origem</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Loja Destino -->
+                            <div class="col-sm-6 col-xl-4">
+                                <label class="form-label" for="tploja">Loja Destino</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idlojadestino" id="idlojadestino">
+                                        <option value="-2">Seleciona a Loja Destino</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <!-- Data Inicial -->
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Início</label>
+                                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+                            </div>
+                            <!-- Data Final -->
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Fim</label>
+                                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-8 col-xl-8">
+                                <br>
+                                <button class="btn btn-primary" type="button" onclick="pesquisarot()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                                <button class="btn btn-success" type="button" onclick="incluirot()" id="incluirot"><span class="fal fa-file mr-1"></span>Nova OT</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="resultadomodalot">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

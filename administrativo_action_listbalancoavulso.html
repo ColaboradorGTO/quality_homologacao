@@ -1,0 +1,104 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Balanço Avulso por Loja</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i> Balanço Avulso por Loja
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                    <div class="panel-tag">
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpempresa">Empresa</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idloja" id="idloja" onchange="listaprodutoavulso()">
+                                        <option value="0"> </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="dsDescricao">Descrição</label>
+                                <input class="form-control" id="dsDesc" type="text" name="dsDesc" value="" readOnly>
+                            </div>
+                            
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-sm-1 col-xl-1">
+                                <label class="form-label" for="qtdProduto">Quantidade</label>
+                                <div class="input-group">
+                                    <input type="number" id="qtdProduto" min="1" value="1" name="qtdProduto" class="form-control input">
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="dsProduto">Produto</label>
+                                <div class="input-group">
+                                    <input type="text" id="descProduto" onchange="pesqProduto(1)" name="descProduto" class="form-control input" value="">&nbsp;&nbsp;
+                                    <button class="btn btn-primary" type="button" onclick="abrirPesqProduto()">
+                                        <span class="fal fa-search mr-1"></span>
+                                        Pesquisar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-sm-8 col-xl-8">
+                                <button class="btn btn-info" type="button" onclick="confirmarbalancoavulso()" id="confirmarbalancoavulso"><span class="fal fa-save mr-1"></span>Confirmar</button>
+                            </div>
+                            </br>
+                            <div class="col-sm-8 col-xl-8">
+                                <label class="form-label" style="color: red">Para Incluir os Produtos informados no Balanço, clique em Confirmar!</label>
+                            </div>
+                        </div>
+                        
+                            
+                    </div>
+                        <!--<div class="row">
+                            <div class="col-sm-1 col-xl-1">
+                                <label class="form-label" for="vlTotalAcumulado">Total Acumulado</label>
+                                <input class="form-control" id="vlTotalAcumulado" type="text" name="vlTotalAcumulado" value="0" readOnly>
+                            </div>
+                            <div class="col-sm-1 col-xl-1">
+                                <label class="form-label" for="vlTotalItens">Total Ítens</label>
+                                <input class="form-control" id="vlTotalItens" type="text" name="vlTotalItens" value="0" readOnly>
+                            </div>
+                            <div class="col-sm-1 col-xl-1">
+                                <label class="form-label" for="vlTotalProdutos">Total Produtos</label>
+                                <input class="form-control" id="vlTotalProdutos" type="text" name="vlTotalProdutos" value="0" readOnly>
+                            </div>
+                        </div>
+                        <br>-->
+                        <table id="tabelaprodutos" class="table table-bordered table-hover table-striped w-100" style="width:100%">
+                            <thead class="bg-primary-600">
+                                <tr>
+                                    <th colspan="3" class="text-center">Total</th>
+                                    <th colspan="1"><span id="vlTotalAcumulado">R$ 0.0</span></th>
+                                    <th colspan="1"><span id="vlTotalItens">R$ 0.0</span></th>
+                                    <th colspan="1"><span id="qtdTotalProdutos">0</span></th>
+                                    <th colspan="1"></th>
+                                </tr>
+                                <tr>
+                                    <th width="15%">Produto</th>
+                                    <th width="15%">Cód. Barras</th>
+                                    <th width="45%">Descrição</th>
+                                    <th width="10%">R$ Custo</th>
+                                    <th width="10%">R$ Venda</th>
+                                    <th width="10%">Qtd</th>
+                                    <th width="5%">Opções</th>
+                                </tr>
+                            </thead>
+                        </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

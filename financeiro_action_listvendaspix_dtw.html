@@ -1,0 +1,101 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Lista de Vendas PIX DTW</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class='subheader-icon fal fa-chart-area'></i> Vendas PIX DTW por Período
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-container show">
+        <div class="panel-content">
+
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="tppixvenda">Marca</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idgrupo" id="idgrupo" onChange="selecionaempresamarca();">
+
+                  </select>
+                </div>
+              </div>
+              <div id="divEmpresa" class="col-sm-3 col-xl-3">
+                <label class="form-label" for="tpempresa">Empresa</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idloja" id="idloja">
+
+
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-6">
+                <label class="form-label" for="pesqproduto">Empresas Livre</label> 
+                <div class="input-group">
+                    <input type="text" id="descEmpresas" name="descEmpresas" class="form-control input" value="" onkeypress="return Onlynumbers(event);">
+                </div>
+            </div>
+            </div>
+            <br>
+            <div class="row">
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Início</label>
+                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Fim</label>
+                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+              </div>
+
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Compensação Início</label>
+                <input class="form-control" id="dtcompinicio" type="date" name="dtcompinicio" value="">
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Compensação Fim</label>
+                <input class="form-control" id="dtcompfim" type="date" name="dtcompfim" value="">
+              </div>
+            
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-xl-10">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesq_vendas_pix_periodo(1)">
+                  <span class="fal fa-search mr-1"></span> Vendas PIX
+                </button>
+                <button class="btn btn-success" type="button" onclick="pesq_vendas_pix_dtw(1)">
+                  <span class="fal fa-search mr-1"></span> Compensação
+                </button>
+                <button class="btn btn-info" type="button" onclick="pesq_vendas_pix_capa_dtw(1)">
+                  <span class="fal fa-search mr-1"></span> Compensação Capa
+                </button>
+                <button class="btn btn-danger" type="button" onclick="pesq_vendas_pix_Credito_dtw(1)">
+                  <span class="fal fa-search mr-1"></span> Compensação Crédito
+                </button>
+                <button class="btn btn-warning" type="button" onclick="pesq_vendas_pix_Debito_dtw(1)">
+                  <span class="fal fa-search mr-1"></span> Compensação Débito
+                </button>
+    
+              </div>
+              
+              <div id="btnIntegrarTodosPagamentosPix" class="col-sm-6 col-xl-2 d-none">
+                <br>
+                <div  class="justify-content-end d-flex">
+                  <button class="btn btn-warning fw-900" type="button" onclick="integrarTodosPagamentosPixNoSAP()"><span
+                      class="fal fa-cloud-upload fw-900 mr-1"></span>Integrar Todos</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div id="resultado">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

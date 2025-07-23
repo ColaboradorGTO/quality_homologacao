@@ -1,0 +1,133 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Relatório</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class='subheader-icon fal fa-chart-area'></i>Alteração de Preços
+  </h1>
+</div>
+
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="tpsubgrupo">Sub Grupo</label>
+                <div class="input-group">
+                  <ul id="custom-select" class="custom-select-container">
+                    <li class="select-all-container">
+                      <input type="checkbox" id="select-all" class="select-all-global">
+                      <label for="select-all">Selecionar Tudo</label>
+                    </li>
+                    <!-- Checkboxes serão adicionados aqui -->
+                  </ul>
+                </div>
+              </div>
+              
+              
+            </div>
+
+            <div class="row">
+         
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="pesqproduto">Nome Produto</label>
+                <div class="input-group">
+                  <input type="text" id="descProduto" name="descProduto" class="form-control input" value="">
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="pesqCodBarras">Cód.Barras</label>
+                <div class="input-group">
+                  <input type="text" id="codBarras" name="codBarras" class="form-control input" value="">
+                </div>
+              </div>
+              <!-- Data Inicial -->
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="dtinicio">Data início</label>
+                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="dtfim">Data Fim</label>
+                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-8 col-xl-8">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="alteracaopreco(1)"><span
+                    class="fal fa-search mr-1"></span>Alteração Preços</button>
+
+              </div>
+            </div>
+          </div>
+          <div id="resultado">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.custom-select-container {
+  border: 1px solid #ced4da;
+  border-radius: .25rem;
+  padding: .375rem .75rem;
+  width: 100%;
+  height: auto;
+  max-height: 150px; 
+  overflow-y: auto; 
+  list-style-type: none; 
+  padding-left: 0; 
+  background-color: #fff;
+}
+
+.custom-select-container li {
+  margin-bottom: .175rem;
+}
+
+.custom-select-container .custom-optgroup {
+  font-weight: bold;
+  margin-top: .75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.custom-select-container .custom-optgroup label {
+  margin-left: .5rem;
+}
+
+.custom-select-container .custom-option {
+  margin-left: 20px; /* Recuo para subgrupos */
+}
+
+.custom-select-container .custom-option-container {
+  display: none; /* Subgrupos ocultos inicialmente */
+}
+
+.custom-select-container .toggle-icon {
+  transform: rotate(0);
+  transition: transform 0.3s;
+}
+
+.custom-select-container .expanded .toggle-icon {
+  transform: rotate(90deg);
+}
+
+.select-all-container {
+  margin-bottom: .75rem;
+  font-weight: bold;
+}
+
+
+</style>
+  

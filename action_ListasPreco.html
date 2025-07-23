@@ -1,0 +1,67 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+  <li class="breadcrumb-item active"> Lista de Preços </li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Lista de Preços<span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i>Listas de Preços</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div id="avisoPesquisa" class="d-none"></div>
+            <div class="row">
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="dataInicio">Data Início</label>
+                <input class="form-control" id="dataInicio" type="date" name="Data inicial" value="" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="dataFim">Data Fim</label>
+                <input class="form-control" id="dataFim" type="date" name="Data final" value="" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="selectLojasLista">Lojas</label>
+                <select class="form-control" id="selectLojasLista" type="text" name="Lojas" value="" style="height: 39px;"></select>
+              </div>
+              <div class="col-sm-3 col-xl-1">
+                <label class="form-label" for="idLista">Nº Lista</label>
+                <input class="form-control" id="idLista" type="text" name="Número da Lista de Preco" value="" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="nomeLista">Nome da Lista</label>
+                <input class="form-control" id="nomeLista" type="text" name="Nome da Lista de Preco" value="" style="height: 39px;">
+              </div>
+              <div class="col-sm-6 col-xl-6">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisaListasPreco()">
+                  <span class="fal fa-search mr-1"></span>Pesquisar
+                </button>
+
+                <button id="btnImportarAlteracao" class="btn btn-success" type="button" title="Importar o Template Já Editado" onclick="criarListaPreco()">
+                  <span class="fal fa-pen mr-1"></span>Criar Lista
+                </button>
+              </div>
+            </div>
+            <div class="row">
+            </div>
+            <div class="row">
+            </div>
+          </div>
+          <div id="resultadoListasPreco">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

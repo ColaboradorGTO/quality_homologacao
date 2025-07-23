@@ -1,0 +1,10 @@
+{
+    "description": "Integração fornecedor x SAP > Quality",
+    "action": "quality.concentrador_homologacao.api.service-layer.pedido-compra.jobs:fornecedor.xsjs::executeFornecedor",
+    "schedules": [
+       {
+          "description": "A cada uma hora no minuto 30",
+          "xscron": "* * * * * 30 00"
+       }
+    ]
+}

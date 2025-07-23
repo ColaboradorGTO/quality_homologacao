@@ -1,0 +1,308 @@
+<div id="resultadoprodpedido"></div>
+
+<div class="form-group">
+  <input type="hidden" name="IDResPedido" id="IDResPedido" value="">
+  <input type="hidden" name="NCodBarras" id="NCodBarras" value="">
+  <input type="hidden" name="stReposicaoMemo" id="stReposicaoMemo" value="">
+  <input type="hidden" name="stTipoFormulario" id="stTipoFormulario" value="">
+  <input type="hidden" name="IDDetPedidoEdit" id="IDDetPedidoEdit" value="">
+  <div class="row">
+    <div class="col-sm-12 col-xl-12">
+      <label class="form-label" for="empresa">Pedido para a Marca</label>
+      <div class="input-group">
+        <input type="text" id="nomemarcapedido" name="nomemarcapedido" class="form-control input" value="" readonly>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="strep">Reposição</label>
+      <div class="input-group">
+        <select class="select form-control" name="streposicao" id="streposicao" onChange="selecaoreposicao();">
+          <option value="False">NÃO</option>
+          <option value="True">SIM</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="strep">Tipo Cadastro</label>
+      <div class="input-group">
+        <select class="select form-control" id="sttipocadastroitem" onChange="selecaoTipoCadItemNoPedido();" disabled>
+          <option value="False">NORMAL</option>
+          <option value="True">POR REFERÊNCIA</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="prodrefpesq">Pesquisar Referencia/Produto</label>
+      <div class="input-group">
+        <input type="text" id="pesqrefprodpedido" title="Pesquisa de produto" placeholder="Digite a descrição..." class="form-control input" value=""
+          onChange="selecionaprodped();">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6  item-individual">
+      <label class="form-label" for="tpunid">Produtos Cadastrados / Cod Barras - Nome</label>
+      <div class="input-group">
+        <select class="select form-control" name="listprodpesqped" id="listprodpesqped" onChange="incluirprodped();">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="form-group item-individual">
+  <div class="row">
+    <div class="col-sm-6 col-xl-8">
+      <label class="form-label" for="noprod">Descrição Produto</label>
+      <div class="input-group">
+        <input type="text" id="dsprodpedido" name="dsprodpedido" class="form-control" maxlength="50" value=""
+          onchange="selecaoreposicao()" onblur="replaceSpecialChars();">
+      </div>
+    </div>
+    <div class="col-sm-3 col-xl-2">
+      <label class="form-label" for="vrhojecusto">Vr Custo</label>
+      <div class="input-group">
+        <input type="text" id="vrcustohoje" name="vrcustohoje" class="form-control" value="0" readonly>
+      </div>
+    </div>
+    <div class="col-sm-3 col-xl-2">
+      <label class="form-label" for="vrhojevenda">Vr Venda</label>
+      <div class="input-group">
+        <input type="text" id="vrvendahoje" name="vrvendahoje" class="form-control" value="0" readonly>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-2 col-xl-2  item-individual">
+      <label class="form-label" for="qtdpedidoprod">Quantidade</label>
+      <div class="input-group">
+        <input type="text" id="qtdprodpedido" name="qtdprodpedido" class="form-control" value="0"
+          onblur="atualiza_valor_QtdUnit();">
+      </div>
+    </div>
+    <div class="col-sm-2 col-xl-2  item-individual">
+      <label class="form-label" for="qtdcaixas">QTD Caixas</label>
+      <div class="input-group">
+        <input type="text" id="qtdcaixa" name="qtdcaixa" class="form-control" value="0">
+      </div>
+    </div>
+    <div class="col-sm-2 col-xl-2">
+      <label class="form-label" for="txtrefer">Referência</label>
+      <div class="input-group">
+        <input type="text" id="refproduto" name="refproduto" class="form-control" value="">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="nofab">Fabricante</label>
+      <div class="input-group">
+        <select class="select form-control" name="fabprod" id="fabprod">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-4 col-xl-4">
+      <label class="form-label" for="tpunid">Unidade</label>
+      <div class="input-group">
+        <select class="select form-control" name="unidprod" id="unidprod">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-4 col-xl-4">
+      <label class="form-label" for="tpcor">Cor</label>
+      <div class="input-group">
+        <select class="select form-control" name="corprod" id="corprod">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-4 col-xl-4">
+      <label class="form-label" for="tptecido">Tipo de Tecido</label>
+      <div class="input-group">
+        <select class="select form-control" name="tptecidoprod" id="tptecidoprod">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-4 col-xl-4">
+      <label class="form-label" for="tpcat">Categoria Grade</label>
+      <div class="input-group">
+        <select class="select form-control" name="categoriaprod" id="categoriaprod" onChange="selecionagradepedido();">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-4 col-xl-4">
+      <label class="form-label" for="tpestrut">Estrutura</label>
+      <div class="input-group">
+        <select class="select form-control" name="estruturaprod" id="estruturaprod" onChange="selecionaestilogrupo();">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-4 col-xl-4">
+      <label class="form-label" for="tpestilo">Estilos</label>
+      <div class="input-group">
+        <select class="select form-control" name="estiloprod" id="estiloprod">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-3 col-xl-3">
+      <label class="form-label" for="tpcatprod">Categorias</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="prodcategorias" id="prodcategorias">
+          <option value=""> </option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-3 col-xl-3">
+      <label class="form-label" for="locexp">Local Exposição</label>
+      <div class="input-group">
+        <select class="select form-control" name="localexp" id="localexp">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-3 col-xl-3">
+      <label class="form-label" for="ecommercest">E-commerce</label>
+      <div class="input-group">
+        <select class="select form-control" name="stecommerce" id="stecommerce">
+          <option value="True">SIM</option>
+          <option value="False">NÃO</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-3 col-xl-3">
+      <label class="form-label" for="redesocialst">Rede Social</label>
+      <div class="input-group">
+        <select class="select form-control" name="stredesocial" id="stredesocial">
+          <option value="True">SIM</option>
+          <option value="False">NÃO</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-2 col-xl-2 item-individual">
+      <label class="form-label" for="vrbrutounit">Vr Bruto</label>
+      <div class="input-group">
+        <input type="text" id="vrunitbruto" name="vrunitbruto" class="form-control" value="0"
+          onblur="atualiza_valor_QtdUnit();">
+      </div>
+    </div>
+    <div class="col-sm-2 col-xl-2">
+      <label class="form-label" for="percdescontoI">Desconto I (%)</label>
+      <div class="input-group">
+        <input type="text" id="descprodI" name="descprodI" class="form-control" value="0"
+          onblur="atualiza_valor_QtdUnit(), recalculaVrTotalDoPedidoReposicaoPorGrade()">
+      </div>
+    </div>
+    <div class="col-sm-2 col-xl-2">
+      <label class="form-label" for="percdescontoII">Desconto II (%)</label>
+      <div class="input-group">
+        <input type="text" id="descprodII" name="descprodII" class="form-control" value="0"
+          onblur="atualiza_valor_QtdUnit(), recalculaVrTotalDoPedidoReposicaoPorGrade()">
+      </div>
+    </div>
+    <div class="col-sm-2 col-xl-2">
+      <label class="form-label" for="percdescontoIII">Desconto III (%)</label>
+      <div class="input-group">
+        <input type="text" id="descprodIII" name="descprodIII" class="form-control" value="0"
+          onblur="atualiza_valor_QtdUnit(), recalculaVrTotalDoPedidoReposicaoPorGrade()">
+      </div>
+    </div>
+    <div class="col-sm-2 col-xl-2 item-individual">
+      <label class="form-label" for="vrliqunit">Vr Liq</label>
+      <div class="input-group">
+        <input type="text" id="vrunitliq" name="vrunitliq" class="form-control" value="0"
+          onblur="atualiza_valor_QtdUnit();">
+      </div>
+    </div>
+    <div class="col-sm-2 col-xl-2  item-individual">
+      <label class="form-label" for="vrsugunit">Vr Sugerido</label>
+      <div class="input-group">
+        <input type="text" id="vrunitsug" name="vrunitsug" class="form-control" value="0">
+        <input type="hidden" id="vrunitsugfixo" name="vrunitsugfixo" class="form-control" value="0">
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-4 col-xl-4">
+      <label class="form-label" for="vrtotalunit">Vr Total</label>
+      <div class="input-group">
+        <input type="text" id="vrunittotal" name="vrunittotal" class="form-control" value="0" readonly>
+      </div>
+    </div>
+    <div class="col-sm-8 col-xl-8">
+      <label class="form-label" for="txtobs">Obs</label>
+      <div class="input-group">
+        <input type="text" id="obsprodunit" name="obsprodunit" class="form-control" value="">
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group item-individual">
+  <div class="row">
+    <div class="col-sm-12 col-xl-12">
+      <label class="form-label" for="vrtotalunit">QTD/TAMANHOS</label>
+    </div>
+  </div>
+  <div class="row" id="resultadoqtdtamanhos">
+
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-12 col-xl-12">
+      <div id="container-table-cad-produtos-reposicao"></div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  $("#vrunitbruto").mask('#.##0,00', { reverse: true });
+  $("#descprodI").mask('#.##0,00', { reverse: true });
+  $("#descprodII").mask('#.##0,00', { reverse: true });
+  $("#descprodIII").mask('#.##0,00', { reverse: true });
+  $("#vrunitliq").mask('#.##0,00', { reverse: true });
+  $("#vrunitsug").mask('#.##0,00', { reverse: true });
+  $("#vrunittotal").mask('#.##0,00', { reverse: true });
+  $("#vrcustohoje").mask('#.##0,00', { reverse: true });
+  $("#vrvendahoje").mask('#.##0,00', { reverse: true });
+</script>

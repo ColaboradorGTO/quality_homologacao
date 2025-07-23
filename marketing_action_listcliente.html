@@ -1,0 +1,116 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Cadastro Clientes</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i> Cadastro de Clientes
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <input type="hidden" id="idCliente"   name="idCliente" class="form-control input" value="">
+                    <div class="panel-tag">
+                        <div class="row">
+                        
+                            <div class="col-sm-2 col-xl-2">
+                                <label class="form-label" for="nrCpf">Nr. CPF</label>
+                                <div class="input-group">
+                                    <input type="text" id="nrCpf" maxlength="11" onblur="verificaCpf()" name="nrCpf" class="form-control input" value="">
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-xl-2">
+                                <label class="form-label" for="nrTelefone">Nr. Telefone</label>
+                                <div class="input-group">
+                                    <input type="text" id="nrTelefone" maxlength="11" onblur="verificaTelefone()" name="nrTelefone" class="form-control input" value="">
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-8">
+                                <label class="form-label" for="nomeCliente">Nome Cliente</label>
+                                <div class="input-group">
+                                    <input type="text" id="nomeCliente" maxlength="100" name="nomeCliente" class="form-control input" value="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-6">
+                                <label class="form-label" for="endereco">Endereço</label>
+                                <div class="input-group">
+                                    <input type="text" id="endereco" maxlength="100" name="endereco" class="form-control input" value="">
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-6">
+                                <label class="form-label" for="complemento">Complemento</label>
+                                <div class="input-group">
+                                    <input type="text" id="complemento" maxlength="100" name="complemento" class="form-control input" value="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2 col-xl-2">
+                                <label class="form-label" for="bairro">Bairro</label>
+                                <div class="input-group">
+                                    <input type="text" id="bairro" maxlength="50" name="bairro" class="form-control input" value="">
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-xl-4">
+                                <label class="form-label" for="cidade">Cidade</label>
+                                <div class="input-group">
+                                    <input type="text" id="cidade" maxlength="50" name="cidade" class="form-control input" value="">
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-xl-2">
+                                <label class="form-label" for="cep">CEP</label>
+                                <div class="input-group">
+                                    <input type="text" id="cep" maxlength="8" name="cep" class="form-control input" value="">
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-xl-2">
+                                <label class="form-label" for="uf">UF</label>
+                                <div class="input-group">
+                                    <input type="text" id="uf" maxlength="2" name="uf" class="form-control input" value="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-6">
+                                <label class="form-label" for="idCampanha">Campanha</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idCampanha" id="idCampanha">
+                                        <option value="0"> </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        </br>
+                        <div class="row">
+                            <div id="div_botao_cadastrar" class="col-sm-3 col-xl-3">
+                            <br>
+                                <button class="btn btn-success" type="button" onclick="cad_campanha_cliente()"><span class="fal fa-plus mr-1"></span>Cadastrar Cliente</button>
+                                
+                            </div>
+                            <div id="div_botao_atualizar" class="col-sm-3 col-xl-3">
+                            <br>
+                                <button class="btn btn-success" type="button" onclick="atualiza_campanha_cliente()"><span class="fal fa-plus mr-1"></span>Atualizar Cliente</button>
+                                
+                            </div>
+                            <div id="div_botao_novo" class="col-sm-3 col-xl-3">
+                            <br>
+                                <button class="btn btn-success" type="button" onclick="novoCliente()"><span class="fal fa-plus mr-1"></span>Novo Cliente</button>
+                                
+                            </div>
+                        </div>
+                            
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    

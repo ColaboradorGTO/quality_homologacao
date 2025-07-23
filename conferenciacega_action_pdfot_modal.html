@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>
+            ORDEM DE TRANSFERÊNCIA
+        </title>
+        <meta name="description" content="Invoice">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
+        <!-- Call App Mode on ios devices -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <!-- Remove Tap Highlight on Windows Phone IE -->
+        <meta name="msapplication-tap-highlight" content="no">
+        <!-- base css -->
+        <link rel="stylesheet" media="screen, print" href="css/vendors.bundle.css">
+        <link rel="stylesheet" media="screen, print" href="css/app.bundle.css">
+        <!-- Place favicon.ico in the root directory -->
+        <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+        <link rel="mask-icon" href="img/favicon/safari-pinned-tab.svg" color="#5bbad5">
+        <!--<link rel="stylesheet" media="screen, print" href="css/page-invoice.css">-->
+        
+        <style>
+            .backCustom{
+              background: white;
+              display: block;
+              margin: 0 auto;
+              margin-bottom: 0.5cm;
+              -webkit-box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+                      box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+              background: url(./img/svg/pattern-1.svg) no-repeat center bottom;
+              background-size: cover;
+              padding: 4rem;
+              position: relative; background: white;
+              display: block;
+              margin: 0 auto;
+              margin-bottom: 0.5cm;
+              -webkit-box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+                      box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+              background: url(./img/svg/pattern-1.svg) no-repeat center bottom;
+              background-size: cover;
+              padding: 4rem;
+              position: relative; 
+            }
+        </style>
+    </head>
+    <body class="mod-bg-1 ">
+        <!-- DOC: script to save and load page settings -->
+        <script>
+            /**
+             *	This script should be placed right after the body tag for fast execution 
+             *	Note: the script is written in pure javascript and does not depend on thirdparty library
+             **/
+            'use strict';
+
+            var classHolder = document.getElementsByTagName("BODY")[0],
+                /** 
+                 * Load from localstorage
+                 **/
+                themeSettings = (localStorage.getItem('themeSettings')) ? JSON.parse(localStorage.getItem('themeSettings')) :
+                {},
+                themeURL = themeSettings.themeURL || '',
+                themeOptions = themeSettings.themeOptions || '';
+            /** 
+             * Load theme options
+             **/
+            if (themeSettings.themeOptions)
+            {
+                classHolder.className = themeSettings.themeOptions;
+                console.log("%c✔ Theme settings loaded", "color: #148f32");
+            }
+            else
+            {
+                console.log("Heads up! Theme settings is empty or does not exist, loading default settings...");
+            }
+            if (themeSettings.themeURL && !document.getElementById('mytheme'))
+            {
+                var cssfile = document.createElement('link');
+                cssfile.id = 'mytheme';
+                cssfile.rel = 'stylesheet';
+                cssfile.href = themeURL;
+                document.getElementsByTagName('head')[0].appendChild(cssfile);
+            }
+            /** 
+             * Save to localstorage 
+             **/
+            var saveSettings = function()
+            {
+                themeSettings.themeOptions = String(classHolder.className).split(/[^\w-]+/).filter(function(item)
+                {
+                    return /^(nav|header|mod|display)-/i.test(item);
+                }).join(' ');
+                if (document.getElementById('mytheme'))
+                {
+                    themeSettings.themeURL = document.getElementById('mytheme').getAttribute("href");
+                };
+                localStorage.setItem('themeSettings', JSON.stringify(themeSettings));
+            }
+            /** 
+             * Reset settings
+             **/
+            var resetSettings = function()
+            {
+                localStorage.setItem("themeSettings", "");
+            }
+
+        </script>
+        <!-- BEGIN Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="page-inner">
+                <div class="page-content-wrapper">
+                    <!-- the #js-page-content id is needed for some plugins to initialize -->
+                    <main id="js-page-content-Etiqueta" role="main" class="page-content">
+                    <style id="mediaPrintEtiquetaOT">
+                    </style>
+                        <!--ol class="breadcrumb page-breadcrumb">
+                            <li class="breadcrumb-item"><a href="javascript:void(0);">Conferência Cega</a></li>
+                            <li class="breadcrumb-item">Ordem de Transferência</li>
+                            <li class="breadcrumb-item active">Impressão</li>
+                            <li class="position-absolute pos-top pos-right d-none d-sm-block"><span class="js-get-date"></span></li>
+                        </ol-->
+                        <div class="subheader">
+                        </div>
+                        <!--div class="panel-container show">
+                            <div class="panel-content">
+                                <div class="panel-tag">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-2">
+                                            <br>
+                                            <button class="btn btn-primary" type="button" onclick="pagina_principal()"><span class="ni ni-action-undo mr-1"></span>Voltar</button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                    </div>
+                                </div>
+                            </div>
+                        </div-->
+                        <div class="container">
+                            <div id="etiquetasOTparaImpressão">
+                                
+                            </div>
+                        </div>
+                    </main>
+                    <!-- this overlay is activated only when mobile menu is triggered -->
+                    <div class="page-content-overlay" data-action="toggle" data-class="mobile-nav-on"></div> <!-- END Page Content -->
+                </div>
+            </div>
+        </div>
+        <!-- END Page Wrapper -->
+        <!-- BEGIN Quick Menu -->
+        <!-- to add more items, please make sure to change the variable '$menu-items: number;' in your _page-components-shortcut.scss -->
+        <!-- END Quick Menu -->
+        <!-- END Messenger -->
+        <!-- BEGIN Page Settings -->
+        <!-- END Page Settings -->
+        <!-- base vendor bundle: 
+			 DOC: if you remove pace.js from core please note on Internet Explorer some CSS animations may execute before a page is fully loaded, resulting 'jump' animations 
+						+ pace.js (recommended)
+						+ jquery.js (core)
+						+ jquery-ui-cust.js (core)
+						+ popper.js (core)
+						+ bootstrap.js (core)
+						+ slimscroll.js (extension)
+						+ app.navigation.js (core)
+						+ ba-throttle-debounce.js (core)
+						+ waves.js (extension)
+						+ smartpanels.js (extension)
+						+ src/../jquery-snippets.js (core) -->
+    </body>
+</html>

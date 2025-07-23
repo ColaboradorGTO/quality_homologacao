@@ -1,0 +1,108 @@
+
+                            <div id="resultadocadpromocao"></div>
+                            
+                            <div class="form-group">
+                                <div class="row">
+                                 
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="promodesc">Descrição *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="descpromocao" name="descpromocao" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="promodtini">Data Início *</label>
+                                        <div class="input-group">
+                                            <input class="form-control" id="dtinipromo" type="date" name="dtinipromo" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="promodtfim">Data Fim *</label>
+                                        <div class="input-group">
+                                            <input class="form-control" id="dtfimpromo" type="date" name="dtfimpromo" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promoaplicst">Aplicação Entrada*</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="staplicacaopromo" id="staplicacaopromo" onChange="selecionaraplic();">
+                                                <option value="">Selecione...</option>
+                                                <option value="1">Por QTD</option>
+                                                <option value="2">Por Valor</option> 
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promoqtdapl">QTD Apartir De</label>
+                                        <div class="input-group">
+                                            <input type="text" id="qtdaplicpromo" name="qtdaplicpromo" class="form-control input" value="0" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promovrapl">Valor Apartir De</label>
+                                        <div class="input-group">
+                                            <input type="text" id="vraplicpromo" name="vraplicpromo" class="form-control input" value="0" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promoaplicst">Aplicação Saída*</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="staplicacaosaidapromo" id="staplicacaosaidapromo">
+
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promofatorst">Fator *</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="stfatorpromo" id="stfatorpromo" onChange="selecionarafator();">
+                                                <option value="">Selecione...</option>
+                                                <option value="0">Por Valor do Produto</option>
+                                                <option value="1">Por Valor de Desconto</option> 
+                                                <option value="2">Por Percentual</option> 
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promovrprodfat">Valor Produto</label>
+                                        <div class="input-group">
+                                            <input type="text" id="vrprodfatorpromo" name="vrprodfatorpromo" class="form-control input" value="0" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promovrdescfat">Valor Desconto</label>
+                                        <div class="input-group">
+                                            <input type="text" id="vrdescfatorpromo" name="vrdescfatorpromo" class="form-control input" value="0" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promopercfat">Percentual</label>
+                                        <div class="input-group">
+                                            <input type="text" id="percaplicpromo" name="percaplicpromo" class="form-control input" value="0" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-12">  
+                                    <label class="form-label" for="vrfat">* Campos Obrigatórios *</label>                                      
+                                        <div id="tudo"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+    <script>
+        $("#vraplicpromo").mask('#.##0,00', {reverse: true});
+        $("#vrprodfatorpromo").mask('#.##0,00', {reverse: true});
+        $("#vrdescfatorpromo").mask('#.##0,00', {reverse: true});
+        $("#percaplicpromo").mask('#.##0,00', {reverse: true});
+    </script>

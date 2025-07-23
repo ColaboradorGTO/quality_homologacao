@@ -1,0 +1,79 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Lista de Faturas PIX DTW</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class='subheader-icon fal fa-chart-area'></i> Faturas PIX DTW por Período
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-container show">
+        <div class="panel-content">
+
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-3 col-xl-6">
+                <label class="form-label" for="tppixvenda">Marca</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idgrupo" id="idgrupo" onChange="selecionaempresamarca();">
+
+                  </select>
+                </div>
+              </div>
+              <div id="divEmpresa" class="col-sm-3 col-xl-6">
+                <label class="form-label" for="tpempresa">Empresa</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idloja" id="idloja">
+
+
+                  </select>
+                </div>
+              </div>
+             
+            </div>
+            <br>
+            <div class="row">
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Início</label>
+                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Fim</label>
+                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+              </div>
+
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Compensação Início</label>
+                <input class="form-control" id="dtcompinicio" type="date" name="dtcompinicio" value="">
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Compensação Fim</label>
+                <input class="form-control" id="dtcompfim" type="date" name="dtcompfim" value="">
+              </div>
+
+            </div>
+            <div class="row mt-4">
+              <div class="col-sm-12 col-xl-12">
+         
+                <button class="btn btn-primary" type="button" onclick="pesq_fatura_pix_DTW(1)">
+                  <span class="fal fa-search mr-1"></span> Faturas PIX
+                </button>
+                <button class="btn btn-info" type="button" onclick="pesq_fatura_pix__compensada_DTW(1)">
+                  <span class="fal fa-search mr-1"></span> Compensação
+                </button>
+
+              </div>
+
+            </div>
+          </div>
+          <div id="resultado">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

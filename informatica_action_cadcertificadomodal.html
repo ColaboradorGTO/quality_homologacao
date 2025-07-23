@@ -1,0 +1,261 @@
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-12">
+      <div class="alert alert-success" style="text-align: center" role="alert">
+        <strong>CERTIFICADO DIGITAL</strong>
+      </div>
+    </div>
+  </div>
+  <div id="resultadoCertificado"></div>
+  <input type="hidden" name="IDEmpresaCad" id="IDEmpresaCad" value="" />
+  <input type="hidden" name="ufEmpresa" id="ufEmpresa" value="" />
+  <div class="row">
+    <div class="col-sm-6 col-xl-4">
+      <label class="form-label" for="nomeempcad">Empresa</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="nomeempcad"
+          name="nomeempcad"
+          class="form-control"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="configuracao">ID Configuração</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="configuracao"
+          name="configuracao"
+          class="form-control"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+      <label class="form-label" for="certificado">Certificado</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="certificado"
+          name="certificado"
+          class="form-control input"
+          value=""
+          readonly
+          onloadstart="console.log(`passou direto `+  this.value)"
+        />
+      </div>
+    </div>
+    <div class="col-sm-2 col-xl-2" style="padding: 0">
+      <label class="form-label" for="dtvalidade">Validade</label>
+      <div class="input-group">
+        <input
+          type="date"
+          id="dtvalidade"
+          name="dtvalidade"
+          class="form-control input"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="tpFormaEmissao">Forma de Emissão</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="tpFormaEmissao"
+          name="tpFormaEmissao"
+          class="form-control input"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="tpModeloDocFiscal"
+        >Modelo Doc Fiscal</label
+      >
+      <div class="input-group">
+        <input
+          type="text"
+          id="tpModeloDocFiscal"
+          name="tpModeloDocFiscal"
+          class="form-control input"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="tpEmissao">Tipo de Emissão</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="tpEmissao"
+          name="tpEmissao"
+          class="form-control input"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="tpAmbiente">Ambiente</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="tpAmbiente"
+          name="tpAmbiente"
+          class="form-control input"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="nuCertificado"
+        >Número do Certificado</label
+      >
+      <div class="input-group">
+        <input
+          type="text"
+          id="nuCertificado"
+          name="nuCertificado"
+          class="form-control input"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="dsCRT">Descrição CRT</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="dsCRT"
+          name="dsCRT"
+          class="form-control input"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-1">
+      <label class="form-label" for="idTokenCSC"> ID CSC</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="idTokenCSC"
+          name="idTokenCSC"
+          class="form-control input"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-5">
+      <label class="form-label" for="tokenCSC">Token CSC</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="tokenCSC"
+          name="tokenCSC"
+          class="form-control input"
+          value=""
+          readonly
+        />
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-12">
+      <div class="alert alert-info" style="text-align: center" role="alert">
+        <strong>ATUALIZAR CERTIFICADO DIGITAL</strong>
+      </div>
+      <div id="AvisoDadosIncompletos"></div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="newCertificado">Certificado</label>
+      <div class="input-group">
+        <input
+          type="file"
+          id="newCertificado"
+          name="newCertificado"
+          class="form-control input"
+          value=""
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="newCertificadoValidade">Validade</label>
+      <div class="input-group">
+        <input
+          type="date"
+          id="newCertificadoValidade"
+          name="newCertificadoValidade"
+          class="form-control input"
+          value=""
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="senha">Senha</label>
+      <div class="input-group">
+        <input
+          type="password"
+          id="senha"
+          name="senha"
+          class="form-control input"
+          value=""
+        />
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="newCertificado">Novo ID CSC</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="newIdCSC"
+          name="newIdCSC"
+          class="form-control input"
+          value=""
+        />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="newTokenCSC">Novo Token CSC</label>
+      <div class="input-group">
+        <input
+          type="text"
+          id="newTokenCSC"
+          name="newTokenCSC"
+          class="form-control input"
+          value=""
+        />
+      </div>
+    </div>
+  </div>
+</div>

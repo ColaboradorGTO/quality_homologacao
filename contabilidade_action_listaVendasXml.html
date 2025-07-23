@@ -1,0 +1,73 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Lista de Vendas</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i> Vendas
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                <div class="panel-tag">
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-2">
+                                  <label class="form-label" for="tpdate">Data Início</label>
+                                  <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="<?= $parametro_dia; ?>">
+                                </div>
+                                <div class="col-sm-6 col-xl-2">
+                                  <label class="form-label" for="tpdate">Data Fim</label>
+                                  <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="<?= $parametro_dia; ?>">
+                                </div>
+                                <div class="col-sm-3 col-xl-3">
+                                    <label class="form-label" for="tpmarcavenda">Marca</label>
+                                    <div class="input-group">
+                                        <select class="select2 form-control" name="idmarca" id="idmarca" onchange="selectFiliaisPorMarca(this.value)">
+                                          <option value="">Todas</option>
+
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 col-xl-3">
+                                  <label class="form-label" for="tpfilialvenda">Filiais</label>
+                                    <div class="input-group">
+                                        <select class="select2 form-control" name="filialvenda" id="filialvenda" disabled>
+                                          <option value="">Todas</option>
+
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 col-xl-2">
+                                  <label class="form-label" for="idStatusVenda">Status</label>
+                                  <div class="input-group">
+                                    <select class="select2 form-control" id="idStatusVenda">
+                                      <option value="">Todas</option>
+                                      <option value="AUTORIZADA">Autorizadas</option>
+                                      <option value="CONTINGENCIA">Contigência</option>
+                                      <option value="CANCELADA">Canceladas</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div class="col-sm-6 col-xl-12">
+                                <br>
+                                  <button class="btn btn-primary" type="button" onclick="pesqVendasXml()">
+                                      <span class="fal fa-search mr-1"></span>Pesquisar
+                                  </button>
+                                  <button class="btn btn-success" type="button" title="Download XML's Em Lote" onclick="downloadXmlEmLote()"><span
+                                      class="fal fa-download mr-1"></span>Download XML
+                                  </button>
+                                </div>
+                            </div>
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

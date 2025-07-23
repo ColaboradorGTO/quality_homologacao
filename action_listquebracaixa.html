@@ -1,0 +1,45 @@
+
+        <ol class="breadcrumb page-breadcrumb">
+            <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+            <li class="breadcrumb-item active">Quebra de Caixas</li>
+            <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+        </ol>
+        <div class="subheader">
+            <h1 class="subheader-title DescTituloDepostio">
+                <i class='subheader-icon fal fa-chart-area'></i> Quebras de Caixas - <span class='fw-300'></span>
+            </h1>
+        </div>
+        <div class="row">
+            <div class="col-xl-12">
+                <div id="panel-1" class="panel">
+                    <div class="panel-hdr">
+                        <h2>
+                            Lista Quebra de Caixas <span class="fw-300"><i> da Loja</i></span>
+                        </h2>
+                    </div>
+                    <div class="panel-container show">
+                        <div class="panel-content">
+                            <div class="panel-tag">
+                                <div class="row">                                
+                                <div class="col-sm-6 col-xl-2">
+                                    <label class="form-label" for="tpdateinicio">Data Início</label>
+                                    <input class="form-control" id="DTInicioQuebra" type="date" name="DTInicioQuebra" value="">
+                                </div>
+                                <div class="col-sm-6 col-xl-2">
+                                    <label class="form-label" for="tpdatefim">Data Fim</label>
+                                    <input class="form-control" id="DTFimQuebra" type="date" name="DTFimQuebra" value="">
+                                </div>
+                                <div class="col-sm-6 col-xl-2">
+                                <br>
+                                    <button class="btn btn-primary" type="button" onclick="pesq_list_quebra()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                            </div>
+                        </div>
+                    </div>
+                            <div id="resultado">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>

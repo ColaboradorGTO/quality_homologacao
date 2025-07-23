@@ -1,0 +1,66 @@
+<!-- Modal Atualiza Status Malote -->
+<div class="modal fade" id="detStatusMalote" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          Detalhes do Malote
+          <small class="m-0 text-muted">
+            Detalhes e Atualização de Status
+          </small>
+        </h2>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div id="detDadosMalote" class="col-xl-12 col-sm-12">
+            <div>
+              <div id="notificacaoUsuario"></div>
+              <h6 class="text-dark fw-900">Empresa: <span id="nomeEmpresaMalote" class="text-dark fw-500"></span></h6>
+              <h6 class="text-dark fw-900">Data Movimento Caixa: <span id="dataMovimentoCaixaMalote"
+                  class="text-dark fw-500"></span></h6>
+              <h6 class="text-dark fw-900">Id. Malote: <span id="idMaloteModal" class="text-dark fw-500"></span></h6>
+              <h6 class="text-dark fw-900">Data Criação: <span id="dataCriacaoMalote" class="text-dark fw-500"></span>
+              </h6>
+              <h6 class="text-dark fw-900">Data Envio: <span id="dataHoraEnviadoMalote" class="text-dark fw-500"></span>
+              </h6>
+              <h6 class="text-dark fw-900">Data Recepção: <span id="dataRecepcaoMalote" class="text-dark fw-500"></span>
+              </h6>
+              <h6 class="text-dark fw-900">Data Conferência: <span id="dataConferenciaMalote" class="text-dark fw-500"></span>
+              </h6>
+              <h6 class="text-dark fw-900 d-none">Data Devolução: <span id="dataDevolucaoMalote"
+                  class="text-danger fw-500"></span>
+              </h6>
+              <h6 class="text-dark fw-900 d-none">Data Reenvio: <span id="dataHoraReenviadoMalote"
+                  class="text-dark fw-500"></span>
+              </h6>
+              <h6 id="statusMaloteModal" class="text-dark fw-900"></h6>
+              <div id="pendenciasDetalheMalote" class="d-none"></div>
+              <div>
+                <label class="text-dark fw-900 h6" for="observacaoLojaMalote">Observações Loja:</label>
+                <textarea id="observacaoLojaMalote" class="form-control text-uppercase fw-700" style="resize: none;" rows="5"
+                  placeholder="..." onkeyup="(function(el) { el.value = formataStringComEspaço(el.value); })(this)"></textarea>
+              </div>
+              <div>
+                <label class="text-dark fw-900 h6" for="observacaoFinanceiroMalote">Observações Financeiro:</label>
+                <textarea id="observacaoFinanceiroMalote" class="form-control text-uppercase fw-700" style="resize: none;"
+                  rows="5" placeholder="..." onkeyup="(function(el) { el.value = formataStringComEspaço(el.value); })(this)"
+                  readonly></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" id="footerdetStatusMalote">
+        <div>
+          <button id="btnRecepcaoMalote" type="button" class="btn btn-success mr-1 d-none"><span class="fal fa-check mr-1"></span>Recepcionar</button>
+          <!--<button id="btnDevolucaoMalote" class="btn btn-danger mr-1"><span class="fal fa-upload mr-1"></span>Devolver</button>-->
+          <button type="button" class="btn btn-secondary" data-dismiss="modal"><span class="fal fa-times mr-1"></span>Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

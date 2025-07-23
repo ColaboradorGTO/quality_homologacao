@@ -1,0 +1,10 @@
+{
+    "description": "Integrar venda, cliente, devolução e transferência de produtos do voucher Quality",
+    "action": "quality.concentrador.api.service-layer.devolucao.devolucao-produtos-voucher.jobs:gerar-devolucao-rotina-completa.xsjs::executeGerarDevolucao",
+    "schedules": [
+       {
+          "description": "Todo dia a noite",
+          "xscron": "* * * * 03 00 *"
+       } 
+    ]
+}

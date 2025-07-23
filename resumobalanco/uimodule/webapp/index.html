@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Fiori Launchpad Sandbox</title>
+
+      <!-- Load UI5, select gold reflection theme and the "commons" control library -->
+	<script id='sap-ui-bootstrap' type='text/javascript'
+		src='https://openui5.hana.ondemand.com/resources/sap-ui-core.js'
+		data-sap-ui-theme='sap_belize'
+		data-sap-ui-libs='sap.m'></script>
+	
+	<script>
+		
+		/*** DEFINE RE-USE COMPONENTS - NORMALLY DONE IN SEPARATE FILES ***/
+		
+		// define a new (simple) Controller type
+		sap.ui.controller("my.own.controller", {
+			
+			// implement an event handler in the Controller
+			onLoginTap: function() {
+				 var uid = this.getView().byId("uid").getValue();
+    var pasw = this.getView().byId("pasw").getValue();
+    sap.m.MessageToast.show("User Id: "+uid+" Password: "+pasw);
+			}
+		});
+		
+		
+		// define a new (simple) View type
+		// ...alternatively this can be done in an XML file without JavaScript!
+		sap.ui.jsview("my.own.view", {
+			
+			// define the (default) controller type for this View
+			getControllerName: function() {
+				return "my.own.controller";
+			},
+			
+			// defines the UI of this View
+			createContent: function(oController) {
+				var app = new sap.m.App();
+              
+                var page = new sap.m.Page({
+                  title:"Login",
+                  content:[
+                    new sap.m.VBox({
+                      fitContainer:true,
+                      justifyContent:"Center",
+                      alignItems:"Center",
+                      alignContent:"Center",
+                      items:[
+                        new sap.m.Input(this.createId("uid"),{placeholder:"User ID"}),
+                        new sap.m.Input(this.createId("pasw"),{placeholder:"Password", type:"Password"}),
+                        new sap.m.Button({width:"12rem",text:"Login",type:"Emphasized",
+                                         press:[oController.onLoginTap,oController]})
+                      ]
+                    })
+                  ],
+                  footer:[
+                    new sap.m.Bar({
+                      contentLeft:[new sap.m.Text({text:"SAPUI5 System "})],
+                      contentRight:[new sap.m.Text({text:"GTO ©"})]
+                    })
+                  ]
+                });
+              app.addPage(page);
+				return app;
+			}
+		});
+		
+		
+		
+		/*** THIS IS THE "APPLICATION" CODE ***/
+		
+		// create some dummy JSON data
+		var data = {
+			actionName: "Say Hello"
+		};
+		
+		// instantiate the View
+		var myView = sap.ui.view({type:sap.ui.core.mvc.ViewType.JS, viewName:"my.own.view"});
+		
+		// create a Model and assign it to the View
+		var oModel = new sap.ui.model.json.JSONModel();
+		oModel.setData(data);
+		myView.setModel(oModel);
+		
+		// put the View onto the screen
+		myView.placeAt('content');
+		
+		
+	</script>
+	
+	</head>
+	<body class='sapUiBody'>
+		<div id='content'></div>
+	</body>
+</html>

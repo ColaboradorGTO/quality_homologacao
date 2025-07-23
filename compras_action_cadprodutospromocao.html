@@ -1,0 +1,124 @@
+
+                            <div id="resultadocadprodpromocao"></div>
+                            
+                            <div class="form-group">
+                                <div class="row">
+                                    <input type="hidden" name="IdResPromo" id="IdResPromo" value="">
+                                    <div class="col-sm-6 col-xl-8">
+                                        <label class="form-label" for="noforn">Fornecedor</label>
+                                        <div class="input-group">
+                                            <select class="select form-control" name="idfornpromo" id="idfornpromo" onChange="selecionafabricante();">
+                                            <option value=""> </option>
+                                                
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="nofab">Fabricante</label>
+                                        <div class="input-group">
+                                            <select class="select form-control" name="idfabpromo" id="idfabpromo">
+                                            <option value=""> </option>
+                                                
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="tpgestmerc">Grupo Estrutura Mercadologica</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idgrupoestruturaselect" id="idgrupoestruturaselect" onChange="selecionasubestrutura();" multiple>
+                                                <option value=""></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="tpestmerc">Estrutura Mercadologica</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idestruturaselect" id="idestruturaselect" multiple>
+                                                <option value=""> </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promodesc">Descrição</label>
+                                        <div class="input-group">
+                                            <input type="text" id="descprodpromo" name="descprodpromo" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="promodesccodbarras">Cod. Barras</label>
+                                        <div class="input-group">
+                                            <input type="text" id="codbarraprodpromocao" name="codbarraprodpromocao" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12 col-xl-12">                                        
+                                        <button class="btn btn-primary" type="button" onclick="selecionaprodpromo()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12 col-xl-12">                                        
+                                        <div id="prodlist"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12 col-xl-12"> 
+                                        <div id="panel-1" class="panel">
+                                            <div class="panel-hdr">
+                                                <h2>
+                                                    Lista de Produtos da Origem Cadastrados
+                                                </h2>
+                                                <div class="panel-toolbar">
+                                                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Recolher"></button>
+                                                    
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="panel-container show">
+                                                <div class="panel-content">
+                                                    <div id="prodorigemlist">
+                                                        <!-- datatable start -->
+                                                        
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12 col-xl-12"> 
+                                        <div id="panel-1" class="panel">
+                                            <div class="panel-hdr">
+                                                <h2>
+                                                    Lista de Produtos do Destino Cadastrados
+                                                </h2>
+                                                <div class="panel-toolbar">
+                                                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Recolher"></button>
+                                                    
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="panel-container show">
+                                                <div class="panel-content">
+                                                    <div id="proddestinolist">
+                                                        <!-- datatable start -->
+                                                        
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>

@@ -1,0 +1,54 @@
+<div class="row">
+    <input type="hidden" name="A_ini" id="A_ini" value="<?=$A_ini; ?>">
+    <input type="hidden" name="A_fin" id="A_fin" value="<?=$A_fin; ?>">
+    <input type="hidden" name="IDLoja" id="IDLoja" value="<?=$IDLoja; ?>">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    Lista de Recebimentos Por Período<span class="fw-300"><i>Por Loja</i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Recolher"></button>
+                    
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div id="resultado">
+                        <table id="dt-basic-vendasrecebimento" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                            <thead class="bg-primary-600">
+                                <tr>
+                                    <th>Moeda</th>
+                                    <th>Valor</th>
+                                    <th>% da Venda</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultadoRecebimento">
+                            </tbody>
+                        </table>
+                        </br>
+                        <h2 style="text-align:center;">
+                            <b>Detalhamento TEF e POS</b>
+                        </h2>
+                        </br>
+                        <table id="dt-basic-vendasrecebimentotef" class="table table-bordered table-hover table-striped w-100">
+                            <thead class="bg-primary-600">
+                                <tr>
+                                    <th width="12%">Nome</th>
+                                    <th >Forma Pag</th>
+                                    <th width="10%">Valor</th>
+                                    <th width="10%" style="text-align:center;">Qtd Cupons</th>
+                                    <th width="10%" style="text-align:center;">% Venda</th>
+                                    <th width="10%" style="text-align:center;">Detalhar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultadoRecebimentoListaTef">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

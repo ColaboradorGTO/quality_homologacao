@@ -1,0 +1,241 @@
+
+                            <div id="resultadocadfornecedor"></div>
+                            
+                            <div class="form-group"> 
+                                <div class="row">
+                                    <input type="hidden" name="STAtivoFornecedor" id="STAtivoFornecedor" value="True">
+                                    <input type="hidden" name="IDGrupoFornecedor" id="IDGrupoFornecedor" value="1">
+                                    <input type="hidden" name="IDSubGrupoFornecedor" id="IDSubGrupoFornecedor" value="1">
+                                    <input type="hidden" name="ModPedidoFornecedor" id="ModPedidoFornecedor" value="NENHUM">
+                                    <input type="hidden" name="IDFornecedorAtual" id="IDFornecedorAtual" value="">
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="forncnpj">CNPJ *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="cnpjforn" name="cnpjforn" class="form-control input" value="" onkeypress="return Onlynumbers(event);" onblur="modal_Preenchimento_CNPJ(this.value);" maxlength="14">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="forninscest">Insc. Estadual</label>
+                                        <div class="input-group">
+                                            <input type="text" id="inscestadualforn" name="inscestadualforn" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="14">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="forninscmun">Insc. Municipal</label>
+                                        <div class="input-group">
+                                            <input type="text" id="inscmuniforn" name="inscmuniforn" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="14">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="fornrazao">Razão Social *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="razaoforn" name="razaoforn" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="fornfantasia">Nome Fantasia *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="fantasiaforn" name="fantasiaforn" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                  <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="forcep">CEP *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="cepforn" name="cepforn" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="8">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-5">
+                                        <label class="form-label" for="fornend">Endereço *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="enderecoforn" name="enderecoforn" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="fornnum">Nº *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="numeroendforn" name="numeroendforn" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="forncomplem">Complemento</label>
+                                        <div class="input-group">
+                                            <input type="text" id="complementoendforn" name="complementoendforn" class="form-control input" value="" maxlength="14">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                  <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="forbairro">Bairro *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="bairroforn" name="bairroforn" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="forncid">Cidade *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="cidadeforn" name="cidadeforn" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="foruf">UF *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="ufforn" name="ufforn" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="fornibge">Nº IBGE *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="nibgeforn" name="nibgeforn" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="8">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="fornrepres">Nome Representante *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="nomerepreforn" name="nomerepreforn" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="foremail">E-mail</label>
+                                        <div class="input-group">
+                                            <input type="text" id="emailforn" name="emailforn" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="forntel1">Telefone 1 *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="tel1forn" name="tel1forn" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="11">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="forntel2">Telefone 2</label>
+                                        <div class="input-group">
+                                            <input type="text" id="tel2forn" name="tel2forn" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="11">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="forntel3">Telefone 3</label>
+                                        <div class="input-group">
+                                            <input type="text" id="tel3forn" name="tel3forn" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="11">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="fornst">Situação *</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="stativoforn" id="stativoforn">
+                                                <option value="True">ATIVO</option>
+                                                <option value="False">INATIVO</option> 
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-12">  
+                                    <label class="form-label" for="vrfat">* Configuração Padrão *</label>                                      
+                                        <div id="tudo"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4 col-xl-4">
+                                        <label class="form-label" for="lstfiscal">Fiscal</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idfiscal" id="idfiscal">
+                                                <option value="S">Simples Nacional</option>
+                                                <option value="N">Lucro Presumido</option>
+                                                <option value="R">Lucro Real</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4 col-xl-4">
+                                        <label class="form-label" for="lstenviar">Enviar</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idenviar" id="idenviar">
+                                                <option value="NE">NÃO ENVIAR</option>
+                                                <option value="ET">ETIQUETA</option>
+                                                <option value="AR">ARQUIVO</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4 col-xl-4">
+                                        <label class="form-label" for="tppagamento">Condições de Pagamento</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idcondicaopagamento" id="idcondicaopagamento">
+                                                <option value=""> </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="lsttipopedido">Tipo Pedido</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idtipopedido" id="idtipopedido">
+                                                <option value="">Selecione...</option>
+                                                <option value="VESTUARIO">VESTUARIO</option>
+                                                <option value="CALCADOS">CALÇADOS</option>
+                                                <option value="ARTIGOS">ARTIGOS</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="nomevendedor">Vendedor</label>
+                                        <div class="input-group">
+                                            <input type="text" id="novendedor" name="novendedor" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="evendedor">email vendedor</label>
+                                        <div class="input-group">
+                                            <input type="text" id="emailvendedor" name="emailvendedor" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-8">
+                                        <label class="form-label" for="tptransportadora">Transportadora</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idtransportadora" id="idtransportadora">
+                                                <option value=""> </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="tpfretes">Tipo Frete</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="tpfrete" id="tpfrete">
+                                                <option value="PAGO">PAGO - CIF</option>
+                                                <option value="APAGAR">A PAGAR - FOB</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+    <script>
+        $("#VrValorDesconto").mask('#.##0,00', {reverse: true});
+    </script>

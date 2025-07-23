@@ -1,0 +1,42 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Vendas por Vendedor e Período</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i> Vendas por Vendedor e Período
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                    <div class="panel-tag">
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Início</label>
+                                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Fim</label>
+                                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-3 col-xl-3">
+                            <br>
+                                <button class="btn btn-primary" type="button" onclick="pesq_vendas_vendedor_loja(1)"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                            </div>
+                        </div>
+                            
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

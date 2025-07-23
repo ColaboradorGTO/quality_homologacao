@@ -1,0 +1,176 @@
+
+                            <div id="resultadoprodpedidocad"></div>
+                            
+                            <div class="form-group">
+                                    <input type="hidden" name="IDDetPedidoCad" id="IDDetPedidoCad" value="">
+                                    <input type="hidden" name="IDResPedidoCad" id="IDResPedidoCad" value="">
+                                    <input type="hidden" name="stAtivo" id="stAtivo" value="True">
+                                    <input type="hidden" name="StCancel" id="StCancel" value="False">
+                                    <input type="hidden" name="stRedSocial" id="stRedSocial" value="">
+                                    <input type="hidden" name="stEcommerce" id="stEcommerce" value="">
+                                    <input type="hidden" name="IdLocalExp" id="IdLocalExp" value="">
+                                    <input type="hidden" name="NuContadorSub" id="NuContadorSub" value="">
+                                    <input type="hidden" name="stReposicaoEditProd" id="stReposicaoEditProd" value="">
+                                    <input type="hidden" name="idFuncionarioAutorizador" id="idFuncionarioAutorizador" value="">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="idFornPedCad">Fornecedor</label>
+                                        <div class="input-group">
+                                          <select class="select2 form-control" name="idFornPedCad" id="idFornPedCad"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="idFabPedCad">Fabricante</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idFabPedCad" id="idFabPedCad"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="noprod">Descrição Produto</label>
+                                        <div class="input-group">
+                                            <input type="text" id="dsprodpedidocad" name="dsprodpedidocad" class="form-control" value="" onmouseover=" (this.title = this.value)" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="obsprod">Obs Produto</label>
+                                        <div class="input-group">
+                                            <input type="text" id="obsprodpedidocad" name="obsprodpedidocad" class="form-control" value="" onmouseover=" (this.title = this.value)" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-1"> 
+                                        <label class="form-label" for="qtdpedidoprod">QTD</label>
+                                        <div class="input-group">
+                                            <input type="text" id="qtdprodpedidocad" name="qtdprodpedidocad" class="form-control" value="0" onmouseover=" (this.title = this.value)" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="txtrefer">Ref.</label>
+                                        <div class="input-group">
+                                            <input type="text" id="refprodutocad" name="refprodutocad" class="form-control" value="" onmouseover=" (this.title = this.value)" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="idUndProdCad">Unid</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idUndProdCad" id="idUndProdCad" onchange="preencheUnidadeNasLinhasTabelaEditProd()"></select>
+                                        </div>
+                                    </div>
+                              </div>
+                            </div>
+                              <div id="containerTamanhoProdCad" class="form-group d-none">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-2">
+                                      <label class="form-label" for="idTamanhoProdCad">Tamanho</label>
+                                      <div class="input-group">
+                                        <select class="select2 form-control" name="idTamanhoProdCad" id="idTamanhoProdCad"></select>
+                                      </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="corprodcad">Cor</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="corprodcad" id="corprodcad"></select>
+                                            <option value=""> </option>
+                                                
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="tptecidoprodcad">Tipo de Tecido</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="tptecidoprodcad" id="tptecidoprodcad"></select>
+                                            <option value=""> </option>
+                                                
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="idCatGradeProdCad">Categoria Grade</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idCatGradeProdCad" id="idCatGradeProdCad"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="idEstruturaProdCad">Estrutura</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idEstruturaProdCad" id="idEstruturaProdCad" onchange="montaSelectEstiloEditProdCad();"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="idEstiloProdCad">Estilos</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idEstiloProdCad" id="idEstiloProdCad"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="idCatProdCad">Categorias</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idCatProdCad" id="idCatProdCad"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="tpcat">Estoque Ideal</label>
+                                        <div class="input-group">
+                                            <input type="number" id="qtdestideal" name="qtdestideal" class="form-control" value="0" onmouseover=" (this.title = this.value)">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="tpncm">NCM</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idncm" id="idncm">
+                                                <option value=""> </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="tpprod">Tipo Produto</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idtipoprod" id="idtipoprod">
+                                                <option value=""> </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="tpfiscal">Tipo Fiscal</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idtipofiscal" id="idtipofiscal">
+                                                <option value=""> </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="vrtotalunit">PRÉVIA DOS PRODUTOS</label>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-8" id="buttonprevia">
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12 col-xl-12">                                        
+                                        <div id="resultadoprevprod">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+    <script>
+    </script>

@@ -1,0 +1,84 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+  <li class="breadcrumb-item active"> Alteração de Preços </li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Alteração de Preços<span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i>Lista de Alterações de Preços</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div id="avisoPesquisa" class="d-none"></div>
+            <div class="row">
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="dtAlteracaoInicio">Data Inicio</label>
+                <input class="form-control" id="dtAlteracaoInicio" type="date" name="Data da Alteração de Preço Inicio" value="" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="dtAlteracaoFim">Data Final</label>
+                <input class="form-control" id="dtAlteracaoFim" type="date" name="Data da Alteração de Preço Final" value="" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="idAlteracaoPreco">Nº Alteração</label>
+                <input class="form-control" id="idAlteracaoPreco" type="text" name="Número da Alteração de preco" value="" placeholder="Número da Alteração" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idListaPrecoAlteracao">Lista de Preço</label>
+                <select class="form-control" id="idListaPrecoAlteracao" type="text" value="" style="height: 39px;">
+                  <option value="">Selecione...</option>
+                  <option   title="GRUPO" value="0">TODOS</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idResponsavelAlt">Responsável Alt.</label>
+                <select class="form-control" id="idResponsavelAlt" type="text" name="Responsável pela alteracao de preco" value="" style="height: 39px;">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="idProdAlteracao">Id. Produto</label>
+                <input class="form-control" id="idProdAlteracao" type="text" name="Id do Produto" value="" placeholder="Id do Produto" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="descProdAlteracao">Desc. Produto</label>
+                <input class="form-control" id="descProdAlteracao" type="text" name="Descricao do Produto" value="" placeholder="Descrição do Produto" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="codBarrasProdAlteracao">Cod.Barras</label>
+                <input class="form-control" id="codBarrasProdAlteracao" type="text" name="Codigo de Barras do Produto" value="" placeholder="Código de Barras" style="height: 39px;">
+              </div>
+              <div class="col-sm-6 col-xl-12">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisaAlteracoesPreco()">
+                  <span class="fal fa-search mr-1"></span>Pesquisar
+                </button>
+
+                <button id="btnInserirAlteracaoPreco" class="btn btn-success" type="button" title="Inserir Alteração de Preço" onclick="AlteracaoDePrecoProd()">
+                  <span class="fal fa-plus mr-1"></span>Inserir Alteração
+                </button>
+              </div>
+            </div>
+            <div class="row">
+            </div>
+            <div class="row">
+            </div>
+          </div>
+          <div id="resultadoAlteracaoPreco">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,11 @@
+/out/
+/js/node_modules
+/lib/javafx*
+/.idea/workspace.xml
+/.idea/misc.xml
+/.idea/uiDesigner.xml
+/.idea/compiler.xml
+/fx.zip
+/README.md
+.DS_Store
+windows-debug-launcher.nsi.in

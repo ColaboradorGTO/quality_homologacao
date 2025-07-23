@@ -1,0 +1,30 @@
+<div id="panel-1" class="panel">
+    <div class="panel-hdr textoCabecalhoProdutos">
+    
+    </div>
+    <div class="panel-container show">
+        <div class="panel-content">
+            <div>
+                <!-- datatable start -->
+                <table class="table table-bordered table-hover table-striped w-100">
+                    <thead class="bg-primary-600">
+                        <tr>
+                            <th>Produto</th>
+                            <th>Valor Unitário</th>
+                            <th>Quantidade</th>
+                            <th>Valor Recebido</th>
+                            <th>Vendedor</th>
+                            <th>Situação Venda</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultListProdutosVendaCancelada">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $("#VrRecDinheiro,#VrRecCartao,#VrRecPOS,#VrRecVoucher, #vrUnitario, #vrRecebidoUnidade").mask('#.##0,00', {reverse: true});
+</script>

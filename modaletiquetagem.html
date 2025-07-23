@@ -1,0 +1,124 @@
+<!-- Modal Etiqueta Produto-->
+<div class="modal fade" id="modalImpEtiquetaProd" role="dialog" aria-hidden="true">
+  <div id="dialogModaImpEtiquetaProd" class="modal-dialog modal-xl" role="document" style="align-content: center;">
+    <div id="contentModaImpEtiquetaProd" class="modal-content">
+      <div class="modal-header hidden-print p-1">
+        <div>
+
+          <button id="btnPrint" type="button" class="btn btn-info btn-sm hidden-print p-1 fw-700"
+            title="Imprimir Etiquetas" onclick="impEtiquetaProdutos()">
+            <span class="fal fa-print pr-1"></span>
+            Imprimir
+          </button>
+
+        </div>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+
+      </div>
+      <style>
+        .etiqueta-page {
+          display: flex;
+          flex-wrap: wrap;
+          align-content: flex-start;
+          margin: 10px;
+          width: 100% !important;
+          height: 12cm;
+          background: white;
+          -webkit-box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+          box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+          background-size: cover;
+          padding: 2rem 0 0 2rem;
+        }
+
+        .etiqueta-card {
+          width: calc(33.3% - 0.25in);
+          height: 10.5cm;
+          margin-right: 20px;
+          margin-bottom: 0.5in;
+          padding: 60px 25px 10px !important;
+          box-sizing: border-box;
+          border: 0.5px solid #000;
+          display: flex;
+          flex-direction: column;
+          justify-content: left;
+          align-items: left;
+        }
+
+        .dsProd {
+          height: 200px !important;
+        }
+
+        .tamanho {
+          border: 1px solid black;
+          width: 50px;
+          text-align: center;
+          padding-top: 10px;
+        }
+
+        .preco {
+          display: flex !important;
+          justify-content: right !important;
+          align-items: flex-end !important;
+          width: 115px !important;
+        }
+      </style>
+      <div class="modal-subheader hidden-print">
+
+        <hr style="border: 1px solid; margin-top: 0;">
+
+        <h2 class="modal-title-text " style="text-align: center;">
+          Etiquetas
+        </h2>
+
+        <div class="modal-title-quantidade d-flex flex-column  ml-3"></div>
+
+        <br>
+      </div>
+      <div class="modal-body p-0 ml-2 mr-4">
+        <div id="resultadoImpEtiquetaProd">
+          <div class="etiqueta-page">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Lista Produtos -->
+<div class="modal fade" id="modalListaProdutos" tabindex="-1" role="dialog" aria-hidden="true" style="overflow: hidden auto;">
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 id="tituloListaProdutos" class="modal-title">
+                Visualização de Produtos
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div id="resultadoModalListaProdutos" class="modal-body"></div>
+          <div id="footerModalListaProdutos" class="modal-footer"></div>
+      </div>
+  </div>
+</div>
+
+<!-- Modal Generico -->
+<div class="modal fade" id="modalGenerico" tabindex="-1" role="dialog" aria-hidden="true"  style="overflow: hidden auto;">
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 id="tituloGenerico" class="modal-title">
+
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div id="resultadoModalGenerico" class="modal-body"></div>
+          <div id="footerModalGenerico" class="modal-footer"></div>
+      </div>
+  </div>
+</div>

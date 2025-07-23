@@ -1,0 +1,170 @@
+{
+  "_version": "1.21.0",
+  "sap.app": {
+    "id": "com.quality.quality",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "1.0.0"
+    },
+    "keyWord": "gtoSecret2022_@",
+    "keySecret": "77217A25432A462D4A614E645266556A586E3272357538782F413F4428472B4B",
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "dataSources": {
+      "mainService": {
+        "uri": "http://b1.ativy.com:7502/integracao_quality_sap/crud.xsodata/",
+        "type": "OData",
+        "settings": {
+            "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "rootView": {
+      "viewName": "com.quality.quality.view.autenticacao.Login",
+      "type": "XML",
+      "async": true,
+      "id": "idAppControl"
+    },
+    "dependencies": {
+      "minUI5Version": "1.60.0",
+      "libs": {
+        "sap.ui.core": {},
+        "sap.m": {},
+        "sap.ui.layout": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "com.quality.quality.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+				"settings": {
+					"useBatch": false,
+           "json": true,
+					"defaultBindingMode": "TwoWay"
+				}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ],
+      "js": [
+				{
+					"uri": "libs/jwt/crypto-js.min.js"
+				},
+				{
+					"uri": "libs/jwt/enc-base64.min.js"
+				},
+				{
+					"uri": "libs/jwt/hmac-sha256.min.js"
+				},
+				{
+					"uri": "libs/jwt/buffer@6.0.3.js"
+				}
+			]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.f.routing.Router",
+        "viewType": "XML",
+        "viewPath": "com.quality.quality.view",
+        "controlId": "idAppControl",
+				"controlAggregation": "pages",
+				"transition": "slide",
+				"bypassed": {
+					"target": "notFound"
+				},
+				"async": true
+      },
+      "routes": [
+        {
+          "name": "RouteMainView",
+          "pattern": "RouteMainView",
+          "target": ["TargetMainView"]
+        },
+        {
+          "name": "login",
+          "pattern": "Login",
+          "target": [
+            "login"
+          ]
+        },
+        {
+          "name": "modulos",
+          "pattern": "Modulos",
+          "target": [
+            "modulos"
+          ]
+        },
+        {
+          "name": "menu",
+          "pattern": "Menu",
+          "target": [
+            "menu"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetMainView": {
+          "viewType": "XML",
+          "viewLevel": 1,
+          "viewId": "idAppControl",
+          "viewName": "MainView"
+        },
+        "modulos": {
+          "viewId": "Modulos",
+          "viewType": "XML",
+          "viewPath": "com.quality.quality.view.modulos",
+          "viewName": "SelecaoModulos",
+          "viewLevel": 2
+        }, 
+        "login": {
+          "viewId": "Login",
+          "viewType": "XML",
+          "viewPath": "com.quality.quality.view.autenticacao",
+          "viewName": "Login",
+          "viewLevel": 2
+        },
+        "menu": {
+          "viewId": "Menu",
+          "viewType": "XML",
+          "viewPath": "com.quality.quality.view.menu",
+          "viewName": "Menu",
+          "viewLevel": 2
+        }
+      }
+    }
+  }
+}

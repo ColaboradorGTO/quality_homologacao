@@ -1,0 +1,141 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+  <li class="breadcrumb-item" active><a href="javascript:pesquisaVendaVoucher();">Vendas</a></li>
+  <li class="position-absolute pos-top pos-right d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Vendas - <span class='fw-300'>Voucher</span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-sm-12 col-xl-12">
+    <div class="panel">
+      <div class="panel-hdr">
+        <button id="voltaTela" type="button" class="d-none btn btn-danger p-1 ml-3" onclick="voltarParaVendasCliente();"><span
+            class="fal fa-arrow-alt-left p-1"></span>Voltar</button>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="dtconsultavendainicio">Data Venda Inicio</label>
+                <input class="form-control" id="dtconsultavendainicio" type="date" name="dtconsultavendainicio"
+                  value="">
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="dtvendaconsultafim">Data Venda Fim</label>
+                <input class="form-control" id="dtvendaconsultafim" type="date" name="dtvendaconsultafim" value="">
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="idGrupoEmpresaVenda">Grupos</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="Grupo Loja" id="idGrupoEmpresaVenda"
+                    onchange="selectEmpresasVendaVoucher(this.value)">
+                    <option value="">Todos</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="idEmpresaVenda">Lojas</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idEmpresaVenda" id="idEmpresaVenda">
+                    <option value="">Todas</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="idvenda_cpf">CPF/CNPJ ou Nº Venda</label>
+                <input class="form-control" id="idvenda_cpf" type="text" name="idvenda_cpf" value=""
+                  onblur="zeraCampos(1)">
+              </div>
+
+              <div class="col-sm-6 col-xl-1">
+                <label class="form-label" for="serie">Serie</label>
+                <input class="form-control" id="serie" type="text" name="serie" value="" onblur="zeraCampos(2)">
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="nfce">Nº NFCE</label>
+                <input class="form-control" id="nfce" type="text" name="nfce" value="" onblur="zeraCampos(2)">
+              </div>
+            </div>
+            <div class="row mt-4">
+              <div class="col-sm-12 col-xl-12">
+                <button class="btn btn-primary" type="button" onclick="pesquisaVendaCliente()"><span
+                    class="fal fa-search p-1"></span>Pesquisar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="Tabelas">
+          <div class="row d-none m-2 tabelaVenda">
+            <div class="col-sm-12 col-xl-12">
+              <div class="panel">
+                <div class="panel-hdr">
+                  <h2>
+                    <span class="fw-500"><i> Vendas </i></span>
+                  </h2>
+                </div>
+                  <div class="panel-container show">
+                    <div class="panel-content">
+                      <table id="resultadoVendaClienteVoucher"
+                        class="table table-bordered table-hover table-expandable table-striped w-100 fw-700">
+                        <thead class="bg-primary-600">
+                          <tr>
+                            <th title="Indice" class="text-center">Indice</th>
+                            <th title="Numero da Venda" class="text-center">Loja</th>
+                            <th title="Numero da Venda" class="text-center">Nº Venda</th>
+                            <th title="Nome do Cliente" class="text-center">Data</th>
+                            <th title="CNPF/CNPJ" class="text-center">Valor</th>
+                            <th title="Loja" class="text-center">St. Cortesia</th>
+                            <th title="Valor Pago" class="text-center">St. Defeito</th>
+                            <th title="Data da Venda" class="text-center">Dias Passados</th>
+                            <th title="Situacao" class="text-center">Opcoes</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+
+                      </table>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+          <div class="row d-none m-2 tabelaProduto">
+            <div class="col-sm-12 col-xl-12">
+              <div class="panel">
+                <div class="panel-hdr">
+                  <h2 id="nuVendaProd">
+                    <span class="fw-500"><i> Produtos </i></span>
+                  </h2>
+                </div>
+                <div>
+                  <div class="panel-container show">
+                    <div class="panel-content">
+                      <table id="resultadoProduto" class="table table-bordered table-hover table-striped w-100 fw-700 ">
+                        <thead class="bg-primary-600">
+                          <tr>
+                            <th title="Indice" class="text-center">Indice</th>
+                            <th title="Codigo do Produto" class="text-center">Codigo Produto</th>
+                            <th title="Produto" class="text-center">Produto</th>
+                            <th title="Codigo de Barras" class="text-center">Codigo Barras</th>
+                            <th title="Quantidade" class="text-center">Quantidade</th>
+                            <th title="Valor" class="text-center">Valor Pago</th>
+                            <th title="Status Troca" class="text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>

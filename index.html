@@ -1,0 +1,301 @@
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>
+            Login - Softquality SAP
+        </title>
+        <meta name="description" content="Login">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
+        <!-- Call App Mode on ios devices -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <!-- Remove Tap Highlight on Windows Phone IE -->
+        <meta name="msapplication-tap-highlight" content="no">
+        <!-- base css -->
+        <link rel="stylesheet" media="screen, print" href="css/vendors.bundle.css">
+        <link rel="stylesheet" media="screen, print" href="css/app.bundle.css">
+        <!-- Place favicon.ico in the root directory -->
+        <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+        <link rel="mask-icon" href="img/favicon/safari-pinned-tab.svg" color="#5bbad5">
+        <!-- Optional: page related CSS-->
+        <link rel="stylesheet" media="screen, print" href="css/fa-brands.css">
+        <link rel="stylesheet" media="screen, print" href="css/datagrid/datatables/datatables.bundle.css">
+        <link rel="stylesheet" media="screen, print" href="css/notifications/sweetalert2/sweetalert2.bundle.css">
+        <link rel="stylesheet" media="screen, print" href="css/formplugins/select2/select2.bundle.css">
+    </head>
+    <body>
+        <div class="page-wrapper">
+            <div class="page-inner bg-brand-gradient">
+                <div class="page-content-wrapper bg-transparent m-0">
+                    <div class="height-10 w-100 shadow-lg px-4 bg-brand-gradient">
+                        <div class="d-flex align-items-center container p-0">
+                            <div class="page-logo width-mobile-auto m-0 align-items-center justify-content-center p-0 bg-transparent bg-img-none shadow-0 height-9">
+                                <a href="javascript:void(0)" class="page-logo-link press-scale-down d-flex align-items-center">
+                                    <img src="img/logo.png" alt="SmartAdmin WebApp" aria-roledescription="logo">
+                                    <span class="page-logo-text mr-1">Softquality SAP</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-1" style="background: url(img/svg/pattern-1.svg) no-repeat center bottom fixed; background-size: cover;">
+                        <div class="container py-4 py-lg-5 my-lg-5 px-4 px-sm-0">
+                            <div class="row">
+                                <div class="col col-md-6 col-lg-7 hidden-sm-down">
+                                    <h2 class="fs-xxl fw-500 mt-4 text-white">
+                                        Software de Gestão Unificada
+                                        <small class="h3 fw-300 mt-3 mb-5 text-white opacity-60">
+                                            Sistema de Gerenciamento e Controle integrado com o ERP SAP.
+                                        </small>
+                                    </h2>
+                                </div>
+                                <div class="col-sm-12 col-md-6 col-lg-5 col-xl-5 ml-auto">
+                                    <h1 class="text-white fw-300 mb-3 d-sm-block d-md-none">
+                                        Acesso ao Softquality SAP
+                                    </h1>
+                                    <div class="card p-4 rounded-plus bg-faded">
+                                        <form id="js-login" novalidate="">
+                                            <div class="form-group">
+                                                <label class="form-label" for="grupempresa">Grupo Empresarial</label>
+                                                <input type="text" id="grupoempresa" class="form-control input form-control-lg"  value="GTO - GRUPO TESOURA DE OURO" readonly>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label" for="mod">Módulo</label>
+                                                <div class="input-group">
+                                                    <select name="modulo" id="modulo" class="select2 form-control">
+                                                        <option  readonly value="0" selected> Selecione ...</option>
+                                                        
+                                                        <option value="ADMINISTRATIVO">1 - ADMINISTRATIVO</option>
+                                                        <option value="COMERCIAL">2 - COMERCIAL</option>
+                                                        <option value="CONTABILIDADE">3 - CONTABILIDADE</option>
+                                                        <option value="FINANCEIRO">4 - FINANCEIRO</option>
+                                                        <option value="GERENCIA">5 - GERÊNCIA</option>
+                                                        <option value="INFORMATICA">6 - INFORMÁTICA</option>
+                                                        <option value="MARKETING">7 - MARKETING</option>
+                                                        <option value="COMPRAS">8 - COMPRAS</option>
+                                                        <option value="CADASTROS">9 - CADASTROS</option>
+                                                        <option value="EXPEDICAO">10 - EXPEDICAO</option>
+                                                        <option value="COMPRASADM">11 - COMPRAS ADM</option>
+                                                        <option value="CONFERENCIACEGA">12 - CONFERÊNCIA CEGA</option>
+                                                        <option value="ETIQUETAGEM">13 - ETIQUETAGEM</option>
+                                                        <option value="VOUCHERS" >14 - VOUCHERS</option>
+                                                        <option value="ETIQUETAGEMFORNECEDOR">15 - ETIQUETAGEM FORNECEDOR</option>
+                                                        <option value="RECEPCAOMALOTES">16 - RECEPÇÃO MALOTES</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div id="containerLoja" class="form-group d-none">
+                                                <label class="form-label" for="modemp">Empresa</label>
+                                                <div class="input-group">
+                                                    <select name="empresa" id="empresa" class="select2 form-control">
+                                                        <option  readonly value="0" selected> Selecione ...</option>
+                                                        
+                                                     <!--  <option value="1">0001 - TO - Recanto 1 Matriz</option>
+                                                        <option value="2">0002 - TO - Ceilandia 1</option>
+                                                        <option value="3">0003 - TO - Taguatinga 1</option>
+                                                        <option value="4">0004 - TO - Anapolis 2</option>
+                                                        <option value="5">0005 - TO - Gama 3</option>
+                                                        <option value="6">0006 - TO - Senador Canedo</option>
+                                                        <option value="7">0007 - TO - Recanto 2</option>
+                                                        <option value="8">0008 - TO - Samambaia 2</option>
+                                                        <option value="9">0009 - MG - Planaltina DF</option>
+                                                        <option value="10">0010 - TO - Brazlandia</option>
+                                                        <option value="11">0011 - TO - Samambaia 1</option>
+                                                        <option value="12">0012 - TO - São Sebastião</option>
+                                                        <option value="13">0013 - MG - Paranoa 1</option>
+                                                        <option value="14">0014 - MG - São Sebastião</option>
+                                                        <option value="15">0015 - TO - Sobradinho 1</option>
+                                                        <option value="16">0016 - MG - Ceilandia 2</option>
+                                                        <option value="17">0017 - MG - Riacho Fundo I</option>
+                                                        <option value="18">0018 - MG - Recanto Das Emas</option>
+                                                        <option value="19">0019 - MG - Brazlandia</option>
+                                                        <option value="20">0020 - MG - Samambaia 2</option>
+                                                        <option value="21">0021 - FC - Paranoa</option>
+                                                        <option value="22">0022 - MG - Nucleo Bandeirante</option>
+                                                        <option value="23">0023 - TO - Planaltina Df 2</option>
+                                                        <option value="24">0024 - MG - Taguatinga</option>
+                                                        <option value="25">0025 - TO - Planaltina Df 1</option>
+                                                        <option value="26">0026 - TO - Comercial Norte</option>
+                                                        <option value="27">0027 - TO - Ceilandia 2</option>
+                                                        <option value="28">0028 - TO - Paranoa</option>
+                                                        <option value="29">0029 - TO - Santa Maria</option>
+                                                        <option value="30">0030 - TO - Taguacenter</option>
+                                                        <option value="31">0031 - TO - D Gto</option>
+                                                        <option value="32">0032 - MG - Luziania</option>
+                                                        <option value="33">0033 - TO - Sto Antonio</option>
+                                                        <option value="34">0034 - FC - Aguas Lindas 1</option>
+                                                        <option value="35">0035 - TO - Valparaiso 1</option>
+                                                        <option value="36">0036 - TO - Goianesia Go</option>
+                                                        <option value="37">0037 - TO - Aguas Lindas 2</option>
+                                                        <option value="38">0038 - TO - Aguas Lindas 1</option>
+                                                        <option value="39">0039 - TO - Planaltina Go</option>
+                                                        <option value="40">0040 - TO - Formosa</option>
+                                                        <option value="41">0041 - MG - Aparecida GO 2</option>
+                                                        <option value="42">0042 - TO - Cristalina Go</option>
+                                                        <option value="43">0043 - FC - Aguas Lindas 2</option>
+                                                        <option value="44">0044 - MG - Sobradinho 1</option>
+                                                        <option value="45">0045 - MG - Samambaia 3</option>
+                                                        <option value="46">0046 - MG - Gama</option>
+                                                        <option value="47">0047 - FC - Samambaia</option>
+                                                        <option value="48">0048 - FC - Recanto Das Emas</option>
+                                                        <option value="49">0049 - TO - Str Comercial Sul</option>
+                                                        <option value="50">0050 - FC - Sao Sebastiao</option>
+                                                        <option value="51">0051 - MG - Paranoa 2</option>
+                                                        <option value="52">0052 - MG - Ceilandia 1</option>
+                                                        <option value="53">0053 - FC - Nucleo Bandeirante</option>
+                                                        <option value="54">0054 - FC - Santa Maria</option>
+                                                        <option value="55">0055 - MG - Sobradinho 2</option>
+                                                        <option value="56">0056 - FC - Ceilandia</option>
+                                                        <option value="57">0057 - TO - Bandeirante</option>
+                                                        <option value="58">0058 - FC - Planaltina DF</option>
+                                                        <option value="59">0059 - FC - Taguatinga 1</option>
+                                                        <option value="60">0060 - TO - Sobradinho 2</option>
+                                                        <option value="61">0061 - TO - Gama 1</option>
+                                                        <option value="62">0062 - TO - Riacho Fundo 1</option>
+                                                        <option value="63">0063 - MG - Santa Maria</option>
+                                                        <option value="64">0064 - MG - Estrutural</option>
+                                                        <option value="65">0065 - FC - Gama</option>
+                                                        <option value="66">0066 - MG - Sto Antonio </option>
+                                                        <option value="67">0067 - MG - Aguas Lindas</option>
+                                                        <option value="68">0068 - FC - Novo Gama</option>
+                                                        <option value="69">0069 - TO - Pedregal</option>
+                                                        <option value="70">0070 - TO - Ceu Azul</option>
+                                                        <option value="71">0071 - FC - Valparaiso 1</option>
+                                                        <option value="72">0072 - MG - Formosa</option>
+                                                        <option value="73">0073 - MG - Senador Canedo</option>
+                                                        <option value="74">0074 - FC - Sto Antonio 2</option>
+                                                        <option value="75">0075 - FC - Planaltina GO</option>
+                                                        <option value="76">0076 - MG - Valparaiso</option>
+                                                        <option value="77">0077 - FC - Formosa</option>
+                                                        <option value="78">0078 - TO - Ocidental</option>
+                                                        <option value="79">0079 - FC - Luziania</option>
+                                                        <option value="80">0080 - TO - Gyn Centro</option>
+                                                        <option value="81">0081 - TO - Luziania 2</option>
+                                                        <option value="82">0082 - MG - Garavelo GO</option>
+                                                        <option value="83">0083 - TO - Aparecida Go</option>
+                                                        <option value="84">0084 - TO - Goiania Garavelo</option>
+                                                        <option value="85">0085 - FC - Valparaiso 2</option>
+                                                        <option value="86">0086 - TO - Valparaiso 2</option>
+                                                        <option value="87">0087 - FC - Cidade Ocidental</option>
+                                                        <option value="88">0088 - MG - Planaltina GO</option>
+                                                        <option value="89">0089 - MG - Novo Gama</option>
+                                                        <option value="90">0090 - FC - Sobradinho</option>
+                                                        <option value="91">0091 - YO - Taguatinga</option>
+                                                        <option value="92">0092 - FC - Aguas Claras</option>
+                                                        <option value="93">0093 - FC - Cristalina</option>
+                                                        <option value="94">0094 - FC - Taguatinga 2</option>
+                                                        <option value="95">0095 - FC - Goianesia</option>
+                                                        <option value="96">0096 - TO - Caldas Novas Go</option>
+                                                        <option value="97">0097 - FC - Asa Norte</option>
+                                                        <option value="98">0098 - YO - Sobradinho</option>
+                                                        <option value="99">0099 - FC - Brazlandia</option>
+                                                        <option value="100">0100 - TO - Planaltina Go 2</option>
+                                                        <option value="101">0101 - TO - CD (Depósito)</option>
+                                                        <option value="102">0102 - FC - Caldas Novas</option>
+                                                        <option value="103">0103 - TO - Catalao</option>
+                                                        <option value="104">0104 - MG - Cristalina</option>
+                                                        <option value="105">0105 - YO - Valaparaiso</option>
+                                                        <option value="106">0106 - YO - Santa Maria</option>
+                                                        <option value="107">0107 - YO - Aguas Lindas</option>
+                                                        <option value="108">0108 - FC - SIA</option>
+                                                        <option value="109">0109 - MG - OUTLET Ceilandia</option>
+                                                        <option value="110">0110 - FC - Planaltina</option>
+                                                        <option value="111">0111 - TO - Anapolis 3</option>
+                                                        <option value="112">0112 - YO - JK</option>
+                                                        <option value="113">0113 - MG - Gama</option>
+                                                        <option value="114">0114 - MG - Jardim Inga</option>
+                                                        <option value="115">0115 - MG - Cidade Ocidental</option>  -->
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label" for="usuario">Matrícula</label>
+                                                <input type="text" id="usuario" class="form-control input form-control-lg"  value="" required>
+                                                <div class="invalid-feedback">Digite o Usuário</div>
+                                                <div class="help-block">O usuário é o número da sua empresa no sistema</div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label" for="senha">Senha</label>
+                                                <input type="password" id="senha" class="form-control input form-control-lg" value="" required>
+                                                <div class="invalid-feedback">Digite a Senha</div>
+                                                <div class="help-block">Sua Senha</div>
+                                            </div>
+                                            <div class="row no-gutters">
+                                                <div class="col-lg-6 pl-lg-1 my-2">
+                                                    <button id="Acessar" value="Acessar" type="button" class="btn btn-danger btn-block btn-lg input" onclick="login_sistema_soft()">Entrar</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="position-absolute pos-bottom pos-left pos-right p-3 text-center text-white">
+                                2019 © MettaGroup by &nbsp;<a href='http://mettagroup.com.br' class='text-white opacity-40 fw-500' title='mettagroup.com.br' target='_blank'>mettagroup.com.br</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <!-- base vendor bundle: 
+			 DOC: if you remove pace.js from core please note on Internet Explorer some CSS animations may execute before a page is fully loaded, resulting 'jump' animations 
+						+ pace.js (recommended)
+						+ jquery.js (core)
+						+ jquery-ui-cust.js (core)
+						+ popper.js (core)
+						+ bootstrap.js (core)
+						+ slimscroll.js (extension)
+						+ app.navigation.js (core)
+						+ ba-throttle-debounce.js (core)
+						+ waves.js (extension)
+						+ smartpanels.js (extension)
+						+ src/../jquery-snippets.js (core) -->
+                        <script src="js/vendors.bundle.js"></script>
+        <script src="js/app.bundle.js"></script>
+        <script type="text/javascript">
+            /* Activate smart panels */
+            //$('#js-page-content').smartPanel();
+
+        </script>
+        <!-- The order of scripts is irrelevant. Please check out the plugin pages for more details about these plugins below: -->
+
+        <script src="js/datagrid/datatables/datatables.bundle.js"></script>
+        <script src="js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+        <script src="js/formplugins/select2/select2.bundle.js"></script>
+        <script src="js/jquery.mask.min.js"></script>
+        <script src="js/jquery.mask.js"></script>
+        
+        <!-- datatbles buttons bundle contains: 
+            + "jszip.js",
+            + "pdfmake.js",
+            + "vfs_fonts.js"	
+            NOTE: 	The file size is pretty big, but you can always use the
+			build.json file to deselect any components you do not need under "export" -->
+        <script src="js/datagrid/datatables/datatables.export.js"></script>
+        <script src="js/funcResponseSweetAlert.js"></script>
+        <script src="js/funcRequest.js"></script>
+        <script src="js/functionLogin.js?<?= time(); ?>"></script>
+        <script>
+
+            javascript:window.history.forward(1);
+            /*$(document).ready(function(){
+
+            window.onkeypress = function(e) {
+                    if (e.which == 13) {
+                        var inputs = document.getElementsByClassName(' input');
+                        for (var i = 0; i < inputs.length; i++) {
+                            if (document.activeElement.id == inputs[i].id && i+1 < inputs.length ) {
+                                inputs[i+1].focus();
+                                inputs[i+1].select();
+                                break;   
+                            }
+                        }
+                    }
+                };
+            
+            });*/
+
+        </script>
+    </body>
+</html>

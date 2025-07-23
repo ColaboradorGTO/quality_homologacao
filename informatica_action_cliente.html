@@ -1,0 +1,91 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Cliente</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i>Visualizar
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-xl-12">
+        <!-- Filtro Cliente -->
+        <div id="panel-1" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    Listagem de Clientes
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel waves-effect waves-themed" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="panel-tag">
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-4">
+                                <label class="form-label" for="idmarca">Empresa</label>
+                                <select class="select2 form-control" name="idmarca" id="idmarca" onChange="selecionamarcavendedor();">
+                                    <option value="">Selecione ...</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-xl-8">
+                                <label class="form-label" for="idloja">Filial</label>
+                                <select class="select2 form-control" name="idloja" id="idloja">
+                                    <option value="">Selecione a Empresa</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-xl-6">
+                                <br>
+                                <label class="form-label" for="dscliente">Cliente</label>
+                                <input type="text" id="dscliente" name="dscliente" class="form-control input" value="">
+                            </div>
+                            <div class="col-sm-6 col-xl-6">
+                                <br>
+                                <label class="form-label" for="idcpfcnpj">CPF / CNPJ</label>
+                                <div class="input-group">
+                                    <input type="text" id="idcpfcnpj" name="idcpfcnpj" class="form-control input" value="">
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-6">
+                                <br>
+                                <label class="form-label" for="idtipocliente">Tipo Cliente</label>
+                                <select class="select2 form-control" name="idtipocliente" id="idtipocliente">
+                                    <option value="">Selecione o Tipo do Cliente</option>
+                                    <option value="FÍSICA">FÍSICA</option>
+                                    <option value="JURÍDICA">JURÍDICA</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-xl-6">
+                                <br>
+                                <label class="form-label" for="idstatus">Status</label>
+                                <select class="select2 form-control" name="idstatus" id="idstatus">
+                                    <option value="">Selecione o Status</option>
+                                    <option value="True">ATIVO</option>
+                                    <option value="False">INATIVO</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-xl-12">
+                                <br>
+                                <button class="btn btn-primary" type="button" onclick="pesquisarCliente()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div id="resultadocliente">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ </div>

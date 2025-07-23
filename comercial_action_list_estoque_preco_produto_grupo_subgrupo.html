@@ -1,0 +1,139 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Lista de Produtos</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i>Relatórios Produtos
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                <div class="panel-tag">
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpdate">Data Início</label>
+                                    <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+                                </div>
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpdate">Data Fim</label>
+                                    <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-5">
+                                    <label class="form-label" for="tpempresa">Por Marca</label>
+                                    <div class="input-group">
+                                        <select class="select2 form-control" name="idmarca" id="idmarca" onChange="selecionamarca();">
+                                            <option value="0"> </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-xl-2">
+                                    <label class="form-label" for="tpuf">Por UF</label>
+                                    <div class="input-group">
+                                        <select class="select form-control" name="ufprod" id="ufprod" onChange="selecionauf();">
+                                            <option value="0"></option>
+                                            <option value="DF">DF</option>
+                                            <option value="GO">GO</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-xl-5">
+                                    <label class="form-label" for="tpempresa">Por Empresa</label>
+                                    <div class="input-group">
+                                        <select class="selectpicker" data-width="100%" id="idloja"
+                                                name="idloja"
+                                                multiple
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpgrade">Grupo</label>
+                                    <div class="input-group">
+                                        <select class="selectpicker" data-width="100%" id="idgrupograde"
+                                                name="idgrupograde"
+                                                multiple
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true"
+                                                >
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpgrade">Subgrupo</label>
+                                    <div class="input-group">
+                                        <select class="select2-placeholder-multiple form-control" data-width="100%" id="idgrade"
+                                                name="idgrade"
+                                                multiple="multiple"
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true"
+                                                >
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpmarcaproduto">Marca</label>
+                                    <div class="input-group">
+                                        <select class="selectpicker" data-width="100%" id="idmarcaproduto"
+                                                name="idmarcaproduto"
+                                                multiple
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpfornec">Por Fornecedor</label>
+                                    <div class="input-group">
+                                        <select class="selectpicker" data-width="100%" id="idforn"
+                                                name="idforn"
+                                                multiple
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">    
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="pesqproduto">Cód.Barras / Nome Produto</label>
+                                    <div class="input-group">
+                                        <input type="text" id="descProduto" name="descProduto" class="form-control input" value="">
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 col-xl-3">
+                                    <label class="form-label" for="vlproduto">Preço Produto</label>
+                                    <div class="input-group">
+                                        <input type="number" id="vlProduto" min="0" name="vlProduto" class="form-control input" value="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-8 col-xl-8">
+                                <br>
+                                        <button class="btn btn-primary" type="button" onclick="pesq_produtos_estoques_preco_loja(1)"><span class="fal fa-search mr-1"></span>Posicionamento Estoque</button>
+                                </div>
+                            </div>
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

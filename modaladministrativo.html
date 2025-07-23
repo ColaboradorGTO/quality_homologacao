@@ -1,0 +1,757 @@
+
+<!-- Modal Cadastro Empresa Notas-->
+<div class="modal fade" id="cadEmpresas" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                        <h4 class="modal-title">
+                            Dados de Empresa
+                            <small class="m-0 text-muted">
+                                Atualização dos Dados da Empresa
+                            </small>
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                        </button>
+                    </div>                
+                    <div class="modal-body" id="resulmodalempresa">
+                       
+                    </div>
+                
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" onclick="atualizar_empresa()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+               
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cadastro Certificado Notas-->
+<div class="modal fade" id="cadCertificado" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados do Certificado
+                    <small class="m-0 text-muted">
+                        Cadastrar ou Atualizar informações do certificado para emissão das notas fiscais
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formCertificado" name="formCertificado" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcertificado">
+
+                    </div>
+                    <div class="modal-footer" id="footercertificado">
+                        <button type="button" class="btn btn-success" onclick="atualizar_certificado()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cadastro Caixas-->
+<div class="modal fade" id="cadCaixa" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados do Caixa
+                    <small class="m-0 text-muted">
+                        Cadastrar ou Atualizar informações do Caixa - PDV
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formCaixa" name="formCaixa" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcaixa">
+
+                    </div>
+                    <div class="modal-footer" id="footercaixa">
+                        <button type="button" class="btn btn-success" onclick="atualizar_caixa()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhar Venda-->
+<div class="modal fade" id="detVenda" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" id="cabdetvenda">
+                <h4 class="modal-title">
+                    VENDA
+                    <small class="m-0 text-muted">
+                        Detalhes da Venda
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetVenda" name="formDetVenda" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaldetvenda">
+
+                    </div>
+                    <div class="modal-footer" id="footerdetvenda">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhar Venda Produto-->
+<div class="modal fade" id="detVendaproduto" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Detalhe da Venda
+                    <small class="m-0 text-muted">
+                        Relação de Produtos da Venda
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetVendaProduto" name="formDetVendaProduto" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaldetvendaproduto">
+
+                    </div>
+                    <div class="modal-footer" id="footerdetvendaproduto">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cadastro Caixas-->
+<div class="modal fade" id="cadFuncionario" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados do Funcionário
+                    <small class="m-0 text-muted">
+                        Cadastrar ou Atualizar informações do Funcionário
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formFuncionario" name="formFuncionario" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalfuncionario">
+
+                    </div>
+                    <div class="modal-footer" id="footerfuncionario">
+                        <button type="button" class="btn btn-success" onclick="cadastrar_funcionario()">Cadastrar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhar Recebimento-->
+<div class="modal fade" id="detVendaRecebimento" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Detalhe da Venda
+                    <small class="m-0 text-muted">
+                        Relação de Recebimentos da Venda
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetVendaRecebimento" name="formDetVendaRecebimento" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaldetvendarecebimento">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cancelar Venda-->
+<div class="modal fade" id="cancelVenda" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title titluloVenda">
+                    Cancelamento da Venda
+                    <small class="m-0 text-muted">
+                        As Vendas só poderão ser canceladas até 24 depois de ser emitida
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formCancelVenda" name="formCancelVenda" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcancelvenda">
+
+                    </div>
+                    <div class="modal-footer" id="footercancelvenda">
+                        <button type="button" class="btn btn-success" onclick="cancelar_vendas()">Cancelar Venda</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhar Transferencias-->
+<div class="modal fade" id="detTransferencia"tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Detalhe da Transferência
+                    <small class="m-0 text-muted">
+                        Relação dos Produtos da Transferência
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetTransferencia" name="formDetTransferencia" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaldettransferencia">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhar Balanço-->
+<div class="modal fade" id="detBalanco" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Detalhe do Balanço
+                    <small class="m-0 text-muted">
+                        Relação dos Produtos do Balanço
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetBalanco" name="formDetBalanco" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaldetbalanco">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Imprimir Quebra-->
+<div class="modal fade" id="imprimiDadosQuebra" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title TituloModalImprimir">
+                    Impressão de Recibos
+                    <small class="m-0 text-muted">
+                        Imprimir Quebra de Caixa
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formImprimirQuebra" name="formImprimirQuebra" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalimprimirquebra">
+
+                    </div>
+                    <div class="modal-footer" id="footerimprimirquebra">
+                        <button id="buttonimprimirquebra" type="button" class="btn btn-success" onclick="imprimir_dados_quebra()">Confirmar Impressão</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhar Voucher-->
+<div class="modal fade" id="detVoucher" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Detalhe do Voucher
+                    <small class="m-0 text-muted">
+                        Relação de Produtos do Voucher
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetVoucher" name="formDetVoucher" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaldetvoucher">
+
+                    </div>
+                    <div class="modal-footer" id="footerdetvoucher">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Atualiza Status Voucher Subir-->
+<div class="modal fade" id="detStatusVoucher" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          Detalhes do Voucher
+          <small class="m-0 text-muted">
+            Detalhes e Atualização de Status
+          </small>
+        </h2>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body detDadosVoucher">
+
+      </div>
+      <div id="formdetStatusVoucher">
+        <div class="modal-body" id="resultadoModalStatusVoucher">
+          <div class="row">
+            <div id="voucherOrigem"class="d-none col-sm-12 col-xl-12">
+              <div class="panel">
+                <div class="panel-hdr">
+                  <h2>
+                    <span class="ml-3 fw-500"><i> Voucher de Origem </i></span>
+                  </h2>
+                </div>
+                <div class="panel-container show">
+                  <div class="panel-content">
+                    <table id="tableVoucherOrigem" class="table table-bordered table-hover table-expandable table-striped w-100">
+                      <thead class="bg-primary-600">
+                        <tr>
+                          <th>Nº Voucher</th>
+                          <th>Loja Emissor</th>
+                          <th>Caixa Emissor</th>
+                          <th>Aut. Criação</th>
+                          <th>Data Emissão</th>
+                          <th>Valor</th>
+                          <th>Loja Recebida</th>
+                          <th>Caixa Recebida</th>
+                          <th>Aut. Consumo</th>
+                          <th>Data Recebida</th>
+                          <th>Situação</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="produtosVoucher" class="col-xl-12 col-sm-12">
+              <div class="panel">
+                <div class="panel-heading">
+                  <div class="panel-hdr">
+                    <h2>
+                      <span id="vendaVoucherOrigem" class="ml-3 fw-500"><i>Produtos Venda de Origem</i></span>
+                      </h2>
+                  </div>
+                  <div class="panel-container show">
+                    <div class="panel-content">
+                      <div id="">
+                        <!-- datatable start -->
+                        <table id="detProdVoucher"
+                          class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                          <thead class="bg-primary-600">
+                            <tr>
+                              <th>#</th>
+                              <th>Código Barras</th>
+                              <th>Descrição</th>
+                              <th>Vr Unit</th>
+                              <th>QTD</th>
+                              <th>Vr Bruto</th>
+                              <th>Vr Desconto</th>
+                              <th>Vr Liquido</th>
+                            </tr>
+                          </thead>
+                          <tbody id="resultListDetalheVoucher">
+                          </tbody>
+                          <tfoot class="thead-themed">
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="vendaDestVoucher" class=" d-none col-xl-12 col-sm-12">
+              <div class="panel">
+                <div class="panel-hdr">
+                  <h2>
+                    <span id="vendaVoucherDestino" class="ml-3 fw-500"><i>Produtos Venda de Destino</i></span>
+                  </h2>
+                </div>
+                <div class="panel-container show">
+                  <div class="panel-content">
+                    <div id="">
+                      <!-- datatable start -->
+                      <table id="detProdVoucherDestino"
+                        class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                        <thead class="bg-primary-600">
+                          <tr>
+                            <th>#</th>
+                            <th>Código Barras</th>
+                            <th>Descrição</th>
+                            <th>Vr Unit</th>
+                            <th>QTD</th>
+                            <th>Vr Bruto</th>
+                            <th>Vr Desconto</th>
+                            <th>Vr Liquido</th>
+                          </tr>
+                        </thead>
+                        <tbody id="resultListDetalheVoucher">
+                        </tbody>
+                        <tfoot class="thead-themed">
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer" id="footerdetStatusVoucher">
+              <button id="btnUpdateVoucher" type="button" class="btn btn-success d-none" onclick="">Atualizar</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Imprime Voucher -->
+<div class="modal fade" id="impVoucher" role="dialog" aria-hidden="true">
+  <div id="dialogModalVoucher" class="modal-dialog modal-md" role="document" style="align-content: center;">
+    <div id="contentModalVoucher" class="modal-content">
+      <div class="modal-header hidden-print p-1">
+        <div>
+          <button id="btnPrint" type="button" class="btn btn-primary btn-sm hidden-print p-1 fw-700" title="Imprimir"
+            onclick="impVoucher()">
+            <span class="fal fa-print pr-1"></span> Imprimir
+          </button>
+
+          <button id="btnPDF" type="button" class="btn btn-danger btn-sm hidden-print p-1 fw-700" title="PDF"
+            onclick="exportPDF()">
+            <span class="fal fa-file-pdf pr-1"></span> PDF
+          </button>
+        </div>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-subheader hidden-print">
+        <hr style="border: 1px solid">
+        <h2 class="modal-title" style="text-align: center;">Voucher</h2>
+        <br>
+      </div>
+      <div class="modal-body p-0 ml-2">
+        <div id="VoucherImp"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Coletor Balanço-->
+<div class="modal fade" id="coletorBalanco" tabindex="-1" role="dialog" aria-hidden="true" >
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Resumo do Balanço
+                    <small class="m-0 text-muted">
+                        Relação dos Coletores
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <!-- Pesquisar Produto Dentro dos Coletores -->
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-6 col-xl-10">
+                        <label class="form-label" for="pesqProdutoColetor">Informe a Descrição ou Código de Barras do Produto, para Pesquisar nos Coletores</label>
+                        <div class="input-group">
+                            <input type="text" id="pesqProdutoColetor" name="pesqProdutoColetor" class="form-control input" value="">&nbsp;&nbsp;
+                            <button class="btn btn-primary" type="button" onclick="pesquisarProdutoColetor()">
+                                <span class="fal fa-search mr-1"></span>
+                                Pesquisar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <form id="formColetorBalanco" name="formColetorBalanco" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcoletorbalanco">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Prévia Balanço-->
+<div class="modal fade" id="previaBalanco" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Prévia do Balanço
+                    <small class="m-0 text-muted">
+                        Relação dos Produtos
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <button id="btnconsolidarbalanco" class="btn btn-success" type="button" onclick="ConsolidarBalanco()">
+                    <span class="fal fa-check"></span> Consolidar Balanço
+                </button><br>
+                <input type="hidden" id="idconsolidar" name="idconsolidar" value="">
+            </div>
+            <form id="formPreviaBalanco" name="formPreviaBalanco" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalpreviabalanco">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Consolidar Balanço-->
+<div class="modal fade" id="consolidarBalanco" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Consolidar Balanço
+                    <small class="m-0 text-muted">
+                        Consolidação
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formConsolidarBalanco" name="formConsolidarBalanco" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalconsolidarbalanco">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Prestação Contas Balanço-->
+<div class="modal fade" id="prestacaoContas" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    PRESTAÇÃO DE CONTAS DO BALANÇO
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formPrestacaoContas" name="formPrestacaoContas" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalprestacaocontas">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Produto balanço avulso -->
+<div class="modal fade" id="abrirpesqproduto" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Pesquisar Produto
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-6 col-xl-10">
+                        <label class="form-label" for="pesqProduto">Informe a Descrição ou Código de Barras do Produto</label>
+                        <div class="input-group">
+                            <input type="text" id="pesqProduto" name="pesqProduto" class="form-control input" value="">&nbsp;&nbsp;
+                           
+                            <button class="btn btn-primary" type="button" onclick="pesquisarProduto()">
+                                <span class="fal fa-search mr-1"></span>
+                                Pesquisar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body" id="resultadoModal">
+                
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Generico -->
+
+<div class="modal fade" id="modalGenerico" tabindex="-1" role="dialog" aria-hidden="true" style="overflow: hidden auto;">
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 id="tituloGenerico" class="modal-title">
+
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div id="resultadoModalGenerico" class="modal-body"></div>
+          <div id="footerModalGenerico" class="modal-footer"></div>
+      </div>
+  </div>
+</div>
+
+<!-- Modal Atualiza Status Malote -->
+<div class="modal fade" id="detStatusMalote" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header pb-0">
+        <h2 class="modal-title">
+          Detalhes do Malote
+          <small class="m-0 text-muted">
+            Detalhes e Atualização de Status
+          </small>
+        </h2>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-xl-12 col-sm-12">
+            <div id="titleMalote" class="d-none text-center">
+              <h2>Detalhes do Malote</h2>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-sm-12">
+            <div id="notificacaoUsuario" class="invisible">
+              <div class="alert alert-info alert-dismissible text-center mb-2 p-2 fade show h6" role="alert">
+                <span class="fw-900">Atenção!</span> Visualização de Histórico!
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-xl-12 col-sm-12">
+            <div id="containerHistoricosMalote" class="mb-3">
+              <label class="form-label fw-700 h6 mb-0" for="historicosMalote"> Histórico: </label>
+              <div class="input-group col-xl-4 col-sm-4 pl-0">
+                <select id="historicosMalote" class="form-control"
+                  onchange="exibirHistoricoMaloteModal(this.value)"></select>
+              </div>
+            </div>
+          </div>
+          <div id="detDadosMalote" class="col-xl-12 col-sm-12">
+
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" id="footerdetStatusMalote">
+        <div>
+          <button id="btnImprimirDetalhesMalote" type="button" class="btn btn-primary mr-1 d-none"
+            onclick="imprimirDetalhesMalote()">
+            <span class="fal fa-print mr-1"></span>
+            Imprimir
+          </button>
+          <button id="btnConferenciaMalote" type="button" class="btn btn-success mr-1 d-none">
+            <span class="fal fa-check mr-1"></span>
+            Finalizar
+          </button>
+          <button id="btnDevolucaoMalote" type="button" class="btn btn-danger mr-1 d-none">
+            <span class="fal fa-upload mr-1"></span>
+            Devolver
+          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <span class="fal fa-times mr-1"></span>
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

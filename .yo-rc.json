@@ -1,0 +1,21 @@
+{
+  "generator-template-ui5-project": {
+    "projectname": "quality",
+    "namespaceUI5": "com.quality",
+    "platform": "Static webserver",
+    "viewtype": "XML",
+    "ui5libs": "Content delivery network (SAPUI5)",
+    "newdir": false,
+    "namespaceURI": "com/quality",
+    "opa5pos": [
+      "Main"
+    ],
+    "opa5Journeys": [
+      "Main"
+    ],
+    "uimodules": [
+      "uimodule"
+    ],
+    "setupCompleted": true
+  }
+}

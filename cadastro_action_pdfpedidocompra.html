@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>
+            Pedido Compra
+        </title>
+        <meta name="description" content="Invoice">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
+        <!-- Call App Mode on ios devices -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <!-- Remove Tap Highlight on Windows Phone IE -->
+        <meta name="msapplication-tap-highlight" content="no">
+        <!-- base css -->
+        <!-- Place favicon.ico in the root directory -->
+        <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+        <link rel="mask-icon" href="img/favicon/safari-pinned-tab.svg" color="#5bbad5">
+    </head>
+    <body class="mod-bg-1 ">
+    <style>
+      *{
+    		margin: 0;
+    		padding: 0;
+    	}
+
+      @media print {
+           .print-div-table{ width: 1030px; };
+           .hidden-print {
+              display: none !important;
+            }
+    }
+        
+        #dt-lista-pedido-compras{
+            text-align: center;
+        }
+                    
+        table.bordasimples {border-collapse: collapse !important;font-size: 9px !important;}
+    	table.bordasimples tr th {border:solid 1px #000 !important; padding:1px; margin:0px;}
+    	table.bordasimples tr td {border:solid 1px #000 !important; padding:1px; margin:0px;}
+    	table.semborda td {border:solid 1px #000 !important; padding:0px; margin:0px;}
+    
+    	table{
+    		font-family: verdana;
+    		font-size: 10px;
+    		margin: 0;
+    		padding: 0;
+    
+    	}
+    </style>     
+        <!-- BEGIN Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="page-inner">
+                <div class="page-content-wrapper">
+                    <!-- the #js-page-content id is needed for some plugins to initialize -->
+                    <main id="js-page-content-2" role="main" class="page-content">
+                        <div class="subheader">
+                            <button type="button" class="btn btn-info btn-xs" title="Imprimir PDF" onclick="printDivCompra('js-page-content-2')" >Imprimir PDF</button>
+                        </div>
+                                    <table width="100%" class="bordasimples">
+                                        <tr>    
+                                    		<TD ROWSPAN=2 width="200" align="center" id="marcapedidocompra"></TD>
+                                    		<TD ROWSPAN=2 width="200" align="center" id="tipopedidocompra"></TD>
+                                    		<TD align="center" id="fornecedorpedidoImprimircompra"></TD>
+                                    	</tr>
+                                    	<tr> 
+                                    		<TD id="razaofornecedorpedidoImprimircompra" ></TD>
+                                    	</tr>
+                                    </table>
+                                    <table width="100%" class="bordasimples">                        
+                                    	<tr>    
+                                    		<TD id="infoContatoImprimircompra" ROWSPAN=2 width="400"></TD> 
+                                    		<TD id="cnpjpedidoImprimircompra" width="200"></TD>
+                                    		<TD id="emailforncpedidoImprimircompra" ></TD>
+                                    		<TD id="foneforncpedidoImprimircompra" width="100"></TD>
+                                    	</tr>
+                                    	<tr> 
+                                    		<TD COLSPAN=2 width="200" id="iepedidoImprimircompra"></TD>
+                                    		<TD id="fonecelularforncpedidoImprimircompra"></TD>
+                                    	</tr>    
+                                    </table>
+                                    <table width="100%" class="bordasimples">
+                                        <tr>    
+                                    		<TD width="200" id="datapedidoImprimircompra"></TD>
+                                    		<TD width="200" id="dataentregapedidoImprimircompra"></TD>
+                                    		<TD id="endforncpedidoImprimircompra"></TD>
+                                    		<TD id="complforncpedidoImprimircompra"></TD>
+                                    	</tr>
+                                    </table>      
+                                    <table width="100%" class="bordasimples"> 
+                                        <tr>    
+                                    		<TD width="400" id="compradorpedidoImprimircompra"></TD>
+                                    		<TD id="numeroforncpedidoImprimircompra"></TD>
+                                    		<TD id="bairroforncpedidoImprimircompra"></TD>
+                                    		<TD id="transpforncpedidoImprimircompra"></TD>
+                                    	</tr>
+                                    </table>    
+                                    <table width="100%" class="bordasimples">
+                                        <tr>    
+                                    		<TD width="400" id="vendedorpedidoImprimircompra"></TD>
+                                    
+                                    		<TD width="400" id="cidadeforncpedidoImprimircompra"></TD>
+                                    		<TD id="desc1pedidoImprimircompra"></TD>
+                                    		<TD id="desc2pedidoImprimircompra"></TD>
+                                    		<TD id="desc3pedidoImprimircompra"></TD>
+                                    	</tr>
+                                    </table>     
+                                    <table width="100%" class="bordasimples">	
+                                    	<tr>    
+                                    		<TD width="400" id="condpagpedidoImprimircompra"></TD>
+                                    
+                                    		<TD id="cepforncpedidoImprimircompra"></TD>
+                                    		<TD id="ufforncpedidoImprimircompra"></TD>
+                                    		<TD id="freteforncpedidoImprimircompra"></TD>		
+                                    	</tr>
+                                    </table>       
+                                    <table width="100%" class="bordasimples">
+                                        <tr>    
+                                    		<TD width="400" id="obs1pedidoImprimircompra"></TD>
+                                            <TD id="fiscalpedidoImprimircompra">Fiscal: <br><p style="font-size:13px;"></p></TD>
+                                    		<TD id="enviarpedidoImprimircompra">Enviar: <br><p style="font-size:13px;"></p></TD>               
+                                            <TD id="tipopedidoImprimircompra">Tipo: <br><p style="font-size:13px;"></p></TD>  
+                                    		<TD id="comissaopedidoImprimircompra"></TD>
+                                    	</tr>
+                                    </table>
+                                    <div id="resultadoresumopedidocompraImprimir" >
+                                    
+                                    </div>
+                                    <br>
+                    </main>
+                    <!-- this overlay is activated only when mobile menu is triggered -->
+                    <div class="page-content-overlay" data-action="toggle" data-class="mobile-nav-on"></div> <!-- END Page Content -->
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

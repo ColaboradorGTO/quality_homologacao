@@ -1,0 +1,66 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item">Home</li>
+  <li class="breadcrumb-item">Etiquetas de Remarcação</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Etiquetas de Remarcação <span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i> Etiquetagem Remarcação</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div id="avisoPesquisa" class="d-none"></div>
+            <div class="row">
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="vrEtiquetaRemarcacao">Valor(R$)</label>
+                <div class="input-group">
+                  <input class="form-control" id="vrEtiquetaRemarcacao" type="text" title="Valor da Etiqueta" placeholder="Digite o valor da etiqueta"
+                    value="0,00" autocomplete="off" autofill="off" style="height: 39px;" oninput="(formatToDecimal(this), habilitarButtonsEtiquetaRemarcacao(this))"/>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-xl-12">
+                <br>
+
+                <button id="btnImpEtiquetasRemarcacao" class="btn btn-info" type="button"
+                  onclick="validaDadosEtiquetasRemarcacao()">
+                  <span class="fal fa-print mr-1"></span>Imprimir
+                </button>
+
+                <button id="btnAcumuladorImpEtiquetasRemarcacao" class="btn btn-success d-none" type="button"
+                  onclick="guardarNoAcumuladorImpEtiquetasRemarcacao()">
+                  <span class="fal fa-download mr-1"></span>Guardar
+                </button>
+
+                <button id="btnDeletarAcumuladorImpEtiquetasRemarcacao" class="btn btn-danger d-none" type="button"
+                  onclick="deletarTudoDoAcumuladorImpEtiquetasRemarcacao()">
+                  <span class="fal fa-trash mr-1"></span>Limpar Todos
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="containerQtdCopias" class="row align-items-center mb-2 pl-4 d-none">
+            <label class="form-label h6 mr-1" for="qtdCopias">QTD CÓPIAS:</label>
+            <input class="form-control h5 text-center border-dark" id="qtdCopias" type="number" min="1"
+              name="Quantidade de Cópias" value="1" style="height: 25px; width: 90px" autocomplete="off"
+              autofill="off" />
+          </div>
+          <div id="resultado" class="d-none">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

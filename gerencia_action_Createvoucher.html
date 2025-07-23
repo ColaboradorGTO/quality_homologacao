@@ -1,0 +1,90 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+  <li class="breadcrumb-item active">Vouchers</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Vouchers - <span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i> Vouchers</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Início</label>
+                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+              </div>
+              <div class="col-sm-6 col-xl-2">
+                <label class="form-label" for="tpdate">Data Fim</label>
+                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+              </div>
+              <div class="col-sm-6 col-xl-4">
+                <label class="form-label" for="tpdateinicio">Nº Voucher ou Nº Venda ou CPF/CNPJ</label>
+                <input class="form-control" id="NVoucher" type="text" name="NVoucher" value="">
+              </div>
+              <div class="col-sm-6 col-xl-12">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisaVoucherEmitido()"><span
+                    class="fal fa-search mr-1"></span>Pesquisar</button>
+
+                <button class="btn btn-success" type="button" onclick="pesquisaVendaVoucher()"><span
+                    class="fal fa-plus mr-1"></span>Criar Voucher</button>
+              </div>
+            </div>
+          </div>
+          <div id="resultadoTableVoucher" class="d-none">
+            <div class="row">
+              <div class="col-xl-12 col-sm-12">
+                <div id="panel-1" class="panel">
+                  <div class="panel-container show">
+                    <div class="panel-content">
+                      <div id="">
+                        <!-- datatable start -->
+                        <table id="dt-basic-voucher"
+                          class="table table-bordered table-hover table-striped w-100 table-responsive-sm">
+                          <thead class="bg-primary-600">
+                            <tr>
+                              <th class="text-center">#</th>
+                              <th class="text-center">Nº Voucher</th>
+                              <th class="text-center">Loja Emissor</th>
+                              <th class="text-center">Caixa Emissor</th>
+                              <th class="text-center">Aut. Criação</th>
+                              <th class="text-center">Data Emissão</th>
+                              <th class="text-center">Valor</th>
+                              <th class="text-center">Loja Recebida</th>
+                              <th class="text-center">Caixa Recebida</th>
+                              <th class="text-center">Aut. Consumo</th>
+                              <th class="text-center">Data Recebida</th>
+                              <th class="text-center">Situação</th>
+                              <th class="text-center">Opções</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          </tbody>
+                          <tfoot class="thead-themed">
+                          </tfoot>
+                        </table>
+                        <!-- datatable end -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

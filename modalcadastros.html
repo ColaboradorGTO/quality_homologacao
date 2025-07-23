@@ -1,0 +1,636 @@
+<!-- Modal Adiconar Produtos Avulsos -->
+<div class="modal fade" id="addprodutosavulso" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Produtos Avulso
+                    <small class="m-0 text-muted">
+                        Inclusão de Produtos Avulso
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddProdAvulso" name="formAddProdAvulso" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaladdprodavulso">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddprodavulso">
+                        <button type="button" class="btn btn-success" onclick="cadastrar_produto_avulso()">Cadastrar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+<!-- Modal Editar Produtos Avulsos -->
+<div class="modal fade" id="editprodutosavulso" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedidoedit">
+                    Produtos Avulso
+                    <small class="m-0 text-muted">
+                        Alteração de Produtos Avulso
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddProdAvulsoedit" name="formAddProdAvulsoedit" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaladdprodavulsoedit">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddprodavulsoedit">
+                        <button type="button" class="btn btn-success" onclick="editar_produto_avulso()">Salvar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Produtos Pedidos -->
+<div class="modal fade" id="editprodutopedido" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedidoedit">
+                    Produtos Pedido
+                    <small class="m-0 text-muted">
+                        Alteração de Produtos do Pedido
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddProdPedidoedit" name="formAddProdPedidoedit" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaladdprodpedidoedit">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddprodpedidoedit">
+                        <button type="button" class="btn btn-success" onclick="editar_produto_pedido()">Salvar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Intens Pedidos -->
+<div class="modal fade" id="edititempedido" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedidoedit">
+                    Itens do Pedido
+                    <small class="m-0 text-muted">
+                        Alteração de Itens do Pedido
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddItemPedidoedit" name="formAddItemPedidoedit" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaladditempedidoedit">
+
+                    </div>
+                    <div class="modal-footer" id="footeradditempedidoedit">
+                        <button type="button" class="btn btn-success" onclick="editar_item_pedido()">Salvar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Fornecedor -->
+<div class="modal fade" id="Cadfornecedor"tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Fornecedores
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddFornecedor" name="formAddFornecedor" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalfornecedor">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddfornecedor">
+                        <button type="button" class="btn btn-success" onclick="cadastrar_fornecedor(1)">Incluir</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Transportador -->
+<div class="modal fade" id="Cadtransportador" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Transportador
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddTransportador" name="formAddTransportador" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaltransportador">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddtransportador">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Condição Pagamento -->
+<div class="modal fade" id="Cadcondpag" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Condições de Pagamento
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddCondPag" name="formAddCondPag" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcondpaq">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddcondpag">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Categoria Pedidos -->
+<div class="modal fade" id="Cadcatpedido" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Categoria de Pedidos
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddCatPed" name="formAddCatPed" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcatped">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddcatped">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Grupo Extrutura Mercadologica -->
+<div class="modal fade" id="Cadgrupoext" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Grupo Extrutura Mercadólogica
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddGrupoExt" name="formAddGrupoExt" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalgrupoext">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddgrupoext">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Unidade Medida -->
+<div class="modal fade" id="Cadunidmed" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Unidades de Medida
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddUnidMed" name="formAddUnidMed" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalunidmed">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddunidmed">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cores -->
+<div class="modal fade" id="Cadcores" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Cores
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddCores" name="formAddCores" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcores">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddcores">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cores -->
+<div class="modal fade" id="Cadextmerc" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Extrutura Mercadológica
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddExtMerc" name="formAddExtMerc" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalextmerc">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddextmerc">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cadadastro Produtos Pedidos -->
+<div class="modal fade" id="CadProdPedido" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Produtos do Pedido
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddCadProdPed" name="formAddCadProdPed" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalcadprodped">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddcadprodped">
+                        <button type="button" class="btn btn-success" onclick="cadastrar_produto_pedido(1)">Cadastrar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Estilos -->
+<div class="modal fade" id="Cadestilos" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltituloestilo">
+                    Estilos
+                    <small class="m-0 text-muted">
+                        Inclusão e Alteração
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formAddEstilos" name="formAddEstilos" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodalestilos">
+
+                    </div>
+                    <div class="modal-footer" id="footeraddestilos">
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal NFEs Vinculadas -->
+<div class="modal fade" id="alterarVinculoNFEPedido" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 class="modal-title" id="modaltituloVinculoNFE">
+                  NFE Vinculadas
+                  <small class="m-0 text-muted">
+                      Exclusão de Vínculo e Alteração
+                  </small>
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div class="modal-body" id="listaNFEPedido">
+          </div>
+        <div class="modal-footer" id="footerAlterarVinculoNFEPedido">
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Pedidos Vinculados -->
+<div class="modal fade" id="alterarVinculoPedidoNFE" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 class="modal-title" id="modaltituloPedidoVinculadoNFE">
+                  Pedidos Vinculados a NFE
+                  <small class="m-0 text-muted">
+                      Exclusão de Vínculo e Alteração
+                  </small>
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div class="modal-body" id="listaPedidoVinculadoNFE">
+          </div>
+        <div class="modal-footer" id="footerPedidoVinculadoNFE">
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Produtos NFEs Vinculadas -->
+<div class="modal fade" id="listaProdutosNFEPedido" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 class="modal-title" id="modaltituloVinculoNFE">
+                  NFEs Vinculadas
+                  <small class="m-0 text-muted">
+                      Conciliação de Produtos
+                  </small>
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div class="modal-body" id="tabelaProdutosNFEPedido">
+          </div>
+        <div class="modal-footer" id="">
+          <button id="btnConciliar" type="button" class="btn btn-success btn-xs d-none" value="8" style="width: 110px;" onclick="conciliarDadosProdPedProdNFE();"><i class="fal fa-check"></i> CONCILIAR </button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalhe Impressão Pedido Compras -->
+<div class="modal fade" id="modalImpressaoPedido" tabindex="-1" role="dialog" aria-hidden="true" >
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 class="modal-title">
+                  Impressão Pedido
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div id="resultadoImpressaoPedidos">
+
+          </div> 
+      </div>
+  </div>
+</div>
+
+<!-- Modal Detalhe Produtos da NFE -->
+<div class="modal fade" id="modalListaProdNFE" tabindex="-1" role="dialog" aria-hidden="true" >
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 class="modal-title">
+                  Produtos da Nota Fiscal
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div id="resultadoListaProdNFE">
+
+          </div> 
+      </div>
+  </div>
+</div>
+
+<!-- Modal Etiqueta Produto-->
+<div class="modal fade" id="modalImpEtiquetaProd" role="dialog" aria-hidden="true">
+  <div id="dialogModaImpEtiquetaProd" class="modal-dialog modal-xl" role="document" style="align-content: center;">
+    <div id="contentModaImpEtiquetaProd" class="modal-content">
+      <div class="modal-header hidden-print p-1">
+        <div>
+
+          <button id="btnPrint" type="button" class="btn btn-info btn-sm hidden-print p-1 fw-700"
+            title="Imprimir Etiquetas" onclick="impEtiquetaProdutos()">
+            <span class="fal fa-print pr-1"></span>
+            Imprimir
+          </button>
+
+        </div>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+
+      </div>
+      <style>
+        .etiqueta-page {
+          display: flex;
+          flex-wrap: wrap;
+          align-content: flex-start;
+          margin: 10px;
+          width: 100% !important;
+          height: 12cm;
+          background: white;
+          -webkit-box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+          box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+          background-size: cover;
+          padding: 2rem 0 0 2rem;
+        }
+
+        .etiqueta-card {
+          width: calc(33.3% - 0.25in);
+          height: 10.5cm;
+          margin-right: 20px;
+          margin-bottom: 0.5in;
+          padding: 60px 25px 10px !important;
+          box-sizing: border-box;
+          border: 0.5px solid #000;
+          display: flex;
+          flex-direction: column;
+          justify-content: left;
+          align-items: left;
+        }
+
+        .dsProd {
+          height: 200px !important;
+        }
+
+        .tamanho {
+          border: 1px solid black;
+          width: 50px;
+          text-align: center;
+          padding-top: 10px;
+        }
+
+        .preco {
+          display: flex !important;
+          justify-content: right !important;
+          align-items: flex-end !important;
+          width: 115px !important;
+        }
+      </style>
+      <div class="modal-subheader hidden-print">
+
+        <hr style="border: 1px solid; margin-top: 0;">
+
+        <h2 class="modal-title-text " style="text-align: center;">
+          Etiquetas
+        </h2>
+
+        <div class="modal-title-quantidade d-flex flex-column  ml-3"></div>
+
+        <br>
+      </div>
+      <div class="modal-body p-0 ml-2 mr-4">
+        <div id="resultadoImpEtiquetaProd">
+          <div class="etiqueta-page">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Lista Produtos -->
+<div class="modal fade" id="modalListaProdutos" tabindex="-1" role="dialog" aria-hidden="true" style="overflow: hidden auto;">
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 id="tituloListaProdutos" class="modal-title">
+                Visualização de Produtos
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div id="resultadoModalListaProdutos" class="modal-body"></div>
+          <div id="footerModalListaProdutos" class="modal-footer"></div>
+      </div>
+  </div>
+</div>
+
+<!-- Modal Generico -->
+<div class="modal fade" id="modalGenerico" tabindex="-1" role="dialog" aria-hidden="true"  style="overflow: hidden auto;">
+  <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4 id="tituloGenerico" class="modal-title">
+
+              </h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true"><i class="fal fa-times"></i></span>
+              </button>
+          </div>
+          <div id="resultadoModalGenerico" class="modal-body"></div>
+          <div id="footerModalGenerico" class="modal-footer"></div>
+      </div>
+  </div>
+</div>

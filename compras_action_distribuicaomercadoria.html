@@ -1,0 +1,316 @@
+  <style>
+    #tableDigitacaoDistribuicao thead th {
+      text-align: center;
+    }
+
+    #tableDigitacaoDistribuicao thead tr {
+      border-top: 2px solid #fff;
+    }
+
+    #tableDigitacaoDistribuicao thead tr:first-child th:first-child {
+      border-radius: 8px 0px 0px 8px;
+    }
+
+    #tableDigitacaoDistribuicao thead tr:first-child th:last-child {
+      border-radius: 0px 8px 8px 0px;
+    }
+
+    #tableDigitacaoDistribuicao thead th:nth-child(1),
+    th:nth-child(2) {
+      min-width: 150px;
+      max-width: 100%;
+    }
+
+    #tableDigitacaoDistribuicao tbody td:nth-child(1),
+    td:nth-child(2) {
+      min-width: 150px;
+      max-width: 100%;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    #tableDigitacaoDistribuicao tbody td {
+      text-align: center;
+    }
+
+    #tableDigitacaoDistribuicao thead th:nth-child(3) {
+      min-width: 400px;
+      max-width: 100%;
+    }
+
+    #tableDigitacaoDistribuicao tbody td:nth-child(3) {
+      min-width: 400px;
+      max-width: 100%;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+
+    #tableNotasCompra thead {
+      text-align: center;
+    }
+
+    #tableNotasCompra thead th {
+      min-width: auto;
+      max-width: 100%;
+    }
+
+    #tableNotasCompra tbody td {
+      min-width: auto;
+      max-width: 100%;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    #tableNotasCompra thead th:nth-child(5) {
+      min-width: 400px;
+      max-width: 100%;
+    }
+
+    #tableNotasCompra tbody td:nth-child(5) {
+      min-width: 400px;
+      max-width: 100%;
+      text-align: left;
+    }
+
+    #tableFiliaisDestino thead {
+      text-align: center;
+    }
+
+    #tableFiliaisDestino thead th:nth-child(2) {
+      min-width: 500px !important;
+    }
+
+    #tableFiliaisDestino tbody td:nth-child(2) {
+      min-width: 500px !important;
+      text-align: left;
+    }
+
+    #tableFiliaisDestino tbody td {
+      text-align: center;
+    }
+  </style>
+
+  <ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Distribuição de Compras</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+  </ol>
+
+  <div class="subheader">
+    <h1 class="subheader-title">
+      <i class='subheader-icon fal fa-chart-area'></i>Distribuição
+    </h1>
+  </div>
+
+  <div class="row">
+    <div class="col-xl-12">
+      <!-- Filtro Pedido de Compras -->
+      <div class="panel">
+        <div class="panel-hdr distribuicaoCabecalho pl-1">
+          <button id="voltaTela" type="button" class="btn btn-danger p-1 mr-3" title="Voltar" onclick="ListaDistribuicoes()"><span
+              class="fal fa-arrow-alt-left p-1"></span>Voltar</button>
+
+          <div id="titleDistribuicao"></div>
+        </div>
+        <div class="panel-container show">
+          <div class="panel-content">
+            <div class="panel-tag">
+              <div class="row">
+                <div class="col-sm-6 col-xl-6">
+                  <label class="form-label" for="obsDistribuicao">Observação:</label>
+                  <input class="form-control" id="obsDistribuicao" type="text" name="obsDistribuicao" value="">
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-6 col-xl-6">
+                  <label class="form-label" for="idFilialOrigem">Selecione a Filial Origem:</label>
+                  <select class="select2 form-control" name="idFilialOrigem" id="idFilialOrigem">
+                    <option value="" disabled>Selecionar</option>
+                  </select>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="idNotaFiscal">Numero Interno da Nota:</label>
+                  <div class="input-group">
+                    <input class="form-control" autocomplete="off" id="idNotaFiscal" type="text" name="idNotaFiscal" value="">
+                    <button id="buttonBuscaNotas" class="btn btn-outline-secondary" type="button" onclick="modalBuscarNotaDeCompra()"
+                      title="Pesquisar Nota de Compras"><span class="fal fa-search mr-1"></span></button>
+                  </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3" style="display: flex; align-items: flex-end;">
+                  <button id="buttonAdicionaFiliais" class="btn btn-primary" type="button" onclick="adicionarFiliaisDestino()"><span
+                      class="fal fa-plus mr-1"></span>Adicionar Filiais</button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-12 col-xl-12">
+                  <div id="notasSelecionadas" style="display: flex; flex-flow: wrap; flex-direction: row;"></div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="idFabricanteDistribuicao">Fabricante:</label>
+                  <select class="select2 form-control" name="idFabricanteDistribuicao" id="idFabricanteDistribuicao">
+                    <option value="">Selecionar</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="idTipoMercadoria">Tipo de Mercadoria:</label>
+                  <select class="select2 form-control" name="idTipoMercadoria" id="idTipoMercadoria">
+                    <option value="">Selecionar</option>
+                    <option value="0">Nenhum</option>
+                    <option value="1">Roupas e Vestuário</option>
+                    <option value="2">Calçados</option>
+                    <option value="3">Acessórios</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-12 col-xl-12" style="display: flex; justify-content: flex-end; align-items: end;">
+                  <!-- Ícone Salvar -->
+                  <i id="btnSvgSaveDist" value="" class="fal fa-save fa-2x" style="color: #434767; cursor: pointer; margin-right: 20px;"
+                    title="Salvar" onclick="salvarDigitacao(this)"></i>
+
+                  <!-- Ícone Editar -->
+                  <i id="btnSvgImportDist" value="" class="fal fa-download fa-2x" style="color: #04D361; cursor: pointer; margin-right: 20px;"
+                    title="Importar Template" onclick="importarDigitacaoManual()"></i>
+
+                  <!-- Ícone Excluir -->
+                  <i id="btnSvgExportDist" value="" class="fal fa-upload fa-2x" style="color: #ED926C; cursor: pointer;" title="Exportar Template"
+                    onclick="exportarDigitacaoManual()"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="nav nav-tabs nav-fill" style="font-weight: bold; margin-top: 10px; width: 100%;">
+          <div class="nav-item"><a role="button" data-rr-ui-event-key="digitacaoDistribuicao" class="nav-link active"
+              tabindex="0" href="#" style="color: rgb(77, 79, 83);">DIGITAÇÃO</a></div>
+          <div class="nav-item"><a id='distTeste' role="button" data-rr-ui-event-key="transferenciasDistribuicao"
+              class="nav-link" tabindex="0" href="#" style="color: rgb(77, 79, 83);">DISTRIBUIÇÃO</a></div>
+          <div class="nav-item"><a role="button" data-rr-ui-event-key="pedidosDistribuicao" class="nav-link"
+              tabindex="0" href="#" style="color: rgb(77, 79, 83);">PEDIDOS</a></div>
+          <div class="nav-item"><a role="button" data-rr-ui-event-key="devolucoesDistribuicao" class="nav-link"
+              tabindex="0" href="#" style="color: rgb(77, 79, 83);">DEVOLUÇÕES</a></div>
+          <div class="nav-item"><a role="button" data-rr-ui-event-key="notasOrigemDistribuicao" class="nav-link"
+              tabindex="0" href="#" style="color: rgb(77, 79, 83);">NOTAS DE ORIGEM</a></div>
+        </div>
+        <div class="panel">
+          <div class="col-sm-12 col-xl-12 mt-2" style="overflow-x: auto;">
+            <div id="resultadoDistribuicao" class="m-2">
+              <div id="rowTableDigitacao" class="row tableDist">
+                    <table id="tableDigitacaoDistribuicao" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                      <caption></caption>
+                      <thead class="bg-primary-600">
+                        <tr>
+                          <th style="border: 0px;"></th>
+                          <th style="border: 0px;"></th>
+                          <th style="border: 0px;"></th>
+                          <th style="border: 0px;"></th>
+                          <th style="border: 0px;"></th>
+                          <th style="border: 0px;"></th>
+                          <th style="border: 0px;"></th>
+                          <th style="border: 0px;"></th>
+                          <th style="border: 0px;"></th>
+                        <tr>
+                          <th class="border border-1" >N° Interno</th>
+                          <th class="border border-1" >Item</th>
+                          <th class="border border-1" >Descrição</th>
+                          <th class="border border-1" >Cod Barras</th>
+                          <th class="border border-1" >Linha</th>
+                          <th class="border border-1" >Quantidade</th>
+                          <th class="border border-1" >Preço</th>
+                          <th class="border border-1" >Total</th>
+                          <th style=" border-right: 1px solid;">Itens Restante</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+              </div>
+              <div id="rowTableDistribuicao" class="row tableDist d-none">
+                  <div>
+                    <button style="padding: 5px; background-color: rgb(67, 71, 103); color: rgb(255, 255, 255); margin: 5px; border-radius: 5px; border: none;" onclick="marcarTodosConfereAbaDistribuicao()">Marcar todos confere</button>
+                    <button style="padding: 5px; background-color: rgb(67, 71, 103); color: rgb(255, 255, 255); margin: 5px; border-radius: 5px; border: none;" onclick="desmarcarTodosConfereAbaDistribuicao()">Desmarcar todos confere</button>
+                    <button style="padding: 5px; background-color: rgb(67, 71, 103); color: rgb(255, 255, 255); margin: 5px; border-radius: 5px; border: none;" onclick="gerarTodosPedidosAbaDistribuicao()">Gerar pedidos para todos</button>
+                  </div>
+                  <table id="tableDistribuicao" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                    <thead class="bg-primary-600">
+                      <tr>
+                        <th>Histórico</th>
+                        <th>Filial</th>
+                        <th>Status</th>
+                        <th>Parceiro</th>
+                        <th>Incoterms</th>
+                        <th>Confere</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+              </div>
+              <div id="rowTablePedidos" class="row tableDist d-none">
+                  <table id="tablePedidosDistribuicao" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                    <thead class="bg-primary-600">
+                      <tr>
+                        <th>Histórico</th>
+                        <th>Filial</th>
+                        <th>Status</th>
+                        <th>Parceiro</th>
+                        <th>Incoterms</th>
+                        <th>N° Interno</th>
+                        <th>N° Documento</th>
+                        <th>Confere</th>
+                        <th></th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+              </div>
+              <div id="rowTableDevolucoes" class="row tableDist d-none">
+                  <table id="tableDevolucoes" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                    <thead class="bg-primary-600">
+                      <tr>
+                        <th>N° Interno</th>
+                        <th>Item</th>
+                        <th>Descrição</th>
+                        <th>Cod Barras</th>
+                        <th>Linha</th>
+                        <th>Quantidade</th>
+                        <th>Preço</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+              </div>
+              <div id="rowTableNotasOrigem" class="row tableDist d-none">
+                  <table id="tableNotaOrigem" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                    <thead class="bg-primary-600">
+                      <tr>
+                        <th>N° Interno</th>
+                        <th>Item</th>
+                        <th>Descrição</th>
+                        <th>Cod Barras</th>
+                        <th>Linha</th>
+                        <th>Quantidade</th>
+                        <th>Preço</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</section>

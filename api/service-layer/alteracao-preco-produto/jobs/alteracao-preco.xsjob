@@ -1,0 +1,10 @@
+{
+    "description": "Alteracao de preco de produtos Quality",
+    "action": "quality.concentrador_homologacao.api.service-layer.alteracao-preco-produto.jobs:alteracao-preco.xsjs::executeAlteracaoPreco",
+    "schedules": [
+       {
+          "description": "A cada uma hora no minuto 20",
+          "xscron": "* * * * * 20 00"
+       }
+    ]
+}

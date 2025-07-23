@@ -1,0 +1,62 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Contas</li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class='subheader-icon fal fa-chart-area'></i> Contas
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="idSelectBanco">Bancos</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idSelectBanco" id="idSelectBanco" onchange="buscarContasDoBancoSelecionado(this.value)">
+                    <option>Selecione...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="idSelectContaBanco">Contas</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idSelectContaBanco" id="idSelectContaBanco">
+                    <option>Selecione...</option>
+                  </select>
+                </div>
+              </div>
+              <!--<div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="idSelectEmpresa">Empresas</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idSelectEmpresa" id="idSelectEmpresa">
+                    <option>Selecione...</option>
+                  </select>
+                </div>
+              </div>-->
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="dsContaBanco">Descrição</label>
+                <input type="text" class="form-control" id="dsContaBanco" name="dsContaBanco" value="">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-6 col-xl-6">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisarContaBanco()"><span
+                    class="fal fa-search mr-1"></span>Pesquisar</button>
+                <button class="btn btn-info" type="button" onclick="abrirModalContaBanco()"><span
+                    class="fal fa-plus mr-1"></span>Cadastrar</button>
+              </div>
+            </div>
+          </div>
+          <div id="resultado">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

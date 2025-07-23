@@ -1,0 +1,80 @@
+
+                            <div id="resultadocadcondpag"></div>
+                            
+                            <div class="form-group">
+                                <div class="row">
+                                 <input type="hidden" name="IDGrupoTransportador" id="IDGrupoTransportador" value="1">
+                                 <input type="hidden" name="NDiaPag" id="NDiaPag" value="0">
+                                 <input type="hidden" name="IDCondPag" id="IDCondPag" value="">
+                                 
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="condpagdesc">Descrição *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="desccondpag" name="desccondpag" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="condpagparc">Parcelado *</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="parcelacondpag" id="parcelacondpag">
+                                                <option value="True">SIM</option>
+                                                <option value="False">NAO</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="condpagnparc">Número Parcelas *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="numeroparcelacondpag" name="numeroparcelacondpag" class="form-control input" onkeypress="return Onlynumbers(event);" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                            
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="diapagnparc">Dias 1 Pagamento</label>
+                                        <div class="input-group">
+                                            <input type="text" id="dia1condpag" name="dia1condpag" class="form-control input" onkeypress="return Onlynumbers(event);" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="qtddiapagnparc">QTD Dias Pagamento</label>
+                                        <div class="input-group">
+                                            <input type="text" id="qtdcondpag" name="qtdcondpag" class="form-control input" onkeypress="return Onlynumbers(event);" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="qtddiapagnparc">Tipo Documento</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="tpdoccondpag" id="tpdoccondpag"> 
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="condpagst">Situação *</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="stativocondpag" id="stativocondpag">
+                                                <option value="True">ATIVO</option>
+                                                <option value="False">INATIVO</option> 
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-12">  
+                                    <label class="form-label" for="vrfat">* Campos Obrigatórios *</label>                                      
+                                        <div id="tudo"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+    <script>
+        $("#VrValorDesconto").mask('#.##0,00', {reverse: true});
+    </script>

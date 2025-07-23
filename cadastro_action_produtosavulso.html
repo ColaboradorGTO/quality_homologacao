@@ -1,0 +1,69 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Lista de Produtos</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i>Relatórios - Cadastro Produtos Avulso
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+                    <div class="panel-tag">
+                        <div class="row"> 
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="pesqprod">Descrição</label>
+                                <div class="input-group">
+                                    <input type="text" id="descProduto" name="descProduto" class="form-control input" value=""> 
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="pesqbarra">Cod. Barras</label>
+                                <div class="input-group">
+                                    <input type="text" id="BarrasProduto" name="BarrasProduto" class="form-control input" value=""> 
+                                </div>
+                            </div>
+                            <div class="col-sm-2 col-xl-3">
+                                <label class="form-label" for="inidt">Data Início Cadastro</label>
+                                <input class="form-control" id="DtCadProdAvIni" type="date" name="DtCadProdAvIni" value="">
+                            </div>
+                            <div class="col-sm-2 col-xl-3">
+                                <label class="form-label" for="fimdt">Data Fim Cadastro</label>
+                                <input class="form-control" id="DtCadProdAvFim" type="date" name="DtCadProdAvFim" value="">
+                            </div>
+                        </div>
+                        <div class="row"> 
+                            <div class="col-sm-8 col-xl-6">
+                            <br>
+                                    <button class="btn btn-primary" type="button" onclick="pesq_produtos(1)"><span class="fal fa-search mr-1"></span>Pesquisar Produtos</button>
+                                    <button class="btn btn-danger" type="button" onclick="modal_Cad_Produto_Avulso()"><span class="fal fa-plus mr-1"></span>Cadastrar Produtos</button>
+                            </div>
+                        </div>
+                    </div>
+                        <div class="row">
+                            <div class="col-xl-12">
+                                <div id="panel-1" class="panel">
+                                    <div class="panel-hdr">
+                                        <h2>
+                                            Lista de Produtos Avulso <span class="fw-300"><i>Por Período</i></span>
+                                        </h2>
+                                        <div class="panel-toolbar">
+                                            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Recolher"></button>
+                                            
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="panel-container show">
+                                        <div class="panel-content">
+                                            <div id="resultadoListaProdutosAvulso">
+                                                <!-- datatable start -->
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
+    </div>
+</div>

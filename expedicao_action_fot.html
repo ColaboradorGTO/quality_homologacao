@@ -1,0 +1,100 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Faturamento O. T.</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i>Faturamento Ordem de Transferência
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="panel-tag">
+                        <div class="row">
+                            <!-- Loja Origem -->
+                            <div class="col-sm-6 col-xl-4">
+                                <label class="form-label" for="tploja">Loja Origem</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idlojaorigem" id="idlojaorigem">
+                                        <option value="-1">Seleciona a Loja Origem</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Loja Destino -->
+                            <div class="col-sm-6 col-xl-4">
+                                <label class="form-label" for="tploja">Loja Destino</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idlojadestino" id="idlojadestino">
+                                        <option value="-2">Seleciona a Loja Destino</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <!-- Data Inicial -->
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Início</label>
+                                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+                            </div>
+                            <!-- Data Final -->
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Fim</label>
+                                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <!-- Status -->
+                            <div class="col-sm-6 col-xl-4">
+                                <label class="form-label" for="tpstatus">Status</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idstatusot" id="idstatusot">
+                                        <option value="-2">Selecione o Status</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <!-- Data Inicial -->
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Inicial das Notas Faturadas</label>
+                                <input class="form-control" id="dtinifat" type="date" name="dtinifat" value="">
+                            </div>
+                            <!-- Data Final -->
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Final das Notas Faturadas</label>
+                                <input class="form-control" id="dtfimfat" type="date" name="dtfimfat" value="">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-8 col-xl-8">
+                                <br>
+                                <button class="btn btn-primary" type="button" onclick="pesquisarfot()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-8 col-xl-8">
+                                <br>
+                                <button class="btn btn-primary" type="button" onclick="selecionarregistros()"><span class="fal fa-list mr-1"></span>Selecionar Registros</button>
+                                <button class="btn btn-warning" type="button" onclick="processarfaturamento()"><span class="fal fa-check mr-1"></span>Processar Faturamento</button>
+                                <button class="btn btn-info" type="button" onclick="processarsefaz()" id="incluirot"><span class="fal fa-check mr-1"></span>Processar SEFAZ</button>
+                                <button class="btn btn-danger" type="button" onclick="downloadnfe()"><span class="fal fa-print mr-1"></span>Download Notas</button>
+                                <button class="btn btn-success" type="button" onclick="entrega()"><span class="fal fa-truck mr-1"></span>Conhecimento Entrega</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="resultadomodalfot">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,129 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+  <li class="breadcrumb-item"><a href="javascript:TelaPesquisaVendaExcecao();">Autorização de Vendas</a></li>
+  <li class="position-absolute pos-top pos-right d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+      <i class='subheader-icon fal fa-chart-area'></i>Vendas<span class='fw-300'></span>
+      <small class="m-0 text-muted">
+         Relação de Vendas para Autorizar
+      </small>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-sm-12 col-xl-12">
+      <div id="panel-1" class="panel">
+          <div class="panel-hdr pl-2 d-none">
+              <br>
+              <button id="voltaTela" type="button" class="btn btn-danger p-1 d-none" onclick="voltaTelaVenda();"><span class="fal fa-arrow-alt-left p-1"></span>Voltar</button>
+          </div>
+          <div class="panel-container show">
+              <div class="panel-content">
+                  <div class="panel-tag">
+                      <div class="row">
+                          <div class="col-sm-6 col-xl-2">
+                              <label class="form-label" for="dtconsultavendainicio">Data Venda Inicio</label>
+                              <input class="form-control" id="dtconsultavendainicio" type="date" name="dtconsultavendainicio" value="">
+                          </div>
+                          <div class="col-sm-6 col-xl-2">
+                              <label class="form-label" for="dtvendaconsultafim">Data Venda Fim</label>
+                              <input class="form-control" id="dtvendaconsultafim" type="date" name="dtvendaconsultafim" value="">
+                          </div>
+                          <div class="col-sm-6 col-xl-3">
+                            <label class="form-label" for="idEmpresaVenda">Empresa</label>
+                            <div class="input-group">
+                                <select class="select2 form-control" name="idEmpresaVenda" id="idEmpresaVenda">
+                                  <option value="0">Selecione</option>
+                                </select>
+                            </div>
+                          </div>
+                          <div class="col-sm-6 col-xl-2">
+                            <label class="form-label" for="idvenda_cpf_cnpj_cliente">CPF/CNPJ ou Nº Venda</label>
+                            <input class="form-control" id="idvenda_cpf_cnpj_cliente" type="text" name="idvenda_cpf" value="" onblur="zeraCampos(1)">
+                        </div>
+                        <div class="col-sm-6 col-xl-1">
+                          <label class="form-label" for="idSerieCliente" >Serie</label>
+                          <input class="form-control" id="idSerieCliente" type="text" value="" onblur="zeraCampos(2)">
+                        </div>
+                        <div class="col-sm-6 col-xl-2">
+                          <label class="form-label" for="idNfceCliente">Nº NFCE</label>
+                          <input class="form-control" id="idNfceCliente" type="text" value="" onblur="zeraCampos(2)">
+                        </div>
+                      </div>
+                      <div class="row">
+                      <div class="col-sm-6 col-xl-2">
+                        <br>
+                            <button class="btn btn-primary" type="button" onclick="pesquisaVendaClienteExcecao()"><span class="fal fa-search p-1"></span>Pesquisar</button>
+                        </div>
+
+                        <div class="col-sm-6 col-xl-2">
+                          <br>
+                            <button id="btnAutProdsVendaForaPrazo" type="button" class="idCadastraVoucher d-none btn btn-info pl-1 pr-1"><span class="fal fa-pen p-1"></span>Autorizar Exceção</button>
+                        </div>
+                      </div>
+                </div>
+              </div>
+          </div>
+          <div id="ResultadoPesquisa" class="">
+            <!-- <div class="row d-none tabelaVenda">
+              <div class="col-sm-12 col-xl-12">
+                <div id="panel-1" class="panel">
+                  <div class="panel-hdr">
+                    <h2>
+                      <span class="fw-500"><i>  Vendas </i></span>
+                    </h2>
+                  </div>
+                  <table responsive id="resultadoVendaClienteVoucher" class="table table-bordered table-hover table-expandable table-striped w-100">
+                    <thead class="bg-primary-600">
+                        <tr>
+                            <th title="Indice" class="tdCenter">Indice</th>
+                            <th title="Numero da Venda" class="tdCenter">Opcoes</th>
+                            <th title="Numero da Venda" class="tdCenter">Nº Venda</th>
+                            <th title="Nome do Cliente" class="tdCenter">Cliente</th>
+                            <th title="CNPF/CNPJ" class="tdCenter">CPF/CNPJ</th>
+                            <th title="Loja" class="tdCenter">Loja</th>
+                            <th title="Valor Pago" class="tdCenter">Valor Pago</th>
+                            <th title="Data da Venda" class="tdCenter">Data</th>
+                            <th title="Situacao" class="tdCenter">Situacao</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+                </div>
+              </div>
+            </div>
+            <div class="row d-none tabelaProduto">
+              <div class="col-sm-12 col-xl-12">
+                  <div id="panel-1" class="panel">
+                      <div class="panel-hdr">
+                          <h2 id="nuVendaProd">
+                              <span class="fw-500"><i>  Produtos  </i></span>
+                          </h2>
+                      </div>
+                      <div>
+                        <table responsive id="resultadoProduto" class="table table-bordered table-hover table-striped w-100 fw-700 " >
+                          <thead class="bg-primary-600">
+                            <tr>
+                                <th title="Indice" class="tdCenter" >Indice</th>
+                                <th title="Seleção" class="tdCenter" >Selecione</th>
+                                <th title="Codigo do Produto" class="tdCenter" >Cod.Produto</th>
+                                <th title="Produto" class="tdCenter" >Produto</th>
+                                <th title="Codigo de Barras" class="tdCenter" >Cod.Barras</th>
+                                <th title="Quantidade" class="tdCenter" >Quantidade</th>
+                                <th title="Valor" class="tdCenter" >Valor</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+
+                          </tbody>
+                        </table>
+                      </div>
+                  </div>
+              </div>
+            </div> -->
+          </div>

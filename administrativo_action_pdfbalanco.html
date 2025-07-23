@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>
+            Balanço
+        </title>
+        <meta name="description" content="Invoice">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
+        <!-- Call App Mode on ios devices -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <!-- Remove Tap Highlight on Windows Phone IE -->
+        <meta name="msapplication-tap-highlight" content="no">
+        <!-- base css -->
+        <link rel="stylesheet" media="screen, print" href="css/vendors.bundle.css">
+        <link rel="stylesheet" media="screen, print" href="css/app.bundle.css">
+        <!-- Place favicon.ico in the root directory -->
+        <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+        <link rel="mask-icon" href="img/favicon/safari-pinned-tab.svg" color="#5bbad5">
+        <link rel="stylesheet" media="screen, print" href="css/page-invoice.css">
+    </head>
+    <body class="mod-bg-1 ">
+        <!-- DOC: script to save and load page settings -->
+        <script>
+            /**
+             *	This script should be placed right after the body tag for fast execution 
+             *	Note: the script is written in pure javascript and does not depend on thirdparty library
+             **/
+            'use strict';
+
+            var classHolder = document.getElementsByTagName("BODY")[0],
+                /** 
+                 * Load from localstorage
+                 **/
+                themeSettings = (localStorage.getItem('themeSettings')) ? JSON.parse(localStorage.getItem('themeSettings')) :
+                {},
+                themeURL = themeSettings.themeURL || '',
+                themeOptions = themeSettings.themeOptions || '';
+            /** 
+             * Load theme options
+             **/
+            if (themeSettings.themeOptions)
+            {
+                classHolder.className = themeSettings.themeOptions;
+                console.log("%c✔ Theme settings loaded", "color: #148f32");
+            }
+            else
+            {
+                console.log("Heads up! Theme settings is empty or does not exist, loading default settings...");
+            }
+            if (themeSettings.themeURL && !document.getElementById('mytheme'))
+            {
+                var cssfile = document.createElement('link');
+                cssfile.id = 'mytheme';
+                cssfile.rel = 'stylesheet';
+                cssfile.href = themeURL;
+                document.getElementsByTagName('head')[0].appendChild(cssfile);
+            }
+            /** 
+             * Save to localstorage 
+             **/
+            var saveSettings = function()
+            {
+                themeSettings.themeOptions = String(classHolder.className).split(/[^\w-]+/).filter(function(item)
+                {
+                    return /^(nav|header|mod|display)-/i.test(item);
+                }).join(' ');
+                if (document.getElementById('mytheme'))
+                {
+                    themeSettings.themeURL = document.getElementById('mytheme').getAttribute("href");
+                };
+                localStorage.setItem('themeSettings', JSON.stringify(themeSettings));
+            }
+            /** 
+             * Reset settings
+             **/
+            var resetSettings = function()
+            {
+                localStorage.setItem("themeSettings", "");
+            }
+
+        </script>
+        <!-- BEGIN Page Wrapper -->
+        <div class="page-wrapper">
+            <div class="page-inner">
+                <div class="page-content-wrapper">
+                    <!-- the #js-page-content id is needed for some plugins to initialize -->
+                    <main id="js-page-content" role="main" class="page-content">
+                        <ol class="breadcrumb page-breadcrumb">
+                            <li class="breadcrumb-item"><a href="javascript:void(0);">Administrativo</a></li>
+                            <li class="breadcrumb-item">Balanço das Lojas</li>
+                            <li class="breadcrumb-item active">Impressão</li>
+                            <li class="position-absolute pos-top pos-right d-none d-sm-block"><span class="js-get-date"></span></li>
+                        </ol>
+                        <div class="subheader">
+                            <h1 class="subheader-title">
+                                <i class='subheader-icon fal fa-plus-circle'></i> Balanço 
+                                <small>
+                                    Impressão do Balanço
+                                </small>
+                            </h1>
+                        </div>
+                        <!--div class="panel-container show">
+                            <div class="panel-content">
+                                <div class="panel-tag">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-2">
+                                            <br>
+                                            <button class="btn btn-primary" type="button" onclick="pagina_principal()"><span class="ni ni-action-undo mr-1"></span>Voltar</button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                    </div>
+                                </div>
+                            </div>
+                        </div-->
+                        <div class="container">
+                            <div data-size="A4">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="d-flex align-items-center mb-5 nomemarcabalanco" >
+                                            <h2 class="keep-print-font fw-500 mb-0 text-primary flex-1 position-relative">
+                                            </h2>
+                                        </div>
+                                        <h2 class="fw-300 display-5 fw-500 color-primary-500 keep-print-font pt-4 l-h-n m-0 tipobalanco">
+                                        </h2>
+                                        <div class="text-dark fw-700 h1 mb-g keep-print-font nbalanco">
+                                        </div>
+                                        <div class="text-dark fw-700 h1 mb-g keep-print-font nloja">
+                                        </div>
+                                        <div class="text-dark fw-700 h1 mb-g keep-print-font nperiodo">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4 d-flex">
+                                        <div class="table-responsive">
+                                            <table class="table table-clean table-sm align-self-end">
+                                                <tbody>
+                                                    <tr>
+                                                        <th colspan="2" class="text-center border-top-0 table-scale-border-bottom fw-700">HISTÓRICO DE ENTRADAS</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Estoque Anterior</strong></td>
+                                                        <td id="idvlrestoqueanterior"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Marcadorias Recebidas (Romaneios)</strong></td>
+                                                        <td id="idvlrtotalentrada"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Alta de Mercadoria</strong></td>
+                                                        <td id="idvlraltamercadoria"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>TOTAL GERAL ENTRADAS</strong></td>
+                                                        <td id="idvlrtotalgeralentrada"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4 d-flex">
+                                        <div class="table-responsive">
+                                            <table class="table table-clean table-sm align-self-end">
+                                                <tbody>
+                                                    <tr>
+                                                        <th colspan="2" class="text-center border-top-0 table-scale-border-bottom fw-700">HISTÓRICO DE SAÍDA</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Devolução de Mercadorias</strong></td>
+                                                        <td id="idvlrtotaldevolucao"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Baixa de Mercadorias</strong></td>
+                                                        <td id="idvlrbaixamercadoria"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Venda Geral</strong></td>
+                                                        <td id="idvlrtotalvendacaixa"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Desconto de Mercadoria</strong></td>
+                                                        <td id="idvlrtotaldescontocaixa"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>TOTAL GERAL SAÍDAS</strong></td>
+                                                        <td id="idvlrtotalgeralsaida"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4 d-flex">
+                                        <div class="table-responsive">
+                                            <table class="table table-clean table-sm align-self-end">
+                                                <tbody>
+                                                    <tr>
+                                                        <th colspan="2" class="text-center border-top-0 table-scale-border-bottom fw-700">PRESTAÇÃO DE CONTAS</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Total à Prestar Contas</strong></td>
+                                                        <td id="idvlrtotalprestarcontas"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Estoque Atual</strong></td>
+                                                        <td id="idvlrestoqueatual"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Diferença</strong></td>
+                                                        <td id="idvlrtotaldiferenca"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td widht="40%"><strong>Falta Percentual</strong></td>
+                                                        <td id="idtotalpercentualfalta"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4 d-flex">
+                                        <div class="table-responsive">
+                                            <table class="table table-clean table-sm align-self-end">
+                                                <tbody>
+                                                    <tr>
+                                                        <th>
+                                                            <button type="button" class="btn btn-outline-primary waves-effect waves-themed" title="Imprimir" onclick="window.print()">Imprimir</button>
+                                                        </th>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </main>
+                    <!-- this overlay is activated only when mobile menu is triggered -->
+                    <div class="page-content-overlay" data-action="toggle" data-class="mobile-nav-on"></div> <!-- END Page Content -->
+                </div>
+            </div>
+        </div>
+        <!-- END Page Wrapper -->
+        <!-- BEGIN Quick Menu -->
+        <!-- to add more items, please make sure to change the variable '$menu-items: number;' in your _page-components-shortcut.scss -->
+        <!-- END Quick Menu -->
+        <!-- END Messenger -->
+        <!-- BEGIN Page Settings -->
+        <!-- END Page Settings -->
+        <!-- base vendor bundle: 
+			 DOC: if you remove pace.js from core please note on Internet Explorer some CSS animations may execute before a page is fully loaded, resulting 'jump' animations 
+						+ pace.js (recommended)
+						+ jquery.js (core)
+						+ jquery-ui-cust.js (core)
+						+ popper.js (core)
+						+ bootstrap.js (core)
+						+ slimscroll.js (extension)
+						+ app.navigation.js (core)
+						+ ba-throttle-debounce.js (core)
+						+ waves.js (extension)
+						+ smartpanels.js (extension)
+						+ src/../jquery-snippets.js (core) -->
+        <script src="js/vendors.bundle.js"></script>
+        <script src="js/app.bundle.js"></script>
+    </body>
+</html>

@@ -1,0 +1,92 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+  <li class="breadcrumb-item active">Vouchers</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Vouchers - <span class='fw-300'>Detalhado</span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i>Pesquisa de Vouchers Detalhado</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-2 col-xl-2">
+                <label class="form-label" for="dtconsultainicio">Data Início</label>
+                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+              </div>
+              <div class="col-sm-2 col-xl-2">
+                <label class="form-label" for="dtconsultafim">Data Fim</label>
+                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+              </div>
+              <div class="col-sm-2 col-xl-2">
+                <label class="form-label" for="idGrupoLojaVoucher">Grupos</label>
+                <div class="input-group">
+                  <select class="select " id="idGrupoLojaVoucher" type="text" name="Grupos" value=""
+                    onchange="selectLojasVouchers(this.value)">
+                    <option value=""> Todos </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idLojaVoucher">Lojas</label>
+                <div class="input-group">
+                  <select class="select " id="idLojaVoucher" type="text" name="Lojas" value="">
+                    <option value=""> Todas </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="NVoucher">Voucher - Nº Venda ou CPF/CNPJ</label>
+                <input class="form-control" id="NVoucher" type="text" name="NVoucher" value="">
+              </div>
+              <div class="col-sm-6 col-xl-6">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisaVoucherEmitido()"><span
+                    class="fal fa-search mr-1"></span>Pesquisar</button>
+
+                <!-- <button class="btn btn-success" type="button" onclick="pesquisaVendaVoucher()"><span class="fal fa-shopping-cart mr-1"></span> Vendas </button>-->
+              </div>
+            </div>
+            <div class="row">
+            </div>
+          </div>
+          <div id="resultado" class="d-none">
+            <table id="dt-basic-voucher" class="table table-bordered table-hover table-striped w-100 fw-500">
+              <thead class="bg-primary-600">
+                <tr>
+                  <th>#</th>
+                  <th>Nº Voucher</th>
+                  <th>Loja Emissor</th>
+                  <th>Caixa Emissor</th>
+                  <th>Aut. Criação</th>
+                  <th>Data Emissão</th>
+                  <th>Valor</th>
+                  <th>Loja Recebida</th>
+                  <th>Caixa Recebida</th>
+                  <th>Aut. Consumo</th>
+                  <th>Data Recebida</th>
+                  <th>Tipo</th>
+                  <th>Situação</th>
+                  <th>Opções</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

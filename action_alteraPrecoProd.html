@@ -1,0 +1,125 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>
+  <li class="breadcrumb-item active"> Alteração de Preços </li>
+  <li class="breadcrumb-item active"> Alteração Manual de Preços </li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Alteração Manual de Preços<span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+
+        <button type="button" class="btn btn-danger p-1 ml-1" onclick="TelaAlteracoesPreco();"><span class="fal fa-arrow-alt-left p-1"></span>Voltar</button>
+        <!-- <h2>
+          <span class="fw-300 justify-content-center"><i>Alteração Manual</i></span>
+        </h2> -->
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div id="avisoPesquisa" class="d-none"></div>
+            <div class="row">
+                <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="dtCadProdInicio">Data Inicio</label>
+                <input class="form-control" id="dtCadProdInicio" type="date" name="Data de Cadastro do Produto Inicio" value="" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="dtCadProdFim">Data Fim</label>
+                <input class="form-control" id="dtCadProdFim" type="date" name="Data de Cadastro do Produto Fim" value="" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idListaPrecoAlteracao">Lista de Preço</label>
+                <select class="form-control" id="idListaPrecoAlteracao" value="" style="height: 39px;">
+                  <option value="">Selecione...</option>
+                  <!---<option   title="GRUPO" value="0">TODOS</option>-->
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="idGrpEstruturaProdAlteracao">Lista de Estruturas</label>
+                <select class="form-control" id="idGrpEstruturaProdAlteracao" multiple="multiple" value="" style="height: 39px;">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="idSubgrpEstruturaProdAlteracao">Lista de Subestruturas</label>
+                <select class="form-control" id="idSubgrpEstruturaProdAlteracao" multiple="multiple" value="" style="height: 39px;">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="descProdAlteracao">Descrição</label>
+                <input class="form-control" id="descProdAlteracao" type="text" name="Id do Produto" value="" autocomplete="off" autofill="off" placeholder="Descrição do Produto" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="idProdAlteracao">Id. Produto</label>
+                <input class="form-control" id="idProdAlteracao" type="text" name="Id do Produto" value="" autocomplete="off" autofill="off" placeholder="Id do Produto" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="codBarrasProdAlteracao">Cod.Barras</label>
+                <input class="form-control" id="codBarrasProdAlteracao" type="text" name="Codigo de Barras do Produto" value="" autocomplete="off" autofill="off" placeholder="Código de Barras" style="height: 39px;">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="precoInicialProdAlteracao">Preço Inicial</label>
+                <input class="form-control" id="precoInicialProdAlteracao" type="text" title="Preço Produto Inicial" value=""
+                  autocomplete="off" autofill="off" placeholder="Preço Produto Inicial" style="height: 39px;" onkeyup="formatInputValor(this)">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="precoFinalProdAlteracao">Preço Final</label>
+                <input class="form-control" id="precoFinalProdAlteracao" type="text" title="Preço Produto Final" value=""
+                  autocomplete="off" autofill="off" placeholder="Preço Produto Final" style="height: 39px;" onkeyup="formatInputValor(this)">
+              </div>
+              <div class="col-sm-6 col-xl-12 fw-900">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisaProdutosParaAlterar()">
+                  <span class="fal fa-search mr-1"></span>Pesquisar
+                </button>
+
+                <button id="btnExportarAlteracao" class="btn btn-info" type="button" title="Baixar o Modelo do Template" onclick="exportarTemplate()">
+                  <span class="fal fa-download mr-1"></span>Exportar
+                </button>
+
+                <button id="btnImportarAlteracao" class="btn btn-success" type="button" title="Importar o Template Já Editado" onclick="importarTemplate()">
+                  <span class="fal fa-upload mr-1"></span>Importar
+                </button>
+
+                <button id="btnAlteraManual" class="btn btn-success d-none" type="button" title="Executar Alteração" onclick="visualizarProdAlterado()">
+                  <span class="fal fa-check mr-1"></span>Alterar
+                </button>
+
+                <button id="btnAcumularProdAlteracaoManual" class="btn btn-info d-none" type="button" title="Acumular Produtos Para Alteração" onclick="acumulaProdsSelecionados('manual')">
+                  <span class="fal fa-plus mr-1"></span>Guardar p/ Alt.Manual
+                </button>
+
+                <button id="btnAcumularProdAlteracaoTemplate" class="btn btn-info d-none" type="button" title="Acumular Produtos Para Alteração" onclick="acumulaProdsSelecionados('template')">
+                  <span class="fal fa-list-alt mr-1"></span>Guardar p/ Alt.Template
+                </button>
+
+                <button id="btnApagarAcumuladorProdAlteracao" class="btn btn-danger d-none" type="button" title="Deleter Produtos Acumulados Para Alteração" onclick="apagaAcumuladorProdsSelecionados()">
+                  <span class="fal fa-trash mr-1"></span>Apagar Guardados
+                </button>
+
+                <button id="btnAlteraPrecoSelecionados" class="btn btn-warning text-white d-none" type="button" title="Preço de todos selecionados"
+                  onclick="alterarPrecoTodosSelecionados()">
+                  <span class="fal fa-pencil mr-1"></span>Alterar Preço
+                </button>
+
+              </div>
+            </div>
+            <div class="row">
+            </div>
+            <div class="row">
+            </div>
+          </div>
+          <div id="resultadoProdAlteracao">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

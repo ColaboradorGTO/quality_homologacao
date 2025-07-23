@@ -1,0 +1,68 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <li class="breadcrumb-item"><a href="dashboardcadastros.html">Home</a></li>
+  <li class="breadcrumb-item active">Notas Fiscais de Entrada</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Lista de Notas Fiscais <span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i> Notas Fiscais</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="dtconsultainicio">Data Início</label>
+                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="dtconsultafim">Data Fim</label>
+                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+              </div>
+              <div class="col-sm-4 col-xl-4">
+                <label class="form-label" for="fornNFE">Fornecedor</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="fornNFE" id="fornNFE">
+                    <option value="0">Selecione...</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-2 col-xl-1">
+                <label class="form-label" for="numSerieNFE">Nº Série</label>
+                <input class="form-control" id="numSerieNFE" type="text" name="numSerieNFE" value="">
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="numNFE">Nº NFE</label>
+                <input class="form-control" id="numNFE" type="text" name="numNFE" value="">
+              </div>
+              <div class="col-sm-6 col-xl-4">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisaNfeCadastrada()">
+                  <span class="fal fa-search mr-1"></span>Pesquisar
+                </button>
+
+                <button class="btn btn-success" type="button" onclick="telaDeModoDeCadastroNFEDeEntrada()">
+                  <span class="fal fa-plus mr-1"></span>Cadastrar NFE
+                </button>
+              </div>
+            </div>
+            <div class="row">
+            </div>
+          </div>
+          <div id="resultado">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

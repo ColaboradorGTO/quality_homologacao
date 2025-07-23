@@ -1,0 +1,95 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Lista de Formas de Pagamento</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title">
+      <i class='subheader-icon fal fa-chart-area'></i> Formas de Pagamento
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+      <div id="panel-1" class="panel">
+          <div class="panel-container show">
+              <div class="panel-content">
+
+                <div class="panel-tag">
+                  <div class="row">
+                     
+                      <div class="col-sm-3 col-md-4 col-xl-4">
+                          <label class="form-label" for="tpfunc">Por Colaborador</label>
+                          <div class="input-group">
+                              <select class="select2 form-control" name="idfuncvenda" id="idfuncvenda">
+                                  <option value=""> </option>
+                              </select>
+                          </div>
+                      </div>
+
+                      <div class="col-sm-3 col-md-3  col-xl-4">
+                        <label class="form-label" for="tpempresa">Forma Pag</label>
+                        <div class="input-group">
+                            <select class="select2 form-control" name="dsformapag" id="dsformapag" multiple>
+                            </select>
+                        </div>
+                      </div>
+                  
+                    
+                      <div class="col-sm-3 col-md-3 col-xl-4">
+                          <label class="form-label" for="tpempresa">Parcelas</label>
+                          <div class="input-group">
+                              <select 
+                                class="select2 form-control" 
+                                name="dsparc" 
+                                id="dsparc"
+                                multiple
+                              >
+                                  <option value=""> Selecionar Todas </option>
+                                  <option value="1">1</option>
+                                  <option value="2">2</option>
+                                  <option value="3">3</option>
+                                  <option value="4">4</option>
+                                  <option value="5">5</option>
+                                  <option value="6">6</option>
+                                  <option value="7">7</option>
+                                  <option value="8">8</option>
+                                  <option value="9">9</option>
+                                  <option value="10">10</option>
+                                  <option value="11">11</option>
+                                  <option value="12">12</option>
+                              </select>
+                          </div>
+                      </div>
+                      
+                  </div>
+                  <div class="row mt-3">
+
+                    
+                      <div class="col-sm-3 col-xl-3">
+                        <label class="form-label" for="tpdate">Data Início</label>
+                        <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+                    </div>
+                    <div class="col-sm-3 col-xl-3">
+                        <label class="form-label" for="tpdate">Data Fim</label>
+                        <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+                    </div>
+
+                  
+                  </div>
+                  <br>
+                  <div class="row">
+                      <div class="col-sm-6 col-xl-3 mt-4">
+                  
+                          <button class="btn btn-primary" type="button" onclick="pesqRecebimentosFormPag(1)"><span class="fal fa-search mr-1"></span>Por Pagamentos</button>
+                          <button class="btn btn-success" type="button" onclick="pesqRecebimentos(1)"><span class="fal fa-search mr-1"></span>Por Operador</button>
+                      </div>
+                  </div>
+                </div>
+                  <div id="resultado">
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+

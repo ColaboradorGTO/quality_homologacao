@@ -1,0 +1,156 @@
+                            <div id="resultadocadtransportador"></div>
+                            
+                            <div class="form-group"> 
+                                <div class="row">
+                                    <input type="hidden" name="STAtivoTransportador" id="STAtivoTransportador" value="True">
+                                    <input type="hidden" name="IDGrupoTransportador" id="IDGrupoTransportador" value="1">
+                                    <input type="hidden" name="IDSubGrupoTransportador" id="IDSubGrupoTransportador" value="1">
+                                    <input type="hidden" name="IDTransportador" id="IDTransportador" value="">
+                                    <input type="hidden" name="ModPedidoTransportador" id="ModPedidoTransportador" value="NENHUM">
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="transpcnpj">CNPJ *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="cnpjtransp" name="cnpjtransp" class="form-control input" value="" onkeypress="return Onlynumbers(event);" onblur="modal_Preenchimento_CNPJ_Transp(this.value);" maxlength="14">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="transpinscest">Insc. Estadual</label>
+                                        <div class="input-group">
+                                            <input type="text" id="inscestadualtransp" name="inscestadualtransp" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="14">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="transpinscmun">Insc. Municipal</label>
+                                        <div class="input-group">
+                                            <input type="text" id="inscmunitransp" name="inscmunitransp" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="14">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="transprazao">Razão Social *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="razaotransp" name="razaotransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="transpfantasia">Nome Fantasia *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="fantasiatransp" name="fantasiatransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                  <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="ceptransp">CEP *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="ceptransp" name="ceptransp" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="8">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-5">
+                                        <label class="form-label" for="enderecotransp">Endereço *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="enderecotransp" name="enderecotransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="numeroendtransp">Nº *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="numeroendtransp" name="numeroendtransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="complementoendtransp">Complemento</label>
+                                        <div class="input-group">
+                                            <input type="text" id="complementoendtransp" name="complementoendtransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                  <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="bairrotransp">Bairro *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="bairrotransp" name="bairrotransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="cidadetransp">Cidade *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="cidadetransp" name="cidadetransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="uftransp">UF *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="uftransp" name="uftransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="nibgetransp">Nº IBGE *</label>
+                                        <div class="input-group">
+                                            <input type="text" id="nibgetransp" name="nibgetransp" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="8">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="transprepres">Nome Representante</label>
+                                        <div class="input-group">
+                                            <input type="text" id="nomerepretransp" name="nomerepretransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="transpemail">E-mail</label>
+                                        <div class="input-group">
+                                            <input type="text" id="emailtransp" name="emailtransp" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="transptel1">Telefone 1</label>
+                                        <div class="input-group">
+                                            <input type="text" id="tel1transp" name="tel1transp" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="11">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="transptel2">Telefone 2</label>
+                                        <div class="input-group">
+                                            <input type="text" id="tel2transp" name="tel2transp" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="11">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="transptel3">Telefone 3</label>
+                                        <div class="input-group">
+                                            <input type="text" id="tel3transp" name="tel3transp" class="form-control input" value="" onkeypress="return Onlynumbers(event);" maxlength="11">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="unidmedst">Situação *</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="stativotransp" id="stativotransp">
+                                                <option value="True">ATIVO</option>
+                                                <option value="False">INATIVO</option> 
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-12">  
+                                    <label class="form-label" for="vrfat">* Campos Obrigatórios *</label>                                      
+                                        <div id="tudo"></div>
+                                    </div>
+                                </div>
+                            </div>

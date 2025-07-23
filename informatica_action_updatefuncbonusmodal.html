@@ -1,0 +1,46 @@
+<div id="resulmodalbonusfuncionario">
+</div>
+
+<div class="form-group">
+    <input type="hidden" name="IDFuncionarioBonus" id="IDFuncionarioBonus" value="">
+    <div class="row">
+        <div class="col-sm-3 col-xl-3">
+            <label class="form-label" for="cpfFuncionarioBonus">CPF</label>
+            <div class="input-group">
+                <input type="text" id="cpfFuncionarioBonus" maxlength="14" name="cpfFuncionarioBonus" class="form-control input" value="" onkeydown="javascript: fMasc( this, mCPF );" readonly>
+            </div>
+        </div>
+        <div class="col-sm-7 col-xl-5">
+            <label class="form-label" for="nomefuncionarioBonus">Funcionário</label>
+            <div class="input-group">
+                <input type="text" id="nomefuncionarioBonus" name="nomefuncionarioBonus" class="form-control input" style="text-transform: uppercase" value="" readonly>
+            </div>
+        </div>
+        <div class="col-sm-3 col-xl-2">
+            <label class="form-label" for="vlSaldo">Saldo(R$)</label>
+            <div class="input-group">
+                <input type="number" min="0" max="100" id="vlSaldo" name="vlSaldo" class="form-control input" value="0" readonly>
+            </div>
+        </div>
+        <div class="col-sm-3 col-xl-2">
+            <label class="form-label" for="vlBonus">Bônus(R$)</label>
+            <div class="input-group">
+                <input type="number" min="0" max="100" id="vlBonus" name="vlBonus" class="form-control input" value="0">
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+
+<div class="form-group">
+    <div class="row">
+        <div class="col-sm-6 col-xl-12">
+            <div id="tudo"></div>
+        </div>
+    </div>
+</div>
+    <script>
+        $("#percDescFunc").mask('#.##0,00', {reverse: true});
+        $("#valorDescFunc").mask('#.##0,00', {reverse: true});
+    </script>

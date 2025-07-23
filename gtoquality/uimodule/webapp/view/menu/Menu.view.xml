@@ -1,0 +1,50 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns:core="sap.ui.core" controllerName="com.quality.quality.controller.menu.Menu" xmlns:tnt="sap.tnt" xmlns="sap.m" xmlns:layout="sap.ui.layout">
+    <tnt:ToolPage sideExpanded="true">
+        <tnt:header>
+            <tnt:ToolHeader height="50px" width="auto" design="Transparent" visible="true" enabled="true">
+                <tnt:content>
+                    <Button text="" type="Default" icon="sap-icon://menu2" iconFirst="true" width="auto" enabled="true" visible="true" tooltip="Toggle Side Navigation" press="_onToggleButtonPress"/>
+                    <ToolbarSpacer width=""/>
+                    <Button text="Voltar" icon="sap-icon://arrow-left" type="Transparent" iconFirst="true" width="auto" enabled="true" visible="true" press="_onPressVoltar" iconDensityAware="false"/>
+                    <MenuButton text="Alan Smith">
+                        <menu>
+                            <Menu>
+                                <MenuItem text="Perfil" icon="sap-icon://account" />
+                                <MenuItem text="Sair" icon="sap-icon://arrow-left" press="_onPressSair" />
+                            </Menu>
+                        </menu>
+                    </MenuButton>
+                </tnt:content>
+            </tnt:ToolHeader>
+        </tnt:header>
+        <tnt:sideContent>
+            <tnt:SideNavigation visible="true">
+                <tnt:item>
+                    <tnt:NavigationList width="auto" expanded="true">
+                        <tnt:items>
+                            <tnt:NavigationListItem icon="sap-icon://employee" expanded="true" key="com.quality.quality.view.cadastros.Cadastros"  text="Cadastros" select="_onNavigationListItemSelect">
+                                <tnt:items/>
+                            </tnt:NavigationListItem>
+                            <tnt:NavigationListItem icon="sap-icon://employee" expanded="true"  key="com.quality.quality.view.financeiro.Financeiro" text="Financeiro" select="_onNavigationListItemSelect">
+                                <tnt:items/>
+                            </tnt:NavigationListItem>
+                        </tnt:items>
+                    </tnt:NavigationList>
+                </tnt:item>
+                <tnt:fixedItem>
+                    <tnt:NavigationList width="auto" expanded="true">
+                        <tnt:items>
+                            <tnt:NavigationListItem icon="sap-icon://card" expanded="true" hasExpander="true" text="Sair" select="_onPressSair">
+                                <tnt:items/>
+                            </tnt:NavigationListItem>
+                        </tnt:items>
+                    </tnt:NavigationList>
+                </tnt:fixedItem>
+                <tnt:footer/>
+            </tnt:SideNavigation>
+        </tnt:sideContent>
+        <tnt:mainContents>
+            <VBox id="fragmentContent" class="fragmentStyle"></VBox>
+        </tnt:mainContents>
+    </tnt:ToolPage>
+</mvc:View>

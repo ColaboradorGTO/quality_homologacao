@@ -1,0 +1,153 @@
+<div id="notificacaoModalCadastroEmpresa"></div>
+
+<div class="form-group">
+    <input type="hidden" name="IDEmpresaAtualizar" id="IDEmpresaAtualizar" value="">
+    <div class="row">
+        <div class="col-sm-4 col-xl-4">
+            <label class="form-label" for="IdGrupoEmpresarial">Grupo Empresarial</label>
+            <div class="input-group">
+                <select class="select2 form-control" name="IdGrupoEmpresarial" id="IdGrupoEmpresarial">
+                    <option value="">Selecione...</option>
+                    <option value="1">Tesoura de Ouro</option>
+                    <option value="2">Magazine</option>
+                    <option value="3">Yorus</option>
+                    <option value="4">Free Center</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-sm-4 col-xl-4">
+          <label class="form-label" for="stativoEmpresa">Situação</label>
+          <div class="input-group">
+              <select class="select2 form-control" name="stativoEmpresa" id="stativoEmpresa">
+                  <option value="">Selecione...</option>
+                  <option value="True">ATIVO</option>
+                  <option value="False">INATIVO</option>
+              </select>
+          </div>
+      </div>
+      <div class="col-sm-4 col-xl-4">
+        <label class="form-label" for="dataCriacao">Data de Criação</label>
+        <div class="input-group">
+            <input type="date" id="dataCriacao" name="dataCriacao" class="form-control input" style="text-transform: uppercase" value="">
+        </div>
+    </div>
+    </div>
+
+    <div class="form-group"> 
+      <div class="row">
+          <div class="col-sm-3 col-xl-3">
+              <label class="form-label" for="CNPJ">CNPJ</label>
+              <div class="input-group">
+                  <input type="text" id="CNPJ" maxlength="18" name="CNPJ" class="form-control input" style="text-transform: uppercase" placeholder="Digite sem pontos ou traços" value="" onblur="modal_Preenchimento_CNPJ(this.value);">
+              </div>
+          </div>
+          <div class="col-sm-3 col-xl-3">
+            <label class="form-label" for="IE">Inscriação Estadual</label>
+            <div class="input-group">
+                <input type="text" id="IE" maxlength="9" name="IE" class="form-control input" style="text-transform: uppercase" placeholder="Digite sem pontos ou traços" value="" >
+            </div>
+         </div>
+         <div class="col-sm-3 col-xl-3">
+          <label class="form-label" for="IM">Inscrição Municipal</label>
+          <div class="input-group">
+              <input type="text" id="IM" name="IM" class="form-control input" style="text-transform: uppercase" value="" >
+          </div>
+       </div>
+         <div class="col-sm-3 col-xl-3">
+          <label class="form-label" for="CNAE">CNAE</label>
+          <div class="input-group">
+              <input type="text" id="CNAE" maxlength="9" name="CNAE" class="form-control input" style="text-transform: uppercase" placeholder="Digite sem pontos ou traços" value="">
+          </div>
+       </div>
+      </div>
+    </div>
+    <div class="form-group"> 
+      <div class="row">
+        <div class="col-sm-6 col-xl-6">
+          <label class="form-label" for="razaoSocial">Razão Social</label>
+          <div class="input-group">
+              <input type="text" id="razaoSocial" name="razaoSocial" class="form-control input" style="text-transform: uppercase" placeholder="Razão Social" value="" >
+          </div>
+      </div>
+          <div class="col-sm-6 col-xl-6">
+              <label class="form-label" for="nomeFantasia">Nome Fantasia</label>
+              <div class="input-group">
+                  <input type="text" id="nomeFantasia" name="nomeFantasia" class="form-control input" style="text-transform: uppercase" placeholder="Nome Fantasia" value="">
+              </div>
+          </div>
+        </div>
+     </div>
+
+     <div class="form-group"> 
+      <div class="row">
+        <div class="col-sm-4 col-xl-4">
+          <label class="form-label" for="CEP">CEP</label>
+          <div class="input-group">
+              <input type="text" id="CEP" maxlength="10" name="CEP" class="form-control input" style="text-transform: uppercase" value="" placeholder="Digite sem pontos ou traços" onblur="preenche_cep(this.value.replace(/\D/g, ''));" >
+          </div>
+      </div>
+        <div class="col-sm-4 col-xl-4">
+          <label class="form-label" for="endereco">Endereço</label>
+          <div class="input-group">
+              <input type="text" id="endereco" name="endereco" class="form-control input" style="text-transform: uppercase" placeholder="Digite o Endereço" value="">
+          </div>
+      </div>
+          <div class="col-sm-4 col-xl-4">
+              <label class="form-label" for="complemento">Complemento</label>
+              <div class="input-group">
+                  <input type="text" id="complemento" name="complemento" class="form-control input" style="text-transform: uppercase" placeholder="Complemento" value="">
+              </div>
+          </div>
+          
+          <div class="col-sm-3 col-xl-3">
+            <label class="form-label" for="bairro">Bairro</label>
+            <div class="input-group">
+                <input type="text" id="bairro" name="bairro" class="form-control input" style="text-transform: uppercase" placeholder="Bairro" value="">
+            </div>
+        </div>
+            <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="cidade">Cidade</label>
+                <div class="input-group">
+                    <input type="text" id="cidade" name="cidade" class="form-control input" style="text-transform: uppercase" placeholder="Cidade" value="">
+                </div>
+            </div>
+            <div class="col-sm-3 col-xl-3">
+              <label class="form-label" for="estado">Estado</label>
+              <div class="input-group">
+                  <input type="text" maxlength="2" id="estado" name="estado" class="form-control input" style="text-transform: uppercase" placeholder="Digite a Sigla" value="">
+              </div>
+          </div>
+          <div class="col-sm-3 col-xl-3">
+            <label class="form-label" for="IBGE">IBGE</label>
+            <div class="input-group">
+                <input type="text" id="IBGE" name="IBGE" class="form-control input"  style="text-transform: uppercase" placeholder="Digite sem pontos ou traços" value="">
+            </div>
+        </div>
+
+        <div class="col-sm-3 col-xl-3">
+          <label class="form-label" for="email">E-mail</label>
+          <div class="input-group">
+              <input type="text" id="email" name="email" class="form-control input" style="text-transform: uppercase" placeholder="email@email.com" value="">
+          </div>
+      </div>
+          <div class="col-sm-3 col-xl-3">
+              <label class="form-label" for="telefone">Telefone</label>
+              <div class="input-group">
+                  <input type="text" id="telefone" name="telefone" class="form-control input" style="text-transform: uppercase" placeholder="Digite sem pontos ou traços" value="">
+              </div>
+          </div>
+          <div class="col-sm-3 col-xl-3">
+            <label class="form-label" for="pis">PIS</label>
+            <div class="input-group">
+                <input type="text" id="pis" name="pis" class="form-control input" style="text-transform: uppercase" placeholder="1.65" value="">
+            </div>
+        </div>
+        <div class="col-sm-3 col-xl-3">
+          <label class="form-label" for="cofins">COFINS</label>
+          <div class="input-group">
+              <input type="text" id="cofins" name="cofins" class="form-control input" style="text-transform: uppercase" placeholder="7.65" value="">
+          </div>
+        </div>
+      </div>
+    </div>
+</div>

@@ -1,0 +1,51 @@
+
+                            <div id="resultadodetvendarecebimento"></div>
+                            
+                            
+                            <div class="row">
+                                    <input type="hidden" name="IDResVenda" id="IDResVenda" value="">
+                                    <input type="hidden" name="IDEmpResumo" id="IDEmpResumo" value="">
+                                <div class="col-xl-12">
+                                    <div id="panel-1" class="panel">
+                                        <div class="panel-hdr textoCabecalhoPagamento">
+                                        
+                                        </div>
+                                        <div class="panel-container show">
+                                            <div class="panel-content">
+                                                <div id="">
+                                                    <!-- datatable start -->
+                                                    <table id="" class="table table-bordered table-hover table-striped w-100">
+                                                        <thead class="bg-primary-600">
+                                                            <tr>
+                                                                <th>Vr. Dinheiro</th>
+                                                                <th>Vr. Cartão</th>
+                                                                <th>Vr. POS</th>
+                                                                <th>Vr. Convênio</th>
+                                                                <th>Vr. Voucher</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="resultListPagamentoVenda">
+                                                        </tbody>
+                                                    </table>
+                                                    <table id="" class="table table-bordered table-hover table-striped w-100">
+                                                        <thead class="bg-primary-600">
+                                                            <tr>
+                                                                <th>Pagamento</th>
+                                                                <th>Parcelas</th>
+                                                                <th>Autorização</th>
+                                                                <th>Vr Recebido</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="resultListPagamento">
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+    <script>
+            $("#VrRecDinheiro,#VrRecCartao,#VrRecPOS,#VrRecVoucher").mask('#.##0,00', {reverse: true});
+    </script>

@@ -1,0 +1,178 @@
+<project name="windows-installer" basedir="../../">
+    <property file="ant/project.properties"/>
+    <import file="${basedir}/ant/version.xml"/>
+    <import file="${basedir}/ant/platform-detect.xml"/>
+    <property environment="env"/>
+
+    <target name="build-exe" depends="get-version,platform-detect">
+        <!-- Get the os-preferred name for the target architecture -->
+        <condition property="windows.target.arch" value="arm64">
+            <isset property="target.arch.aarch64"/>
+        </condition>
+        <property name="windows.target.arch" value="x86_64" description="fallback value"/>
+
+        <!-- Sign Libs and Runtime -->
+        <fileset dir="${dist.dir}/" id="win.sign.found">
+            <include name="**/*.dll"/>
+            <include name="**/*.exe"/>
+        </fileset>
+        <!-- Place double quotes between files (sign-win adds surrounding quotes) -->
+        <pathconvert pathsep="&quot; &quot;" property="win.sign.separated" refid="win.sign.found"/>
+        <antcall target="sign-win">
+            <param name="sign.win.file" value="${win.sign.separated}"/>
+        </antcall>
+
+        <!-- Launcher -->
+        <antcall target="config-compile-sign">
+            <param name="nsis.script.in" value="windows-launcher.nsi.in"/>
+            <param name="nsis.outfile" value="${dist.dir}/${project.filename}.exe"/>
+        </antcall>
+
+        <!-- Debug Launcher -->
+        <copy file="ant/windows/windows-launcher.nsi.in" tofile="ant/windows/windows-debug-launcher.nsi.in" overwrite="true"/>
+        <replace file="ant/windows/windows-debug-launcher.nsi.in" token="$javaw" value="$java"/>
+        <replace file="ant/windows/windows-debug-launcher.nsi.in" token="/assets/branding/windows-icon.ico" value="/ant/windows/nsis/console.ico"/>
+        <antcall target="config-compile-sign">
+            <param name="nsis.script.in" value="windows-debug-launcher.nsi.in"/>
+            <param name="nsis.outfile" value="${dist.dir}/${project.filename}-console.exe"/>
+        </antcall>
+
+        <!-- Uninstaller -->
+        <antcall target="config-compile-sign">
+            <param name="nsis.script.in" value="windows-uninstaller.nsi.in"/>
+            <param name="nsis.outfile" value="${dist.dir}/uninstall.exe"/>
+        </antcall>
+
+        <!-- Installer (bundles dist/ payload) -->
+        <antcall target="config-compile-sign">
+            <param name="nsis.script.in" value="windows-installer.nsi.in"/>
+            <param name="nsis.outfile" value="${out.dir}/${project.filename}${build.type}-${build.version}-${windows.target.arch}.exe"/>
+        </antcall>
+    </target>
+
+    <target name="config-compile-sign" depends="find-nsisbin">
+        <echo level="info">Creating ${nsis.outfile} using ${nsisbin}</echo>
+
+        <!-- Calculate file name without suffix  -->
+        <basename property="nsis.script.out" file="${nsis.script.in}" suffix=".in"/>
+
+        <!-- Configure the nsi script with ant parameters -->
+        <copy file="ant/windows/${nsis.script.in}" tofile="${build.dir}/${nsis.script.out}" overwrite="true">
+            <filterchain><expandproperties/></filterchain>
+        </copy>
+
+        <!-- Create the exe -->
+        <exec executable="${nsisbin}" failonerror="true">
+            <arg value="${build.dir}/${nsis.script.out}"/>
+        </exec>
+
+        <!-- Sign the exe -->
+        <antcall target="sign-win">
+            <param name="sign.win.file" value="${nsis.outfile}"/>
+        </antcall>
+    </target>
+
+    <target name="find-jsign">
+        <!-- Locate jsign -->
+        <path id="jsign.found">
+            <first>
+                <fileset dir="${basedir}/ant/lib/">
+                    <include name="jsign*.jar"/>
+                </fileset>
+            </first>
+        </path>
+        <pathconvert property="jsign.path" refid="jsign.found"/>
+    </target>
+
+    <target name="find-nsisbin" depends="nsisbin-from-unix,nsisbin-from-32,nsisbin-from-64"/>
+
+    <!-- Linux makensis -->
+    <target name="nsisbin-from-unix" unless="env.windir">
+        <property name="nsisbin" value="makensis"/>
+    </target>
+
+    <!-- Win32 makensis -->
+    <target name="nsisbin-from-32" unless="env.ProgramFiles(x86)">
+        <property description="suppress property warning" name="env.ProgramFiles" value="C:/Program Files"/>
+        <property name="nsisbin" value="${env.ProgramFiles}/NSIS/makensis.exe"/>
+    </target>
+
+    <!-- Win64 makensis -->
+    <target name="nsisbin-from-64" if="env.ProgramFiles(x86)">
+        <property description="suppress property warning" name="env.ProgramFiles(x86)" value="C:/Program Files (x86)"/>
+        <property name="nsisbin" value="${env.ProgramFiles(x86)}/NSIS/makensis.exe"/>
+    </target>
+
+    <!-- Exe signing -->
+    <import file="${basedir}/ant/signing.xml"/>
+    <target name="sign-win">
+        <antcall target="sign-win-tsa">
+            <param name="sign.win.file" value="${sign.win.file}"/>
+        </antcall>
+        <antcall target="sign-win-self">
+            <param name="sign.win.file" value="${sign.win.file}"/>
+        </antcall>
+    </target>
+
+    <target name="copy-dlls" if="target.os.windows">
+        <echo level="info">Copying native library files to libs</echo>
+        <copy todir="${dist.dir}/libs" flatten="true" verbose="true">
+            <fileset dir="${out.dir}/libs-temp">
+                <!--x86_64-->
+                <include name="**/win32-x86-64/*" if="target.arch.x86_64"/> <!-- jna/hid4java -->
+                <include name="**/windows-x86_64/*" if="target.arch.x86_64"/> <!-- usb4java -->
+                <include name="**/windows_64/*" if="target.arch.x86_64"/> <!-- jssc -->
+                <!--aarch64-->
+                <include name="**/win32-aarch64/*" if="target.arch.aarch64"/> <!-- jna/hid4java -->
+                <include name="**/windows-aarch64/*" if="target.arch.aarch64"/> <!-- usb4java -->
+                <include name="**/windows_arm64/*" if="target.arch.aarch64"/> <!-- jssc -->
+            </fileset>
+        </copy>
+    </target>
+
+    <!-- Exe signing with timestamp -->
+    <target name="sign-win-tsa" if="signing.tsaurl" depends="find-jsign">
+        <property description="suppress property warning" name="signing.tsaurl" value="something went wrong"/>
+        <echo level="info">Signing with timestamp:</echo>
+        <java jar="${jsign.path}" fork="true" failonerror="true">
+            <arg value="--name"/>
+            <arg value="${project.name}"/>
+            <arg value="--url"/>
+            <arg value="${vendor.website}"/>
+            <arg value="--replace"/>
+            <arg value="--keystore"/>
+            <arg value="${signing.keystore}"/>
+            <arg value="--alias"/>
+            <arg value="${signing.alias}"/>
+            <arg value="--storepass"/>
+            <arg value="${signing.storepass}"/>
+            <arg value="--keypass"/>
+            <arg value="${signing.keypass}"/>
+            <arg value="--tsaurl"/>
+            <arg value="${signing.tsaurl}"/>
+            <arg line="&quot;${sign.win.file}&quot;"/>
+        </java>
+    </target>
+
+    <!-- Exe signing without timestamp -->
+    <target name="sign-win-self" unless="signing.tsaurl" depends="find-jsign">
+        <echo level="info">Signing without timestamp:</echo>
+        <tsa-warning/>
+        <java jar="${jsign.path}" fork="true" failonerror="true">
+            <arg value="--name"/>
+            <arg value="${project.name}"/>
+            <arg value="--url"/>
+            <arg value="${vendor.website}"/>
+            <arg value="--replace"/>
+            <arg value="--keystore"/>
+            <arg value="${signing.keystore}"/>
+            <arg value="--alias"/>
+            <arg value="${signing.alias}"/>
+            <arg value="--storepass"/>
+            <arg value="${signing.storepass}"/>
+            <arg value="--keypass"/>
+            <arg value="${signing.keypass}"/>
+            <arg line="&quot;${sign.win.file}&quot;"/>
+        </java>
+    </target>
+</project>

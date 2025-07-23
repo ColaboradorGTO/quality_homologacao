@@ -1,0 +1,52 @@
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-3 col-xl-2">
+      <label class="form-label" for="dtCreateAlteracaoPrecoModal">Data e Hora Criação</label>
+      <input class="form-control p-1" id="dtCreateAlteracaoPrecoModal" type="datetime-local" title="Data de Criação" value="" style="height: 39px;" disabled>
+    </div>
+    <div class="col-sm-3 col-xl-2">
+      <label class="form-label" for="dtAlterAlteracaoPrecoModal">Data para Alteração</label>
+      <input class="form-control p-1" id="dtAlterAlteracaoPrecoModal" type="datetime-local" title="Data para Alteração" value="" onchange="habilitaEditAltPreco()" style="height: 39px;">
+    </div>
+    <div class="col-sm-3 col-xl-2">
+      <label class="form-label" for="stAlteracaoPreco">Status Alteração</label>
+      <select class="form-control text-center p-1" id="stAlteracaoPreco" type="text" title="Status da Alteração de Preço"
+        value="" style="height: 42px;" onchange="habilitaEditAltPreco()">
+        <option value="False" title="EM ESPERA">EM ESPERA</option>
+        <option value="True" title="CANCELADA">CANCELADA</option>
+        <option value="FINALIZADA" title="FINALIZADA" disabled>FINALIZADA</option>
+      </select>
+    </div>
+    <div class="col-sm-3 col-xl-1">
+      <label class="form-label" for="idAlteracaoPrecoModal">Alteração</label>
+      <input class="form-control text-center p-1" id="idAlteracaoPrecoModal" type="text" title="Número da Alteracao de Preco" value="" style="height: 39px;" disabled>
+    </div>
+    <div class="col-sm-2 col-xl-3">
+      <label class="form-label" for="idListaAlteracaoPrecoModal">Lista Alvo da Alteração</label>
+      <input class="form-control" id="idListaAlteracaoPrecoModal" type="text" title="Lista de Preço da Alteracao de Preco" value="" style="height: 39px;" disabled>
+    </div>
+    <div class="col-sm-3 col-xl-2">
+      <label class="form-label" for="qtdItensAlteracaoPrecoModal">Qtd.Produtos</label>
+      <input class="form-control text-center p-1" id="qtdItensAlteracaoPrecoModal" type="text" title="Quantidade de Produtos da Alteracao de Preco" value="" style="height: 39px;" disabled>
+    </div>
+    <div class="col-sm-3 col-xl-4">
+      <label class="form-label" for="idResponsavelAlteracaoPrecoModal">Responsável</label>
+      <input class="form-control p-1" id="idResponsavelAlteracaoPrecoModal" type="text" title="Responsável pela Criação da Alteracao de Preco" value="" style="height: 39px;" disabled>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6 col-xl-12 fw-900">
+      <br>
+      <button id="btnAlterSelecionadosPrecoDetAlteracao" class="btn btn-warning text-white mr-2 d-none" type="button" onclick="alterarPrecoProdDetalheAlteracaoSelecionados()">
+        <span class="fal fa-pen mr-1"></span>Alterar Selecionados
+      </button>
+
+      <button id="btnUpdateSelecionadosPrecoDetAlteracao" class="btn btn-info text-white d-none" type="button"
+        onclick="updateDetalhesAlteracaoSelecionados()">
+        <span class="fal fa-check mr-1"></span>Inserir Alteração
+      </button>
+    </div>
+  </div>
+  <div id="resultadoDetalhesAlteracaoPrecoModal">
+  </div>
+</div>

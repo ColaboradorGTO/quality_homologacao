@@ -1,0 +1,105 @@
+<ol class="breadcrumb page-breadcrumb">
+  <input type="hidden" name="Tipo" id="Tipo" value="">
+  <!--<li class="breadcrumb-item"><a href="dashboardadministrativo.html">Home</a></li>-->
+  <li class="breadcrumb-item active">Vouchers</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title DescTituloVoucher">
+    <i class='subheader-icon fal fa-chart-area'></i>Vouchers - <span class='fw-300'></span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          <span class="fw-300"><i> Vouchers </i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="tpdate">Data Início</label>
+                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+              </div>
+              <div class="col-sm-6 col-xl-3">
+                <label class="form-label" for="tpdate">Data Fim</label>
+                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+              </div>
+              <div class="col-sm-6 col-xl-6">
+                <label class="form-label" for="tpdateinicio">Nº Voucher ou Nº Venda ou CPF/CNPJ</label>
+                <input class="form-control" id="NVoucher" type="text" name="NVoucher" value="">
+              </div>
+              <div class="col-sm-6 col-xl-12">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisaVoucherEmitido()"><span
+                    class="fal fa-search mr-1"></span>Pesquisar</button>
+                <button class="btn btn-success" type="button" onclick="telaPesquisaVendaVoucher()"><span
+                    class="fal fa-plus mr-1"></span>Criar Voucher</button>
+              </div>
+            </div>
+            <div class="row">
+            </div>
+          </div>
+          <div id="resultado" class="d-none">
+            <div class="row">
+              <div class="col-xl-12 col-sm-12">
+                <div id="panel-1" class="panel">
+                  <div class="panel-container show">
+                    <div class="panel-content">
+                      <div id="">
+                        <!-- datatable start -->
+                        <table id="dt-basic-voucher" class="table table-bordered table-hover table-striped w-100">
+                          <thead class="bg-primary-600">
+                            <tr>
+                              <th>Indice</th>
+                              <th>Nº Voucher</th>
+                              <th>Loja Emissor</th>
+                              <th>Caixa Emissor</th>
+                              <th>Aut. Criação</th>
+                              <th>Data Emissão</th>
+                              <th>Valor</th>
+                              <th>Loja Recebido</th>
+                              <th>Caixa Recebido</th>
+                              <th>Aut. Consumo</th>
+                              <th>Data Recebido</th>
+                              <th>Situação</th>
+                              <th>Opções</th>
+                            </tr>
+                          </thead>
+                          <!-- <tbody>
+                                                </tbody> -->
+                          <hr><br>
+                          <tfoot class="thead-themed ListaProdVoucher d-none">
+                            <tr>
+                              <th style="text-align: center;"> #</th>
+                              <th style="text-align: center;">Nº Venda</th>
+                              <th style="text-align: center;">Nº Produto</th>
+                              <th style="text-align: center;">Cod. Barras</th>
+                              <th style="text-align: center;">Descrição</th>
+                              <th style="text-align: center;">QTD</th>
+                              <th style="text-align: right;">Valor</th>
+                              <th style="text-align: center;">Vendedor</th>
+                              <th style="text-align: center;"></th>
+                              <th style="text-align: center;"></th>
+                              <th style="text-align: center;"></th>
+
+                            </tr>
+                          </tfoot>
+                        </table>
+                        <!-- datatable end -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

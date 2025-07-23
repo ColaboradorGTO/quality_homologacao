@@ -1,0 +1,198 @@
+<div class="form-group">
+
+  <div class="input-group">
+    <input type="hidden" autocomplete="off" id="idEmpresa" name="idEmpresa" class="form-control input" value="">
+  </div>
+
+  <div id="dadosClienteGeral" class="mt-5">
+    <div class="row">
+      <div class="col-sm-2 col-xl-1 mt-2">
+        <label class="form-label  w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Id Cliente"
+          for="idClienteEmpresa">Id</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="idClienteEmpresa" title="Id do Cliente" placeholder=""
+            onmouseover="this.title = (this.value || this.title)" name="idClienteEmpresa" class="form-control input"
+            style="padding: 2px;" value="" readonly>
+        </div>
+      </div>
+      <div class="col-sm-2 col-xl-1 mt-2">
+        <label class="form-label  w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Tipo*"
+          for="tipoClienteEmpresa">Tipo*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="tipoClienteEmpresa" title="Tipo do Cliente"
+            onmouseover="this.title = (this.value || this.title)" name="tipoClienteEmpresa"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value="CPF"
+            readonly>
+        </div>
+      </div>
+      <div class="col-sm-3 col-xl-2 mt-2">
+        <label class="form-label w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Data do Cadastro*"
+          for="DataCadastro">Data do Cadastro*</label>
+        <div class="input-group">
+          <input type="date" autocomplete="off" id="DataCadastro" title="Data de Cadastro"
+            onmouseover="this.title = (this.value || this.title)" name="DataCadastro" class="form-control input"
+            value="" readonly>
+        </div>
+      </div>
+      <div class="col-sm-5 col-xl-2 mt-2">
+        <label class="form-label  w-100 text-nowrap overflow-hidden text-truncate mb-0" title="CPF*"
+          for="CPFCNPJ">CPF*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="CPFCNPJ" title="CPF" placeholder="Digite o CPF"
+            onmouseover="this.title = (this.value || this.title)" name="CPFCNPJ"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value=""
+            onchange="verificaSeExisteCadastroCliente(this.value)" onkeypress="mascaraMulti(this, Cpf)" maxlength="14">
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3 mt-2">
+        <label class="form-label  w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Nome*"
+          for="NomeClienteRazao">Nome*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="NomeClienteRazao" title="Nome" placeholder="Digite o Nome"
+            onmouseover="this.title = (this.value || this.title)" name="NomeClienteRazao"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value="">
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3 mt-2">
+        <label class="form-label  w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Sobrenome*"
+          for="sobrenomeNomeFan">Sobrenome*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="sobrenomeNomeFan" title="Sobrenome" placeholder="Digite o Sobrenome"
+            onmouseover="this.title = (this.value || this.title)" name="sobrenomeNomeFan"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value="">
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-3 col-xl-2 mt-2">
+        <label class="form-label  w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Data de Nascimento*"
+          for="DataNascimentoCriacao">Data de Nascimento*</label>
+        <div class="input-group">
+          <input type="date" autocomplete="off" id="DataNascimentoCriacao" title="Data de Nascimento"
+            onmouseover="this.title = (this.value || this.title)" name="DataNascimentoCriacao"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value="">
+        </div>
+      </div>
+      <div class="col-sm-4 col-xl-3 mt-2">
+        <label class="form-label  w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Telefone"
+          for="TelefoneCliente">Telefone*</label>
+        <div class="input-group">
+          <input type="tel" autocomplete="off" id="TelefoneCliente" title="Telefone" placeholder="Digite o Telefone"
+            onmouseover="this.title = (this.value || this.title)" name="TelefoneCliente"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value=""
+            onkeypress="mascaraMulti(this, Fone)" maxlen mt-2gth="15">
+        </div>
+      </div>
+      <div class="col-sm-5 col-xl-4 mt-2">
+        <label class="form-label  w-100 text-nowrap overflow-hidden text-truncate mb-0" title="E-mail"
+          for="email">E-mail*</label>
+        <div class="input-group">
+          <input type="email" autocomplete="off" id="email" title="E-mail" placeholder="Digite o E-mail"
+            onmouseover="this.title = (this.value || this.title)" name="email"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value="">
+        </div>
+      </div>
+      <div class="col-sm-5 col-xl-3 mt-2">
+        <label class="form-label  w-100 text-nowrap overflow-hidden text-truncate mb-0"
+          title="Tipo de Indicação da Inscrição Estadual" for="idIndicacaoIE">Tipo Indicação IE</label>
+        <div class="input-group">
+          <select class="select2 form-control" id="idIndicacaoIE" readonly disabled>
+            <option value="0">Selecione...</option>
+            <option value="1">Contribuinte ICMS</option>
+            <option value="2">Contribuinte Isento de IE</option>
+            <option value="9" selected>Não Contribuinte Com ou Sem IE</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dadosClienteEndereco" class="mt-5">
+    <div class="row">
+      <div class="col-sm-2 col-xl-2 mt-2 mt-2">
+        <label class="form-label w-100 text-nowrap overflow-hidden text-truncate mb-0" title="CEP*"
+          for="NuCEP">CEP*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="NuCEP" placeholder="Digite o CEP" title="CEP"
+            onmouseover="this.title = (this.value || this.title)" name="NuCEP"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0"
+            onchange="valida_e_preenche_cep_empresa_com_API_externa(this.value)" onkeypress="mascaraMulti(this, Cep)" value="">
+        </div>
+      </div>
+      <div class="col-sm-4 col-xl-4 mt-2 mt-2">
+        <label class="form-label w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Endereço*"
+          for="Endereco">Endereço*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="Endereco" placeholder="Digite o Endereço" title="Endereço"
+            onmouseover="this.title = (this.value || this.title)" name="Endereco"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value="">
+        </div>
+      </div>
+      <div class="col-sm-2 col-xl-2 mt-2 mt-2">
+        <label class="form-label w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Número*"
+          for="NuEndereco">Número*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="NuEndereco" placeholder="Digite o Número" title="Número do Endereço"
+            onmouseover="this.title = (this.value || this.title)" name="NuEndereco"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value="">
+        </div>
+      </div>
+      <div class="col-sm-4 col-xl-4 mt-2 mt-2">
+        <label class="form-label w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Complemento"
+          for="Complemento">Complemento</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="Complemento" placeholder="Digite o Complemento" title="Complemento"
+            onmouseover="this.title = (this.value || this.title)" name="Complemento"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value="">
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-4 col-xl-4 mt-2 mt-2">
+        <label class="form-label w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Bairro*"
+          for="Bairro">Bairro*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="Bairro" placeholder="Bairro" title="Bairro"
+            onmouseover="this.title = (this.value || this.title)" name="Bairro"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value=""
+            disabled>
+        </div>
+      </div>
+      <div class="col-sm-2 col-xl-2 mt-2 mt-2">
+        <label class="form-label w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Nº IBGE*" for="NuIBGE">Nº
+          IBGE*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="NuIBGE" placeholder="Nº do IBGE" title="número do IBGE"
+            onmouseover="this.title = (this.value || this.title)" name="NuIBGE"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value=""
+            disabled>
+        </div>
+      </div>
+      <div class="col-sm-4 col-xl-4 mt-2 mt-2">
+        <label class="form-label w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Cidade*"
+          for="Cidade">Cidade*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="Cidade" placeholder="Cidade" title="Nome Cidade"
+            onmouseover="this.title = (this.value || this.title)" name="Cidade"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value=""
+            disabled>
+        </div>
+      </div>
+      <div class="col-sm-2 col-xl-2 mt-2 mt-2">
+        <label class="form-label w-100 text-nowrap overflow-hidden text-truncate mb-0" title="Estado*"
+          for="Estado">Estado*</label>
+        <div class="input-group">
+          <input type="text" autocomplete="off" id="Estado" placeholder="Estado(UF)" title="Estado(UF)"
+            onmouseover="this.title = (this.value || this.title)" name="Estado"
+            class="form-control input text-uppercase w-100 text-nowrap overflow-hidden text-truncate mb-0" value=""
+            disabled>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <small><b>Campos Obrigatórios*</b></small>
+
+</div>

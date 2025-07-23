@@ -1,0 +1,74 @@
+
+        <ol class="breadcrumb page-breadcrumb">
+            <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+            <li class="breadcrumb-item active">Lista de Despesas</li>
+            <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+        </ol>
+        <div class="subheader">
+            <h1 class="subheader-title DescTituloDespesa">
+                <i class='subheader-icon fal fa-chart-area'></i> Despesas - <span class='fw-300'></span>
+            </h1>
+        </div>
+        <div class="row">
+            <div class="col-xl-12">
+                <div id="panel-1" class="panel">
+                    <div class="panel-hdr">
+                        <h2>
+                            Lista <span class="fw-300"><i>Despesas da Loja</i></span>
+                        </h2>
+                    </div>
+                    <div class="panel-container show">
+                        <div class="panel-content">
+                            <div class="panel-tag">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="tpdateinicio">Data Início</label>
+                                        <input class="form-control" id="DTInicioDespesa" type="date" name="DTInicioDespesa" value="">
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="tpdatefim">Data Fim</label>
+                                        <input class="form-control" id="DTFimDespesa" type="date" name="DTFimDespesa" value="">
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                    <br>
+                                        <button class="btn btn-primary" type="button" onclick="pesq_list_Despesas()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                                    </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <br>
+                                            <button type="button" class="btn btn-success" onclick="modal_Cad_Despesa()">
+                                                <span class="fal fa-plus mr-1"></span>
+                                                Cadastrar Despesas
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div id="resultado">
+                                <!-- datatable start -->
+                                <table id="dt-basic-despesaloja" class="table table-bordered table-hover table-striped w-100">
+                                    <thead class="bg-primary-600">
+                                        <tr>
+                                            <th ></th>
+                                            <th >Data Mov.</th>
+                                            <th >Descrição</th>
+                                            <th >Valor</th>
+                                            <th >Pago a</th>
+                                            <th >Histórico</th>
+                                            <th >Nota Fiscal</th>
+                                            <th >Situação</th>
+                                            <!--th >Opção</th-->
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                    <tfoot class="thead-themed totalDespesaLoja">
+                                    </tfoot>
+                                </table>
+                                <!-- datatable end -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>

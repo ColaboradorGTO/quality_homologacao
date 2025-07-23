@@ -1,0 +1,88 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Recepção de Malotes</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i> Lista de Malotes por Período
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                    <div class="panel-tag">
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-2 mb-3">
+                              <label class="form-label" for="tipoPesq">Modo Pesquisa</label>
+                              <div class="input-group">
+                                <select class="select2 form-control" name="tipoPesq" id="tipoPesq">
+                                  <option value="Malote">Data Caixa</option>
+                                  <option value="Conferido">Data Conferido</option>
+                                </select>
+                              </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-2">
+                                <label class="form-label" for="dtconsultainicio">Data Início</label>
+                                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+                            </div>
+                            <div class="col-sm-6 col-xl-2">
+                                <label class="form-label" for="dtconsultafim">Data Fim</label>
+                                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                              <label class="form-label" for="idGrupoEmpresarial">Grupo Empresarial</label>
+                              <div class="input-group">
+                                <select class="select2 form-control" name="idGrupoEmpresarial" id="idGrupoEmpresarial"></select>
+                              </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                              <label class="form-label" for="idloja">Empresa</label>
+                              <div class="input-group">
+                                <select class="select2 form-control" name="idloja" id="idloja"></select>
+                              </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-2">
+                                <label class="form-label" for="statusMalote">Status</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="statusMalote" id="statusMalote">
+                                        <option value="">Selecione...</option>
+                                        <option value="Pendente de Envio">Pendente de Envio</option>
+                                        <option value="Enviado">Enviado</option>
+                                        <option value="Recepcionado">Recepcionado</option>
+                                        <option value="Devolvido">Devolvido</option>
+                                        <option value="Conferido">Conferido</option>
+                                        <option value="Reenviado">Reenviado</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                              <label class="form-label" for="pendenciasMalote">Pendências</label>
+                              <div class="input-group">
+                                <select class="select2 form-control" name="pendenciasMalote" id="pendenciasMalote"></select>
+                              </div>
+                            </div>
+                            <!-- <div class="col-sm-6 col-xl-2">
+                                <label class="form-label" for="idMalote">ID Malote</label>
+                                <input class="form-control" id="idMalote" type="text" name="idMalote" value="">
+                            </div> -->
+                          </div>
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-3">
+                                <br>
+                                <button class="btn btn-primary" type="button" onclick="pesquisarMalotes()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

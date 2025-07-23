@@ -1,0 +1,63 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Lista de Fabricantes</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i>Relatórios - Fabricantes
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                <div class="panel-tag">
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpfornec">Por Fabricante</label>
+                                    <div class="input-group">
+                                        <select class="select2" data-width="100%" id="idfabselect"
+                                                name="idfabselect"
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>   
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="pesqfab">Nome Fabricante</label>
+                                    <div class="input-group">
+                                        <input type="text" id="descFab" name="descFab" class="form-control input" value=""> 
+                                    </div>
+                                </div>  
+                                <div class="col-sm-6 col-xl-6">
+                                    <label class="form-label" for="tpfornec">Por Fornecedor</label>
+                                    <div class="input-group">
+                                        <select class="select2" data-width="100%" id="idfornselect"
+                                                name="idfornselect"
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-8 col-xl-8">
+                                <br>
+                                        <button class="btn btn-primary" type="button" onclick="pesq_fabricante(1)"><span class="fal fa-search mr-1"></span>Pesquisar Fabricante</button>
+                                        <button class="btn btn-success" type="button" onclick="modal_Cad_Fabricante()"><span class="fal fa-plus mr-1"></span>Cadastrar Fabricante</button>
+                                        <button class="btn btn-warning" type="button" onclick="vincular_Fabr_Fornecedor()"><span class="fal fa-plus mr-1"></span>Vincular Fabricante / Fornecedor</button>
+                                </div>
+                            </div>
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

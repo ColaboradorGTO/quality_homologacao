@@ -1,0 +1,68 @@
+
+        <ol class="breadcrumb page-breadcrumb">
+            <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+            <li class="breadcrumb-item active">Dados Caixas</li>
+            <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+            <input type="hidden" name="IDEmpCaixa" id="IDEmpCaixa" value="">
+            <input type="hidden" name="NoEmpCaixa" id="NoEmpCaixa" value="">
+        </ol>
+        <div class="subheader">
+            <h1 class="subheader-title DescTituloCaixasEmpresa">
+                <i class='subheader-icon fal fa-chart-area'></i> Caixas - <span class='fw-300'></span>
+            </h1>
+        </div>
+        <div class="row">
+            <div class="col-xl-12">
+                <div id="panel-1" class="panel">
+                    <div class="panel-hdr">
+                        <h2>
+                            Lista <span class="fw-300"><i>Caixas - PDVs Cadastrados</i></span>
+                        </h2>
+                    </div>
+                    <div class="panel-container show">
+                        <div class="panel-content">
+                            <div class="panel-tag">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-3">
+                                        <br />
+                                        <button type="button" class="btn btn-danger" onclick="ListaEmpresas();">
+                                          <span class="fal fa-backward mr-1"></span>
+                                          Voltar para Empresas
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="col-sm-6 col-xl-3">
+                                        <br>
+                                        <button type="button" class="btn btn-success" onclick="modal_Cad_Caixa()">
+                                            <span class="fal fa-plus mr-1"></span>
+                                            Cadastrar Caixa - PDV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="resultado">
+                                <!-- datatable start -->
+                                <table id="dt-basic-lista_caixas_empresas" class="table table-bordered table-hover table-striped w-100">
+                                    <thead class="bg-primary-600">
+                                        <tr>
+                                            <th >ID Caixa</th>
+                                            <th >Descrição</th>
+                                            <th >Porta</th>
+                                            <th >Lote NFCe Prod</th>
+                                            <th >Última NFCe Prod</th>
+                                            <th >Versão PDV</th>
+                                            <th >Tipo TEF</th>
+                                            <th >Status</th>
+                                            <th >Editar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                                <!-- datatable end -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>

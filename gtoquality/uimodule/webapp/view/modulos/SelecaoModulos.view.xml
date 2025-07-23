@@ -1,0 +1,88 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns:tnt="sap.tnt" controllerName="com.quality.quality.controller.modulos.SelecaoModulos" xmlns="sap.m" xmlns:layout="sap.ui.commons.layout">
+    <tnt:ToolHeader>
+        <Text text="{i18n>appTitle}" width="auto" maxLines="20" wrapping="true" textAlign="Begin" textDirection="Inherit" visible="true"/>
+        <ToolbarSpacer width=""/>
+        <MenuButton text="Alan Smith">
+            <menu>
+                <Menu>
+                    <MenuItem text="Perfil" icon="sap-icon://account" />
+                    <MenuItem text="Sair" icon="sap-icon://arrow-left" press="_onPressSair" />
+                </Menu>
+            </menu>
+        </MenuButton>
+    </tnt:ToolHeader>
+    <Page showHeader="false" title="Page Title" showFooter="false" showNavButton="false" enableScrolling="false">
+      <content>
+          <layout:AbsoluteLayout horizontalScrolling="Hidden" verticalScrolling="Auto">
+              <layout:positions>
+                  <layout:PositionContainer left="4px" top="16px">
+                      <layout:control>
+                          <Title text="{i18n>moduleTitle}" titleStyle="Auto" width="auto" textAlign="Begin" visible="true" wrapping="true" class="sapUiResponsiveMargin"/>
+                      </layout:control>
+                  </layout:PositionContainer>
+                  <layout:PositionContainer left="0px" top="40px">
+                      <layout:control>
+                          <HBox alignItems="Stretch" direction="Row" fitContainer="false" width="auto" height="auto" justifyContent="Start" renderType="Div" visible="true" displayInline="false" class="sapUiResponsiveMargin containerModulos">
+                              
+                                <TileContainer
+                                id="container"
+                                tileDelete="handleTileDelete"
+                                tiles="{/modulo}" >
+                                <StandardTile
+                                  icon="sap-icon://loan"
+                                  type="{type}"
+                                  number="{number}"
+                                  numberUnit="{numberUnit}"
+                                  title="{NOME}"
+                                  info="{NOMEDESC}"
+                                  infoState="{infoState}" press="_onModuloSelecionado" />
+                              </TileContainer>
+                                
+                             
+                              <layoutData/>
+                          </HBox>
+                      </layout:control>
+                  </layout:PositionContainer>
+              </layout:positions>
+          </layout:AbsoluteLayout>
+      </content>
+      <footer>
+          <OverflowToolbar width="100%" height="46px" design="Auto" enabled="true" visible="true">
+              <content>
+                  <ToolbarSpacer width=""/>
+                  <Button text="Save" type="Emphasized" iconFirst="true" width="auto" enabled="true" visible="true" iconDensityAware="false"/>
+                  <Button text="Cancel" type="Default" iconFirst="true" width="auto" enabled="true" visible="true" iconDensityAware="false"/>
+              </content>
+          </OverflowToolbar>
+      </footer>
+      <headerContent/>
+      <subHeader/>
+      <customHeader/>
+  </Page>
+ 
+    <!--<Page
+    showHeader="false"
+    enableScrolling="false" >
+    <TileContainer
+      id="container"
+      tileDelete="handleTileDelete"
+      tiles="{/modulo}">
+      <StandardTile
+        icon="sap-icon://loan"
+        type="{type}"
+        number="{number}"
+        numberUnit="{numberUnit}"
+        title="{NOME}"
+        info="{NOMEDESC}"
+        infoState="{infoState}" />
+    </TileContainer>
+    <footer>
+      <Toolbar>
+        <ToolbarSpacer/>
+          <Button text="Edit" press="handleEditPress" />
+          <Button text="Busy state" press="handleBusyPress" />
+        <ToolbarSpacer/>
+      </Toolbar>
+    </footer>
+  </Page>-->
+</mvc:View>

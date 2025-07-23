@@ -1,0 +1,60 @@
+/* Enter your custom styles here */
+
+.fragmentStyle > div {
+  height: 100%;
+  position: absolute;
+  width: 100%;
+}
+
+.sapUiLayoutCSSGrid {
+  height: 100%;
+}
+
+.alignCenter {
+  margin: auto;
+  align-items: normal !important;
+}
+
+.whiteBg {
+  background: white;
+}
+
+.fontColor {
+  text-align: left;
+  color: #fff;
+  font-size: 24px;
+}
+
+.errorMessage {
+  text-align: left;
+  color: #fff;
+  font-size: 12px;
+}
+
+.grayBg {
+  background: #c13075;
+}
+
+.borderLogin {
+  border-left: 1px solid #354a5f;
+}
+
+.alignImage {
+  margin-top: auto;
+  float: right;
+  text-align: right;
+  margin-bottom: auto;
+}
+
+.containerModulos{
+  width: 100% !important;
+  position: fixed;
+  height: 100% !important;
+ 
+}
+
+.containerModulos > div{
+  width: 100% !important;
+  height: 100% !important;
+ 
+}

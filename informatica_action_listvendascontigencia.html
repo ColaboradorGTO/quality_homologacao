@@ -1,0 +1,56 @@
+
+        <ol class="breadcrumb page-breadcrumb">
+            <input type="hidden" name="Tipo" id="Tipo" value="">
+            <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+            <li class="breadcrumb-item active">Vendas em Contingência</li>
+            <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+        </ol>
+        <div class="subheader">
+            <h1 class="subheader-title DescTituloQuebraCaixa">
+                <i class='subheader-icon fal fa-chart-area'></i> Vendas / Contingência - <span class='fw-300'></span>
+            </h1>
+        </div>
+        <div class="row">
+            <div class="col-xl-12">
+                <div id="panel-1" class="panel">
+                    <div class="panel-hdr">
+                        <h2>
+                            Pesquisa <span class="fw-300"><i> Por Período</i></span>
+                        </h2>
+                    </div>
+                    <div class="panel-container show">
+                        <div class="panel-content">
+                            <div class="panel-tag">
+                                <div class="row">
+                                    <div id="divEmpresa" class="col-sm-3 col-xl-3">
+                                        <label class="form-label" for="tpempresa">Empresa</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="idloja" id="idloja">
+                                            <option value="0">Selecione...</option>
+
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2 col-xl-2">
+                                        <label class="form-label" for="tpdateinicio">Data Início</label>
+                                        <input class="form-control" id="DTInicio" type="date" name="DTInicio" value="">
+                                    </div>
+                                    <div class="col-sm-2 col-xl-2">
+                                        <label class="form-label" for="tpdatefim">Data Fim</label>
+                                        <input class="form-control" id="DTFim" type="date" name="DTFim" value="">
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                    <br>
+                                        <button class="btn btn-primary" type="button" onclick="pesq_vendas_contingencia()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                </div>
+                            </div>
+                            <div id="resultado">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>

@@ -1,0 +1,118 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Cadastro Promoções</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i> Cadastro de Promoções
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                    <div class="panel-tag">
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-6">
+                                <label class="form-label" for="descpromo">Descrição da Promoção</label>
+                                <div class="input-group">
+                                    <input type="text" id="descPromo" name="descPromo" class="form-control input" value="">
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Início</label>
+                                <input class="form-control" id="dtconsultainicio" type="date" name="dtconsultainicio" value="">
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpdate">Data Fim</label>
+                                <input class="form-control" id="dtconsultafim" type="date" name="dtconsultafim" value="">
+                            </div>
+                        </div>
+                        </br>
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpempresa">Por Marca</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idmarca" id="idmarca">
+                                        <option value="0"> </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="tpempresa">Por Empresa</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idloja" id="idloja" multiple>
+                                        <option value="0"> </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="qtdapartir">QTD A partir de</label>
+                                <input class="form-control" id="qtdApartir" type="text" name="qtdApartir" value="0">
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="qtdlimite">QTD A limite de</label>
+                                <input class="form-control" id="qtdLimite" type="text" name="qtdLimite" value="0">
+                            </div>
+                        </div>
+                        </br>
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="vrdesc">Vr Desconto</label>
+                                <div class="input-group">
+                                    <input type="text" id="vrDescontoPromo" name="vrDescontoPromo" class="form-control input" value="0">
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="percdesc">% Desconto</label>
+                                <div class="input-group">
+                                    <input class="form-control input" id="percDescontoPromo" type="text" name="percDescontoPromo" value="0">
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="vrapartir">Vr A partir de</label>
+                                <div class="input-group">
+                                    <input class="form-control input" id="vrApartirPromo" type="text" name="vrApartirPromo" value="0">
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <label class="form-label" for="vrlimite">Vr Limite de</label>
+                                <div class="input-group">
+                                    <input class="form-control input" id="vrLimitePromo" type="text" name="vrLimitePromo" value="0">
+                                </div>
+                            </div>
+                        </div>
+                        </br>
+                        <div class="row">
+                            <div class="col-sm-6 col-xl-4">
+                                <label class="form-label" for="pesqproduto">Cód.Barras / Nome Produto</label>
+                                <div class="input-group">
+                                    <input type="text" id="descProduto" name="descProduto" class="form-control input" value="">
+                                </div>
+                            </div>
+                            <div class="col-sm-3 col-xl-3">
+                            <br>
+                                <button class="btn btn-primary" type="button" onclick="modal_List_Produtos()"><span class="fal fa-search mr-1"></span>Pesquisar Produtos</button>
+                            </div>
+                        </div> 
+                        <div class="row">
+                            <div class="col-sm-3 col-xl-3">
+                            <br>
+                                <button class="btn btn-success" type="button" onclick="cad_promocao()"><span class="fal fa-search mr-1"></span>Cadastrar Promoção</button>
+                            </div>
+                        </div>
+                            
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <script>
+        $("#vrDescontoPromo").mask('#.##0,00', {reverse: true});
+    </script>
