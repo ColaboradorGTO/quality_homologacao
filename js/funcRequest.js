@@ -1,4 +1,5 @@
-var url_homologacao = "http://164.152.245.77:8000/quality/concentrador_homologacao/"
+var stAmbienteLocal = !window.location.href.split(window.location.pathname)[0].includes('http://164.152.245.77:8000/quality/concentrador');
+var url_homologacao = stAmbienteLocal ? "http://164.152.245.77:8000/quality/concentrador_homologacao/" : "";
 
 function ajaxPost(url, jsonData) {
 
