@@ -1,10 +1,12 @@
+var url_homologacao = "http://164.152.245.77:8000/quality/concentrador_homologacao/"
+
 function ajaxPost(url, jsonData) {
 
 	return new Promise(
 		function(resolve, reject) {
 
 			$.ajax({
-				url: url,
+				url: ( url_homologacao + url ),
 				data: JSON.stringify(jsonData),
 				type: "POST",
 				dataType: 'json',
@@ -29,7 +31,7 @@ function ajaxPut(url, jsonData) {
 		function(resolve, reject) {
 
 			$.ajax({
-				url: url,
+				url: ( url_homologacao + url ),
 				data: JSON.stringify(jsonData),
 				type: "PUT",
 				dataType: 'json',
@@ -54,7 +56,7 @@ function ajaxGet(url) {
 		function(resolve, reject) {
 
 			$.ajax({
-				url: url,
+				url: ( url_homologacao + url ),
 				type: "GET",
 				dataType: 'json',
 				contentType: 'application/json',
@@ -78,7 +80,7 @@ function ajaxGet2(url) {
 		function(resolve, reject) {
 
 			$.ajax({
-				url: url,
+				url: ( url_homologacao + url ),
 				type: "GET",
 				dataType: 'json',
 				contentType: 'application/json',
@@ -178,7 +180,6 @@ function ajaxGetAllData(url, msgLoading = 'Carregando Dados', funcRetorno) {
     }
 }
 
-
 function saveCurrentUser(data) {
 	localStorage.setItem('currentUser', JSON.stringify(data));
 }
@@ -189,20 +190,22 @@ function getCurrentUser() {
 }
 
 function LogoffUser(){
-      localStorage.clear();
-      $.ajaxSetup({ cache: false });
-      location.reload(true);
-      window.location.href = 'index.html';
+  localStorage.removeItem('currentUser');
+  $.ajaxSetup({ cache: false });
+  location.reload(true);
+  window.location.href = 'index.html';
 }
 
-(function sessionValidate(){
-  const sessaoUser =  getCurrentUser();
-  const user = sessaoUser?.user;
+async function sessionValidator(){
+  const sessaoUser =  await getCurrentUser();
+  const { user } = sessaoUser || '';
   const dataSessao = user && (user['DATA_HORA_SESSAO'].split(' '))[0];
 
   const dataFormatoBR = new Date().toLocaleDateString('pt-BR');
   const modulo = (window.location.pathname).split('/').pop().replace(/dashboard|\.html/g, "");
   const startPage = (window.location.pathname).split('/').pop();
+
+  if (startPage == 'dashboard-fora.html' || startPage == 'dashboardetiquetagem.html') return;
   
   if(!sessaoUser || dataSessao != dataFormatoBR){
     if(startPage != 'index.html') LogoffUser();
@@ -214,12 +217,29 @@ function LogoffUser(){
       user
     };
 
-    ajaxPost('api/validaSessao.xsjs', dadosUser)
-    .then(resp=>{
-      !resp.auth &&  LogoffUser();
-    })
-    .catch(error => console.log(error));
+    try{
+      let { auth } = await ajaxPost('api/validaSessao.xsjs', dadosUser) || '';
+      
+      if(!auth) LogoffUser();
+
+    }catch(error){
+      LogoffUser();
+      console.log(error);
+    }
   }
 
-})()
+}
 
+async function startSessionValidator (){
+  const startPage = (window.location.pathname).split('/').pop();
+
+  if(startPage == 'index.html') return;
+
+  await sessionValidate();
+
+  setInterval(async () => {
+    await sessionValidate();
+  }, 1800000);
+}
+
+startSessionValidator();

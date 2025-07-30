@@ -5,7 +5,7 @@
 */
 
 if (!getCurrentUser()) {
-    window.location.href = 'index.html';
+  window.location.href = 'index.html';
 }
 
 var usuario = getCurrentUser().user;
@@ -58,11 +58,11 @@ mesatual = (mes + 1);
 doissmesesatras = (mesatual - 2);
 
 if (doissmesesatras == 0) {
-    doissmesesatras = 12;
-    anodoismeses = ano4 - 1;
+  doissmesesatras = 12;
+  anodoismeses = ano4 - 1;
 } else {
-    doissmesesatras = doissmesesatras;
-    anodoismeses = ano4;
+  doissmesesatras = doissmesesatras;
+  anodoismeses = ano4;
 }
 
 tresmesesatras = (mes - 3);
@@ -74,16 +74,16 @@ minutoFormatado = String(min);
 diachek = String(dia);
 mesFormatado1mes = String(mes);
 
-if(doissmesesatras == 4 || doissmesesatras == 6 || doissmesesatras == 9 || doissmesesatras == 11){
-    if(dia == 31){
-      var diachek = String(dia - 1);
-    }
-}else if(doissmesesatras == 2){
-    if(dia == 30){
-      var diachek = String(dia - 2);
-    }else if (dia == 31){
-      var diachek = String(dia - 3);
-    }
+if (doissmesesatras == 4 || doissmesesatras == 6 || doissmesesatras == 9 || doissmesesatras == 11) {
+  if (dia == 31) {
+    var diachek = String(dia - 1);
+  }
+} else if (doissmesesatras == 2) {
+  if (dia == 30) {
+    var diachek = String(dia - 2);
+  } else if (dia == 31) {
+    var diachek = String(dia - 3);
+  }
 }
 
 var dataVendaProdutoConsolidado = [];
@@ -132,426 +132,426 @@ percDescontoProduto = 0;
 //////////////// FunÃ§Ãµes Globais /////////////////////////////////// 
 
 function Onlynumbers(e) {
-    var tecla = (window.event) ? event.keyCode : e.which;
-    if (tecla > 47 && tecla < 58) {
-    	return true;
+  var tecla = (window.event) ? event.keyCode : e.which;
+  if (tecla > 47 && tecla < 58) {
+    return true;
+  } else {
+    if (tecla === 8 || tecla === 0) {
+      return true;
     } else {
-    	if (tecla === 8 || tecla === 0) {
-    		return true;
-    	} else {
-    		return false;
-    	}
+      return false;
     }
+  }
 }
 
 function maskValor(valor) {
-    return new Intl.NumberFormat('br-BR', { style: 'currency', currency: 'BRL' }).format(valor)
+  return new Intl.NumberFormat('br-BR', { style: 'currency', currency: 'BRL' }).format(valor)
 }
 
 function mascaraValor(valor) {
-    valor = valor.toString().replace(/\D/g, "");
-    valor = valor.toString().replace(/(\d{1})(\d{17})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{14})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{11})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{8})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{5})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{2})$/, "$1,$2");
-    return valor;
+  valor = valor.toString().replace(/\D/g, "");
+  valor = valor.toString().replace(/(\d{1})(\d{17})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{14})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{11})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{8})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{5})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{2})$/, "$1,$2");
+  return valor;
 }
 
-function mascara_num(obj){
-    valida_num(obj)
-    if (obj.value.match("-")){
-        mod = "-";
-    }else{
-     mod = "";
-    }
-    valor = obj.value.replace("-","");
-    valor = valor.replace(",","");
-    if (valor.length >= 3){
-        valor = poe_ponto_num(valor.substring(0,valor.length-2))+","+valor.substring(valor.length-2, valor.length);
-    }
-    obj.value = mod+valor;
+function mascara_num(obj) {
+  valida_num(obj)
+  if (obj.value.match("-")) {
+    mod = "-";
+  } else {
+    mod = "";
+  }
+  valor = obj.value.replace("-", "");
+  valor = valor.replace(",", "");
+  if (valor.length >= 3) {
+    valor = poe_ponto_num(valor.substring(0, valor.length - 2)) + "," + valor.substring(valor.length - 2, valor.length);
+  }
+  obj.value = mod + valor;
 }
 
 function poe_ponto_num(valor) {
-    valor = valor.replace(/\./g, "");
-    if (valor.length > 3) {
-        valores = "";
-        while (valor.length > 3) {
-            valores = "." + valor.substring(valor.length - 3, valor.length) + "" + valores;
-            valor = valor.substring(0, valor.length - 3);
-        }
-        return valor + "" + valores;
+  valor = valor.replace(/\./g, "");
+  if (valor.length > 3) {
+    valores = "";
+    while (valor.length > 3) {
+      valores = "." + valor.substring(valor.length - 3, valor.length) + "" + valores;
+      valor = valor.substring(0, valor.length - 3);
+    }
+    return valor + "" + valores;
+  } else {
+    return valor;
+  }
+}
+
+function valida_num(obj) {
+  numeros = new RegExp("[0-9]");
+  while (!obj.value.charAt(obj.value.length - 1).match(numeros)) {
+    if (obj.value.length == 1 && obj.value == "-") {
+      return true;
+    }
+    if (obj.value.length >= 1) {
+      obj.value = obj.value.substring(0, obj.value.length - 1)
     } else {
-        return valor;
+      return false;
     }
+  }
 }
 
-function valida_num(obj){
-    numeros = new RegExp("[0-9]");
-    while (!obj.value.charAt(obj.value.length-1).match(numeros)){
-        if(obj.value.length == 1 && obj.value == "-"){
-            return true;
-        }
-        if(obj.value.length >= 1){
-            obj.value = obj.value.substring(0,obj.value.length-1)
-        }else{
-            return false;
-        }
-    }
-}
-
-function formataDataPesquisa(){
-    var dataEn = $("#parametro_dia").val();
-    var dataQueb = dataEn.split('-');
-    var AnoPesq = dataQueb[0];
-    var MesPesq = dataQueb[1];
-    var DiaPesq = dataQueb[2];
-    dataPesquisaFormatada = DiaPesq +'/'+ MesPesq +'/'+ AnoPesq;
+function formataDataPesquisa() {
+  var dataEn = $("#parametro_dia").val();
+  var dataQueb = dataEn.split('-');
+  var AnoPesq = dataQueb[0];
+  var MesPesq = dataQueb[1];
+  var DiaPesq = dataQueb[2];
+  dataPesquisaFormatada = DiaPesq + '/' + MesPesq + '/' + AnoPesq;
 }
 
 function logout() {
-    LogoffUser();
-    window.location.href = 'index.html';
+  LogoffUser();
+  window.location.href = 'index.html';
 }
 
 function newDataTable(tipo) {
 
-    if (tipo == 'MovCaixas') {
-        $('#dt-basic-venda-ativa').dataTable({
-            destroy: true,
-            responsive: true,
-            fixedHeader: true,
-            colReorder: true
-        });
-        $('#dt-basic-venda-cancelada').dataTable({
-            destroy: true,
-            responsive: true,
-            fixedHeader: true,
-            colReorder: true
-        });
-    } else {
-        $('#dt-basic-' + tipo).dataTable({
-            destroy: true,
-            responsive: true,
-            fixedHeader: true,
-            colReorder: true
-        });
+  if (tipo == 'MovCaixas') {
+    $('#dt-basic-venda-ativa').dataTable({
+      destroy: true,
+      responsive: true,
+      fixedHeader: true,
+      colReorder: true
+    });
+    $('#dt-basic-venda-cancelada').dataTable({
+      destroy: true,
+      responsive: true,
+      fixedHeader: true,
+      colReorder: true
+    });
+  } else {
+    $('#dt-basic-' + tipo).dataTable({
+      destroy: true,
+      responsive: true,
+      fixedHeader: true,
+      colReorder: true
+    });
+  }
+
+  $('#dt-buttons-' + tipo).dataTable({
+    responsive: true,
+    lengthChange: false,
+    dom:
+      /*	--- Layout Structure 
+        --- Options
+        l	-	length changing input control
+        f	-	filtering input
+        t	-	The table!
+        i	-	Table information summary
+        p	-	pagination control
+        r	-	processing display element
+        B	-	buttons
+        R	-	ColReorder
+        S	-	Select
+    
+        --- Markup
+        < and >				- div element
+        <"class" and >		- div with a class
+        <"#id" and >		- div with an ID
+        <"#id.class" and >	- div with an ID and a class
+    
+        --- Further reading
+        https://datatables.net/reference/option/dom
+        --------------------------------------
+        */
+      "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    order: ([1, 'desc']),
+    buttons: [{
+      extend: 'colvis',
+      text: 'Mostrar Colunas',
+      titleAttr: 'Visualizar e Esconder Colunas',
+      className: 'mr-sm-3'
+    },
+    {
+      extend: 'pdfHtml5',
+      text: 'PDF',
+      titleAttr: 'Gerar PDF',
+      className: 'btn-outline-danger btn-sm mr-1'
+    },
+    {
+      extend: 'excelHtml5',
+      text: 'Excel',
+      titleAttr: 'Gerar Excel',
+      className: 'btn-outline-success btn-sm mr-1'
+    },
+    {
+      extend: 'print',
+      text: 'Imprimir',
+      titleAttr: 'Imprimir Tabela',
+      className: 'btn-outline-primary btn-sm'
     }
-
-    $('#dt-buttons-' + tipo).dataTable({
-  responsive: true,
-  lengthChange: false,
-  dom:
-  /*	--- Layout Structure 
-	  --- Options
-	  l	-	length changing input control
-	  f	-	filtering input
-	  t	-	The table!
-	  i	-	Table information summary
-	  p	-	pagination control
-	  r	-	processing display element
-	  B	-	buttons
-	  R	-	ColReorder
-	  S	-	Select
-
-	  --- Markup
-	  < and >				- div element
-	  <"class" and >		- div with a class
-	  <"#id" and >		- div with an ID
-	  <"#id.class" and >	- div with an ID and a class
-
-	  --- Further reading
-	  https://datatables.net/reference/option/dom
-	  --------------------------------------
-	  */
-	  "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-	  "<'row'<'col-sm-12'tr>>" +
-	  "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-  order: ([1, 'desc']),
-  buttons: [{
-		  extend: 'colvis',
-		  text: 'Mostrar Colunas',
-		  titleAttr: 'Visualizar e Esconder Colunas',
-		  className: 'mr-sm-3'
-	  },
-	  {
-		  extend: 'pdfHtml5',
-		  text: 'PDF',
-		  titleAttr: 'Gerar PDF',
-		  className: 'btn-outline-danger btn-sm mr-1'
-	  },
-	  {
-		  extend: 'excelHtml5',
-		  text: 'Excel',
-		  titleAttr: 'Gerar Excel',
-		  className: 'btn-outline-success btn-sm mr-1'
-	  },
-	  {
-		  extend: 'print',
-		  text: 'Imprimir',
-		  titleAttr: 'Imprimir Tabela',
-		  className: 'btn-outline-primary btn-sm'
-	  }
-  ]
-});
+    ]
+  });
 }
 
-function retornoIp(resp){
-    ipCliente = resp.ip;
+function retornoIp(resp) {
+  ipCliente = resp.ip;
 }
 
 ///////////////// ALERTAS////////////////////////////
 
 function alerta_atualizado_sucesso() {
-    Swal.fire(
+  Swal.fire(
     {
-        type: "success",
-        title: "Dados Atualizado com Sucesso",
-        showConfirmButton: false,
-        timer: 2000
+      type: "success",
+      title: "Dados Atualizado com Sucesso",
+      showConfirmButton: false,
+      timer: 2000
     });
 }
 
 function alerta_selectVazioOuCampoEmBranco(mensagemDeAlerta = 'Selecione a Opção  ou Preencha a Campo do Fornecedor que Está em Branco', idOuClassFocus = '') {
-    Swal.fire(
+  Swal.fire(
     {
-        type: "warning",
-        title: `${mensagemDeAlerta}!!!`,
-        showConfirmButton: false,
-        timer: 2500
+      type: "warning",
+      title: `${mensagemDeAlerta}!!!`,
+      showConfirmButton: false,
+      timer: 2500
     }).then(() => {
-        ($(`${idOuClassFocus}`).hasClass('select2') || $(`${idOuClassFocus}`).hasClass('select')) ? setTimeout(() => {$(`${idOuClassFocus}`).focus();$(`${idOuClassFocus}`).select2('open');}, 800) : setTimeout(() => $(`${idOuClassFocus}`).focus(), 800)
+      ($(`${idOuClassFocus}`).hasClass('select2') || $(`${idOuClassFocus}`).hasClass('select')) ? setTimeout(() => { $(`${idOuClassFocus}`).focus(); $(`${idOuClassFocus}`).select2('open'); }, 800) : setTimeout(() => $(`${idOuClassFocus}`).focus(), 800)
     });
 
 }
 
 function alerta_select_marca() {
-    Swal.fire(
+  Swal.fire(
     {
-        type: "warning",
-        title: "Selecione uma Marca!!!",
-        showConfirmButton: false,
-        timer: 1500
+      type: "warning",
+      title: "Selecione uma Marca!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_select_tipopedido() { 
-    Swal.fire(
+function alerta_select_tipopedido() {
+  Swal.fire(
     {
-        type: "warning",
-        title: "Selecione um Tipo do Pedido!!!",
-        showConfirmButton: false,
-        timer: 1500
+      type: "warning",
+      title: "Selecione um Tipo do Pedido!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_select_condpag() { 
-    Swal.fire(
+function alerta_select_condpag() {
+  Swal.fire(
     {
-        type: "warning",
-        title: "Selecione uma Condição de Pagamento!!!",
-        showConfirmButton: false,
-        timer: 1500
+      type: "warning",
+      title: "Selecione uma Condição de Pagamento!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_select_fornecedor() { 
-    Swal.fire(
+function alerta_select_fornecedor() {
+  Swal.fire(
     {
-        type: "warning",
-        title: "Selecione um Fornecedor!!!",
-        showConfirmButton: false,
-        timer: 1500
+      type: "warning",
+      title: "Selecione um Fornecedor!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_qtdprod_pedido() { 
-    Swal.fire(
+function alerta_qtdprod_pedido() {
+  Swal.fire(
     {
-        type: "warning",
-        title: "Quantidade do Produto deve ser Informada!!!",
-        showConfirmButton: false,
-        timer: 1500
+      type: "warning",
+      title: "Quantidade do Produto deve ser Informada!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_refprod() { 
-    Swal.fire(
+function alerta_refprod() {
+  Swal.fire(
     {
-        type: "warning",
-        title: "A Referência do Produto deve ser Informada!!!",
-        showConfirmButton: false,
-        timer: 1500
+      type: "warning",
+      title: "A Referência do Produto deve ser Informada!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_descprod() { 
-    Swal.fire(
+function alerta_descprod() {
+  Swal.fire(
     {
-        type: "warning",
-        title: "A Descrição do Produto deve ser Informada!!!",
-        showConfirmButton: false,
-        timer: 1500
+      type: "warning",
+      title: "A Descrição do Produto deve ser Informada!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_select_catprod() { 
-    Swal.fire(
+function alerta_select_catprod() {
+  Swal.fire(
     {
-        type: "warning",
-        title: "A Categoria do Produto deve ser Informada!!!",
-        showConfirmButton: false,
-        timer: 1500
+      type: "warning",
+      title: "A Categoria do Produto deve ser Informada!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_select_fabprod() { 
-    Swal.fire(
+function alerta_select_fabprod() {
+  Swal.fire(
     {
-        type: "warning",
-        title: "O Fabricante do Produto deve ser Informado!!!",
-        showConfirmButton: false,
-    	timer: 1500
+      type: "warning",
+      title: "O Fabricante do Produto deve ser Informado!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_select_estruturaprod() { 
-    Swal.fire(
+function alerta_select_estruturaprod() {
+  Swal.fire(
     {
-    	type: "warning",
-    	title: "A Estrutura Mercadológica do Produto deve ser Informada!!!",
-    	showConfirmButton: false,
-    	timer: 1500
+      type: "warning",
+      title: "A Estrutura Mercadológica do Produto deve ser Informada!!!",
+      showConfirmButton: false,
+      timer: 1500
     });
 }
 
-function alerta_vrunitprod() { 
-    Swal.fire({
-    	type: "warning",
-    	title: "O Valor Unitário do Produto deve ser Informado!!!",
-    	showConfirmButton: false,
-    	timer: 1500
-    });
+function alerta_vrunitprod() {
+  Swal.fire({
+    type: "warning",
+    title: "O Valor Unitário do Produto deve ser Informado!!!",
+    showConfirmButton: false,
+    timer: 1500
+  });
 }
 
 function alerta_cancel_ativa_pedido() {
-    Swal.fire(
+  Swal.fire(
     {
-        type: "success",
-        title: "Pedido Atualizado com Sucesso.",
-        showConfirmButton: false,
-        timer: 2500
+      type: "success",
+      title: "Pedido Atualizado com Sucesso.",
+      showConfirmButton: false,
+      timer: 2500
     });
 }
 
 function alerta_andamento_pedido() {
-    setTimeout(()=>Swal.fire({
-        type: "success",
-        title: "Pedido Enviado com Sucesso.",
-        showConfirmButton: false,
-        timer: 2500
-    }), 500);
+  setTimeout(() => Swal.fire({
+    type: "success",
+    title: "Pedido Enviado com Sucesso.",
+    showConfirmButton: false,
+    timer: 2500
+  }), 500);
 }
 
 function alerta_finalizar_pedido() {
-    Swal.fire(
+  Swal.fire(
     {
-        type: "success",
-        title: "Pedido Finalizado com Sucesso.",
-        showConfirmButton: false,
-        timer: 2500
+      type: "success",
+      title: "Pedido Finalizado com Sucesso.",
+      showConfirmButton: false,
+      timer: 2500
     });
 }
 
 function alerta_alteradopedido_sucesso() {
-    Swal.fire(
+  Swal.fire(
     {
-        type: "success",
-        title: "Pedido Alterado com Sucesso.",
-        showConfirmButton: false,
-        timer: 2500
+      type: "success",
+      title: "Pedido Alterado com Sucesso.",
+      showConfirmButton: false,
+      timer: 2500
     });
 }
 
 //////////////// ROTINAS PARA RETORNAR SELECT'S BOX ////////////////
 // Mensagem de Erro ao Carregar os Select's
 function funcErrorSelect(data) {
-    Swal.fire({
-        type: "error",
-        title: 'Erro ao Carregar os Dados do Select!',
-        showConfirmButton: false,
-        timer: 15000
-    });
+  Swal.fire({
+    type: "error",
+    title: 'Erro ao Carregar os Dados do Select!',
+    showConfirmButton: false,
+    timer: 15000
+  });
 }
 
 // Listagem das Empresas (Tesoura de Ouro, FreeCenter, Yorus e Magazine)
 function retornoSelectEmpresa(respostaListaEmpresa) {
 
-    $("#idempresa").select2();
-    
-    for (var i = 0; i < respostaListaEmpresa.data.length; i++) {
-    
-        IdEmpresa = respostaListaEmpresa.data[i]['IDGRUPOEMPRESARIAL'];
-        DsEmpresa = respostaListaEmpresa.data[i]['GRUPOEMPRESARIAL'];
-        
-        $('#idempresa').append(
-          `<option value="` + IdEmpresa + `"> ` + DsEmpresa + `</option>`
-        );
-    }
+  $("#idempresa").select2();
+
+  for (var i = 0; i < respostaListaEmpresa.data.length; i++) {
+
+    IdEmpresa = respostaListaEmpresa.data[i]['IDGRUPOEMPRESARIAL'];
+    DsEmpresa = respostaListaEmpresa.data[i]['GRUPOEMPRESARIAL'];
+
+    $('#idempresa').append(
+      `<option value="` + IdEmpresa + `"> ` + DsEmpresa + `</option>`
+    );
+  }
 }
 
 // Listagem das Lojas
 function retornoSelectFilial(respostaListaFilial) {
 
-    $("#idfilial").select2();
-    
-    for (var i = 0; i < respostaListaFilial.data.length; i++) {
-    
-        IdFilial = respostaListaFilial.data[i]['IDEMPRESA'];
-        DsFilial = respostaListaFilial.data[i]['NOFANTASIA'];
-        
-        $('#idfilial').append(
-          `<option value="` + IdFilial + `"> ` + DsFilial + `</option>`
-        );
-    }
+  $("#idfilial").select2();
+
+  for (var i = 0; i < respostaListaFilial.data.length; i++) {
+
+    IdFilial = respostaListaFilial.data[i]['IDEMPRESA'];
+    DsFilial = respostaListaFilial.data[i]['NOFANTASIA'];
+
+    $('#idfilial').append(
+      `<option value="` + IdFilial + `"> ` + DsFilial + `</option>`
+    );
+  }
 }
 
 // Listagem das Marcas
 function retornoSelectMarca(respostaListaMarca) {
 
-    $("#idmarca").select2();
-    
-    for (var i = 0; i < respostaListaMarca.data.length; i++) {
-    
-        IdMarca = respostaListaMarca.data[i]['IDFABRICANTE'];
-        DsMarca = respostaListaMarca.data[i]['DSFABRICANTE'];
-        
-        $('#idmarca').append(
-          `<option value="` + IdMarca + `"> ` + DsMarca + `</option>`
-        );
-    }
+  $("#idmarca").select2();
+
+  for (var i = 0; i < respostaListaMarca.data.length; i++) {
+
+    IdMarca = respostaListaMarca.data[i]['IDFABRICANTE'];
+    DsMarca = respostaListaMarca.data[i]['DSFABRICANTE'];
+
+    $('#idmarca').append(
+      `<option value="` + IdMarca + `"> ` + DsMarca + `</option>`
+    );
+  }
 }
 
 // Listagem dos Fornecedores
 function retornoSelectFornecedor(respostaListaFornecedor) {
 
-$("#idfornecedor").select2();
-$("#idfornecedorpedido").select2();
+  $("#idfornecedor").select2();
+  $("#idfornecedorpedido").select2();
 
-    for (var i = 0; i < respostaListaFornecedor.data.length; i++) {
-    
-        IdFornecedor = respostaListaFornecedor.data[i]['IDFORNECEDOR'];
-        DsFornecedor = respostaListaFornecedor.data[i]['NOFANTASIA'];
-        
-        $('#idfornecedor').append(
-          `<option value="` + IdFornecedor + `"> ` + DsFornecedor + `</option>`
-        );
-        $('#idfornecedorpedido').append(
-          `<option value="` + IdFornecedor + `"> ` + DsFornecedor + `</option>`
-        );
-    }
+  for (var i = 0; i < respostaListaFornecedor.data.length; i++) {
+
+    IdFornecedor = respostaListaFornecedor.data[i]['IDFORNECEDOR'];
+    DsFornecedor = respostaListaFornecedor.data[i]['NOFANTASIA'];
+
+    $('#idfornecedor').append(
+      `<option value="` + IdFornecedor + `"> ` + DsFornecedor + `</option>`
+    );
+    $('#idfornecedorpedido').append(
+      `<option value="` + IdFornecedor + `"> ` + DsFornecedor + `</option>`
+    );
+  }
 }
 
 function chamarProximaListaFabricanteSelect(numPage) {
@@ -593,43 +593,43 @@ function retornoListaFabricanteSelect(respostaListaFabricanteSelect) {
 
 //////////////// Pão¡gina Inicial //////////////////
 
-$(document).ready(function() {
+$(document).ready(function () {
 
-    $('#parametro_dia_inicio').val(dataAtualCampo2Meses);
-    $('#parametro_dia_fim').val(dataAtualCampo);
-    $('.dataAtual').text(dataAtual);
-    $('.liDataAtual').text(dataAtual);
-    $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
-    $('.NoEmpresaTitulo').text(NOEmpresaLogin);
-    $('.NoFuncaoTitulo').text(NOFuncaoLogin);
-    
-    $("#idmarcaselect").select2();
-    $("#idfornselect").select2();
-    $("#idfabselect").select2();
-    $("#idCompradorselect").select2();
-    $("#tpsituacao").select2();
-    
-    ajaxGet('api/compras/fornecedor.xsjs?page=1')
+  $('#parametro_dia_inicio').val(dataAtualCampo2Meses);
+  $('#parametro_dia_fim').val(dataAtualCampo);
+  $('.dataAtual').text(dataAtual);
+  $('.liDataAtual').text(dataAtual);
+  $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
+  $('.NoEmpresaTitulo').text(NOEmpresaLogin);
+  $('.NoFuncaoTitulo').text(NOFuncaoLogin);
+
+  $("#idmarcaselect").select2();
+  $("#idfornselect").select2();
+  $("#idfabselect").select2();
+  $("#idCompradorselect").select2();
+  $("#tpsituacao").select2();
+
+  ajaxGet('api/compras/fornecedor.xsjs?page=1')
     .then(retornoListaFornecedorSelect)
     .catch(funcError);
-    
-    ajaxGet('api/compras/fabricante.xsjs?page=1')
+
+  ajaxGet('api/compras/fabricante.xsjs?page=1')
     .then(retornoListaFabricanteSelect)
     .catch(funcError);
-    		  
-    ajaxGet('api/informatica/marca.xsjs')
+
+  ajaxGet('api/informatica/marca.xsjs')
     .then(retornoListaMarcaSelect)
     .catch(funcError);
-    
-    ajaxGet('api/compras/comprador.xsjs')
+
+  ajaxGet('api/compras/comprador.xsjs')
     .then(retornoListaCompradorSelect)
     .catch(funcError);
-    	  
-    ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=1&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
+
+  ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=1&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
     .then(retornoListaPedidos)
     .catch(funcError);
-    
-    ajaxGet('http://ipwho.is/')
+
+  ajaxGet('http://ipwho.is/')
     .then(retornoIp)
     .catch(funcError);
 })
@@ -643,193 +643,193 @@ function chamarProximaListaFornecedorSelect(numPage) {
     .catch(funcError);
 }
 
-function retornoListaFornecedorSelect(respostaListaFornecedorSelect) { 
-    listaFornecedores = respostaListaFornecedorSelect.data;
-    numPage = parseInt(respostaListaFornecedorSelect.page);
+function retornoListaFornecedorSelect(respostaListaFornecedorSelect) {
+  listaFornecedores = respostaListaFornecedorSelect.data;
+  numPage = parseInt(respostaListaFornecedorSelect.page);
 
-    if(numPage === 1){
-        $("#idfornselect").empty();
-        $('#idfornselect').append(
-        `<option value="">Selecione ...</option>`
-        );
-    }
+  if (numPage === 1) {
+    $("#idfornselect").empty();
+    $('#idfornselect').append(
+      `<option value="">Selecione ...</option>`
+    );
+  }
   if (respostaListaFornecedorSelect.data.length != 0) {
     for (var i = 0; i < respostaListaFornecedorSelect.data.length; i++) {
-    
-        IDFornecedor = respostaListaFornecedorSelect.data[i]['IDFORNECEDOR'];
-        DSFornecedor = respostaListaFornecedorSelect.data[i]['NORAZAOSOCIAL'];
-        DSFantasia = respostaListaFornecedorSelect.data[i]['NOFANTASIA'];
-          NrCpfCnpj = respostaListaFornecedorSelect.data[i]['NUCNPJ'];
-          
-        $('#idfornselect').append(
-        	`<option value="` + IDFornecedor + `"> ` + DSFantasia + ` - ` + NrCpfCnpj + ` - ` + DSFornecedor + `</option>`
-        );
-        
-        $('#idfornvincselect').append(
-        	`<option value="` + IDFornecedor + `"> ` + DSFantasia + ` - ` + NrCpfCnpj + ` - ` + DSFornecedor + `</option>`
-        
-        );
+
+      IDFornecedor = respostaListaFornecedorSelect.data[i]['IDFORNECEDOR'];
+      DSFornecedor = respostaListaFornecedorSelect.data[i]['NORAZAOSOCIAL'];
+      DSFantasia = respostaListaFornecedorSelect.data[i]['NOFANTASIA'];
+      NrCpfCnpj = respostaListaFornecedorSelect.data[i]['NUCNPJ'];
+
+      $('#idfornselect').append(
+        `<option value="` + IDFornecedor + `"> ` + DSFantasia + ` - ` + NrCpfCnpj + ` - ` + DSFornecedor + `</option>`
+      );
+
+      $('#idfornvincselect').append(
+        `<option value="` + IDFornecedor + `"> ` + DSFantasia + ` - ` + NrCpfCnpj + ` - ` + DSFornecedor + `</option>`
+
+      );
     }
     chamarProximaListaFornecedorSelect(numPage + 1);
   }
 }
 
-function chamarProximaListaPedidos(numPage){
+function chamarProximaListaPedidos(numPage) {
 
-    var dataPesqInic = $("#parametro_dia_inicio").val();
-    var dataPesqFim = $("#parametro_dia_fim").val();
-    var idFornPesq = $("#idfornselect").val();
-    var idFabPesq = $("#idfabselect").val();
-    var idMarcaPesq = $("#idmarcaselect").val();
-    var idCompradorPesq = $("#idCompradorselect").val();
-    var NuPedidoPesq = $("#npedio").val();
-    var STSituacoPedidoPesq = $("#tpsituacao").val();
-    
-    if (idFornPesq > 0 || idMarcaPesq > 0 || NuPedidoPesq > 0 || idFabPesq > 0|| idCompradorPesq > 0 || STSituacoPedidoPesq != '') {
+  var dataPesqInic = $("#parametro_dia_inicio").val();
+  var dataPesqFim = $("#parametro_dia_fim").val();
+  var idFornPesq = $("#idfornselect").val();
+  var idFabPesq = $("#idfabselect").val();
+  var idMarcaPesq = $("#idmarcaselect").val();
+  var idCompradorPesq = $("#idCompradorselect").val();
+  var NuPedidoPesq = $("#npedio").val();
+  var STSituacoPedidoPesq = $("#tpsituacao").val();
+
+  if (idFornPesq > 0 || idMarcaPesq > 0 || NuPedidoPesq > 0 || idFabPesq > 0 || idCompradorPesq > 0 || STSituacoPedidoPesq != '') {
 
     ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq + '&idFabPesquisa=' + idFabPesq + '&idCompradorPesquisa=' + idCompradorPesq + '&stSituacaoSAP=' + STSituacoPedidoPesq)
-    .then(retornoListaPedidos)
-    .catch(funcError);
-    
-    } else {
+      .then(retornoListaPedidos)
+      .catch(funcError);
+
+  } else {
     ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
-    .then(retornoListaPedidos)
-    .catch(funcError);
-    }
+      .then(retornoListaPedidos)
+      .catch(funcError);
+  }
 }
 
-function pesq_pedidos(numPage){
+function pesq_pedidos(numPage) {
 
-    var dataPesqInic = $("#parametro_dia_inicio").val();
-    var dataPesqFim = $("#parametro_dia_fim").val();
-    var idFornPesq = $("#idfornselect").val();
-    var idMarcaPesq = $("#idmarcaselect").val();
-    var idFabPesq = $("#idfabselect").val();
-    var idCompradorPesq = $("#idCompradorselect").val();
-    var NuPedidoPesq = $("#npedio").val();
-    var STSituacoPedidoPesq = $("#tpsituacao").val();
-    
-    ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq + '&idFabPesquisa=' + idFabPesq + '&idCompradorPesquisa=' + idCompradorPesq + '&stSituacaoSAP=' + STSituacoPedidoPesq)
+  var dataPesqInic = $("#parametro_dia_inicio").val();
+  var dataPesqFim = $("#parametro_dia_fim").val();
+  var idFornPesq = $("#idfornselect").val();
+  var idMarcaPesq = $("#idmarcaselect").val();
+  var idFabPesq = $("#idfabselect").val();
+  var idCompradorPesq = $("#idCompradorselect").val();
+  var NuPedidoPesq = $("#npedio").val();
+  var STSituacoPedidoPesq = $("#tpsituacao").val();
+
+  ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq + '&idFabPesquisa=' + idFabPesq + '&idCompradorPesquisa=' + idCompradorPesq + '&stSituacaoSAP=' + STSituacoPedidoPesq)
     .then(retornoListaPedidos)
     .catch(funcError);
 }
 
 function retornoListaPedidos(respostaListaPedidos) {
-    let { data } = respostaListaPedidos || [];
-    let dataRetornoListaPedido = [];
-    let contador = 0;
-    let totalVrPedidos = 0;
-    let labelsetor = '';
-    let labelsituacao = '';
-    let labelstpedido = ''
+  let { data } = respostaListaPedidos || [];
+  let dataRetornoListaPedido = [];
+  let contador = 0;
+  let totalVrPedidos = 0;
+  let labelsetor = '';
+  let labelsituacao = '';
+  let labelstpedido = ''
 
-    if (data.length != 0) {
-        for (let registro of data) {
+  if (data.length != 0) {
+    for (let registro of data) {
 
-            let idPedido = registro?.IDPEDIDO;
-            let dataPedido = registro?.DTPEDIDO;
-            let valorPedido = registro?.VRTOTALLIQUIDO;
-            let statusPedido = registro?.STCANCELADO;
-            let compradorPedido = registro?.NOMECOMPRADOR;
-            let noFantasiaPedido = registro?.NOFANTASIA;
-            let noFornecedorPedido = registro?.NOFORNECEDOR;
-            let noFabricantePedido = registro?.FABRICANTE;
-            let stPedido = registro?.DSANDAMENTO;
-            let stPedidoSetor = registro?.DSSETOR;
-            let stPedidoMigrado = registro?.STMIGRADOSAP;
-            let idResponsavelReativacao = registro?.IDRESPREATIVACAO || '';
-            let idPedidoOrigem = registro?.IDRESUMOPEDIDOORIGEM || '';
-            let idPedidoDestino = registro?.IDRESUMOPEDIDODESTINO || '';
-            let stReativado = registro?.STREATIVADO || '';
-            let btnImprimirSemPreco = `<button type="button" class="btn btn-warning btn-xs" title="Imprimir Pedido Com Preço de Venda" id="${idPedido}" onclick="Imprimir_Pedido(this.id)" ><i class="fal fa-print"></i></button>`;
-            let btnImprimirComPreco = `<button type="button" class="btn btn-dark btn-xs" title="Imprimir Pedido Sem Preço de Venda" id="${idPedido}" onclick="Imprimir_Pedido_SemPreco(this.id)" ><i class="fal fa-print"></i></button>`;
-            let btnVisualizarPedido = `<button type="button" class="btn btn-success btn-xs" title="Visualizar o Pedido" id="${idPedido}" onclick="Visualizar_Pedido(this.id)" ><i class="fal fa-eye"></i></button>`;
-            let btnCancelarPedido = `<button type="button" class="btn btn-danger btn-xs" title="Cancelar Pedido" id="${idPedido}" onclick="modal_Cancelar_Pedido(this.id,'True')" ><i class="fal fa-trash-alt"></i></button>`;
-            let btnReativarPedido = `<button type="button" class="btn btn-danger btn-xs" title="Reativar Pedido" id="${idPedido}" onclick="modalReativarPedido(this.id)" ><i class="fal fa-check"></i></button>`;
-            let btnEnviarCompras = ` <button type="button" class="btn btn-secondary btn-xs" title="Enviar Compras" id="${idPedido}" onclick="Enviar_Pedido(this.id,1)" ><i class="fal fa-arrow-alt-from-right"></i></button>`
-            let btnEnviarCadastro = `<button type="button" class="btn btn-primary btn-xs" title="Enviar Cadastro" id="${idPedido}" onclick="Enviar_Pedido(this.id,4)" ><i class="fal fa-arrow-alt-from-left"></i></button>`;
-            let btnsLinha = `
+      let idPedido = registro?.IDPEDIDO;
+      let dataPedido = registro?.DTPEDIDO;
+      let valorPedido = registro?.VRTOTALLIQUIDO;
+      let statusPedido = registro?.STCANCELADO;
+      let compradorPedido = registro?.NOMECOMPRADOR;
+      let noFantasiaPedido = registro?.NOFANTASIA;
+      let noFornecedorPedido = registro?.NOFORNECEDOR;
+      let noFabricantePedido = registro?.FABRICANTE;
+      let stPedido = registro?.DSANDAMENTO;
+      let stPedidoSetor = registro?.DSSETOR;
+      let stPedidoMigrado = registro?.STMIGRADOSAP;
+      let idResponsavelReativacao = registro?.IDRESPREATIVACAO || '';
+      let idPedidoOrigem = registro?.IDRESUMOPEDIDOORIGEM || '';
+      let idPedidoDestino = registro?.IDRESUMOPEDIDODESTINO || '';
+      let stReativado = registro?.STREATIVADO || '';
+      let btnImprimirSemPreco = `<button type="button" class="btn btn-warning btn-xs" title="Imprimir Pedido Com Preço de Venda" id="${idPedido}" onclick="Imprimir_Pedido(this.id)" ><i class="fal fa-print"></i></button>`;
+      let btnImprimirComPreco = `<button type="button" class="btn btn-dark btn-xs" title="Imprimir Pedido Sem Preço de Venda" id="${idPedido}" onclick="Imprimir_Pedido_SemPreco(this.id)" ><i class="fal fa-print"></i></button>`;
+      let btnVisualizarPedido = `<button type="button" class="btn btn-success btn-xs" title="Visualizar o Pedido" id="${idPedido}" onclick="Visualizar_Pedido(this.id)" ><i class="fal fa-eye"></i></button>`;
+      let btnCancelarPedido = `<button type="button" class="btn btn-danger btn-xs" title="Cancelar Pedido" id="${idPedido}" onclick="modal_Cancelar_Pedido(this.id,'True')" ><i class="fal fa-trash-alt"></i></button>`;
+      let btnReativarPedido = `<button type="button" class="btn btn-danger btn-xs" title="Reativar Pedido" id="${idPedido}" onclick="modalReativarPedido(this.id)" ><i class="fal fa-check"></i></button>`;
+      let btnEnviarCompras = ` <button type="button" class="btn btn-secondary btn-xs" title="Enviar Compras" id="${idPedido}" onclick="Enviar_Pedido(this.id,1)" ><i class="fal fa-arrow-alt-from-right"></i></button>`
+      let btnEnviarCadastro = `<button type="button" class="btn btn-primary btn-xs" title="Enviar Cadastro" id="${idPedido}" onclick="Enviar_Pedido(this.id,4)" ><i class="fal fa-arrow-alt-from-left"></i></button>`;
+      let btnsLinha = `
                 ${btnVisualizarPedido}
                 ${btnImprimirComPreco}
                 ${btnImprimirSemPreco}
             `;
-            let containerButtons = '';
-            let colorLabelStPedido = 'blue'
+      let containerButtons = '';
+      let colorLabelStPedido = 'blue'
 
-            totalVrPedidos += parseFloat(valorPedido);
+      totalVrPedidos += parseFloat(valorPedido);
 
-            contador++;
+      contador++;
 
-            if (stPedidoSetor == 'COMPRAS') {
-                if (stPedido == 'PEDIDO FINALIZADO') {
-                    colorLabelStPedido = 'tomato';
-                } else if (stPedido == 'PEDIDO CANCELADO' || stPedido == 'PEDIDO PARA SER AJUSTADO') {
-                    colorLabelStPedido = 'red';
-                }
+      if (stPedidoSetor == 'COMPRAS') {
+        if (stPedido == 'PEDIDO FINALIZADO') {
+          colorLabelStPedido = 'tomato';
+        } else if (stPedido == 'PEDIDO CANCELADO' || stPedido == 'PEDIDO PARA SER AJUSTADO') {
+          colorLabelStPedido = 'red';
+        }
 
-                labelsetor = `<label style="color: blue; font-size: 11px;">COMPRAS</label>`;
+        labelsetor = `<label style="color: blue; font-size: 11px;">COMPRAS</label>`;
 
-            } else if (stPedidoSetor == 'CADASTRO') {
-                if (stPedidoMigrado !== 'True') {
-                    labelsituacao = `<label style="color: red; font-size: 11px;">NÃO MIGRADO SAP</label>`;
-                } else {
-                    labelsituacao = `<label style="color: blue; font-size: 11px;">MIGRADO SAP</label>`;
-                }
+      } else if (stPedidoSetor == 'CADASTRO') {
+        if (stPedidoMigrado !== 'True') {
+          labelsituacao = `<label style="color: red; font-size: 11px;">NÃO MIGRADO SAP</label>`;
+        } else {
+          labelsituacao = `<label style="color: blue; font-size: 11px;">MIGRADO SAP</label>`;
+        }
 
-                labelsetor = `<label style="color: green; font-size: 11px;">CADASTRO </label>`;
+        labelsetor = `<label style="color: green; font-size: 11px;">CADASTRO </label>`;
 
-            } else if (stPedidoSetor == 'COMPRASADM') {
-                if (stPedido == 'PEDIDO PARA SER CANCELADO') {
-                    colorLabelStPedido = 'red';
+      } else if (stPedidoSetor == 'COMPRASADM') {
+        if (stPedido == 'PEDIDO PARA SER CANCELADO') {
+          colorLabelStPedido = 'red';
 
-                    btnsLinha += ` ${btnCancelarPedido} `;
+          btnsLinha += ` ${btnCancelarPedido} `;
 
-                } else if (stPedido == 'PEDIDO CANCELADO') {
-                    colorLabelStPedido = 'red';
+        } else if (stPedido == 'PEDIDO CANCELADO') {
+          colorLabelStPedido = 'red';
 
-                    btnsLinha += stReativado == 'True' ? '' : ` ${btnReativarPedido} `;
-                    
-                    stPedido = idPedidoDestino ? `PEDIDO CANCELADO -> PEDIDO ATIVO(${idPedidoDestino})` : stPedido;
+          btnsLinha += stReativado == 'True' ? '' : ` ${btnReativarPedido} `;
 
-                } else {
-                    if (statusPedido == 'False' && idPedidoOrigem) {
-                        colorLabelStPedido = 'blue';
-                        stPedido = `PEDIDO REATIVADO -> PEDIDO ORIGEM(${idPedidoOrigem})`;
-                    }
+          stPedido = idPedidoDestino ? `PEDIDO CANCELADO -> PEDIDO ATIVO(${idPedidoDestino})` : stPedido;
 
-                    btnsLinha += `
+        } else {
+          if (statusPedido == 'False' && idPedidoOrigem) {
+            colorLabelStPedido = 'blue';
+            stPedido = `PEDIDO REATIVADO -> PEDIDO ORIGEM(${idPedidoOrigem})`;
+          }
+
+          btnsLinha += `
                         ${btnEnviarCompras}
                         ${btnEnviarCadastro}
                         ${btnCancelarPedido}
                     `;
-                }
-
-                labelsetor = `<label style="color: gray; font-size: 11px;">COMPRAS ADM </label>`;
-            }
-
-            labelstpedido = `<label style="color: ${colorLabelStPedido}; font-size: 11px;">${stPedido}</label>`;
-            containerButtons = `<div class="btn-group btn-group-xs">${btnsLinha}</div>`;
-
-            dataRetornoListaPedido.push([
-                contador,
-                dataPedido,
-                idPedido,
-                noFantasiaPedido,
-                compradorPedido,
-                noFornecedorPedido,
-                noFabricantePedido,
-                mascaraValor(parseFloat(valorPedido).toFixed(2)),
-                labelsetor,
-                labelstpedido,
-                labelsituacao,
-                containerButtons
-            ]);
         }
 
+        labelsetor = `<label style="color: gray; font-size: 11px;">COMPRAS ADM </label>`;
+      }
+
+      labelstpedido = `<label style="color: ${colorLabelStPedido}; font-size: 11px;">${stPedido}</label>`;
+      containerButtons = `<div class="btn-group btn-group-xs">${btnsLinha}</div>`;
+
+      dataRetornoListaPedido.push([
+        contador,
+        dataPedido,
+        idPedido,
+        noFantasiaPedido,
+        compradorPedido,
+        noFornecedorPedido,
+        noFabricantePedido,
+        mascaraValor(parseFloat(valorPedido).toFixed(2)),
+        labelsetor,
+        labelstpedido,
+        labelsituacao,
+        containerButtons
+      ]);
     }
 
-    $('#resultadoListaPedido').html(
-        `<table id="dt-basic-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+  }
+
+  $('#resultadoListaPedido').html(
+    `<table id="dt-basic-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
               <thead class="bg-primary-600">
                   <tr>
                       <th>#</th>
@@ -851,294 +851,294 @@ function retornoListaPedidos(respostaListaPedidos) {
               <tfoot id="totalListaPedidos" class="thead-themed">
               </tfoot>
           </table>`
-    );
+  );
 
-    $('#dt-basic-lista-pedidos').DataTable({
-        data: dataRetornoListaPedido,
-        deferRender: true,
-        responsive: true,
-        dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        buttons: [
-            {
-                extend: 'pdfHtml5',
-                text: 'PDF',
-                titleAttr: 'Generate PDF',
-                className: 'btn-outline-danger btn-sm mr-1'
-            },
-            {
-                extend: 'excelHtml5',
-                text: 'Excel',
-                titleAttr: 'Generate Excel',
-                className: 'btn-outline-success btn-sm mr-1'
-            },
-            {
-                extend: 'print',
-                text: 'Print',
-                titleAttr: 'Print Table',
-                className: 'btn-outline-primary btn-sm'
-            }
-        ]
-    });
+  $('#dt-basic-lista-pedidos').DataTable({
+    data: dataRetornoListaPedido,
+    deferRender: true,
+    responsive: true,
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Generate Excel',
+        className: 'btn-outline-success btn-sm mr-1'
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ]
+  });
 
-    $('#totalListaPedidos').html(
-        `<tr>
+  $('#totalListaPedidos').html(
+    `<tr>
               <th colspan="6" style="text-align: center;">Total</th>
               <th>` + mascaraValor(parseFloat(totalVrPedidos).toFixed(2)) + `</th>
               <th colspan="3"></th>
           </tr>`
-    );
+  );
 }
 
 function sleep(milliseconds) {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))								
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
 async function ajaxGetComAnimacaoDeCarregamento(request, mensagem = 'Carregando Dados...', funcaoRetorno, msgErro = '') {
 
-    let barraCarregamento = `<div id="BarraCarregamento" class="progress">
+  let barraCarregamento = `<div id="BarraCarregamento" class="progress">
                                 <div  class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div>
                             </div>`
 
-    Swal.fire({
-        html: barraCarregamento,
-        type: 'info',
-        title: mensagem,
-        timer: 180000,
-        backdrop: false,
-        allowEscapeKey: false,
-        allowOutsideClick: false,
-        onOpen: async () => {
-            Swal.showLoading();
-            
-            await ajaxGet(request)
-            .then(funcaoRetorno)
-            .catch(() => {
-                funcError(msgErro)
-                clearInterval(animacaoBarra);
-            });
-        
-        }
-    }).then((result) => {
-        if (result.dismiss == "timer") {
-            Swal.close();
-            
-            Swal.fire({
-                type: 'error',
-                title: "Erro ao carregar os dados, recarregue a página e tente novamente",
-                timer: 15000,
-            });
-            return false;
-        }
-    })
+  Swal.fire({
+    html: barraCarregamento,
+    type: 'info',
+    title: mensagem,
+    timer: 180000,
+    backdrop: false,
+    allowEscapeKey: false,
+    allowOutsideClick: false,
+    onOpen: async () => {
+      Swal.showLoading();
 
-    let animacaoBarra = setInterval(() => {
-        let barra = $($('.pace-progress')[0]).attr('data-progress')
-        let barra2 = $($('.pace-progress')[0]).attr('data-progress-text')
-        
-        $('#BarraCarregamento').html(`
+      await ajaxGet(request)
+        .then(funcaoRetorno)
+        .catch(() => {
+          funcError(msgErro)
+          clearInterval(animacaoBarra);
+        });
+
+    }
+  }).then((result) => {
+    if (result.dismiss == "timer") {
+      Swal.close();
+
+      Swal.fire({
+        type: 'error',
+        title: "Erro ao carregar os dados, recarregue a página e tente novamente",
+        timer: 15000,
+      });
+      return false;
+    }
+  })
+
+  let animacaoBarra = setInterval(() => {
+    let barra = $($('.pace-progress')[0]).attr('data-progress')
+    let barra2 = $($('.pace-progress')[0]).attr('data-progress-text')
+
+    $('#BarraCarregamento').html(`
             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="${barra}" aria-valuemin="0" aria-valuemax="100" style="width: ${barra}%">${barra}%</div>
         `)
-        
-        if (barra > 98 && barra2 == "100%") {
-            setTimeout(()=>{Swal.close()}, 2600)
-            clearInterval(animacaoBarra);
-        }
-    }, 700)
+
+    if (barra > 98 && barra2 == "100%") {
+      setTimeout(() => { Swal.close() }, 2600)
+      clearInterval(animacaoBarra);
+    }
+  }, 700)
 }
 
 function Visualizar_Pedido(id) {
 
-    if (window.XMLHttpRequest) {
-        // code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp = new XMLHttpRequest();
-    } else {
-        // code for IE6, IE5
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
+  if (window.XMLHttpRequest) {
+    // code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+  } else {
+    // code for IE6, IE5
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
 
-    $("#resultado").html(
-        "<div align=\"center\">" +
-        "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>"  +
-        "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-        "</div>"
-    );
-  
-    xmlhttp.onreadystatechange = function () {
-        if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-            document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
-            
-            $('#IDResPedidoAtual').val(id);
-            
-            $("#idmarca").select2();
-            $("#idcondicaopagamento").select2();
-            $("#idforn").select2();
-            $("#idtransportadora").select2();
-            $("#idtipopedido").select2();
-            $("#idfiscal").select2();
-            $("#idenviar").select2();
-            $("#tpfrete").select2();
-            $("#IdCompradorPedido").select2();
-            
-            $("#buttonIncluirProdPedido").attr("hidden", true);
-            $("#buttonNovoProdPedido").attr("hidden", true);
-            $("#buttonFehcarProdPedido").attr("hidden", true);
-            $("#buttonClonarProdPedido").attr("hidden", true);
-            
-            ajaxGet('api/informatica/marca.xsjs')
-            .then(retornoListaMarcaSelect)
-            .catch(funcError);
-            
-            ajaxGet('api/compras/condicaopagamento.xsjs')
-            .then(retornoListaCondicaoPagSelect)
-            .catch(funcError);
-            
-            ajaxGet('api/compras/fornecedor-produto.xsjs')
-            .then(retornoListaFornecedorPedido)
-            .catch(funcError);
-            
-            ajaxGet('api/compras/transportadora.xsjs')
-            .then(retornoListaTransportadora)
-            .catch(funcError);
-            
-            ajaxGet('api/compras/comprador.xsjs')
-            .then(retornoListaCompradorSelect)
-            .catch(funcError);
-            								   
-            setTimeout(()=>carregarTela(id),800);
-        }
-    };
-    xmlhttp.open("GET", "compras_action_novopedido.html", true);
-    xmlhttp.send();
+  $("#resultado").html(
+    "<div align=\"center\">" +
+    "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
+    "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
+    "</div>"
+  );
+
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
+
+      $('#IDResPedidoAtual').val(id);
+
+      $("#idmarca").select2();
+      $("#idcondicaopagamento").select2();
+      $("#idforn").select2();
+      $("#idtransportadora").select2();
+      $("#idtipopedido").select2();
+      $("#idfiscal").select2();
+      $("#idenviar").select2();
+      $("#tpfrete").select2();
+      $("#IdCompradorPedido").select2();
+
+      $("#buttonIncluirProdPedido").attr("hidden", true);
+      $("#buttonNovoProdPedido").attr("hidden", true);
+      $("#buttonFehcarProdPedido").attr("hidden", true);
+      $("#buttonClonarProdPedido").attr("hidden", true);
+
+      ajaxGet('api/informatica/marca.xsjs')
+        .then(retornoListaMarcaSelect)
+        .catch(funcError);
+
+      ajaxGet('api/compras/condicaopagamento.xsjs')
+        .then(retornoListaCondicaoPagSelect)
+        .catch(funcError);
+
+      ajaxGet('api/compras/fornecedor-produto.xsjs')
+        .then(retornoListaFornecedorPedido)
+        .catch(funcError);
+
+      ajaxGet('api/compras/transportadora.xsjs')
+        .then(retornoListaTransportadora)
+        .catch(funcError);
+
+      ajaxGet('api/compras/comprador.xsjs')
+        .then(retornoListaCompradorSelect)
+        .catch(funcError);
+
+      setTimeout(() => carregarTela(id), 800);
+    }
+  };
+  xmlhttp.open("GET", "compras_action_novopedido.html", true);
+  xmlhttp.send();
 }
 
 function carregarTela(id) {
-    ajaxGetComAnimacaoDeCarregamento('api/compras/lista_pedidos.xsjs?idpedido=' + id, 'Carregando Dados...', retornoVisualizarPedido);
+  ajaxGetComAnimacaoDeCarregamento('api/compras/lista_pedidos.xsjs?idpedido=' + id, 'Carregando Dados...', retornoVisualizarPedido);
 }
 
 function retornoVisualizarPedido(respostaVisualizarPedido) {
 
-    for (var i = 0; i < respostaVisualizarPedido.data.length; i++) {
-        IDPEDIDORESUMO = respostaVisualizarPedido.data[i]['IDPEDIDO'];
-        IdGrupoPedido = respostaVisualizarPedido.data[i]['IDGRUPOPEDIDO'];
-        IdSubGrupoPedido = respostaVisualizarPedido.data[i]['IDSUBGRUPOPEDIDO'];
-        DsSubGrupoPedido = respostaVisualizarPedido.data[i]['NOFANTASIA'];
-        IdCompradorPedido = respostaVisualizarPedido.data[i]['IDCOMPRADOR'];
-        DsCompradorPedido = respostaVisualizarPedido.data[i]['NOMECOMPRADOR'];
-        IdCondiPagPedido = respostaVisualizarPedido.data[i]['IDCONDICAOPAGAMENTO'];
-        DsCondiPagPedido = respostaVisualizarPedido.data[i]['DSCONDICAOPAG'];
-        IdFornPedido = respostaVisualizarPedido.data[i]['IDFORNECEDOR'];
-        DsFornPedido = respostaVisualizarPedido.data[i]['NOFORNECEDOR'];
-        DsFantFornPedido = respostaVisualizarPedido.data[i]['NOFANTASIAFORNECEDOR'];
-        CnpjFornPedido = respostaVisualizarPedido.data[i]['CNPJFORN'];
-        IdTranspPedido = respostaVisualizarPedido.data[i]['IDTRANSPORTADORA'];
-        DsTranspPedido = respostaVisualizarPedido.data[i]['NOMETRANSPORTADORA'];
-        IdAndamentoPedido = respostaVisualizarPedido.data[i]['IDANDAMENTO'];
-        DsAndamentoPedido = respostaVisualizarPedido.data[i]['DSANDAMENTO'];
-        DsSetorAndamentoPedido = respostaVisualizarPedido.data[i]['DSSETOR'];
-        TipoModPedido = respostaVisualizarPedido.data[i]['MODPEDIDO'];
-        NoVendedorPedido = respostaVisualizarPedido.data[i]['NOVENDEDOR'];
-        EmailVendedorPedido = respostaVisualizarPedido.data[i]['EEMAILVENDEDOR'];
-        DtPedidoNormal = respostaVisualizarPedido.data[i]['DTPEDIDOFORMATADA'];
-        DtEntregaPedido = respostaVisualizarPedido.data[i]['DTPREVENTREGAFORMATADA'];
-        TpFretePedido = respostaVisualizarPedido.data[i]['TPFRETE'];
-        ObsPedido1 = respostaVisualizarPedido.data[i]['OBSPEDIDO'];
-        ObsPedido2 = respostaVisualizarPedido.data[i]['OBSPEDIDO2'];
-        DtFechamentoPedido = respostaVisualizarPedido.data[i]['DTFECHAMENTOPEDIDO'];
-        DtCadastroPedido = respostaVisualizarPedido.data[i]['DTCADASTRO'];
-        TpArquivoPedido = respostaVisualizarPedido.data[i]['TPARQUIVO'];
-        StDistribuidoPedido = respostaVisualizarPedido.data[i]['STDISTRIBUIDO'];
-        StAgrupaProdPedido = respostaVisualizarPedido.data[i]['STAGRUPAPRODUTO'];
-        TotalItensPedido = respostaVisualizarPedido.data[i]['NUTOTALITENS'];
-        QtdProdPedido = respostaVisualizarPedido.data[i]['QTDTOTPRODUTOS'];
-        VrTotalBrutoPedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['VRTOTALBRUTO']).toFixed(2));;
-        VrTotalLiqPedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['VRTOTALLIQUIDO']).toFixed(2));;
-        VrDesc01Pedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['DESCPERC01']).toFixed(2));
-        VrDesc02Pedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['DESCPERC02']).toFixed(2));
-        VrDesc03Pedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['DESCPERC03']).toFixed(2));
-        VrComisPedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['PERCCOMISSAO']).toFixed(2));
-        TpFiscalPedido = respostaVisualizarPedido.data[i]['TPFISCAL'];
-        StCancelaPedido = respostaVisualizarPedido.data[i]['STCANCELADO'];
-    }
-    
-    $("#vrliquidopedido").val(VrTotalLiqPedido);
-    $("#vrliquidopedidofixo").val(VrTotalLiqPedido); 
-    if(StCancelaPedido == 'True'){
-        $("#buttonIncluirProdPedido").attr("disabled", true);
-        $("#buttonFehcarProdPedido").attr("disabled", true);
-    }else if(IdAndamentoPedido >= 2){
-        $("#buttonIncluirProdPedido").attr("disabled", true);
-        $("#buttonFehcarProdPedido").attr("disabled", true);   
-    }
-    $('.subheader-title').html(
+  for (var i = 0; i < respostaVisualizarPedido.data.length; i++) {
+    IDPEDIDORESUMO = respostaVisualizarPedido.data[i]['IDPEDIDO'];
+    IdGrupoPedido = respostaVisualizarPedido.data[i]['IDGRUPOPEDIDO'];
+    IdSubGrupoPedido = respostaVisualizarPedido.data[i]['IDSUBGRUPOPEDIDO'];
+    DsSubGrupoPedido = respostaVisualizarPedido.data[i]['NOFANTASIA'];
+    IdCompradorPedido = respostaVisualizarPedido.data[i]['IDCOMPRADOR'];
+    DsCompradorPedido = respostaVisualizarPedido.data[i]['NOMECOMPRADOR'];
+    IdCondiPagPedido = respostaVisualizarPedido.data[i]['IDCONDICAOPAGAMENTO'];
+    DsCondiPagPedido = respostaVisualizarPedido.data[i]['DSCONDICAOPAG'];
+    IdFornPedido = respostaVisualizarPedido.data[i]['IDFORNECEDOR'];
+    DsFornPedido = respostaVisualizarPedido.data[i]['NOFORNECEDOR'];
+    DsFantFornPedido = respostaVisualizarPedido.data[i]['NOFANTASIAFORNECEDOR'];
+    CnpjFornPedido = respostaVisualizarPedido.data[i]['CNPJFORN'];
+    IdTranspPedido = respostaVisualizarPedido.data[i]['IDTRANSPORTADORA'];
+    DsTranspPedido = respostaVisualizarPedido.data[i]['NOMETRANSPORTADORA'];
+    IdAndamentoPedido = respostaVisualizarPedido.data[i]['IDANDAMENTO'];
+    DsAndamentoPedido = respostaVisualizarPedido.data[i]['DSANDAMENTO'];
+    DsSetorAndamentoPedido = respostaVisualizarPedido.data[i]['DSSETOR'];
+    TipoModPedido = respostaVisualizarPedido.data[i]['MODPEDIDO'];
+    NoVendedorPedido = respostaVisualizarPedido.data[i]['NOVENDEDOR'];
+    EmailVendedorPedido = respostaVisualizarPedido.data[i]['EEMAILVENDEDOR'];
+    DtPedidoNormal = respostaVisualizarPedido.data[i]['DTPEDIDOFORMATADA'];
+    DtEntregaPedido = respostaVisualizarPedido.data[i]['DTPREVENTREGAFORMATADA'];
+    TpFretePedido = respostaVisualizarPedido.data[i]['TPFRETE'];
+    ObsPedido1 = respostaVisualizarPedido.data[i]['OBSPEDIDO'];
+    ObsPedido2 = respostaVisualizarPedido.data[i]['OBSPEDIDO2'];
+    DtFechamentoPedido = respostaVisualizarPedido.data[i]['DTFECHAMENTOPEDIDO'];
+    DtCadastroPedido = respostaVisualizarPedido.data[i]['DTCADASTRO'];
+    TpArquivoPedido = respostaVisualizarPedido.data[i]['TPARQUIVO'];
+    StDistribuidoPedido = respostaVisualizarPedido.data[i]['STDISTRIBUIDO'];
+    StAgrupaProdPedido = respostaVisualizarPedido.data[i]['STAGRUPAPRODUTO'];
+    TotalItensPedido = respostaVisualizarPedido.data[i]['NUTOTALITENS'];
+    QtdProdPedido = respostaVisualizarPedido.data[i]['QTDTOTPRODUTOS'];
+    VrTotalBrutoPedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['VRTOTALBRUTO']).toFixed(2));;
+    VrTotalLiqPedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['VRTOTALLIQUIDO']).toFixed(2));;
+    VrDesc01Pedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['DESCPERC01']).toFixed(2));
+    VrDesc02Pedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['DESCPERC02']).toFixed(2));
+    VrDesc03Pedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['DESCPERC03']).toFixed(2));
+    VrComisPedido = mascaraValor(parseFloat(respostaVisualizarPedido.data[i]['PERCCOMISSAO']).toFixed(2));
+    TpFiscalPedido = respostaVisualizarPedido.data[i]['TPFISCAL'];
+    StCancelaPedido = respostaVisualizarPedido.data[i]['STCANCELADO'];
+  }
+
+  $("#vrliquidopedido").val(VrTotalLiqPedido);
+  $("#vrliquidopedidofixo").val(VrTotalLiqPedido);
+  if (StCancelaPedido == 'True') {
+    $("#buttonIncluirProdPedido").attr("disabled", true);
+    $("#buttonFehcarProdPedido").attr("disabled", true);
+  } else if (IdAndamentoPedido >= 2) {
+    $("#buttonIncluirProdPedido").attr("disabled", true);
+    $("#buttonFehcarProdPedido").attr("disabled", true);
+  }
+  $('.subheader-title').html(
     `<i class="subheader-icon fal fa-chart-area"></i> Análise - Pedido Nº: ${(IDPEDIDORESUMO)} `);
-    
-    setTimeout(() => {
-        $('#IDResPedidoAtual').val(IDPEDIDORESUMO);
-        $('#SetorAndamento').val(DsSetorAndamentoPedido);
-        $('#idforn').val(IdFornPedido).trigger('change');
-        $('#idenviar').val(TpArquivoPedido).trigger('change');
-    }, 1000);
-    
-    setTimeout(() => {
-        $('#idmarca').val(IdSubGrupoPedido).trigger('change');
-        $('#IdCompradorPedido').val(IdCompradorPedido).trigger('change');
-    }, 1300);
-    
-    setTimeout(() => {
-        $('#idfiscal').val(TpFiscalPedido).trigger('change');
-        $('#idcondicaopagamento').val(IdCondiPagPedido).trigger('change');
-        $('#idtipopedido').val(TipoModPedido).trigger('change');
-        $('#idtransportadora').val(IdTranspPedido).trigger('change');
-        $('#tpfrete').val(TpFretePedido).trigger('change');
-    }, 1600);
-    
-    setTimeout(() => {
-        $('#dtpedido').val(DtPedidoNormal);
-        $('#dtentrega').val(DtEntregaPedido);
-        //$('#nomecomprador').val(DsCompradorPedido);
-        $('#vrBrutoPed').val(VrTotalBrutoPedido);
-        $('#vrliquidopedido').val(VrTotalLiqPedido);
-        $('#totalItens').val(TotalItensPedido);
-    }, 1900);
-    
-    setTimeout(() => {
-        $('#prodqtd').val(QtdProdPedido);
-        $('#obsforn').val(ObsPedido1);
-        $('#obsint').val(ObsPedido2);
-        $('#novendedor').val(NoVendedorPedido);
-        //$('#IdCompradorPedido').val(IdCompradorPedido);
-        $('#emailvendedor').val(EmailVendedorPedido);
-    }, 2200);
-    
-    setTimeout(() => {
-        $('#VrDescontoPedidoI').val(mascaraValor(parseFloat(VrDesc01Pedido).toFixed(2)));
-        $('#VrDescontoPedidoII').val(mascaraValor(parseFloat(VrDesc02Pedido).toFixed(2)));
-        $('#VrDescontoPedidoIII').val(mascaraValor(parseFloat(VrDesc03Pedido).toFixed(2)));
-        $('#VrComissaoPedido').val(mascaraValor(parseFloat(VrComisPedido).toFixed(2)));
-    }, 2500);								   
-    
-    return ajaxGet('api/compras/lista_detalhepedidos.xsjs?idpedido=' + IDPEDIDORESUMO) 
+
+  setTimeout(() => {
+    $('#IDResPedidoAtual').val(IDPEDIDORESUMO);
+    $('#SetorAndamento').val(DsSetorAndamentoPedido);
+    $('#idforn').val(IdFornPedido).trigger('change');
+    $('#idenviar').val(TpArquivoPedido).trigger('change');
+  }, 1000);
+
+  setTimeout(() => {
+    $('#idmarca').val(IdSubGrupoPedido).trigger('change');
+    $('#IdCompradorPedido').val(IdCompradorPedido).trigger('change');
+  }, 1300);
+
+  setTimeout(() => {
+    $('#idfiscal').val(TpFiscalPedido).trigger('change');
+    $('#idcondicaopagamento').val(IdCondiPagPedido).trigger('change');
+    $('#idtipopedido').val(TipoModPedido).trigger('change');
+    $('#idtransportadora').val(IdTranspPedido).trigger('change');
+    $('#tpfrete').val(TpFretePedido).trigger('change');
+  }, 1600);
+
+  setTimeout(() => {
+    $('#dtpedido').val(DtPedidoNormal);
+    $('#dtentrega').val(DtEntregaPedido);
+    //$('#nomecomprador').val(DsCompradorPedido);
+    $('#vrBrutoPed').val(VrTotalBrutoPedido);
+    $('#vrliquidopedido').val(VrTotalLiqPedido);
+    $('#totalItens').val(TotalItensPedido);
+  }, 1900);
+
+  setTimeout(() => {
+    $('#prodqtd').val(QtdProdPedido);
+    $('#obsforn').val(ObsPedido1);
+    $('#obsint').val(ObsPedido2);
+    $('#novendedor').val(NoVendedorPedido);
+    //$('#IdCompradorPedido').val(IdCompradorPedido);
+    $('#emailvendedor').val(EmailVendedorPedido);
+  }, 2200);
+
+  setTimeout(() => {
+    $('#VrDescontoPedidoI').val(mascaraValor(parseFloat(VrDesc01Pedido).toFixed(2)));
+    $('#VrDescontoPedidoII').val(mascaraValor(parseFloat(VrDesc02Pedido).toFixed(2)));
+    $('#VrDescontoPedidoIII').val(mascaraValor(parseFloat(VrDesc03Pedido).toFixed(2)));
+    $('#VrComissaoPedido').val(mascaraValor(parseFloat(VrComisPedido).toFixed(2)));
+  }, 2500);
+
+  return ajaxGet('api/compras/lista_detalhepedidos.xsjs?idpedido=' + IDPEDIDORESUMO)
     .then(funcSucessResumoPedidoLista)
     .catch(funcError);
 }
 
 function funcSucessResumoPedidoLista(respostaResumoPedidoLista) {
 
-    contadorDetPedido = 0;
-    totalVrBrutoPedidos = 0;
-    totalVrLiqPedidos = 0;
-    totalQtdPedidos = 0;
-    
-    var IdResumoPedidoLista = $("#IDResPedidoAtual").val();
-    
-    var numPageAtual = parseInt(respostaResumoPedidoLista.page);
-    if(numPageAtual === 1){
-        totalVrPedidosLista = 0;
-        
-        $('#resultadoresumopedidolista').html(
-            `<table id="dt-resumo-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+  contadorDetPedido = 0;
+  totalVrBrutoPedidos = 0;
+  totalVrLiqPedidos = 0;
+  totalQtdPedidos = 0;
+
+  var IdResumoPedidoLista = $("#IDResPedidoAtual").val();
+
+  var numPageAtual = parseInt(respostaResumoPedidoLista.page);
+  if (numPageAtual === 1) {
+    totalVrPedidosLista = 0;
+
+    $('#resultadoresumopedidolista').html(
+      `<table id="dt-resumo-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
                 <thead class="bg-primary-600">
                     <tr>
                         <th>#</th>
@@ -1164,505 +1164,505 @@ function funcSucessResumoPedidoLista(respostaResumoPedidoLista) {
                 <tfoot id="totalResumoPedidoLista"class="thead-themed">
                 </tfoot>
             </table>`
-        );
-        
-        var tableResumoPedidoLista = $('#dt-resumo-lista-pedidos').DataTable({
-          "columnDefs": [
-              { "width": "3%", "targets": 0 },
-              { "width": "5%", "targets": 1 },
-              { "width": "5%", "targets": 2 },
-              { "width": "5%", "targets": 3 },
-              { "width": "8%", "targets": 4 },
-              { "width": "15%", "targets": 5 },
-              { "width": "10%", "targets": 6 },
-              { "width": "8%", "targets": 7 },
-              { "width": "10%", "targets": 8 }
-          ],
-            deferRender:    true,
-            //scrollY:        800,
-            //scrollCollapse: false,
-            //scroller:       false,
-            responsive: true,
-              ordering:  false,
-              paging: false,
-            dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            
-            buttons: [
-            {
-            extend: 'pdfHtml5',
-            text: 'PDF',
-            titleAttr: 'Generate PDF',
-            className: 'btn-outline-danger btn-sm mr-1'
-            },
-            {
-            extend: 'excelHtml5',
-            text: 'Excel',
-            titleAttr: 'Generate Excel',
-            className: 'btn-outline-success btn-sm mr-1'
-            },
-            {
-            extend: 'print',
-            text: 'Print',
-            titleAttr: 'Print Table',
-            className: 'btn-outline-primary btn-sm'
-            }
-            ]
-        });
-        
-        tableResumoPedidoLista.rows().remove().draw();
-        $('#totalResumoPedidoLista').html('');
-    }
-    
-    for (var i = 0; i < respostaResumoPedidoLista.data.length; i++) {
-        contadorDetPedido ++;
-        idPedidoDetalhe = respostaResumoPedidoLista.data[i]['IDPEDIDO'];
-        idDetalhePedido = respostaResumoPedidoLista.data[i]['IDDETPEDIDO'];
-        catDetPedido = respostaResumoPedidoLista.data[i]['DSCATEGORIAPEDIDO'];
-        qtdDetPedido = respostaResumoPedidoLista.data[i]['QTDTOTAL'];
-        unidadeDetPedido = respostaResumoPedidoLista.data[i]['DSSIGLA'];
-        refDetPedido = respostaResumoPedidoLista.data[i]['NUREF'];
-        dsDetPedido = respostaResumoPedidoLista.data[i]['DSPRODUTO'];
-        desc01DetPedido = parseFloat(respostaResumoPedidoLista.data[i]['DESC01']);
-        desc02DetPedido = parseFloat(respostaResumoPedidoLista.data[i]['DESC02']);
-        desc03DetPedido = parseFloat(respostaResumoPedidoLista.data[i]['DESC03']);
-        vrUnitBrutoDetPedido = parseFloat(respostaResumoPedidoLista.data[i]['VRUNITLIQDETALHEPEDIDO']);
-        vrUnitLiqDetPedido = parseFloat(respostaResumoPedidoLista.data[i]['VRUNITLIQDETALHEPEDIDO']);
-        vrVendaDetPedido = parseFloat(respostaResumoPedidoLista.data[i]['VRVENDADETALHEPEDIDO']);
-        vrTotalDetPedido = parseFloat(respostaResumoPedidoLista.data[i]['VRTOTALDETALHEPEDIDO']);
-        stTransforPedido = respostaResumoPedidoLista.data[i]['STTRANSFORMADO'];
-        dsSubEstDetPedido = respostaResumoPedidoLista.data[i]['DSSUBGRUPOESTRUTURA'];
-        dsCorDetPedido = respostaResumoPedidoLista.data[i]['DSCOR'];
-        IdAndamentoDetPedido = respostaResumoPedidoLista.data[i]['IDANDAMENTO'];
-        tpSetorAndamento = respostaResumoPedidoLista.data[i]['DSSETOR'];
-        DsFabDetPedido = respostaResumoPedidoLista.data[i]['DSFABRICANTE'];
-        
-        totalVrBrutoPedidos = (totalVrBrutoPedidos) + (vrTotalDetPedido);
-        totalVrLiqPedidos = (totalVrLiqPedidos) + (vrTotalDetPedido);
-        totalQtdPedidos = (totalQtdPedidos) + (qtdDetPedido);
-        
-        if((tpSetorAndamento == 'COMPRAS' || tpSetorAndamento == 'COMPRASADM') && stTransforPedido == 'False'){
-            btnOpcaoCancProd =  `<div class="btn-group btn-group-xs">
-                                    <button type="button" class="btn btn-danger btn-xs" title="Item Não Pode Ser Alterado ou Cancelado" id="` +idDetalhePedido + `" disabled><span class="fal fa-lock-alt mr-1"></span></button>
-                                </div>`;
-        }else{															  
-            btnOpcaoCancProd =  `<div class="btn-group btn-group-xs">
-                                    <button type="button" class="btn btn-danger btn-xs" title="Item Não Pode Ser Alterado ou Cancelado, Produtos Criados!" id="` +idDetalhePedido + `" disabled><span class="fal fa-lock-alt mr-1"></span></button>
-                                </div>`;		  
+    );
+
+    var tableResumoPedidoLista = $('#dt-resumo-lista-pedidos').DataTable({
+      "columnDefs": [
+        { "width": "3%", "targets": 0 },
+        { "width": "5%", "targets": 1 },
+        { "width": "5%", "targets": 2 },
+        { "width": "5%", "targets": 3 },
+        { "width": "8%", "targets": 4 },
+        { "width": "15%", "targets": 5 },
+        { "width": "10%", "targets": 6 },
+        { "width": "8%", "targets": 7 },
+        { "width": "10%", "targets": 8 }
+      ],
+      deferRender: true,
+      //scrollY:        800,
+      //scrollCollapse: false,
+      //scroller:       false,
+      responsive: true,
+      ordering: false,
+      paging: false,
+      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+      buttons: [
+        {
+          extend: 'pdfHtml5',
+          text: 'PDF',
+          titleAttr: 'Generate PDF',
+          className: 'btn-outline-danger btn-sm mr-1'
+        },
+        {
+          extend: 'excelHtml5',
+          text: 'Excel',
+          titleAttr: 'Generate Excel',
+          className: 'btn-outline-success btn-sm mr-1'
+        },
+        {
+          extend: 'print',
+          text: 'Print',
+          titleAttr: 'Print Table',
+          className: 'btn-outline-primary btn-sm'
         }
-        
-        tableResumoPedidoLista.row.add([
-            `<label style="color: blue; font-size: 11px;">` + contadorDetPedido + `</label>`,
-            `<label style="color: blue; font-size: 11px;">` + catDetPedido + `</label>`,
-            `<label style="color: blue; font-size: 11px;">` + qtdDetPedido + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + unidadeDetPedido + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + refDetPedido + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + dsDetPedido + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + dsSubEstDetPedido + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + dsCorDetPedido + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + DsFabDetPedido + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(desc01DetPedido).toFixed(2)) + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(desc02DetPedido).toFixed(2)) + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(desc03DetPedido).toFixed(2)) + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrUnitLiqDetPedido).toFixed(2)) + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrVendaDetPedido).toFixed(2)) + ` </label>`,
-            `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrTotalDetPedido).toFixed(2)) + ` </label>`, 
-            btnOpcaoCancProd,
-        ]).draw(false);
-    
+      ]
+    });
+
+    tableResumoPedidoLista.rows().remove().draw();
+    $('#totalResumoPedidoLista').html('');
+  }
+
+  for (var i = 0; i < respostaResumoPedidoLista.data.length; i++) {
+    contadorDetPedido++;
+    idPedidoDetalhe = respostaResumoPedidoLista.data[i]['IDPEDIDO'];
+    idDetalhePedido = respostaResumoPedidoLista.data[i]['IDDETPEDIDO'];
+    catDetPedido = respostaResumoPedidoLista.data[i]['DSCATEGORIAPEDIDO'];
+    qtdDetPedido = respostaResumoPedidoLista.data[i]['QTDTOTAL'];
+    unidadeDetPedido = respostaResumoPedidoLista.data[i]['DSSIGLA'];
+    refDetPedido = respostaResumoPedidoLista.data[i]['NUREF'];
+    dsDetPedido = respostaResumoPedidoLista.data[i]['DSPRODUTO'];
+    desc01DetPedido = parseFloat(respostaResumoPedidoLista.data[i]['DESC01']);
+    desc02DetPedido = parseFloat(respostaResumoPedidoLista.data[i]['DESC02']);
+    desc03DetPedido = parseFloat(respostaResumoPedidoLista.data[i]['DESC03']);
+    vrUnitBrutoDetPedido = parseFloat(respostaResumoPedidoLista.data[i]['VRUNITLIQDETALHEPEDIDO']);
+    vrUnitLiqDetPedido = parseFloat(respostaResumoPedidoLista.data[i]['VRUNITLIQDETALHEPEDIDO']);
+    vrVendaDetPedido = parseFloat(respostaResumoPedidoLista.data[i]['VRVENDADETALHEPEDIDO']);
+    vrTotalDetPedido = parseFloat(respostaResumoPedidoLista.data[i]['VRTOTALDETALHEPEDIDO']);
+    stTransforPedido = respostaResumoPedidoLista.data[i]['STTRANSFORMADO'];
+    dsSubEstDetPedido = respostaResumoPedidoLista.data[i]['DSSUBGRUPOESTRUTURA'];
+    dsCorDetPedido = respostaResumoPedidoLista.data[i]['DSCOR'];
+    IdAndamentoDetPedido = respostaResumoPedidoLista.data[i]['IDANDAMENTO'];
+    tpSetorAndamento = respostaResumoPedidoLista.data[i]['DSSETOR'];
+    DsFabDetPedido = respostaResumoPedidoLista.data[i]['DSFABRICANTE'];
+
+    totalVrBrutoPedidos = (totalVrBrutoPedidos) + (vrTotalDetPedido);
+    totalVrLiqPedidos = (totalVrLiqPedidos) + (vrTotalDetPedido);
+    totalQtdPedidos = (totalQtdPedidos) + (qtdDetPedido);
+
+    if ((tpSetorAndamento == 'COMPRAS' || tpSetorAndamento == 'COMPRASADM') && stTransforPedido == 'False') {
+      btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
+                                    <button type="button" class="btn btn-danger btn-xs" title="Item Não Pode Ser Alterado ou Cancelado" id="` + idDetalhePedido + `" disabled><span class="fal fa-lock-alt mr-1"></span></button>
+                                </div>`;
+    } else {
+      btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
+                                    <button type="button" class="btn btn-danger btn-xs" title="Item Não Pode Ser Alterado ou Cancelado, Produtos Criados!" id="` + idDetalhePedido + `" disabled><span class="fal fa-lock-alt mr-1"></span></button>
+                                </div>`;
     }
-    
-    //chamarProximaResumoPedidoLista(numPageAtual + 1);
-    //<button type="button" class="btn btn-info btn-xs" title="Editar Produto" id="` +idDetalhePedido +`" onclick="Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
-    
-    $('.totalbrutopedido').html(
+
+    tableResumoPedidoLista.row.add([
+      `<label style="color: blue; font-size: 11px;">` + contadorDetPedido + `</label>`,
+      `<label style="color: blue; font-size: 11px;">` + catDetPedido + `</label>`,
+      `<label style="color: blue; font-size: 11px;">` + qtdDetPedido + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + unidadeDetPedido + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + refDetPedido + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + dsDetPedido + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + dsSubEstDetPedido + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + dsCorDetPedido + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + DsFabDetPedido + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(desc01DetPedido).toFixed(2)) + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(desc02DetPedido).toFixed(2)) + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(desc03DetPedido).toFixed(2)) + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrUnitLiqDetPedido).toFixed(2)) + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrVendaDetPedido).toFixed(2)) + ` </label>`,
+      `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrTotalDetPedido).toFixed(2)) + ` </label>`,
+      btnOpcaoCancProd,
+    ]).draw(false);
+
+  }
+
+  //chamarProximaResumoPedidoLista(numPageAtual + 1);
+  //<button type="button" class="btn btn-info btn-xs" title="Editar Produto" id="` +idDetalhePedido +`" onclick="Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
+
+  $('.totalbrutopedido').html(
     `<h3 class="display-4 d-block l-h-n m-0 fw-500">${mascaraValor(parseFloat(totalVrBrutoPedidos).toFixed(2))}<small class="m-0 l-h-n">Valor Bruto Pedido</small></h3>`);
-    $('.totalliqpedido').html(
+  $('.totalliqpedido').html(
     `<h3 class="display-4 d-block l-h-n m-0 fw-500">${mascaraValor(parseFloat(totalVrLiqPedidos).toFixed(2))}<small class="m-0 l-h-n">Valor Líquido Pedido</small></h3>`);
-    $('.qtdprodutopedido').html(
+  $('.qtdprodutopedido').html(
     `<h3 class="display-4 d-block l-h-n m-0 fw-500">${(totalQtdPedidos)}<small class="m-0 l-h-n">QTD Produtos</small></h3>`);
-    $("#vrliquidopedido").val(totalVrLiqPedidos.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
-    $("#VrDescontoPedidoI").val(0);
-    $("#VrDescontoPedidoII").val(0);
-    $("#VrDescontoPedidoIII").val(0);
-    $("#VrComissaoPedido").val(0);
-    $("#vrliquidopedidofixo").val(totalVrLiqPedidos.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
-    
-    $('.texttablistpedidos').html(
-        `<h2>
+  $("#vrliquidopedido").val(totalVrLiqPedidos.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  $("#VrDescontoPedidoI").val(0);
+  $("#VrDescontoPedidoII").val(0);
+  $("#VrDescontoPedidoIII").val(0);
+  $("#VrComissaoPedido").val(0);
+  $("#vrliquidopedidofixo").val(totalVrLiqPedidos.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+
+  $('.texttablistpedidos').html(
+    `<h2>
             LISTA DOS ITENS DO <span class="fw-300"><i>PEDIDO ${idPedidoDetalhe}</i></span>
         </h2> `
-    );
+  );
 }
 
 function Imprimir_Pedido(id) {
 
-    if (window.XMLHttpRequest) {
-        // code for IE7+, Firefox, Chrome, Opera, Safari
-        xmlhttp = new XMLHttpRequest();
-    } else {
-        // code for IE6, IE5
-        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
+  if (window.XMLHttpRequest) {
+    // code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+  } else {
+    // code for IE6, IE5
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
 
-    $("#resultado").html(
-        "<div align=\"center\">" +
-        "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
-        "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-        "</div>"
-    );
+  $("#resultado").html(
+    "<div align=\"center\">" +
+    "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
+    "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
+    "</div>"
+  );
 
-    xmlhttp.onreadystatechange = function () {
-        if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-            document.getElementById("resultadoImpressaoPedidos").innerHTML = xmlhttp.responseText;
-            
-            $('.npedido').html(
-                `<div class="text-dark fw-700 h1 mb-g keep-print-font npedido">
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      document.getElementById("resultadoImpressaoPedidos").innerHTML = xmlhttp.responseText;
+
+      $('.npedido').html(
+        `<div class="text-dark fw-700 h1 mb-g keep-print-font npedido">
                     Nº ${id}
                 </div>
             `);
-            
-            return ajaxGet('api/compras/lista_pedidos.xsjs?idpedido=' + id)
-            .then(retornoImprimirPedido)
-            .catch(funcError);
-    
-        }
-    };
-    xmlhttp.open("GET", "compras_action_pdfpedido.html", true);
-    xmlhttp.send();
+
+      return ajaxGet('api/compras/lista_pedidos.xsjs?idpedido=' + id)
+        .then(retornoImprimirPedido)
+        .catch(funcError);
+
+    }
+  };
+  xmlhttp.open("GET", "compras_action_pdfpedido.html", true);
+  xmlhttp.send();
 }
 
 function retornoImprimirPedido(respostaImprimirPedido) {
 
-    for (var i = 0; i < respostaImprimirPedido.data.length; i++) {
-    
-        IDPEDIDORESUMO = respostaImprimirPedido.data[i]['IDPEDIDO'];
-        IdGrupoPedido = respostaImprimirPedido.data[i]['IDGRUPOPEDIDO'];
-        IdSubGrupoPedido = respostaImprimirPedido.data[i]['IDSUBGRUPOPEDIDO'];
-        DsSubGrupoPedido = respostaImprimirPedido.data[i]['NOFANTASIA'];
-        IdCompradorPedido = respostaImprimirPedido.data[i]['IDCOMPRADOR'];
-        DsCompradorPedido = respostaImprimirPedido.data[i]['NOMECOMPRADOR'];
-        IdCondiPagPedido = respostaImprimirPedido.data[i]['IDCONDICAOPAGAMENTO'];
-        DsCondiPagPedido = respostaImprimirPedido.data[i]['DSCONDICAOPAG'];
-        IdFornPedido = respostaImprimirPedido.data[i]['IDFORNECEDOR'];
-        DsFornPedido = respostaImprimirPedido.data[i]['NOFORNECEDOR'];
-        DsFantFornPedido = respostaImprimirPedido.data[i]['NOFANTASIAFORNECEDOR'];
-        contatoFaturamento = respostaImprimirPedido.data[i]['EEMAILFATURAMENTO'] + " - " + respostaImprimirPedido.data[i]['NUTELFATURAMENTO'];
-        contatoCobranca = respostaImprimirPedido.data[i]['EEMAILCOBRANCA'] + " - " + respostaImprimirPedido.data[i]['NUTELCOBRANCA'];
-        contatoFinanceiro = respostaImprimirPedido.data[i]['EEMAILFINANCEIRO'] + " - " + respostaImprimirPedido.data[i]['NUTELFINANCEIRO'];
-        contatoCompras = respostaImprimirPedido.data[i]['EEMAILCOMPRAS'] + " - " + respostaImprimirPedido.data[i]['NUTELCOMPRAS'];
-        contatoCadastro = respostaImprimirPedido.data[i]['EEMAILCADASTRO'] + " - " + respostaImprimirPedido.data[i]['NUTELCADASTRO'];
-        CnpjFornPedido = respostaImprimirPedido.data[i]['CNPJFORN'];
-        InscEstFornPedido = respostaImprimirPedido.data[i]['INSCESTFORN'];
-        EmailFornPedido = respostaImprimirPedido.data[i]['EMAILFORN'];
-        FoneFornPedido = respostaImprimirPedido.data[i]['FONEFORN'];
-        EndFornPedido = respostaImprimirPedido.data[i]['ENDFORN'];
-        NumeroFornPedido = respostaImprimirPedido.data[i]['NUMEROFORN'];
-        ComplFornPedido = respostaImprimirPedido.data[i]['COMPFORN'];
-        BairroFornPedido = respostaImprimirPedido.data[i]['BAIRROFORN'];
-        CidadeFornPedido = respostaImprimirPedido.data[i]['CIDADEFORN'];
-        UfFornPedido = respostaImprimirPedido.data[i]['UFFORN'];
-        CepFornPedido = respostaImprimirPedido.data[i]['CEPFORN'];
-        IdTranspPedido = respostaImprimirPedido.data[i]['IDTRANSPORTADORA'];
-        DsTranspPedido = respostaImprimirPedido.data[i]['NOMETRANSPORTADORA'];
-        IdAndamentoPedido = respostaImprimirPedido.data[i]['IDANDAMENTO'];
-        DsAndamentoPedido = respostaImprimirPedido.data[i]['DSANDAMENTO'];
-        TipoModPedido = respostaImprimirPedido.data[i]['MODPEDIDO'];
-        NoVendedorPedido = respostaImprimirPedido.data[i]['NOVENDEDOR'];
-        EmailVendedorPedido = respostaImprimirPedido.data[i]['EEMAILVENDEDOR'];
-        DtPedidoNormal = respostaImprimirPedido.data[i]['DTPEDIDOFORMATADA'];
-        DtPedidoFormatada = respostaImprimirPedido.data[i]['DTPEDIDO'];
-        DtEntregaPedido = respostaImprimirPedido.data[i]['DTPREVENTREGAFORMATADA'];
-        DtEntregaPedidoFormatada = respostaImprimirPedido.data[i]['DTENTREGAFORMATADA2'];
-        TpFretePedido = respostaImprimirPedido.data[i]['TPFRETE'];
-        ObsPedido1 = respostaImprimirPedido.data[i]['OBSPEDIDO'];
-        ObsPedido2 = respostaImprimirPedido.data[i]['OBSPEDIDO2'];
-        DtFechamentoPedido = respostaImprimirPedido.data[i]['DTFECHAMENTOPEDIDO'];
-        DtCadastroPedido = respostaImprimirPedido.data[i]['DTCADASTRO'];
-        TpArquivoPedido = respostaImprimirPedido.data[i]['TPARQUIVO'];
-        StDistribuidoPedido = respostaImprimirPedido.data[i]['STDISTRIBUIDO'];
-        StAgrupaProdPedido = respostaImprimirPedido.data[i]['STAGRUPAPRODUTO'];
-        TotalItensPedido = respostaImprimirPedido.data[i]['NUTOTALITENS'];
-        QtdProdPedido = respostaImprimirPedido.data[i]['QTDTOTPRODUTOS'];
-        VrTotalBrutoPedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['VRTOTALBRUTO']).toFixed(2));
-        VrTotalLiqPedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['VRTOTALLIQUIDO']).toFixed(2));
-        VrDesc01Pedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['DESCPERC01']).toFixed(2));
-        VrDesc02Pedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['DESCPERC02']).toFixed(2));
-        VrDesc03Pedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['DESCPERC03']).toFixed(2));
-        VrComisPedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['PERCCOMISSAO']).toFixed(2));
-        TpFiscalPedido = respostaImprimirPedido.data[i]['TPFISCAL'];
-        StCancelaPedido = respostaImprimirPedido.data[i]['STCANCELADO'];
-        TpEnviar = respostaImprimirPedido.data[i]['TPARQUIVO'];
-        DsFabricantePedido = respostaImprimirPedido.data[i]['FABRICANTE'];
-        
-        $('#tipodopedido').val(TipoModPedido);
-        
-        if(IdSubGrupoPedido == 1) {
-            var logoPedido = logoTesoura;
-        } else if(IdSubGrupoPedido == 2){
-            var logoPedido = logoMagazine;
-        } else if(IdSubGrupoPedido == 4){
-            var logoPedido = logoFreeCenter;
-        } else{
-            var logoPedido = logoYorus;
-        }
-        
-        if (TpArquivoPedido == 'NE') {
-            DsTipoArquivoPedido = 'NÃO ENVIAR';
-        } else if (TpArquivoPedido == 'ET') {
-            DsTipoArquivoPedido = 'ETIQUETA';
-        } else if (TpArquivoPedido == 'AR') {
-            DsTipoArquivoPedido = 'ARQUIVO';
-        }
-        
-        if (TpFretePedido == 'PAGO') {
-            DsTpFretePedido = 'PAGO - CIF';
-        } else if (TpFretePedido == 'APAGAR') {
-            DsTpFretePedido = 'A PAGAR - FOB';
-        }
-        
-        if (TpFiscalPedido == 'N') {
-            DsTpFiscalPedido = 'Lucro Presumido';
-        } else if (TpFiscalPedido == 'S') {
-            DsTpFiscalPedido = 'Simples Nacional';
-        } else {
-            DsTpFiscalPedido = 'Lucro Real';
-        }
-        
-        if (TpEnviar == 'NE') {
-            DsTpEnviar = 'NÃO ENVIAR';
-        } else if (TpEnviar == 'ET') {
-            DsTpEnviar = 'ETIQUETA';
-        } else {
-            DsTpEnviar = 'ARQUIVO';
-        }
-        
-        $('#marcapedido').html(`
+  for (var i = 0; i < respostaImprimirPedido.data.length; i++) {
+
+    IDPEDIDORESUMO = respostaImprimirPedido.data[i]['IDPEDIDO'];
+    IdGrupoPedido = respostaImprimirPedido.data[i]['IDGRUPOPEDIDO'];
+    IdSubGrupoPedido = respostaImprimirPedido.data[i]['IDSUBGRUPOPEDIDO'];
+    DsSubGrupoPedido = respostaImprimirPedido.data[i]['NOFANTASIA'];
+    IdCompradorPedido = respostaImprimirPedido.data[i]['IDCOMPRADOR'];
+    DsCompradorPedido = respostaImprimirPedido.data[i]['NOMECOMPRADOR'];
+    IdCondiPagPedido = respostaImprimirPedido.data[i]['IDCONDICAOPAGAMENTO'];
+    DsCondiPagPedido = respostaImprimirPedido.data[i]['DSCONDICAOPAG'];
+    IdFornPedido = respostaImprimirPedido.data[i]['IDFORNECEDOR'];
+    DsFornPedido = respostaImprimirPedido.data[i]['NOFORNECEDOR'];
+    DsFantFornPedido = respostaImprimirPedido.data[i]['NOFANTASIAFORNECEDOR'];
+    contatoFaturamento = respostaImprimirPedido.data[i]['EEMAILFATURAMENTO'] + " - " + respostaImprimirPedido.data[i]['NUTELFATURAMENTO'];
+    contatoCobranca = respostaImprimirPedido.data[i]['EEMAILCOBRANCA'] + " - " + respostaImprimirPedido.data[i]['NUTELCOBRANCA'];
+    contatoFinanceiro = respostaImprimirPedido.data[i]['EEMAILFINANCEIRO'] + " - " + respostaImprimirPedido.data[i]['NUTELFINANCEIRO'];
+    contatoCompras = respostaImprimirPedido.data[i]['EEMAILCOMPRAS'] + " - " + respostaImprimirPedido.data[i]['NUTELCOMPRAS'];
+    contatoCadastro = respostaImprimirPedido.data[i]['EEMAILCADASTRO'] + " - " + respostaImprimirPedido.data[i]['NUTELCADASTRO'];
+    CnpjFornPedido = respostaImprimirPedido.data[i]['CNPJFORN'];
+    InscEstFornPedido = respostaImprimirPedido.data[i]['INSCESTFORN'];
+    EmailFornPedido = respostaImprimirPedido.data[i]['EMAILFORN'];
+    FoneFornPedido = respostaImprimirPedido.data[i]['FONEFORN'];
+    EndFornPedido = respostaImprimirPedido.data[i]['ENDFORN'];
+    NumeroFornPedido = respostaImprimirPedido.data[i]['NUMEROFORN'];
+    ComplFornPedido = respostaImprimirPedido.data[i]['COMPFORN'];
+    BairroFornPedido = respostaImprimirPedido.data[i]['BAIRROFORN'];
+    CidadeFornPedido = respostaImprimirPedido.data[i]['CIDADEFORN'];
+    UfFornPedido = respostaImprimirPedido.data[i]['UFFORN'];
+    CepFornPedido = respostaImprimirPedido.data[i]['CEPFORN'];
+    IdTranspPedido = respostaImprimirPedido.data[i]['IDTRANSPORTADORA'];
+    DsTranspPedido = respostaImprimirPedido.data[i]['NOMETRANSPORTADORA'];
+    IdAndamentoPedido = respostaImprimirPedido.data[i]['IDANDAMENTO'];
+    DsAndamentoPedido = respostaImprimirPedido.data[i]['DSANDAMENTO'];
+    TipoModPedido = respostaImprimirPedido.data[i]['MODPEDIDO'];
+    NoVendedorPedido = respostaImprimirPedido.data[i]['NOVENDEDOR'];
+    EmailVendedorPedido = respostaImprimirPedido.data[i]['EEMAILVENDEDOR'];
+    DtPedidoNormal = respostaImprimirPedido.data[i]['DTPEDIDOFORMATADA'];
+    DtPedidoFormatada = respostaImprimirPedido.data[i]['DTPEDIDO'];
+    DtEntregaPedido = respostaImprimirPedido.data[i]['DTPREVENTREGAFORMATADA'];
+    DtEntregaPedidoFormatada = respostaImprimirPedido.data[i]['DTENTREGAFORMATADA2'];
+    TpFretePedido = respostaImprimirPedido.data[i]['TPFRETE'];
+    ObsPedido1 = respostaImprimirPedido.data[i]['OBSPEDIDO'];
+    ObsPedido2 = respostaImprimirPedido.data[i]['OBSPEDIDO2'];
+    DtFechamentoPedido = respostaImprimirPedido.data[i]['DTFECHAMENTOPEDIDO'];
+    DtCadastroPedido = respostaImprimirPedido.data[i]['DTCADASTRO'];
+    TpArquivoPedido = respostaImprimirPedido.data[i]['TPARQUIVO'];
+    StDistribuidoPedido = respostaImprimirPedido.data[i]['STDISTRIBUIDO'];
+    StAgrupaProdPedido = respostaImprimirPedido.data[i]['STAGRUPAPRODUTO'];
+    TotalItensPedido = respostaImprimirPedido.data[i]['NUTOTALITENS'];
+    QtdProdPedido = respostaImprimirPedido.data[i]['QTDTOTPRODUTOS'];
+    VrTotalBrutoPedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['VRTOTALBRUTO']).toFixed(2));
+    VrTotalLiqPedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['VRTOTALLIQUIDO']).toFixed(2));
+    VrDesc01Pedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['DESCPERC01']).toFixed(2));
+    VrDesc02Pedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['DESCPERC02']).toFixed(2));
+    VrDesc03Pedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['DESCPERC03']).toFixed(2));
+    VrComisPedido = mascaraValor(parseFloat(respostaImprimirPedido.data[i]['PERCCOMISSAO']).toFixed(2));
+    TpFiscalPedido = respostaImprimirPedido.data[i]['TPFISCAL'];
+    StCancelaPedido = respostaImprimirPedido.data[i]['STCANCELADO'];
+    TpEnviar = respostaImprimirPedido.data[i]['TPARQUIVO'];
+    DsFabricantePedido = respostaImprimirPedido.data[i]['FABRICANTE'];
+
+    $('#tipodopedido').val(TipoModPedido);
+
+    if (IdSubGrupoPedido == 1) {
+      var logoPedido = logoTesoura;
+    } else if (IdSubGrupoPedido == 2) {
+      var logoPedido = logoMagazine;
+    } else if (IdSubGrupoPedido == 4) {
+      var logoPedido = logoFreeCenter;
+    } else {
+      var logoPedido = logoYorus;
+    }
+
+    if (TpArquivoPedido == 'NE') {
+      DsTipoArquivoPedido = 'NÃO ENVIAR';
+    } else if (TpArquivoPedido == 'ET') {
+      DsTipoArquivoPedido = 'ETIQUETA';
+    } else if (TpArquivoPedido == 'AR') {
+      DsTipoArquivoPedido = 'ARQUIVO';
+    }
+
+    if (TpFretePedido == 'PAGO') {
+      DsTpFretePedido = 'PAGO - CIF';
+    } else if (TpFretePedido == 'APAGAR') {
+      DsTpFretePedido = 'A PAGAR - FOB';
+    }
+
+    if (TpFiscalPedido == 'N') {
+      DsTpFiscalPedido = 'Lucro Presumido';
+    } else if (TpFiscalPedido == 'S') {
+      DsTpFiscalPedido = 'Simples Nacional';
+    } else {
+      DsTpFiscalPedido = 'Lucro Real';
+    }
+
+    if (TpEnviar == 'NE') {
+      DsTpEnviar = 'NÃO ENVIAR';
+    } else if (TpEnviar == 'ET') {
+      DsTpEnviar = 'ETIQUETA';
+    } else {
+      DsTpEnviar = 'ARQUIVO';
+    }
+
+    $('#marcapedido').html(`
         <img src=${(logoPedido)} style="width: 200px">`);
-        
-        $('#tipopedido').html(
-        `<p style="font-size:16px;"> PEDIDO DE COMPRAS<br>${(TipoModPedido)}</p><br>
+
+    $('#tipopedido').html(
+      `<p style="font-size:16px;"> PEDIDO DE COMPRAS<br>${(TipoModPedido)}</p><br>
         <p style="font-size:16px;">Nº: <b>${(IDPEDIDORESUMO)}</b></p>`);
-        
-        $('#fornecedorpedidoImprimir').html(
-        `Fabricante: <br><b><p style="font-size:13px;">${(DsFabricantePedido)}</p></b>`);
-        
-        $('#razaofornecedorpedidoImprimir').html(
-        `Razão Social Fornecedor: <br><p style="font-size:13px;">${(DsFornPedido)}</p>`);
-        
-        $('#infoContatoImprimir').html(`
+
+    $('#fornecedorpedidoImprimir').html(
+      `Fabricante: <br><b><p style="font-size:13px;">${(DsFabricantePedido)}</p></b>`);
+
+    $('#razaofornecedorpedidoImprimir').html(
+      `Razão Social Fornecedor: <br><p style="font-size:13px;">${(DsFornPedido)}</p>`);
+
+    $('#infoContatoImprimir').html(`
         E-mail: <br>Faturamento: ${contatoFaturamento}  <br>Cobrança: ${contatoCobranca}  <br>Financeiro: ${contatoFinanceiro}  <br>Compras: ${contatoCompras}  <br>Cadastro: ${contatoCompras}
         `);
-        
-        $('#cnpjpedidoImprimir').html(
-        `CNPJ: <br><p style="font-size:13px;">${(CnpjFornPedido)}</p> `);
-        
-        $('#emailforncpedidoImprimir').html(
-        `Email: <br><p style="font-size:13px;">${(EmailFornPedido)}</p> `);
-        
-        $('#foneforncpedidoImprimir').html(
-        `Tel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
-        
-        $('#iepedidoImprimir').html(
-        `INSC EST: <br><p style="font-size:13px;">${(InscEstFornPedido)}</p> `);
-        
-        $('#fonecelularforncpedidoImprimir').html(
-        `Cel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
-        
-        $('#datapedidoImprimir').html(
-        `Data do Pedido: <br><p style="font-size:13px;">${(DtPedidoFormatada)}</p> `);
-        
-        $('#dataentregapedidoImprimir').html(
-        `Data da Entrega: <br><p style="font-size:13px;">${(DtEntregaPedidoFormatada)}</p> `);
-        
-        $('#endforncpedidoImprimir').html(
-        `Endereço: <br><p style="font-size:13px;">${(EndFornPedido)}</p> `);
-        
-        $('#complforncpedidoImprimir').html(
-        `Complemento: <br><p style="font-size:13px;">${(ComplFornPedido)}</p> <strong></strong> `);
-        
-        $('#compradorpedidoImprimir').html(
-        `Comprador: <br><p style="font-size:13px;">${(DsCompradorPedido)}</p> `);
-        
-        $('#numeroforncpedidoImprimir').html(
-        `N°: <br><p style="font-size:13px;">${(NumeroFornPedido)}</p> `);
-        
-        $('#bairroforncpedidoImprimir').html(
-        `Bairro: <br><p style="font-size:13px;">${(BairroFornPedido)}</p> `);
-        
-        $('#transpforncpedidoImprimir').html(
-        `Transportadora/Telefone: <br><p style="font-size:13px;">${(DsTranspPedido)} - </p> `);
-        
-        $('#vendedorpedidoImprimir').html(
-        `Vendedor: <br><p style="font-size:13px;">${(NoVendedorPedido)}</p> `);
-        
-        $('#cidadeforncpedidoImprimir').html(
-        `Cidade: <br><p style="font-size:13px;">${(CidadeFornPedido)}</p> `);
-        
-        $('#desc1pedidoImprimir').html(
-        `Desc. I (%): <br><p style="font-size:13px;">${(VrDesc01Pedido)}</p> `);
-        
-        $('#desc2pedidoImprimir').html(
-        `Desc. II(%): <br><p style="font-size:13px;">${(VrDesc02Pedido)}</p> `);
-        
-        $('#desc3pedidoImprimir').html(
-        `Desc. III(%): <br><p style="font-size:13px;">${(VrDesc03Pedido)}</p> `);
-        
-        $('#condpagpedidoImprimir').html(
-        `Cond. Pagamento: <br><p style="font-size:13px;">${(DsCondiPagPedido)}</p> `);
-        
-        $('#cepforncpedidoImprimir').html(
-        `CEP: <br><p style="font-size:13px;">${(CepFornPedido)}</p> `);
-        
-        $('#ufforncpedidoImprimir').html(
-        `UF: <br><p style="font-size:13px;">${(UfFornPedido)}</p> `);
-        
-        $('#freteforncpedidoImprimir').html(
-        `Frete: <br><p style="font-size:13px;">${(DsTpFretePedido)}</p> `);
-        
-        $('#obs1pedidoImprimir').html(
-        `Observações: <br><p style="font-size:9px;">${(ObsPedido1)} - ${(ObsPedido2)}</p> `);
-        
-        $('#comissaopedidoImprimir').html(
-        `Comissão: <br><p style="font-size:13px;">${(VrComisPedido)} </p> `);
-        
-        $('#fiscalpedidoImprimir').html(
-        `Fiscal: <br><p style="font-size:13px;">${(DsTpFiscalPedido)} </p> `);
-        
-        $('#enviarpedidoImprimir').html(
-        `Enviar: <br><p style="font-size:13px;">${(DsTpEnviar)} </p> `);
-        
-        $('#tipopedidoImprimir').html(
-        `Tipo: <br><p style="font-size:13px;">${(TipoModPedido)} </p> `);
-        
-    }
-    
-    $('#modalImpressaoPedido').modal('show');
-    
-    return ajaxGet('api/compras/lista_detalhepedidosgrade.xsjs?idpedido=' + IDPEDIDORESUMO)
+
+    $('#cnpjpedidoImprimir').html(
+      `CNPJ: <br><p style="font-size:13px;">${(CnpjFornPedido)}</p> `);
+
+    $('#emailforncpedidoImprimir').html(
+      `Email: <br><p style="font-size:13px;">${(EmailFornPedido)}</p> `);
+
+    $('#foneforncpedidoImprimir').html(
+      `Tel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
+
+    $('#iepedidoImprimir').html(
+      `INSC EST: <br><p style="font-size:13px;">${(InscEstFornPedido)}</p> `);
+
+    $('#fonecelularforncpedidoImprimir').html(
+      `Cel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
+
+    $('#datapedidoImprimir').html(
+      `Data do Pedido: <br><p style="font-size:13px;">${(DtPedidoFormatada)}</p> `);
+
+    $('#dataentregapedidoImprimir').html(
+      `Data da Entrega: <br><p style="font-size:13px;">${(DtEntregaPedidoFormatada)}</p> `);
+
+    $('#endforncpedidoImprimir').html(
+      `Endereço: <br><p style="font-size:13px;">${(EndFornPedido)}</p> `);
+
+    $('#complforncpedidoImprimir').html(
+      `Complemento: <br><p style="font-size:13px;">${(ComplFornPedido)}</p> <strong></strong> `);
+
+    $('#compradorpedidoImprimir').html(
+      `Comprador: <br><p style="font-size:13px;">${(DsCompradorPedido)}</p> `);
+
+    $('#numeroforncpedidoImprimir').html(
+      `N°: <br><p style="font-size:13px;">${(NumeroFornPedido)}</p> `);
+
+    $('#bairroforncpedidoImprimir').html(
+      `Bairro: <br><p style="font-size:13px;">${(BairroFornPedido)}</p> `);
+
+    $('#transpforncpedidoImprimir').html(
+      `Transportadora/Telefone: <br><p style="font-size:13px;">${(DsTranspPedido)} - </p> `);
+
+    $('#vendedorpedidoImprimir').html(
+      `Vendedor: <br><p style="font-size:13px;">${(NoVendedorPedido)}</p> `);
+
+    $('#cidadeforncpedidoImprimir').html(
+      `Cidade: <br><p style="font-size:13px;">${(CidadeFornPedido)}</p> `);
+
+    $('#desc1pedidoImprimir').html(
+      `Desc. I (%): <br><p style="font-size:13px;">${(VrDesc01Pedido)}</p> `);
+
+    $('#desc2pedidoImprimir').html(
+      `Desc. II(%): <br><p style="font-size:13px;">${(VrDesc02Pedido)}</p> `);
+
+    $('#desc3pedidoImprimir').html(
+      `Desc. III(%): <br><p style="font-size:13px;">${(VrDesc03Pedido)}</p> `);
+
+    $('#condpagpedidoImprimir').html(
+      `Cond. Pagamento: <br><p style="font-size:13px;">${(DsCondiPagPedido)}</p> `);
+
+    $('#cepforncpedidoImprimir').html(
+      `CEP: <br><p style="font-size:13px;">${(CepFornPedido)}</p> `);
+
+    $('#ufforncpedidoImprimir').html(
+      `UF: <br><p style="font-size:13px;">${(UfFornPedido)}</p> `);
+
+    $('#freteforncpedidoImprimir').html(
+      `Frete: <br><p style="font-size:13px;">${(DsTpFretePedido)}</p> `);
+
+    $('#obs1pedidoImprimir').html(
+      `Observações: <br><p style="font-size:9px;">${(ObsPedido1)} - ${(ObsPedido2)}</p> `);
+
+    $('#comissaopedidoImprimir').html(
+      `Comissão: <br><p style="font-size:13px;">${(VrComisPedido)} </p> `);
+
+    $('#fiscalpedidoImprimir').html(
+      `Fiscal: <br><p style="font-size:13px;">${(DsTpFiscalPedido)} </p> `);
+
+    $('#enviarpedidoImprimir').html(
+      `Enviar: <br><p style="font-size:13px;">${(DsTpEnviar)} </p> `);
+
+    $('#tipopedidoImprimir').html(
+      `Tipo: <br><p style="font-size:13px;">${(TipoModPedido)} </p> `);
+
+  }
+
+  $('#modalImpressaoPedido').modal('show');
+
+  return ajaxGet('api/compras/lista_detalhepedidosgrade.xsjs?idpedido=' + IDPEDIDORESUMO)
     .then(funcSucessImprimirResumoPedidoLista)
     .catch(funcError);
 }
 
 function funcSucessImprimirResumoPedidoLista(respostaImprimirResumoPedidoLista) {
 
-    contadorDetPedidoImprimir = 0;
-    totalVrBrutoPedidosImprimir = 0;
-    totalVrLiqPedidosImprimir = 0;
-    totalQtdPedidosImprimir = 0;
-    dataRetorno = [];
-    TpModPedido = $("#tipodopedido").val();
-    
-    if(TpModPedido == 'CALCADOS'){
-        txtCxTec = 'Caixas';
-    }else{
-        txtCxTec = 'Tecido';
+  contadorDetPedidoImprimir = 0;
+  totalVrBrutoPedidosImprimir = 0;
+  totalVrLiqPedidosImprimir = 0;
+  totalQtdPedidosImprimir = 0;
+  dataRetorno = [];
+  TpModPedido = $("#tipodopedido").val();
+
+  if (TpModPedido == 'CALCADOS') {
+    txtCxTec = 'Caixas';
+  } else {
+    txtCxTec = 'Tecido';
+  }
+
+  var numPageAtual = parseInt(respostaImprimirResumoPedidoLista.page);
+  if (numPageAtual === 1) {
+    totalVrPedidosListaImprimir = 0;
+  }
+  $('#resultadoPedidosListaImprimir').html('');
+  if (respostaImprimirResumoPedidoLista.data.length != 0) {
+    for (var i = 0; i < respostaImprimirResumoPedidoLista.data.length; i++) {
+      contadorDetPedidoImprimir++;
+
+      idPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['IDPEDIDO'];
+      idDetalhePedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['IDDETPEDIDO'];
+      TipPedidoDetImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['MODPEDIDO'];
+      catDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSCATEGORIAPEDIDO'];
+      SubGrupoDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSSUBGRUPOESTRUTURA'];
+      GrupoDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSGRUPOESTRUTURA'];
+      qtdDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['QTDTOTAL'];
+      NuCxDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['NUCAIXA'];
+      unidadeDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSSIGLA'];
+      refDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['NUREF'];
+      dsDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSPRODUTO'];
+      dsCorPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSCOR'];
+      dsLocalPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSLOCALEXPOSICAO'];
+      dsEstiloPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSESTILO'];
+      ObsProdPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['OBSPRODUTO'];
+      StEcommerceProdPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['STECOMMERCE'];
+      StRedeSocialProdPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['STREDESOCIAL'];
+      dsTecidoPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSTIPOTECIDO'];
+
+      vrUnitBrutoDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoLista.data[i]['detpedido']['VRUNITLIQDETALHEPEDIDO']));
+      vrUnitLiqDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoLista.data[i]['detpedido']['VRUNITLIQDETALHEPEDIDO']));
+      vrVendaDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoLista.data[i]['detpedido']['VRVENDADETALHEPEDIDO']));
+      vrTotalDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoLista.data[i]['detpedido']['VRTOTALDETALHEPEDIDO']));
+
+      totalVrBrutoPedidosImprimir = parseFloat(totalVrBrutoPedidosImprimir) + parseFloat(vrTotalDetPedidoImprimir);
+      totalVrLiqPedidosImprimir = parseFloat(totalVrLiqPedidosImprimir) + parseFloat(vrTotalDetPedidoImprimir);
+      totalQtdPedidosImprimir = (totalQtdPedidosImprimir) + (qtdDetPedidoImprimir);
+
+      var grupoEstruturaImprimir = `${GrupoDetPedidoImprimir} / ${SubGrupoDetPedidoImprimir}`;
+
+      if (TpModPedido == 'CALCADOS') {
+        DadosCxTecido = NuCxDetPedidoImprimir;
+      } else {
+        DadosCxTecido = dsTecidoPedidoImprimir;
+      }
+
+      if (StEcommerceProdPedidoImprimir == 'True') {
+        StEcommerceProdPedidoImprimir = 'SIM';
+      } else {
+        StEcommerceProdPedidoImprimir = 'NÃO';
+      }
+
+      if (StRedeSocialProdPedidoImprimir == 'True') {
+        StRedeSocialProdPedidoImprimir = 'SIM';
+      } else {
+        StRedeSocialProdPedidoImprimir = 'NÃO';
+      }
+
+      var tablegrade = '<table width="100%"><tbody><tr>';
+
+      var tablegradetd = '';
+
+      for (var j = 0; j < respostaImprimirResumoPedidoLista.data[i].detalhegrade.length; j++) {
+
+        DsTamanhoGrade = respostaImprimirResumoPedidoLista.data[i].detalhegrade[j]['DSTAMANHO'];
+        QtdTamanhoGrade = respostaImprimirResumoPedidoLista.data[i].detalhegrade[j]['INDICETAMANHO'];
+
+        tablegradetd = tablegradetd + '<td align="center" style="font-size: 08px;" width="4.5%">' + DsTamanhoGrade + '<br><b>' + QtdTamanhoGrade + '</b></td>'
+      }
+
+      tablegrade = tablegrade + tablegradetd;
+      tablegrade = tablegrade + '</tr></tbody></table>';
+
+      dataRetorno.push([
+        grupoEstruturaImprimir,
+        contadorDetPedidoImprimir,
+        qtdDetPedidoImprimir,
+        unidadeDetPedidoImprimir,
+        refDetPedidoImprimir,
+        dsDetPedidoImprimir,
+        DadosCxTecido,
+        dsCorPedidoImprimir,
+        dsLocalPedidoImprimir,
+        dsEstiloPedidoImprimir,
+        StRedeSocialProdPedidoImprimir,
+        ObsProdPedidoImprimir,
+        tablegrade,
+        mascaraValor(vrUnitLiqDetPedidoImprimir.toFixed(2)),
+        mascaraValor(vrVendaDetPedidoImprimir.toFixed(2)),
+        mascaraValor(vrTotalDetPedidoImprimir.toFixed(2))
+      ])
+
     }
-    
-    var numPageAtual = parseInt(respostaImprimirResumoPedidoLista.page);
-    if (numPageAtual === 1) {
-        totalVrPedidosListaImprimir = 0;
-    }
-    $('#resultadoPedidosListaImprimir').html('');
-    if (respostaImprimirResumoPedidoLista.data.length != 0) {
-        for (var i = 0; i < respostaImprimirResumoPedidoLista.data.length; i++) {
-            contadorDetPedidoImprimir++;
-            
-            idPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['IDPEDIDO'];
-            idDetalhePedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['IDDETPEDIDO'];
-            TipPedidoDetImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['MODPEDIDO'];
-            catDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSCATEGORIAPEDIDO'];
-            SubGrupoDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSSUBGRUPOESTRUTURA'];
-            GrupoDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSGRUPOESTRUTURA'];
-            qtdDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['QTDTOTAL'];
-            NuCxDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['NUCAIXA'];
-            unidadeDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSSIGLA'];
-            refDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['NUREF'];
-            dsDetPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSPRODUTO'];
-            dsCorPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSCOR'];
-            dsLocalPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSLOCALEXPOSICAO'];
-            dsEstiloPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSESTILO'];
-            ObsProdPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['OBSPRODUTO'];
-            StEcommerceProdPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['STECOMMERCE'];
-            StRedeSocialProdPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['STREDESOCIAL'];
-            dsTecidoPedidoImprimir = respostaImprimirResumoPedidoLista.data[i]['detpedido']['DSTIPOTECIDO'];
-            
-            vrUnitBrutoDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoLista.data[i]['detpedido']['VRUNITLIQDETALHEPEDIDO']));
-            vrUnitLiqDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoLista.data[i]['detpedido']['VRUNITLIQDETALHEPEDIDO']));
-            vrVendaDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoLista.data[i]['detpedido']['VRVENDADETALHEPEDIDO']));
-            vrTotalDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoLista.data[i]['detpedido']['VRTOTALDETALHEPEDIDO']));
-            
-            totalVrBrutoPedidosImprimir = parseFloat(totalVrBrutoPedidosImprimir) + parseFloat(vrTotalDetPedidoImprimir);
-            totalVrLiqPedidosImprimir = parseFloat(totalVrLiqPedidosImprimir) + parseFloat(vrTotalDetPedidoImprimir);
-            totalQtdPedidosImprimir = (totalQtdPedidosImprimir) + (qtdDetPedidoImprimir);
-            
-            var grupoEstruturaImprimir = `${GrupoDetPedidoImprimir} / ${SubGrupoDetPedidoImprimir}`;
-            
-            if(TpModPedido == 'CALCADOS'){
-                DadosCxTecido = NuCxDetPedidoImprimir;
-            }else{
-                DadosCxTecido = dsTecidoPedidoImprimir;
-            }
-            
-            if (StEcommerceProdPedidoImprimir == 'True') {
-                StEcommerceProdPedidoImprimir = 'SIM';
-            } else {
-                StEcommerceProdPedidoImprimir = 'NÃO';
-            }
-            
-            if (StRedeSocialProdPedidoImprimir == 'True') {
-                StRedeSocialProdPedidoImprimir = 'SIM';
-            } else {
-                StRedeSocialProdPedidoImprimir = 'NÃO';
-            }
-            
-            var tablegrade = '<table width="100%"><tbody><tr>';
-            
-            var tablegradetd = '';
-            
-            for (var j = 0; j < respostaImprimirResumoPedidoLista.data[i].detalhegrade.length; j++) {
-            
-                DsTamanhoGrade = respostaImprimirResumoPedidoLista.data[i].detalhegrade[j]['DSTAMANHO'];
-                QtdTamanhoGrade = respostaImprimirResumoPedidoLista.data[i].detalhegrade[j]['INDICETAMANHO'];
-                
-                tablegradetd = tablegradetd + '<td align="center" style="font-size: 08px;" width="4.5%">' + DsTamanhoGrade + '<br><b>' + QtdTamanhoGrade + '</b></td>'
-            }
-            
-            tablegrade = tablegrade + tablegradetd;
-            tablegrade = tablegrade + '</tr></tbody></table>';
-            
-            dataRetorno.push([
-                grupoEstruturaImprimir,
-                contadorDetPedidoImprimir,
-                qtdDetPedidoImprimir,
-                unidadeDetPedidoImprimir,
-                refDetPedidoImprimir,
-                dsDetPedidoImprimir,
-                DadosCxTecido,
-                dsCorPedidoImprimir,
-                dsLocalPedidoImprimir,
-                dsEstiloPedidoImprimir,
-                StRedeSocialProdPedidoImprimir,
-                ObsProdPedidoImprimir,
-                tablegrade,
-                mascaraValor(vrUnitLiqDetPedidoImprimir.toFixed(2)),
-                mascaraValor(vrVendaDetPedidoImprimir.toFixed(2)),
-                mascaraValor(vrTotalDetPedidoImprimir.toFixed(2))
-            ])
-        
-        }
-        
-        //$('#qtdtotalpedidoImprimir').html(
-        //       `<strong>${(totalQtdPedidosImprimir)}</strong> `);
-        
-        //chamarProximaResumoPedidoLista(numPageAtual + 1);
-        //<button type="button" class="btn btn-info btn-xs" title="Editar Produto" id="` +idDetalhePedido +`" onclick="Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
-    
-    }
-    
-    $('#resultadoresumopedidolistaImprimir').html(
-        `<table id="dt-basic-detalhe-pedido-grade" class="bordasimples tbprint">
+
+    //$('#qtdtotalpedidoImprimir').html(
+    //       `<strong>${(totalQtdPedidosImprimir)}</strong> `);
+
+    //chamarProximaResumoPedidoLista(numPageAtual + 1);
+    //<button type="button" class="btn btn-info btn-xs" title="Editar Produto" id="` +idDetalhePedido +`" onclick="Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
+
+  }
+
+  $('#resultadoresumopedidolistaImprimir').html(
+    `<table id="dt-basic-detalhe-pedido-grade" class="bordasimples tbprint">
             <thead>
                 <tr>
                     <th >Grupo</th>
@@ -1686,10 +1686,10 @@ function funcSucessImprimirResumoPedidoLista(respostaImprimirResumoPedidoLista) 
             <tbody id="resultadoPedidosListaImprimir">
             </tbody>
         </table>`
-    );
-    
-    $('#totalPedidosListaImprimir').html(
-        `<table align="right" width="100%" class="semborda tbprint">
+  );
+
+  $('#totalPedidosListaImprimir').html(
+    `<table align="right" width="100%" class="semborda tbprint">
             <tr>
                 <TD width="2.5%" align="center" style="border: 0px solid #000;"><p><b>Qtd Total </b></p></TD>
                 <TD width="5.7%" align="center"><b>${(totalQtdPedidosImprimir)}</b></TD>
@@ -1697,118 +1697,118 @@ function funcSucessImprimirResumoPedidoLista(respostaImprimirResumoPedidoLista) 
                 <TD width="6.8%" align="right"><b>${mascaraValor(totalVrLiqPedidosImprimir.toFixed(2))}</b></TD>
             </tr>
         </table>`
-    );
-    
-    var maxLinhasTable = dataRetorno.length;
-    var groupColumn = 0;
-    $('#dt-basic-detalhe-pedido-grade').DataTable({
-        data: dataRetorno,
-        "columnDefs": [
-            { "visible": false, "targets": groupColumn },
-            { "className": 'text-center', "targets": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
-            { "className": 'text-right', "targets": [13, 14, 15] },
-        
-        ],
-        "order": [[groupColumn, 'asc']],
-        "displayLength": 25,
-        "footerCallback": function (row, data, start, end, display) {
-            var api = this.api(), data;
-            
-            // Remove the formatting to get integer data for summation
-            var intVal = function (i) {
-                return typeof i === 'string' ?
-                i.replace(/[\$,]/g, '') * 1 :
-                typeof i === 'number' ?
-                i : 0;
-            };
-        },
-        "paging": false,
-        "ordering": false,
-        "info": false,
-        "searching": false,
-        "deferRender": true,
-        // scrollY: false,
-        // scrollCollapse: false,
-        // scroller: false,
-        "drawCallback": function (settings) {
-            var api = this.api();
-            var rows = api.rows({ page: 'current' }).nodes();
-            var last = null;
-            var contador = 2;
-            var valorLinha = $('#resultadoPedidosListaImprimir tr td .valorLinhaPedido');
-            var somaValorLinha = 0;
-            var autorizaCondicao = true;
-            
-            api.column(groupColumn, { page: 'current' }).data().each(function (group, i) {
-            
-                if (last !== group) {
-                
-                    if(last){
-                    
-                        $(rows).eq(i).before(
-                            `<tr class="group" ><td colspan="15" style="text-align: right"><label style="color: blue; font-size: 12px;"><strong>${maskValor(somaValorLinha)}</strong></label</td></tr>`
-                        );   
-                        
-                        
-                        $(rows).eq(i).before(
-                            '<tr class="group"><td colspan="15"><label style="color: blue; font-size: 12px; "><strong>' + group + '</strong></label</td></tr>'
-                        );
-                        
-                        somaValorLinha = 0;
-                        somaValorLinha += +(($(valorLinha[contador - 1]).text()).split(','))[0].replace(/\D/g, "");
-                        autorizaCondicao = false;
-                    
-                    } else{
-                        $(rows).eq(i).before(
-                            '<tr class="group"><td colspan="15"><label style="color: blue; font-size: 12px;"><strong>' + group + '</strong></label</td></tr>'
-                        );
-                        somaValorLinha += +(($(valorLinha[i]).text()).split(','))[0].replace(/\D/g, "");
-                        autorizaCondicao = true;
-                    
-                    }
-                    
-                    last = group;
-                
-                }else {
-                    contador++;
-                    somaValorLinha += +(($(valorLinha[i]).text()).split(','))[0].replace(/\D/g, "");
-                    
-                    if(contador == maxLinhasTable){
-                    
-                        if(autorizaCondicao){
-                            somaValorLinha += +(($(valorLinha[contador-1]).text()).split(','))[0].replace(/\D/g, "");
-                        }
-                        
-                        $(rows).eq(maxLinhasTable - 1).after(
-                            `<tr class="group" ><td colspan="15" style="text-align: right"><label style="color: blue; font-size: 12px;"><strong>${maskValor(somaValorLinha)}</strong></label</td></tr>`
-                        );
-                        
-                        somaValorLinha = 0;
-                    }
-                
-                }
-            });
-        },
-    
-    });
-    
-    $("#resultadoresumopedidolistaImprimir").attr("style", "width: 100%");
-    $("#totalPedidosListaImprimir").attr("style", "width: 100%");
-    $(".tbprint").attr("style", "width: 100%");
+  );
+
+  var maxLinhasTable = dataRetorno.length;
+  var groupColumn = 0;
+  $('#dt-basic-detalhe-pedido-grade').DataTable({
+    data: dataRetorno,
+    "columnDefs": [
+      { "visible": false, "targets": groupColumn },
+      { "className": 'text-center', "targets": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
+      { "className": 'text-right', "targets": [13, 14, 15] },
+
+    ],
+    "order": [[groupColumn, 'asc']],
+    "displayLength": 25,
+    "footerCallback": function (row, data, start, end, display) {
+      var api = this.api(), data;
+
+      // Remove the formatting to get integer data for summation
+      var intVal = function (i) {
+        return typeof i === 'string' ?
+          i.replace(/[\$,]/g, '') * 1 :
+          typeof i === 'number' ?
+            i : 0;
+      };
+    },
+    "paging": false,
+    "ordering": false,
+    "info": false,
+    "searching": false,
+    "deferRender": true,
+    // scrollY: false,
+    // scrollCollapse: false,
+    // scroller: false,
+    "drawCallback": function (settings) {
+      var api = this.api();
+      var rows = api.rows({ page: 'current' }).nodes();
+      var last = null;
+      var contador = 2;
+      var valorLinha = $('#resultadoPedidosListaImprimir tr td .valorLinhaPedido');
+      var somaValorLinha = 0;
+      var autorizaCondicao = true;
+
+      api.column(groupColumn, { page: 'current' }).data().each(function (group, i) {
+
+        if (last !== group) {
+
+          if (last) {
+
+            $(rows).eq(i).before(
+              `<tr class="group" ><td colspan="15" style="text-align: right"><label style="color: blue; font-size: 12px;"><strong>${maskValor(somaValorLinha)}</strong></label</td></tr>`
+            );
+
+
+            $(rows).eq(i).before(
+              '<tr class="group"><td colspan="15"><label style="color: blue; font-size: 12px; "><strong>' + group + '</strong></label</td></tr>'
+            );
+
+            somaValorLinha = 0;
+            somaValorLinha += +(($(valorLinha[contador - 1]).text()).split(','))[0].replace(/\D/g, "");
+            autorizaCondicao = false;
+
+          } else {
+            $(rows).eq(i).before(
+              '<tr class="group"><td colspan="15"><label style="color: blue; font-size: 12px;"><strong>' + group + '</strong></label</td></tr>'
+            );
+            somaValorLinha += +(($(valorLinha[i]).text()).split(','))[0].replace(/\D/g, "");
+            autorizaCondicao = true;
+
+          }
+
+          last = group;
+
+        } else {
+          contador++;
+          somaValorLinha += +(($(valorLinha[i]).text()).split(','))[0].replace(/\D/g, "");
+
+          if (contador == maxLinhasTable) {
+
+            if (autorizaCondicao) {
+              somaValorLinha += +(($(valorLinha[contador - 1]).text()).split(','))[0].replace(/\D/g, "");
+            }
+
+            $(rows).eq(maxLinhasTable - 1).after(
+              `<tr class="group" ><td colspan="15" style="text-align: right"><label style="color: blue; font-size: 12px;"><strong>${maskValor(somaValorLinha)}</strong></label</td></tr>`
+            );
+
+            somaValorLinha = 0;
+          }
+
+        }
+      });
+    },
+
+  });
+
+  $("#resultadoresumopedidolistaImprimir").attr("style", "width: 100%");
+  $("#totalPedidosListaImprimir").attr("style", "width: 100%");
+  $(".tbprint").attr("style", "width: 100%");
 
 }
 
 var doc = new jsPDF();
 
 function printDiv(divId) {
-$('.modal-header').addClass('d-none');
-$('#js-page-content').addClass('hidden-print');
-$('.subheader').attr('style', 'display: none');
+  $('.modal-header').addClass('d-none');
+  $('#js-page-content').addClass('hidden-print');
+  $('.subheader').attr('style', 'display: none');
 
-//window.print();
-var conteudo = document.getElementById(divId).innerHTML
-var tela_impressao = window.open('about:blank');
-tela_impressao.document.write(`
+  //window.print();
+  var conteudo = document.getElementById(divId).innerHTML
+  var tela_impressao = window.open('about:blank');
+  tela_impressao.document.write(`
 	<html>
 		<head>
 			<title>${idPedidoImprimir}</title>
@@ -1849,437 +1849,412 @@ tela_impressao.document.write(`
 			</style>
 		</head>
 		<body>`);
-tela_impressao.document.write(conteudo);
-tela_impressao.document.write('</body></html>');
-$('.subheader').attr('style', 'display: ');
-tela_impressao.window.print();
-tela_impressao.window.close();
+  tela_impressao.document.write(conteudo);
+  tela_impressao.document.write('</body></html>');
+  $('.subheader').attr('style', 'display: ');
+  tela_impressao.window.print();
+  tela_impressao.window.close();
 
-setTimeout(()=> {
-$('#js-page-content').removeClass('hidden-print');
-$('.modal-header').removeClass('d-none');
+  setTimeout(() => {
+    $('#js-page-content').removeClass('hidden-print');
+    $('.modal-header').removeClass('d-none');
 
-}, 1000)
+  }, 1000)
 
-//return true;
+  //return true;
 }
 
 function printDivResumido(divId) {
 
-$("#resultadoresumopedidoImprimir").attr("style", "width: 1030px");
-$("#totalesumopedidoImprimir").attr("style", "width: 1030px");
-$(".tbprint").attr("style", "width: 1030px");
+  $("#resultadoresumopedidoImprimir").attr("style", "width: 1030px");
+  $("#totalesumopedidoImprimir").attr("style", "width: 1030px");
+  $(".tbprint").attr("style", "width: 1030px");
 
-let mywindow = window.open('', 'PRINT', 'height=850,width=1300,top=100,left=400');
+  let mywindow = window.open('', 'PRINT', 'height=850,width=1300,top=100,left=400');
 
-mywindow.document.write(`<html><head><title>SoftQuality</title>`);
-mywindow.document.write('</head><body >');
-mywindow.document.write(document.getElementById(divId).innerHTML);
-mywindow.document.write('</body></html>');
+  mywindow.document.write(`<html><head><title>SoftQuality</title>`);
+  mywindow.document.write('</head><body >');
+  mywindow.document.write(document.getElementById(divId).innerHTML);
+  mywindow.document.write('</body></html>');
 
-mywindow.document.close(); // necessary for IE >= 10
-mywindow.focus(); // necessary for IE >= 10*/
+  mywindow.document.close(); // necessary for IE >= 10
+  mywindow.focus(); // necessary for IE >= 10*/
 
-mywindow.print();
-mywindow.close();
-$("#resultadoresumopedidoImprimir").attr("style", "width: 100%");
-$("#totalesumopedidoImprimir").attr("style", "width: 100%");
-$(".tbprint").attr("style", "width: 100%");
+  mywindow.print();
+  mywindow.close();
+  $("#resultadoresumopedidoImprimir").attr("style", "width: 100%");
+  $("#totalesumopedidoImprimir").attr("style", "width: 100%");
+  $(".tbprint").attr("style", "width: 100%");
 
-return true;
-}
-
-function printDivDetalhado(divId) {
-
-$("#resultadodetalhadopedidoImprimir").attr("style", "width: 1030px");
-$("#totalpedidodetalhadoImprimir").attr("style", "width: 1030px");
-$(".tbprint").attr("style", "width: 1030px");
-
-let mywindow = window.open('', 'PRINT', 'height=850,width=1300,top=100,left=400');
-
-mywindow.document.write(`<html><head><title>SoftQuality</title>`);
-mywindow.document.write('</head><body >');
-mywindow.document.write(document.getElementById(divId).innerHTML);
-mywindow.document.write('</body></html>');
-
-mywindow.document.close(); // necessary for IE >= 10
-mywindow.focus(); // necessary for IE >= 10*/
-
-mywindow.print();
-mywindow.close();
-$("#resultadodetalhadopedidoImprimir").attr("style", "width: 100%");
-$("#totalpedidodetalhadoImprimir").attr("style", "width: 100%");
-$(".tbprint").attr("style", "width: 100%");
-
-return true;
+  return true;
 }
 
 function Imprimir_Pedido_SemPreco(id) {
 
-if (window.XMLHttpRequest) {
-// code for IE7+, Firefox, Chrome, Opera, Safari
-xmlhttp = new XMLHttpRequest();
-} else {
-// code for IE6, IE5
-xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-}
+  if (window.XMLHttpRequest) {
+    // code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+  } else {
+    // code for IE6, IE5
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
 
-$("#resultado").html(
-"<div align=\"center\">" +
-"<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
-"<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-"</div>"
-);
+  $("#resultado").html(
+    "<div align=\"center\">" +
+    "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
+    "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
+    "</div>"
+  );
 
-xmlhttp.onreadystatechange = function () {
-if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-  document.getElementById("resultadoImpressaoPedidos").innerHTML = xmlhttp.responseText;
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      document.getElementById("resultadoImpressaoPedidos").innerHTML = xmlhttp.responseText;
 
-  $('.npedido').html(
-	`<div class="text-dark fw-700 h1 mb-g keep-print-font npedido">
+      $('.npedido').html(
+        `<div class="text-dark fw-700 h1 mb-g keep-print-font npedido">
 			 Nº ${id}
 		  </div>`);
 
-  return ajaxGet('api/compras/lista_pedidos.xsjs?idpedido=' + id)
-	.then(retornoImprimirPedidoSemPreco)
-	.catch(funcError);
+      return ajaxGet('api/compras/lista_pedidos.xsjs?idpedido=' + id)
+        .then(retornoImprimirPedidoSemPreco)
+        .catch(funcError);
 
-}
-};
-xmlhttp.open("GET", "compras_action_pdfpedidosempreco.html", true);
-xmlhttp.send();
+    }
+  };
+  xmlhttp.open("GET", "compras_action_pdfpedidosempreco.html", true);
+  xmlhttp.send();
 }
 
 function retornoImprimirPedidoSemPreco(respostaImprimirPedidoSemPreco) {
 
-for (var i = 0; i < respostaImprimirPedidoSemPreco.data.length; i++) {
+  for (var i = 0; i < respostaImprimirPedidoSemPreco.data.length; i++) {
 
-IDPEDIDORESUMO = respostaImprimirPedidoSemPreco.data[i]['IDPEDIDO'];
-IdGrupoPedido = respostaImprimirPedidoSemPreco.data[i]['IDGRUPOPEDIDO'];
-IdSubGrupoPedido = respostaImprimirPedidoSemPreco.data[i]['IDSUBGRUPOPEDIDO'];
-DsSubGrupoPedido = respostaImprimirPedidoSemPreco.data[i]['NOFANTASIA'];
-IdCompradorPedido = respostaImprimirPedidoSemPreco.data[i]['IDCOMPRADOR'];
-DsCompradorPedido = respostaImprimirPedidoSemPreco.data[i]['NOMECOMPRADOR'];
-IdCondiPagPedido = respostaImprimirPedidoSemPreco.data[i]['IDCONDICAOPAGAMENTO'];
-DsCondiPagPedido = respostaImprimirPedidoSemPreco.data[i]['DSCONDICAOPAG'];
-IdFornPedido = respostaImprimirPedidoSemPreco.data[i]['IDFORNECEDOR'];
-DsFornPedido = respostaImprimirPedidoSemPreco.data[i]['NOFORNECEDOR'];
-DsFantFornPedido = respostaImprimirPedidoSemPreco.data[i]['NOFANTASIAFORNECEDOR'];
-contatoFaturamento = respostaImprimirPedidoSemPreco.data[i]['EEMAILFATURAMENTO'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELFATURAMENTO'];
-contatoCobranca = respostaImprimirPedidoSemPreco.data[i]['EEMAILCOBRANCA'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELCOBRANCA'];
-contatoFinanceiro = respostaImprimirPedidoSemPreco.data[i]['EEMAILFINANCEIRO'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELFINANCEIRO'];
-contatoCompras = respostaImprimirPedidoSemPreco.data[i]['EEMAILCOMPRAS'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELCOMPRAS'];
-contatoCadastro = respostaImprimirPedidoSemPreco.data[i]['EEMAILCADASTRO'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELCADASTRO'];
-CnpjFornPedido = respostaImprimirPedidoSemPreco.data[i]['CNPJFORN'];
-InscEstFornPedido = respostaImprimirPedidoSemPreco.data[i]['INSCESTFORN'];
-EmailFornPedido = respostaImprimirPedidoSemPreco.data[i]['EMAILFORN'];
-FoneFornPedido = respostaImprimirPedidoSemPreco.data[i]['FONEFORN'];
-EndFornPedido = respostaImprimirPedidoSemPreco.data[i]['ENDFORN'];
-NumeroFornPedido = respostaImprimirPedidoSemPreco.data[i]['NUMEROFORN'];
-ComplFornPedido = respostaImprimirPedidoSemPreco.data[i]['COMPFORN'];
-BairroFornPedido = respostaImprimirPedidoSemPreco.data[i]['BAIRROFORN'];
-CidadeFornPedido = respostaImprimirPedidoSemPreco.data[i]['CIDADEFORN'];
-UfFornPedido = respostaImprimirPedidoSemPreco.data[i]['UFFORN'];
-CepFornPedido = respostaImprimirPedidoSemPreco.data[i]['CEPFORN'];
-IdTranspPedido = respostaImprimirPedidoSemPreco.data[i]['IDTRANSPORTADORA'];
-DsTranspPedido = respostaImprimirPedidoSemPreco.data[i]['NOMETRANSPORTADORA'];
-IdAndamentoPedido = respostaImprimirPedidoSemPreco.data[i]['IDANDAMENTO'];
-DsAndamentoPedido = respostaImprimirPedidoSemPreco.data[i]['DSANDAMENTO'];
-TipoModPedido = respostaImprimirPedidoSemPreco.data[i]['MODPEDIDO'];
-NoVendedorPedido = respostaImprimirPedidoSemPreco.data[i]['NOVENDEDOR'];
-EmailVendedorPedido = respostaImprimirPedidoSemPreco.data[i]['EEMAILVENDEDOR'];
-DtPedidoNormal = respostaImprimirPedidoSemPreco.data[i]['DTPEDIDOFORMATADA'];
-DtPedidoFormatada = respostaImprimirPedidoSemPreco.data[i]['DTPEDIDO'];
-DtEntregaPedido = respostaImprimirPedidoSemPreco.data[i]['DTPREVENTREGAFORMATADA'];
-DtEntregaPedidoFormatada = respostaImprimirPedidoSemPreco.data[i]['DTENTREGAFORMATADA2'];
-TpFretePedido = respostaImprimirPedidoSemPreco.data[i]['TPFRETE'];
-ObsPedido1 = respostaImprimirPedidoSemPreco.data[i]['OBSPEDIDO'];
-ObsPedido2 = respostaImprimirPedidoSemPreco.data[i]['OBSPEDIDO2'];
-DtFechamentoPedido = respostaImprimirPedidoSemPreco.data[i]['DTFECHAMENTOPEDIDO'];
-DtCadastroPedido = respostaImprimirPedidoSemPreco.data[i]['DTCADASTRO'];
-TpArquivoPedido = respostaImprimirPedidoSemPreco.data[i]['TPARQUIVO'];
-StDistribuidoPedido = respostaImprimirPedidoSemPreco.data[i]['STDISTRIBUIDO'];
-StAgrupaProdPedido = respostaImprimirPedidoSemPreco.data[i]['STAGRUPAPRODUTO'];
-TotalItensPedido = respostaImprimirPedidoSemPreco.data[i]['NUTOTALITENS'];
-QtdProdPedido = respostaImprimirPedidoSemPreco.data[i]['QTDTOTPRODUTOS'];
-VrTotalBrutoPedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['VRTOTALBRUTO']).toFixed(2));
-VrTotalLiqPedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['VRTOTALLIQUIDO']).toFixed(2));
-VrDesc01Pedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['DESCPERC01']).toFixed(2));
-VrDesc02Pedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['DESCPERC02']).toFixed(2));
-VrDesc03Pedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['DESCPERC03']).toFixed(2));
-VrComisPedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['PERCCOMISSAO']).toFixed(2));
-TpFiscalPedido = respostaImprimirPedidoSemPreco.data[i]['TPFISCAL'];
-StCancelaPedido = respostaImprimirPedidoSemPreco.data[i]['STCANCELADO'];
-TpEnviar = respostaImprimirPedidoSemPreco.data[i]['TPARQUIVO'];
-DsFabricantePedido = respostaImprimirPedidoSemPreco.data[i]['FABRICANTE'];
+    IDPEDIDORESUMO = respostaImprimirPedidoSemPreco.data[i]['IDPEDIDO'];
+    IdGrupoPedido = respostaImprimirPedidoSemPreco.data[i]['IDGRUPOPEDIDO'];
+    IdSubGrupoPedido = respostaImprimirPedidoSemPreco.data[i]['IDSUBGRUPOPEDIDO'];
+    DsSubGrupoPedido = respostaImprimirPedidoSemPreco.data[i]['NOFANTASIA'];
+    IdCompradorPedido = respostaImprimirPedidoSemPreco.data[i]['IDCOMPRADOR'];
+    DsCompradorPedido = respostaImprimirPedidoSemPreco.data[i]['NOMECOMPRADOR'];
+    IdCondiPagPedido = respostaImprimirPedidoSemPreco.data[i]['IDCONDICAOPAGAMENTO'];
+    DsCondiPagPedido = respostaImprimirPedidoSemPreco.data[i]['DSCONDICAOPAG'];
+    IdFornPedido = respostaImprimirPedidoSemPreco.data[i]['IDFORNECEDOR'];
+    DsFornPedido = respostaImprimirPedidoSemPreco.data[i]['NOFORNECEDOR'];
+    DsFantFornPedido = respostaImprimirPedidoSemPreco.data[i]['NOFANTASIAFORNECEDOR'];
+    contatoFaturamento = respostaImprimirPedidoSemPreco.data[i]['EEMAILFATURAMENTO'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELFATURAMENTO'];
+    contatoCobranca = respostaImprimirPedidoSemPreco.data[i]['EEMAILCOBRANCA'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELCOBRANCA'];
+    contatoFinanceiro = respostaImprimirPedidoSemPreco.data[i]['EEMAILFINANCEIRO'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELFINANCEIRO'];
+    contatoCompras = respostaImprimirPedidoSemPreco.data[i]['EEMAILCOMPRAS'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELCOMPRAS'];
+    contatoCadastro = respostaImprimirPedidoSemPreco.data[i]['EEMAILCADASTRO'] + " - " + respostaImprimirPedidoSemPreco.data[i]['NUTELCADASTRO'];
+    CnpjFornPedido = respostaImprimirPedidoSemPreco.data[i]['CNPJFORN'];
+    InscEstFornPedido = respostaImprimirPedidoSemPreco.data[i]['INSCESTFORN'];
+    EmailFornPedido = respostaImprimirPedidoSemPreco.data[i]['EMAILFORN'];
+    FoneFornPedido = respostaImprimirPedidoSemPreco.data[i]['FONEFORN'];
+    EndFornPedido = respostaImprimirPedidoSemPreco.data[i]['ENDFORN'];
+    NumeroFornPedido = respostaImprimirPedidoSemPreco.data[i]['NUMEROFORN'];
+    ComplFornPedido = respostaImprimirPedidoSemPreco.data[i]['COMPFORN'];
+    BairroFornPedido = respostaImprimirPedidoSemPreco.data[i]['BAIRROFORN'];
+    CidadeFornPedido = respostaImprimirPedidoSemPreco.data[i]['CIDADEFORN'];
+    UfFornPedido = respostaImprimirPedidoSemPreco.data[i]['UFFORN'];
+    CepFornPedido = respostaImprimirPedidoSemPreco.data[i]['CEPFORN'];
+    IdTranspPedido = respostaImprimirPedidoSemPreco.data[i]['IDTRANSPORTADORA'];
+    DsTranspPedido = respostaImprimirPedidoSemPreco.data[i]['NOMETRANSPORTADORA'];
+    IdAndamentoPedido = respostaImprimirPedidoSemPreco.data[i]['IDANDAMENTO'];
+    DsAndamentoPedido = respostaImprimirPedidoSemPreco.data[i]['DSANDAMENTO'];
+    TipoModPedido = respostaImprimirPedidoSemPreco.data[i]['MODPEDIDO'];
+    NoVendedorPedido = respostaImprimirPedidoSemPreco.data[i]['NOVENDEDOR'];
+    EmailVendedorPedido = respostaImprimirPedidoSemPreco.data[i]['EEMAILVENDEDOR'];
+    DtPedidoNormal = respostaImprimirPedidoSemPreco.data[i]['DTPEDIDOFORMATADA'];
+    DtPedidoFormatada = respostaImprimirPedidoSemPreco.data[i]['DTPEDIDO'];
+    DtEntregaPedido = respostaImprimirPedidoSemPreco.data[i]['DTPREVENTREGAFORMATADA'];
+    DtEntregaPedidoFormatada = respostaImprimirPedidoSemPreco.data[i]['DTENTREGAFORMATADA2'];
+    TpFretePedido = respostaImprimirPedidoSemPreco.data[i]['TPFRETE'];
+    ObsPedido1 = respostaImprimirPedidoSemPreco.data[i]['OBSPEDIDO'];
+    ObsPedido2 = respostaImprimirPedidoSemPreco.data[i]['OBSPEDIDO2'];
+    DtFechamentoPedido = respostaImprimirPedidoSemPreco.data[i]['DTFECHAMENTOPEDIDO'];
+    DtCadastroPedido = respostaImprimirPedidoSemPreco.data[i]['DTCADASTRO'];
+    TpArquivoPedido = respostaImprimirPedidoSemPreco.data[i]['TPARQUIVO'];
+    StDistribuidoPedido = respostaImprimirPedidoSemPreco.data[i]['STDISTRIBUIDO'];
+    StAgrupaProdPedido = respostaImprimirPedidoSemPreco.data[i]['STAGRUPAPRODUTO'];
+    TotalItensPedido = respostaImprimirPedidoSemPreco.data[i]['NUTOTALITENS'];
+    QtdProdPedido = respostaImprimirPedidoSemPreco.data[i]['QTDTOTPRODUTOS'];
+    VrTotalBrutoPedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['VRTOTALBRUTO']).toFixed(2));
+    VrTotalLiqPedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['VRTOTALLIQUIDO']).toFixed(2));
+    VrDesc01Pedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['DESCPERC01']).toFixed(2));
+    VrDesc02Pedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['DESCPERC02']).toFixed(2));
+    VrDesc03Pedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['DESCPERC03']).toFixed(2));
+    VrComisPedido = mascaraValor(parseFloat(respostaImprimirPedidoSemPreco.data[i]['PERCCOMISSAO']).toFixed(2));
+    TpFiscalPedido = respostaImprimirPedidoSemPreco.data[i]['TPFISCAL'];
+    StCancelaPedido = respostaImprimirPedidoSemPreco.data[i]['STCANCELADO'];
+    TpEnviar = respostaImprimirPedidoSemPreco.data[i]['TPARQUIVO'];
+    DsFabricantePedido = respostaImprimirPedidoSemPreco.data[i]['FABRICANTE'];
 
-$('#tipodopedido').val(TipoModPedido);
+    $('#tipodopedido').val(TipoModPedido);
 
-if(IdSubGrupoPedido == 1) {
-	var logoPedido = logoTesoura;
-} else if(IdSubGrupoPedido == 2){
-	var logoPedido = logoMagazine;
-} else if(IdSubGrupoPedido == 4){
-	var logoPedido = logoFreeCenter;
-} else {
-	var logoPedido = logoYorus;
-}
+    if (IdSubGrupoPedido == 1) {
+      var logoPedido = logoTesoura;
+    } else if (IdSubGrupoPedido == 2) {
+      var logoPedido = logoMagazine;
+    } else if (IdSubGrupoPedido == 4) {
+      var logoPedido = logoFreeCenter;
+    } else {
+      var logoPedido = logoYorus;
+    }
 
-if (TpArquivoPedido == 'NE') {
-  DsTipoArquivoPedido = 'NÃO ENVIAR';
-} else if (TpArquivoPedido == 'ET') {
-  DsTipoArquivoPedido = 'ETIQUETA';
-} else if (TpArquivoPedido == 'AR') {
-  DsTipoArquivoPedido = 'ARQUIVO';
-}
+    if (TpArquivoPedido == 'NE') {
+      DsTipoArquivoPedido = 'NÃO ENVIAR';
+    } else if (TpArquivoPedido == 'ET') {
+      DsTipoArquivoPedido = 'ETIQUETA';
+    } else if (TpArquivoPedido == 'AR') {
+      DsTipoArquivoPedido = 'ARQUIVO';
+    }
 
-if (TpFretePedido == 'PAGO') {
-  DsTpFretePedido = 'PAGO - CIF';
-} else if (TpFretePedido == 'APAGAR') {
-  DsTpFretePedido = 'A PAGAR - FOB';
-}
+    if (TpFretePedido == 'PAGO') {
+      DsTpFretePedido = 'PAGO - CIF';
+    } else if (TpFretePedido == 'APAGAR') {
+      DsTpFretePedido = 'A PAGAR - FOB';
+    }
 
-if (TpFiscalPedido == 'N') {
-  DsTpFiscalPedido = 'Lucro Presumido';
-} else if (TpFiscalPedido == 'S') {
-  DsTpFiscalPedido = 'Simples Nacional';
-} else {
-  DsTpFiscalPedido = 'Lucro Real';
-}
+    if (TpFiscalPedido == 'N') {
+      DsTpFiscalPedido = 'Lucro Presumido';
+    } else if (TpFiscalPedido == 'S') {
+      DsTpFiscalPedido = 'Simples Nacional';
+    } else {
+      DsTpFiscalPedido = 'Lucro Real';
+    }
 
-if (TpEnviar == 'NE') {
-  DsTpEnviar = 'NÃO ENVIAR';
-} else if (TpEnviar == 'ET') {
-  DsTpEnviar = 'ETIQUETA';
-} else {
-  DsTpEnviar = 'ARQUIVO';
-}
+    if (TpEnviar == 'NE') {
+      DsTpEnviar = 'NÃO ENVIAR';
+    } else if (TpEnviar == 'ET') {
+      DsTpEnviar = 'ETIQUETA';
+    } else {
+      DsTpEnviar = 'ARQUIVO';
+    }
 
-$('#marcapedido').html(
-  `<img src=${logoPedido} style="width: 200px">`);
+    $('#marcapedido').html(
+      `<img src=${logoPedido} style="width: 200px">`);
 
-$('#tipopedido').html(
-  `<p style="font-size:16px;"> PEDIDO DE COMPRAS<br>${(TipoModPedido)}</p><br>
+    $('#tipopedido').html(
+      `<p style="font-size:16px;"> PEDIDO DE COMPRAS<br>${(TipoModPedido)}</p><br>
    <p style="font-size:16px;">Nº: <b>${(IDPEDIDORESUMO)}</b></p>`);
 
-$('#fornecedorpedidoImprimir').html(
-  `Fabricante: <br><b><p style="font-size:13px;">${(DsFabricantePedido)}</p></b>`);
+    $('#fornecedorpedidoImprimir').html(
+      `Fabricante: <br><b><p style="font-size:13px;">${(DsFabricantePedido)}</p></b>`);
 
-$('#razaofornecedorpedidoImprimir').html(
-  `Razão Social Fornecedor: <br><p style="font-size:13px;">${(DsFornPedido)}</p>`);
-  
-$('#infoContatoImprimir').html(`
+    $('#razaofornecedorpedidoImprimir').html(
+      `Razão Social Fornecedor: <br><p style="font-size:13px;">${(DsFornPedido)}</p>`);
+
+    $('#infoContatoImprimir').html(`
 	E-mail: <br>Faturamento: ${contatoFaturamento}  <br>Cobrança: ${contatoCobranca}  <br>Financeiro: ${contatoFinanceiro}  <br>Compras: ${contatoCompras}  <br>Cadastro: ${contatoCompras}
 `);
 
-$('#cnpjpedidoImprimir').html(
-  `CNPJ: <br><p style="font-size:13px;">${(CnpjFornPedido)}</p> `);
+    $('#cnpjpedidoImprimir').html(
+      `CNPJ: <br><p style="font-size:13px;">${(CnpjFornPedido)}</p> `);
 
-$('#emailforncpedidoImprimir').html(
-  `Email: <br><p style="font-size:13px;">${(EmailFornPedido)}</p> `);
+    $('#emailforncpedidoImprimir').html(
+      `Email: <br><p style="font-size:13px;">${(EmailFornPedido)}</p> `);
 
-$('#foneforncpedidoImprimir').html(
-  `Tel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
+    $('#foneforncpedidoImprimir').html(
+      `Tel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
 
-$('#iepedidoImprimir').html(
-  `INSC EST: <br><p style="font-size:13px;">${(InscEstFornPedido)}</p> `);
+    $('#iepedidoImprimir').html(
+      `INSC EST: <br><p style="font-size:13px;">${(InscEstFornPedido)}</p> `);
 
-$('#fonecelularforncpedidoImprimir').html(
-  `Cel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
+    $('#fonecelularforncpedidoImprimir').html(
+      `Cel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
 
-$('#datapedidoImprimir').html(
-  `Data do Pedido: <br><p style="font-size:13px;">${(DtPedidoFormatada)}</p> `);
+    $('#datapedidoImprimir').html(
+      `Data do Pedido: <br><p style="font-size:13px;">${(DtPedidoFormatada)}</p> `);
 
-$('#dataentregapedidoImprimir').html(
-  `Data da Entrega: <br><p style="font-size:13px;">${(DtEntregaPedidoFormatada)}</p> `);
+    $('#dataentregapedidoImprimir').html(
+      `Data da Entrega: <br><p style="font-size:13px;">${(DtEntregaPedidoFormatada)}</p> `);
 
-$('#endforncpedidoImprimir').html(
-  `Endereço: <br><p style="font-size:13px;">${(EndFornPedido)}</p> `);
+    $('#endforncpedidoImprimir').html(
+      `Endereço: <br><p style="font-size:13px;">${(EndFornPedido)}</p> `);
 
-$('#complforncpedidoImprimir').html(
-  `Complemento: <br><p style="font-size:13px;">${(ComplFornPedido)}</p> <strong></strong> `);
+    $('#complforncpedidoImprimir').html(
+      `Complemento: <br><p style="font-size:13px;">${(ComplFornPedido)}</p> <strong></strong> `);
 
-$('#compradorpedidoImprimir').html(
-  `Comprador: <br><p style="font-size:13px;">${(DsCompradorPedido)}</p> `);
+    $('#compradorpedidoImprimir').html(
+      `Comprador: <br><p style="font-size:13px;">${(DsCompradorPedido)}</p> `);
 
-$('#numeroforncpedidoImprimir').html(
-  `N°: <br><p style="font-size:13px;">${(NumeroFornPedido)}</p> `);
+    $('#numeroforncpedidoImprimir').html(
+      `N°: <br><p style="font-size:13px;">${(NumeroFornPedido)}</p> `);
 
-$('#bairroforncpedidoImprimir').html(
-  `Bairro: <br><p style="font-size:13px;">${(BairroFornPedido)}</p> `);
+    $('#bairroforncpedidoImprimir').html(
+      `Bairro: <br><p style="font-size:13px;">${(BairroFornPedido)}</p> `);
 
-$('#transpforncpedidoImprimir').html(
-  `Transportadora/Telefone: <br><p style="font-size:13px;">${(DsTranspPedido)} - </p> `);
+    $('#transpforncpedidoImprimir').html(
+      `Transportadora/Telefone: <br><p style="font-size:13px;">${(DsTranspPedido)} - </p> `);
 
-$('#vendedorpedidoImprimir').html(
-  `Vendedor: <br><p style="font-size:13px;">${(NoVendedorPedido)}</p> `);
+    $('#vendedorpedidoImprimir').html(
+      `Vendedor: <br><p style="font-size:13px;">${(NoVendedorPedido)}</p> `);
 
-$('#cidadeforncpedidoImprimir').html(
-  `Cidade: <br><p style="font-size:13px;">${(CidadeFornPedido)}</p> `);
+    $('#cidadeforncpedidoImprimir').html(
+      `Cidade: <br><p style="font-size:13px;">${(CidadeFornPedido)}</p> `);
 
-$('#desc1pedidoImprimir').html(
-  `Desc. I (%): <br><p style="font-size:13px;">${(VrDesc01Pedido)}</p> `);
+    $('#desc1pedidoImprimir').html(
+      `Desc. I (%): <br><p style="font-size:13px;">${(VrDesc01Pedido)}</p> `);
 
-$('#desc2pedidoImprimir').html(
-  `Desc. II(%): <br><p style="font-size:13px;">${(VrDesc02Pedido)}</p> `);
+    $('#desc2pedidoImprimir').html(
+      `Desc. II(%): <br><p style="font-size:13px;">${(VrDesc02Pedido)}</p> `);
 
-$('#desc3pedidoImprimir').html(
-  `Desc. III(%): <br><p style="font-size:13px;">${(VrDesc03Pedido)}</p> `);
+    $('#desc3pedidoImprimir').html(
+      `Desc. III(%): <br><p style="font-size:13px;">${(VrDesc03Pedido)}</p> `);
 
-$('#condpagpedidoImprimir').html(
-  `Cond. Pagamento: <br><p style="font-size:13px;">${(DsCondiPagPedido)}</p> `);
+    $('#condpagpedidoImprimir').html(
+      `Cond. Pagamento: <br><p style="font-size:13px;">${(DsCondiPagPedido)}</p> `);
 
-$('#cepforncpedidoImprimir').html(
-  `CEP: <br><p style="font-size:13px;">${(CepFornPedido)}</p> `);
+    $('#cepforncpedidoImprimir').html(
+      `CEP: <br><p style="font-size:13px;">${(CepFornPedido)}</p> `);
 
-$('#ufforncpedidoImprimir').html(
-  `UF: <br><p style="font-size:13px;">${(UfFornPedido)}</p> `);
+    $('#ufforncpedidoImprimir').html(
+      `UF: <br><p style="font-size:13px;">${(UfFornPedido)}</p> `);
 
-$('#freteforncpedidoImprimir').html(
-  `Frete: <br><p style="font-size:13px;">${(DsTpFretePedido)}</p> `);
+    $('#freteforncpedidoImprimir').html(
+      `Frete: <br><p style="font-size:13px;">${(DsTpFretePedido)}</p> `);
 
-$('#obs1pedidoImprimir').html(
-  `Observações: <br><p style="font-size:9px;">${(ObsPedido1)} - ${(ObsPedido2)}</p> `);
+    $('#obs1pedidoImprimir').html(
+      `Observações: <br><p style="font-size:9px;">${(ObsPedido1)} - ${(ObsPedido2)}</p> `);
 
-$('#comissaopedidoImprimir').html(
-  `Comissão: <br><p style="font-size:13px;">${(VrComisPedido)} </p> `);
+    $('#comissaopedidoImprimir').html(
+      `Comissão: <br><p style="font-size:13px;">${(VrComisPedido)} </p> `);
 
-$('#fiscalpedidoImprimir').html(
-  `Fiscal: <br><p style="font-size:13px;">${(DsTpFiscalPedido)} </p> `);
+    $('#fiscalpedidoImprimir').html(
+      `Fiscal: <br><p style="font-size:13px;">${(DsTpFiscalPedido)} </p> `);
 
-$('#enviarpedidoImprimir').html(
-  `Enviar: <br><p style="font-size:13px;">${(DsTpEnviar)} </p> `);
+    $('#enviarpedidoImprimir').html(
+      `Enviar: <br><p style="font-size:13px;">${(DsTpEnviar)} </p> `);
 
-$('#tipopedidoImprimir').html(
-  `Tipo: <br><p style="font-size:13px;">${(TipoModPedido)} </p> `);
+    $('#tipopedidoImprimir').html(
+      `Tipo: <br><p style="font-size:13px;">${(TipoModPedido)} </p> `);
 
-}
+  }
 
-$('#modalImpressaoPedido').modal('show');
+  $('#modalImpressaoPedido').modal('show');
 
-return ajaxGet('api/compras/lista_detalhepedidosgrade.xsjs?idpedido=' + IDPEDIDORESUMO)
-.then(funcSucessImprimirResumoPedidoListaSemPreco)
-.catch(funcError);
+  return ajaxGet('api/compras/lista_detalhepedidosgrade.xsjs?idpedido=' + IDPEDIDORESUMO)
+    .then(funcSucessImprimirResumoPedidoListaSemPreco)
+    .catch(funcError);
 }
 
 function funcSucessImprimirResumoPedidoListaSemPreco(respostaImprimirResumoPedidoListaSemPreco) {
 
-contadorDetPedidoImprimir = 0;
-totalVrBrutoPedidosImprimir = 0;
-totalVrLiqPedidosImprimir = 0;
-totalQtdPedidosImprimir = 0;
-dataRetorno = [];
+  contadorDetPedidoImprimir = 0;
+  totalVrBrutoPedidosImprimir = 0;
+  totalVrLiqPedidosImprimir = 0;
+  totalQtdPedidosImprimir = 0;
+  dataRetorno = [];
 
-TpModPedido = $("#tipodopedido").val();
+  TpModPedido = $("#tipodopedido").val();
 
-if(TpModPedido == 'CALCADOS'){
-  txtCxTec = 'Caixas';
-}else{
-  txtCxTec = 'Tecido';
-}
-
-var numPageAtual = parseInt(respostaImprimirResumoPedidoListaSemPreco.page);
-if (numPageAtual === 1) {
-totalVrPedidosListaImprimir = 0;
-}
-
-if (respostaImprimirResumoPedidoListaSemPreco.data.length != 0) {
-
-for (var i = 0; i < respostaImprimirResumoPedidoListaSemPreco.data.length; i++) {
-  contadorDetPedidoImprimir++;
-
-  idPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['IDPEDIDO'];
-  idDetalhePedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['IDDETPEDIDO'];
-  catDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSCATEGORIAPEDIDO'];
-  SubGrupoDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSSUBGRUPOESTRUTURA'];
-  GrupoDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSGRUPOESTRUTURA'];
-  qtdDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['QTDTOTAL'];
-  NuCxDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['NUCAIXA'];
-  unidadeDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSSIGLA'];
-  refDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['NUREF'];
-  dsDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSPRODUTO'];
-  dsCorPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSCOR'];
-  dsLocalPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSLOCALEXPOSICAO'];
-  dsEstiloPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSESTILO'];
-  ObsProdPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['OBSPRODUTO'];
-  StEcommerceProdPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['STECOMMERCE'];
-  StRedeSocialProdPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['STREDESOCIAL'];
-  dsTecidoPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSTIPOTECIDO'];
-
-  vrUnitBrutoDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['VRUNITLIQDETALHEPEDIDO']));
-  vrUnitLiqDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['VRUNITLIQDETALHEPEDIDO']));
-  vrVendaDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['VRVENDADETALHEPEDIDO']));
-  vrTotalDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['VRTOTALDETALHEPEDIDO']));
-
-  totalVrBrutoPedidosImprimir = parseFloat(totalVrBrutoPedidosImprimir) + parseFloat(vrTotalDetPedidoImprimir);
-  totalVrLiqPedidosImprimir = parseFloat(totalVrLiqPedidosImprimir) + parseFloat(vrTotalDetPedidoImprimir);
-  totalQtdPedidosImprimir = (totalQtdPedidosImprimir) + (qtdDetPedidoImprimir);
-  
-  var grupoEstruturaImprimir = `${GrupoDetPedidoImprimir} / ${SubGrupoDetPedidoImprimir}`;
-
-	if(TpModPedido == 'CALCADOS'){
-		DadosCxTecido = NuCxDetPedidoImprimir;
-	}else{
-		DadosCxTecido = dsTecidoPedidoImprimir;
-	}
-	
-  if (StEcommerceProdPedidoImprimir == 'True') {
-	StEcommerceProdPedidoImprimir = 'SIM';
+  if (TpModPedido == 'CALCADOS') {
+    txtCxTec = 'Caixas';
   } else {
-	StEcommerceProdPedidoImprimir = 'NÃO';
+    txtCxTec = 'Tecido';
   }
 
-  if (StRedeSocialProdPedidoImprimir == 'True') {
-	StRedeSocialProdPedidoImprimir = 'SIM';
-  } else {
-	StRedeSocialProdPedidoImprimir = 'NÃO';
+  var numPageAtual = parseInt(respostaImprimirResumoPedidoListaSemPreco.page);
+  if (numPageAtual === 1) {
+    totalVrPedidosListaImprimir = 0;
   }
 
-  var tablegrade = '<table width="100%"><tbody><tr>';
+  if (respostaImprimirResumoPedidoListaSemPreco.data.length != 0) {
 
-  var tablegradetd = '';
+    for (var i = 0; i < respostaImprimirResumoPedidoListaSemPreco.data.length; i++) {
+      contadorDetPedidoImprimir++;
 
-  for (var j = 0; j < respostaImprimirResumoPedidoListaSemPreco.data[i].detalhegrade.length; j++) {
+      idPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['IDPEDIDO'];
+      idDetalhePedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['IDDETPEDIDO'];
+      catDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSCATEGORIAPEDIDO'];
+      SubGrupoDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSSUBGRUPOESTRUTURA'];
+      GrupoDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSGRUPOESTRUTURA'];
+      qtdDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['QTDTOTAL'];
+      NuCxDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['NUCAIXA'];
+      unidadeDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSSIGLA'];
+      refDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['NUREF'];
+      dsDetPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSPRODUTO'];
+      dsCorPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSCOR'];
+      dsLocalPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSLOCALEXPOSICAO'];
+      dsEstiloPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSESTILO'];
+      ObsProdPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['OBSPRODUTO'];
+      StEcommerceProdPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['STECOMMERCE'];
+      StRedeSocialProdPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['STREDESOCIAL'];
+      dsTecidoPedidoImprimir = respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['DSTIPOTECIDO'];
 
-	DsTamanhoGrade = respostaImprimirResumoPedidoListaSemPreco.data[i].detalhegrade[j]['DSTAMANHO'];
-	QtdTamanhoGrade = respostaImprimirResumoPedidoListaSemPreco.data[i].detalhegrade[j]['INDICETAMANHO'];
+      vrUnitBrutoDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['VRUNITLIQDETALHEPEDIDO']));
+      vrUnitLiqDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['VRUNITLIQDETALHEPEDIDO']));
+      vrVendaDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['VRVENDADETALHEPEDIDO']));
+      vrTotalDetPedidoImprimir = (parseFloat(respostaImprimirResumoPedidoListaSemPreco.data[i]['detpedido']['VRTOTALDETALHEPEDIDO']));
 
-	tablegradetd = tablegradetd + '<td align="center" style="font-size: 08px;" width="4.5%">' + DsTamanhoGrade + '<br><b>' + QtdTamanhoGrade + '</b></td>'
+      totalVrBrutoPedidosImprimir = parseFloat(totalVrBrutoPedidosImprimir) + parseFloat(vrTotalDetPedidoImprimir);
+      totalVrLiqPedidosImprimir = parseFloat(totalVrLiqPedidosImprimir) + parseFloat(vrTotalDetPedidoImprimir);
+      totalQtdPedidosImprimir = (totalQtdPedidosImprimir) + (qtdDetPedidoImprimir);
+
+      var grupoEstruturaImprimir = `${GrupoDetPedidoImprimir} / ${SubGrupoDetPedidoImprimir}`;
+
+      if (TpModPedido == 'CALCADOS') {
+        DadosCxTecido = NuCxDetPedidoImprimir;
+      } else {
+        DadosCxTecido = dsTecidoPedidoImprimir;
+      }
+
+      if (StEcommerceProdPedidoImprimir == 'True') {
+        StEcommerceProdPedidoImprimir = 'SIM';
+      } else {
+        StEcommerceProdPedidoImprimir = 'NÃO';
+      }
+
+      if (StRedeSocialProdPedidoImprimir == 'True') {
+        StRedeSocialProdPedidoImprimir = 'SIM';
+      } else {
+        StRedeSocialProdPedidoImprimir = 'NÃO';
+      }
+
+      var tablegrade = '<table width="100%"><tbody><tr>';
+
+      var tablegradetd = '';
+
+      for (var j = 0; j < respostaImprimirResumoPedidoListaSemPreco.data[i].detalhegrade.length; j++) {
+
+        DsTamanhoGrade = respostaImprimirResumoPedidoListaSemPreco.data[i].detalhegrade[j]['DSTAMANHO'];
+        QtdTamanhoGrade = respostaImprimirResumoPedidoListaSemPreco.data[i].detalhegrade[j]['INDICETAMANHO'];
+
+        tablegradetd = tablegradetd + '<td align="center" style="font-size: 08px;" width="4.5%">' + DsTamanhoGrade + '<br><b>' + QtdTamanhoGrade + '</b></td>'
+      }
+
+      tablegrade = tablegrade + tablegradetd;
+      tablegrade = tablegrade + '</tr></tbody></table>';
+
+      dataRetorno.push([
+        grupoEstruturaImprimir,
+        contadorDetPedidoImprimir,
+        qtdDetPedidoImprimir,
+        unidadeDetPedidoImprimir,
+        refDetPedidoImprimir,
+        dsDetPedidoImprimir,
+        DadosCxTecido,
+        dsCorPedidoImprimir,
+        dsLocalPedidoImprimir,
+        dsEstiloPedidoImprimir,
+        StRedeSocialProdPedidoImprimir,
+        ObsProdPedidoImprimir,
+        tablegrade,
+        mascaraValor(vrUnitLiqDetPedidoImprimir.toFixed(2)),
+        mascaraValor(vrTotalDetPedidoImprimir.toFixed(2))
+      ])
+
+    }
+
+    //$('#qtdtotalpedidoImprimir').html(
+    //       `<strong>${(totalQtdPedidosImprimir)}</strong> `);
+
+    //chamarProximaResumoPedidoLista(numPageAtual + 1);
+    //<button type="button" class="btn btn-info btn-xs" title="Editar Produto" id="` +idDetalhePedido +`" onclick="Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
+
   }
 
-  tablegrade = tablegrade + tablegradetd;
-  tablegrade = tablegrade + '</tr></tbody></table>';
-
-  dataRetorno.push([
-	grupoEstruturaImprimir,
-	contadorDetPedidoImprimir,
-	qtdDetPedidoImprimir,
-	unidadeDetPedidoImprimir,
-	refDetPedidoImprimir,
-	dsDetPedidoImprimir,
-	DadosCxTecido,
-	dsCorPedidoImprimir,
-	dsLocalPedidoImprimir,
-	dsEstiloPedidoImprimir,
-	StRedeSocialProdPedidoImprimir,
-	ObsProdPedidoImprimir,
-	tablegrade,
-	mascaraValor(vrUnitLiqDetPedidoImprimir.toFixed(2)),
-	mascaraValor(vrTotalDetPedidoImprimir.toFixed(2))
-  ])
-
-}
-
-//$('#qtdtotalpedidoImprimir').html(
-//       `<strong>${(totalQtdPedidosImprimir)}</strong> `);
-
-//chamarProximaResumoPedidoLista(numPageAtual + 1);
-//<button type="button" class="btn btn-info btn-xs" title="Editar Produto" id="` +idDetalhePedido +`" onclick="Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
-
-}
-
-$('#resultadoresumopedidolistaImprimir').html(
-`<table id="dt-basic-detalhe-pedido-grade" class="bordasimples tbprint">
+  $('#resultadoresumopedidolistaImprimir').html(
+    `<table id="dt-basic-detalhe-pedido-grade" class="bordasimples tbprint">
 			  <thead>
 				  <tr>
 					  <th >Grupo</th>
@@ -2302,10 +2277,10 @@ $('#resultadoresumopedidolistaImprimir').html(
 			  <tbody id="resultadoPedidosListaImprimir">
 			  </tbody>
 		  </table>`
-);
+  );
 
-$('#totalPedidosListaImprimir').html(
-`<table align="right" width="100%" class="semborda tbprint">
+  $('#totalPedidosListaImprimir').html(
+    `<table align="right" width="100%" class="semborda tbprint">
 			  <tr>
 					  <TD width="2.5%" align="center" style="border: 0px solid #000;"><p><b>Qtd Total </b></p></TD>
 					  <TD width="5.7%" align="center"><b>${(totalQtdPedidosImprimir)}</b></TD>
@@ -2313,130 +2288,130 @@ $('#totalPedidosListaImprimir').html(
 					  <TD width="6.8%" align="right"><b>${mascaraValor(totalVrLiqPedidosImprimir.toFixed(2))}</b></TD>
 			  </tr>
 		  </table>`
-);
+  );
 
-var groupColumn = 0;
-$('#dt-basic-detalhe-pedido-grade').DataTable({
-data: dataRetorno,
-"columnDefs": [
-  { "visible": false, "targets": groupColumn },
-  { "className": 'text-center', "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
-  { "className": 'text-right', "targets": [13, 14] },
+  var groupColumn = 0;
+  $('#dt-basic-detalhe-pedido-grade').DataTable({
+    data: dataRetorno,
+    "columnDefs": [
+      { "visible": false, "targets": groupColumn },
+      { "className": 'text-center', "targets": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
+      { "className": 'text-right', "targets": [13, 14] },
 
-],
-"order": [[groupColumn, 'asc']],
-"displayLength": 25,
-"footerCallback": function (row, data, start, end, display) {
-  var api = this.api(), data;
+    ],
+    "order": [[groupColumn, 'asc']],
+    "displayLength": 25,
+    "footerCallback": function (row, data, start, end, display) {
+      var api = this.api(), data;
 
-  // Remove the formatting to get integer data for summation
-  var intVal = function (i) {
-	return typeof i === 'string' ?
-	  i.replace(/[\$,]/g, '') * 1 :
-	  typeof i === 'number' ?
-		i : 0;
-  };
-},
-"paging": false,
-"ordering": false,
-"info": false,
-"searching": false,
-deferRender: true,
-// scrollY: false,
-// scrollCollapse: false,
-// scroller: false,
-"drawCallback": function (settings) {
-  var api = this.api();
-  var rows = api.rows({ page: 'current' }).nodes();
-  var last = null;
+      // Remove the formatting to get integer data for summation
+      var intVal = function (i) {
+        return typeof i === 'string' ?
+          i.replace(/[\$,]/g, '') * 1 :
+          typeof i === 'number' ?
+            i : 0;
+      };
+    },
+    "paging": false,
+    "ordering": false,
+    "info": false,
+    "searching": false,
+    deferRender: true,
+    // scrollY: false,
+    // scrollCollapse: false,
+    // scroller: false,
+    "drawCallback": function (settings) {
+      var api = this.api();
+      var rows = api.rows({ page: 'current' }).nodes();
+      var last = null;
 
-  api.column(groupColumn, { page: 'current' }).data().each(function (group, i) {
-	if (last !== group) {
-	  $(rows).eq(i).before(
-		'<tr class="group"><td colspan="14"><label style="color: blue; font-size: 12px; "><strong>' + group + '</strong></label</td></tr>'
-	  );
+      api.column(groupColumn, { page: 'current' }).data().each(function (group, i) {
+        if (last !== group) {
+          $(rows).eq(i).before(
+            '<tr class="group"><td colspan="14"><label style="color: blue; font-size: 12px; "><strong>' + group + '</strong></label</td></tr>'
+          );
 
-	  last = group;
-	}
+          last = group;
+        }
+      });
+    },
+
   });
-},
 
-});
-
-$("#resultadoresumopedidoImprimir").attr("style", "width: 100%");
-$("#totalesumopedidoImprimir").attr("style", "width: 100%");
-$(".tbprint").attr("style", "width: 100%");
+  $("#resultadoresumopedidoImprimir").attr("style", "width: 100%");
+  $("#totalesumopedidoImprimir").attr("style", "width: 100%");
+  $(".tbprint").attr("style", "width: 100%");
 
 }
 
 function pesq_pedidos_resumido(numPage) {
 
-var dataPesqInic = $("#parametro_dia_inicio").val();
-var dataPesqFim = $("#parametro_dia_fim").val();
-var idFornPesq = $("#idfornselect").val();
-var idMarcaPesq = $("#idmarcaselect").val();
-var NuPedidoPesq = $("#npedio").val();
+  var dataPesqInic = $("#parametro_dia_inicio").val();
+  var dataPesqFim = $("#parametro_dia_fim").val();
+  var idFornPesq = $("#idfornselect").val();
+  var idMarcaPesq = $("#idmarcaselect").val();
+  var NuPedidoPesq = $("#npedio").val();
 
-if (window.XMLHttpRequest) {
-// code for IE7+, Firefox, Chrome, Opera, Safari
-xmlhttp = new XMLHttpRequest();
-} else {
-// code for IE6, IE5
-xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-}
+  if (window.XMLHttpRequest) {
+    // code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+  } else {
+    // code for IE6, IE5
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
 
-$("#resultado").html(
-"<div align=\"center\">" +
-"<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
-"<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-"</div>"
-);
+  $("#resultado").html(
+    "<div align=\"center\">" +
+    "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
+    "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
+    "</div>"
+  );
 
-xmlhttp.onreadystatechange = function () {
-if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-  document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
 
-  ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq)
-	.then(retornoImprimirPedidoResumido)
-	.catch(funcError);
+      ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq)
+        .then(retornoImprimirPedidoResumido)
+        .catch(funcError);
 
-}
-};
-xmlhttp.open("GET", "compras_action_pdfpedidoresumido.html", true);
-xmlhttp.send();
+    }
+  };
+  xmlhttp.open("GET", "compras_action_pdfpedidoresumido.html", true);
+  xmlhttp.send();
 
 }
 
 function chamarProximaListaPedidosResumido(numPage) {
 
-var dataPesqInic = $("#parametro_dia_inicio").val();
-var dataPesqFim = $("#parametro_dia_fim").val();
-var idFornPesq = $("#idfornselect").val();
-var idMarcaPesq = $("#idmarcaselect").val();
-var NuPedidoPesq = $("#npedio").val();
+  var dataPesqInic = $("#parametro_dia_inicio").val();
+  var dataPesqFim = $("#parametro_dia_fim").val();
+  var idFornPesq = $("#idfornselect").val();
+  var idMarcaPesq = $("#idmarcaselect").val();
+  var NuPedidoPesq = $("#npedio").val();
 
-if (idFornPesq > 0 || idMarcaPesq > 0 || NuPedidoPesq > 0) {
+  if (idFornPesq > 0 || idMarcaPesq > 0 || NuPedidoPesq > 0) {
 
-ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq)
-  .then(retornoImprimirPedidoResumido)
-  .catch(funcError);
+    ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq)
+      .then(retornoImprimirPedidoResumido)
+      .catch(funcError);
 
-} else {
-ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
-  .then(retornoImprimirPedidoResumido)
-  .catch(funcError);
-}
+  } else {
+    ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
+      .then(retornoImprimirPedidoResumido)
+      .catch(funcError);
+  }
 }
 
 function retornoImprimirPedidoResumido(respostaImprimirPedidoResumido) {
 
-var numPageAtual = parseInt(respostaImprimirPedidoResumido.page);
-if (numPageAtual === 1) {
-totalVrPedidos = 0;
-contadorpedresumido = 0;
+  var numPageAtual = parseInt(respostaImprimirPedidoResumido.page);
+  if (numPageAtual === 1) {
+    totalVrPedidos = 0;
+    contadorpedresumido = 0;
 
-$('#resultadoresumopedidoImprimir').html(
-  `<table id="dt-basic-lista-pedidos-resumido" class="bordasimples tbprint">
+    $('#resultadoresumopedidoImprimir').html(
+      `<table id="dt-basic-lista-pedidos-resumido" class="bordasimples tbprint">
 		  <thead>
 			  <tr>
 				  <th style="width: 5px; text-align: center; font-size: 12px;">Data</th>
@@ -2452,78 +2427,78 @@ $('#resultadoresumopedidoImprimir').html(
 		  <tbody id="resultadoPedidosResumido">
 		  </tbody>
 	  </table>`
-);
+    );
 
-var tableListaPedidoResumido = $('#dt-basic-lista-pedidos-resumido').DataTable({
-  ordering: false,
-  paging: false,
-  info: false,
-  searching: false,
-  deferRender: false,
-  scrollY: false,
-  scrollCollapse: false,
-  scroller: false,
-  responsive: true,
-});
+    var tableListaPedidoResumido = $('#dt-basic-lista-pedidos-resumido').DataTable({
+      ordering: false,
+      paging: false,
+      info: false,
+      searching: false,
+      deferRender: false,
+      scrollY: false,
+      scrollCollapse: false,
+      scroller: false,
+      responsive: true,
+    });
 
-tableListaPedidoResumido.rows().remove().draw();
-$('#totalesumopedidoImprimir').html('');
-}
-
-if (respostaImprimirPedidoResumido.data.length != 0) {
-for (var i = 0; i < respostaImprimirPedidoResumido.data.length; i++) {
-  contadorpedresumido++;
-
-  idPedido = respostaImprimirPedidoResumido.data[i]['IDPEDIDO'];
-  dataPedido = respostaImprimirPedidoResumido.data[i]['DTPEDIDO'];
-  valorPedido = respostaImprimirPedidoResumido.data[i]['VRTOTALLIQUIDO'];
-  statusPedido = respostaImprimirPedidoResumido.data[i]['STCANCELADO'];
-  compradorPedido = respostaImprimirPedidoResumido.data[i]['NOMECOMPRADOR'];
-  noFantasiaPedido = respostaImprimirPedidoResumido.data[i]['NOFANTASIA'];
-  noFornecedorPedido = respostaImprimirPedidoResumido.data[i]['NOFORNECEDOR'];
-  stPedido = respostaImprimirPedidoResumido.data[i]['DSANDAMENTO'];
-  stPedidoSetor = respostaImprimirPedidoResumido.data[i]['DSSETOR'];
-
-  totalVrPedidos = parseFloat(totalVrPedidos) + parseFloat(valorPedido);
-
-  if (stPedidoSetor == 'COMPRAS') {
-	labelsetor = `<label style="color: blue; font-size: 11px;"><b>COMPRAS</b></label>`;
-	if (stPedido == 'PEDIDO INICIADO') {
-	  labelstpedido = `<label style="color: blue; font-size: 11px;">PEDIDO INICIADO</label>`;
-	} else if (stPedido == 'PEDIDO FINALIZADO') {
-	  labelstpedido = `<label style="color: tomato; font-size: 11px;">PEDIDO FINALIZADO</label>`;
-	} else if (stPedido == 'PEDIDO CANCELADO') {
-	  labelstpedido = `<label style="color: red; font-size: 11px;">PEDIDO CANCELADO</label>`;
-	}
-
-  } else if (stPedidoSetor == 'CADASTRO') {
-	labelstpedido = ``;
-	labelsetor = `<label style="color: red; font-size: 11px;">CADASTRO </label>`;
-
-  } else if (stPedidoSetor == 'COMPRASADM') {
-	labelstpedido = `<label style="color: grenn; font-size: 11px;">PEDIDO EM ANÁLISE</label>`;
-	labelsetor = `<label style="color: red; font-size: 11px;">COMPRAS ADM </label>`;
+    tableListaPedidoResumido.rows().remove().draw();
+    $('#totalesumopedidoImprimir').html('');
   }
 
-  tableListaPedidoResumido.row.add([
-	`<label style="font-size: 11px;">` + dataPedido + `</label>`,
-	`<label style="font-size: 11px;">` + idPedido + ` </label>`,
-	`<label style="font-size: 11px;">` + noFantasiaPedido + ` </label>`,
-	`<label style="font-size: 11px;">` + compradorPedido + ` </label>`,
-	`<label style="font-size: 11px;">` + noFornecedorPedido + ` </label>`,
-	`<label style="align: right;">` + mascaraValor(parseFloat(valorPedido).toFixed(2)) + `</label>`,
-	labelsetor,
-	labelstpedido,
-  ]).draw(false);
+  if (respostaImprimirPedidoResumido.data.length != 0) {
+    for (var i = 0; i < respostaImprimirPedidoResumido.data.length; i++) {
+      contadorpedresumido++;
 
-}
+      idPedido = respostaImprimirPedidoResumido.data[i]['IDPEDIDO'];
+      dataPedido = respostaImprimirPedidoResumido.data[i]['DTPEDIDO'];
+      valorPedido = respostaImprimirPedidoResumido.data[i]['VRTOTALLIQUIDO'];
+      statusPedido = respostaImprimirPedidoResumido.data[i]['STCANCELADO'];
+      compradorPedido = respostaImprimirPedidoResumido.data[i]['NOMECOMPRADOR'];
+      noFantasiaPedido = respostaImprimirPedidoResumido.data[i]['NOFANTASIA'];
+      noFornecedorPedido = respostaImprimirPedidoResumido.data[i]['NOFORNECEDOR'];
+      stPedido = respostaImprimirPedidoResumido.data[i]['DSANDAMENTO'];
+      stPedidoSetor = respostaImprimirPedidoResumido.data[i]['DSSETOR'];
 
-chamarProximaListaPedidosResumido(numPageAtual + 1);
+      totalVrPedidos = parseFloat(totalVrPedidos) + parseFloat(valorPedido);
 
-} else {
+      if (stPedidoSetor == 'COMPRAS') {
+        labelsetor = `<label style="color: blue; font-size: 11px;"><b>COMPRAS</b></label>`;
+        if (stPedido == 'PEDIDO INICIADO') {
+          labelstpedido = `<label style="color: blue; font-size: 11px;">PEDIDO INICIADO</label>`;
+        } else if (stPedido == 'PEDIDO FINALIZADO') {
+          labelstpedido = `<label style="color: tomato; font-size: 11px;">PEDIDO FINALIZADO</label>`;
+        } else if (stPedido == 'PEDIDO CANCELADO') {
+          labelstpedido = `<label style="color: red; font-size: 11px;">PEDIDO CANCELADO</label>`;
+        }
 
-$('#totalesumopedidoImprimir').html(
-  `<br>
+      } else if (stPedidoSetor == 'CADASTRO') {
+        labelstpedido = ``;
+        labelsetor = `<label style="color: red; font-size: 11px;">CADASTRO </label>`;
+
+      } else if (stPedidoSetor == 'COMPRASADM') {
+        labelstpedido = `<label style="color: grenn; font-size: 11px;">PEDIDO EM ANÁLISE</label>`;
+        labelsetor = `<label style="color: red; font-size: 11px;">COMPRAS ADM </label>`;
+      }
+
+      tableListaPedidoResumido.row.add([
+        `<label style="font-size: 11px;">` + dataPedido + `</label>`,
+        `<label style="font-size: 11px;">` + idPedido + ` </label>`,
+        `<label style="font-size: 11px;">` + noFantasiaPedido + ` </label>`,
+        `<label style="font-size: 11px;">` + compradorPedido + ` </label>`,
+        `<label style="font-size: 11px;">` + noFornecedorPedido + ` </label>`,
+        `<label style="align: right;">` + mascaraValor(parseFloat(valorPedido).toFixed(2)) + `</label>`,
+        labelsetor,
+        labelstpedido,
+      ]).draw(false);
+
+    }
+
+    chamarProximaListaPedidosResumido(numPageAtual + 1);
+
+  } else {
+
+    $('#totalesumopedidoImprimir').html(
+      `<br>
 	  <table class="semborda">
 		  <tr>
 				  <th style="text-align: left; font-size: 14px;">Quantidade de Pedidos: </th>
@@ -2534,187 +2509,175 @@ $('#totalesumopedidoImprimir').html(
 				  <th style="text-align: right; font-size: 14px;"><b> ${mascaraValor(parseFloat(totalVrPedidos).toFixed(2))}</b></th>
 			  </tr>
 		  </table>`
-);
-}
-}
-
-function pesq_pedidos_detalhado(numPage) {
-
-var dataPesqInic = $("#parametro_dia_inicio").val();
-var dataPesqFim = $("#parametro_dia_fim").val();
-var idFornPesq = $("#idfornselect").val();
-var idMarcaPesq = $("#idmarcaselect").val();
-var NuPedidoPesq = $("#npedio").val();
-
-if (window.XMLHttpRequest) {
-// code for IE7+, Firefox, Chrome, Opera, Safari
-xmlhttp = new XMLHttpRequest();
-} else {
-// code for IE6, IE5
-xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    );
+  }
 }
 
-$("#resultado").html(
-"<div align=\"center\">" +
-"<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
-"<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-"</div>"
-);
+async function pesq_pedidos_detalhado() {
+  let dataPesqInic = $("#parametro_dia_inicio").val();
+  let dataPesqFim = $("#parametro_dia_fim").val();
+  let idFornPesq = $("#idfornselect").val();
+  let idFabPesq = $("#idfabselect").val();
+  let idMarcaPesq = $("#idmarcaselect").val();
+  let NuPedidoPesq = $("#npedio").val();
 
-xmlhttp.onreadystatechange = function () {
-if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-  document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
+  try {
+    animationLoadingStart('Gerando Relatório...', 0);
 
-  ajaxGet('api/compras/lista_pedidos_detalhado.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq)
-	.then(retornoImprimirPedidoDetalhado)
-	.catch(funcError);
+    await $.get("compras_action_pdfpedidodetalhado.html", (respHtml) => $("#js-page-content").html(respHtml));
 
-}
-};
-xmlhttp.open("GET", "compras_action_pdfpedidodetalhado.html", true);
-xmlhttp.send();
+    await ajaxGetAllData(`api/compras/lista_pedidos_detalhado.xsjs?pageSize=500&dataPesquisaInicio=${dataPesqInic}&dataPesquisaFim=${dataPesqFim}&idFornPesquisa=${idFornPesq}&idFabPesquisa=${idFabPesq}&idMarcaPesquisa=${idMarcaPesq}&idpedido=${NuPedidoPesq}`, false)
+      .then(retornoImprimirPedidoDetalhado)
 
-}
-
-function chamarProximaListaPedidosDetalhado(numPage) {
-
-var dataPesqInic = $("#parametro_dia_inicio").val();
-var dataPesqFim = $("#parametro_dia_fim").val();
-var idFornPesq = $("#idfornselect").val();
-var idMarcaPesq = $("#idmarcaselect").val();
-var NuPedidoPesq = $("#npedio").val();
-
-if (idFornPesq > 0 || idMarcaPesq > 0 || NuPedidoPesq > 0) {
-
-ajaxGet('api/compras/lista_pedidos_detalhado.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq)
-  .then(retornoImprimirPedidoDetalhado)
-  .catch(funcError);
-
-} else {
-ajaxGet('api/compras/lista_pedidos_detalhado.xsjs?pageSize=500&page=' + numPage + '&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
-  .then(retornoImprimirPedidoDetalhado)
-  .catch(funcError);
-}
-}
-
-function retornoImprimirPedidoDetalhado(respostaImprimirPedidoDetalhado) {
-
-var numPageAtual = parseInt(respostaImprimirPedidoDetalhado.page);
-if (numPageAtual === 1) {
-
-totalQtdPedidosDet = 0;
-totalVrCompraPedidosDet = 0;
-totalVrVendaPedidosDet = 0;
-totalVrLucroPedidosDet = 0;
-VrPercLucro = 0;
-totalVrPercLucro = 0;
-
-contadorpeddetalhado = 0;
-
-$('#resultadodetalhadopedidoImprimir').html(
-  `<table id="dt-basic-lista-pedidos-detalhado" class="bordasimples tbprint" width="100%">
-		  <thead>
-			  <tr>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">Data</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">N Pedido</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">Marca</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">Comprador</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">Fornecedor</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">QTD Produto</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">Vr Compra</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">Vr Venda</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">Vr Lucro</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">% Lucro</th>
-				  <th style="width: 5px; text-align: center; font-size: 12px;">Setor</th>
-			  </tr>
-		  </thead>
-		  <tbody id="resultadoPedidosDetalhado">
-		  </tbody>
-	  </table>`
-);
-
-var tableListaPedidoDetalhado = $('#dt-basic-lista-pedidos-detalhado').DataTable({
-  ordering: false,
-  paging: false,
-  info: false,
-  searching: false,
-  deferRender: false,
-  scrollY: false,
-  scrollCollapse: false,
-  scroller: false,
-  responsive: true,
-});
-
-tableListaPedidoDetalhado.rows().remove().draw();
-$('#totalpedidodetalhadoImprimir').html('');
-}
-
-if (respostaImprimirPedidoDetalhado.data.length != 0) {
-for (var i = 0; i < respostaImprimirPedidoDetalhado.data.length; i++) {
-  contadorpeddetalhado++;
-
-  idPedidoDet = respostaImprimirPedidoDetalhado.data[i]['IDPEDIDO'];
-  dataPedidoDet = respostaImprimirPedidoDetalhado.data[i]['DTPEDIDO'];
-  compradorPedidoDet = respostaImprimirPedidoDetalhado.data[i]['NOMECOMPRADOR'];
-  noFantasiaPedidoDet = respostaImprimirPedidoDetalhado.data[i]['NOFANTASIAGRUPO'];
-  noFornecedorPedidoDet = respostaImprimirPedidoDetalhado.data[i]['NOFANTASIAFORN'];
-  stPedidoDet = respostaImprimirPedidoDetalhado.data[i]['DSANDAMENTO'];
-  stPedidoSetorDet = respostaImprimirPedidoDetalhado.data[i]['DSSETOR'];
-  QtdPedidoDet = respostaImprimirPedidoDetalhado.data[i]['QTDPRODTOTAL'];
-  valorCustoPedidoDet = respostaImprimirPedidoDetalhado.data[i]['VRTOTALCUSTO'];
-  valorVendaPedidoDet = respostaImprimirPedidoDetalhado.data[i]['VRTOTALVENDA'];
-  valorLucroPedidoDet = respostaImprimirPedidoDetalhado.data[i]['VRTOTALLUCRO'];
-
-  VrPercLucro = ((parseFloat(valorVendaPedidoDet) * 100) / parseFloat(valorCustoPedidoDet)) - 100;
-
-  totalQtdPedidosDet = parseFloat(totalQtdPedidosDet) + parseFloat(QtdPedidoDet);
-  totalVrCompraPedidosDet = parseFloat(totalVrCompraPedidosDet) + parseFloat(valorCustoPedidoDet);
-  totalVrVendaPedidosDet = parseFloat(totalVrVendaPedidosDet) + parseFloat(valorVendaPedidoDet);
-  totalVrLucroPedidosDet = parseFloat(totalVrLucroPedidosDet) + parseFloat(valorLucroPedidoDet);
-
-  totalVrPercLucro = ((parseFloat(totalVrVendaPedidosDet) * 100) / parseFloat(totalVrCompraPedidosDet)) - 100;
-
-  if (stPedidoSetorDet == 'COMPRAS') {
-	labelsetor = `<label style="color: blue; font-size: 11px;"><b>COMPRAS</b></label>`;
-	if (stPedidoDet == 'PEDIDO INICIADO') {
-	  labelstpedido = `<label style="color: blue; font-size: 11px;">PEDIDO INICIADO</label>`;
-	} else if (stPedidoDet == 'PEDIDO FINALIZADO') {
-	  labelstpedido = `<label style="color: tomato; font-size: 11px;">PEDIDO FINALIZADO</label>`;
-	} else if (stPedidoDet == 'PEDIDO CANCELADO') {
-	  labelstpedido = `<label style="color: red; font-size: 11px;">PEDIDO CANCELADO</label>`;
-	}
-
-  } else if (stPedidoSetorDet == 'CADASTRO') {
-	labelstpedido = ``;
-	labelsetor = `<label style="color: red; font-size: 11px;">CADASTRO </label>`;
-
-  } else if (stPedidoSetorDet == 'COMPRASADM') {
-	labelstpedido = `<label style="color: grenn; font-size: 11px;">PEDIDO EM ANÁLISE</label>`;
-	labelsetor = `<label style="color: red; font-size: 11px;">COMPRAS ADM </label>`;
+    animationLoadingStop();
+  } catch (error) {
+    msgError();
+    console.log(error);
   }
 
-  tableListaPedidoDetalhado.row.add([
-	`<label style="font-size: 11px;">` + dataPedidoDet + `</label>`,
-	`<label style="font-size: 11px;">` + idPedidoDet + ` </label>`,
-	`<label style="font-size: 11px;">` + noFantasiaPedidoDet + ` </label>`,
-	`<label style="font-size: 11px;">` + compradorPedidoDet + ` </label>`,
-	`<label style="font-size: 11px;">` + noFornecedorPedidoDet + ` </label>`,
-	`<label style="text-align: right;">` + (parseFloat(QtdPedidoDet)) + `</label>`,
-	`<label style="text-align: right;">` + mascaraValor(parseFloat(valorCustoPedidoDet).toFixed(2)) + `</label>`,
-	`<label style="text-align: right;">` + mascaraValor(parseFloat(valorVendaPedidoDet).toFixed(2)) + `</label>`,
-	`<label style="text-align: right;">` + mascaraValor(parseFloat(valorLucroPedidoDet).toFixed(2)) + `</label>`,
-	`<label style="text-align: right;">` + mascaraValor(parseFloat(VrPercLucro).toFixed(2)) + `</label>`,
-	labelsetor,
-  ]).draw(false);
-
 }
 
-chamarProximaListaPedidosDetalhado(numPageAtual + 1);
+async function retornoImprimirPedidoDetalhado(respostaImprimirPedidoDetalhado) {
+  let { data } = respostaImprimirPedidoDetalhado || [];
+  let dadosTable = [];
+  let totalQtdPedidosDet = 0;
+  let totalVrCompraPedidosDet = 0;
+  let totalVrVendaPedidosDet = 0;
+  let totalVrLucroPedidosDet = 0;
+  let totalVrPercLucro = 0;
+  let contadorpeddetalhado = 0;
 
-} else {
+  if (data.length != 0) {
+    for (let registro of data) {
 
-$('#totalpedidodetalhadoImprimir').html(
-  `<br>
+      let {
+        IDPEDIDO,
+        DTPEDIDO,
+        DTENTREGA,
+        NOMECOMPRADOR,
+        NOFANTASIAGRUPO,
+        NOFANTASIAFORN,
+        DSFABRICANTE,
+        DSSETOR,
+        QTDPRODTOTAL,
+        VRTOTALCUSTO,
+        VRTOTALVENDA,
+        VRTOTALLUCRO,
+        STFOTO
+      } = registro;
+
+      let labelsetor = `<label style="color: red; font-size: 11px;">COMPRAS ADM </label>`;
+      let VrPercLucro = ((parseFloat(VRTOTALVENDA) * 100) / parseFloat(VRTOTALCUSTO)) - 100;
+
+      totalQtdPedidosDet = parseFloat(totalQtdPedidosDet) + parseFloat(QTDPRODTOTAL);
+      totalVrCompraPedidosDet = parseFloat(totalVrCompraPedidosDet) + parseFloat(VRTOTALCUSTO);
+      totalVrVendaPedidosDet = parseFloat(totalVrVendaPedidosDet) + parseFloat(VRTOTALVENDA);
+      totalVrLucroPedidosDet = parseFloat(totalVrLucroPedidosDet) + parseFloat(VRTOTALLUCRO);
+
+      totalVrPercLucro = ((parseFloat(totalVrVendaPedidosDet) * 100) / parseFloat(totalVrCompraPedidosDet)) - 100;
+
+      if (DSSETOR == 'COMPRAS') {
+        labelsetor = `<label style="color: blue; font-size: 11px;"><b>COMPRAS</b></label>`;
+      } else if (DSSETOR == 'CADASTRO') {
+        labelsetor = `<label style="color: red; font-size: 11px;">CADASTRO </label>`;
+      }
+
+      contadorpeddetalhado++;
+
+      dadosTable.push([
+        `<label style="font-size: 11px;">${DTPEDIDO}</label>`,
+        `<label style="font-size: 11px;">${DTENTREGA}</label>`,
+        `<label style="font-size: 11px;">${IDPEDIDO} </label>`,
+        `<label style="font-size: 11px;">${NOFANTASIAGRUPO} </label>`,
+        `<label style="font-size: 11px;">${NOMECOMPRADOR} </label>`,
+        `<label style="font-size: 11px;">${NOFANTASIAFORN} </label>`,
+        `<label style="font-size: 11px;">${DSFABRICANTE} </label>`,
+        `<label style="text-align: right;">${(parseFloat(QTDPRODTOTAL))}</label>`,
+        `<label style="text-align: right;">${mascaraValor(parseFloat(VRTOTALCUSTO).toFixed(2))}</label>`,
+        `<label style="text-align: right;">${mascaraValor(parseFloat(VRTOTALVENDA).toFixed(2))}</label>`,
+        `<label style="text-align: right;">${mascaraValor(parseFloat(VRTOTALLUCRO).toFixed(2))}</label>`,
+        `<label style="text-align: right;">${mascaraValor(parseFloat(VrPercLucro).toFixed(2))}</label>`,
+        `<label style="font-size: 11px;">${STFOTO == 'True' ? 'SIM' : 'NAO'}</label>`,
+        labelsetor,
+      ]);
+
+    }
+
+  }
+
+  $('#resultadodetalhadopedidoImprimir').html(
+    `<table id="dt-basic-lista-pedidos-detalhado" class="w-100 bordasimples tbprint"">
+    		  <thead>
+    			  <tr>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">Data</th>
+              <th style="width: 5px; text-align: center; font-size: 12px;">Data Entrega</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">N Pedido</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">Marca</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">Comprador</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">Fornecedor</th>
+              <th style="width: 5px; text-align: center; font-size: 12px;">Fabricante</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">QTD Produto</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">Vr Compra</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">Vr Venda</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">Vr Lucro</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">% Lucro</th>
+              <th style="width: 5px; text-align: center; font-size: 12px;">Foto</th>
+    				  <th style="width: 5px; text-align: center; font-size: 12px;">Setor</th>
+    			  </tr>
+    		  </thead>
+    		  <tbody id="resultadoPedidosDetalhado">
+    		  </tbody>
+    	  </table>`
+  );
+
+  $('#totalpedidodetalhadoImprimir').html('');
+
+  $('#dt-basic-lista-pedidos-detalhado').DataTable({
+    data: dadosTable,
+    ordering: false,
+    paging: false,
+    info: false,
+    searching: false,
+    deferRender: false,
+    responsive: false,
+    dom: "<'row mb-3 mt-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        title: 'RELAÇÃO DE PEDIDOS DETALHADOS',
+        className: 'btn-outline-success btn-sm mr-1 no-printer',
+        exportOptions: {
+          columns: ':visible',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
+            }
+          }
+        }
+      },
+      {
+        extend: 'csvHtml5',
+        text: 'Csv',
+        titleAttr: 'Generar Csv',
+        fieldSeparator: ',',
+        title: 'RELAÇÃO DE PEDIDOS DETALHADOS',
+        charset: 'UTF-8',
+        bom: true,
+        className: 'btn-outline-info btn-sm no-printer',
+        exportOptions: {
+          columns: ':not(:first-child)'
+        }
+      },
+    ]
+  });
+
+  $('#totalpedidodetalhadoImprimir').html(
+    `<br>
 	  <table class="semborda">
 		  <tr>
 				  <th style="text-align: left; font-size: 14px;">Quantidade de Pedidos: </th>
@@ -2741,3275 +2704,3312 @@ $('#totalpedidodetalhadoImprimir').html(
 				  <th style="text-align: right; font-size: 14px;"><b> ${mascaraValor(parseFloat(totalVrPercLucro).toFixed(2))}</b></th>
 			  </tr>
 		  </table>`
-);
+  );
+
+  $('button[title="Imprimir PDF"]').addClass('no-printer');
+
+  return true;
 }
+
+function printDivDetalhado(divId) {
+  $("#resultadodetalhadopedidoImprimir, #totalpedidodetalhadoImprimir, .tbprint").attr("style", "width: 1030px");
+
+  let htmlToPrint = `
+    <html>
+      <head>
+        <title>SoftQuality</title>
+      </head>
+      <style>
+        @media print {
+          .no-printer {
+            visibility: hidden !important;
+          }
+        }
+      </style>
+      <body>${document.getElementById(divId).innerHTML}</body>
+    </html>
+  `
+
+  let mywindow = window.open('', 'PRINT', 'height=850,width=1300,top=100,left=400');
+
+  mywindow.document.write(htmlToPrint);
+
+  mywindow.document.close(); // necessary for IE >= 10
+  mywindow.focus(); // necessary for IE >= 10*/
+
+  mywindow.print();
+  mywindow.close();
+
+  $("#resultadodetalhadopedidoImprimir, #totalpedidodetalhadoImprimir, .tbprint").attr("style", "width: 100%");
+
+  return true;
 }
 
 function funcSucessUpdateAndamentoPedido(resposta) {
 
-alerta_andamento_pedido();
+  alerta_andamento_pedido();
 
-										
-											  
-											
-							   
 
-								  
-										  
-												  
-													
-									  
-									  
-									
-										
-										  
-											
-												  
-																				   
-																				   
-																					 
-																					   
-																					 
-																			   
-																			
-										 
-																		
-												
-									  
-										
-					   
-						
-						  
-				  
 
-				  
-																				 
-							  
-																						   
-												  
-																	 
-						   
-																						
-						   
-																						
-					
-																							
-					   
-																				 
-							 
-																				
-						   
-																					 
-						  
-																		   
-	  
-		   
-												  
-												   
-						
-						 
-				
-											
-										  
-						   
-	
-																
-					 
-					  
-									 
 
-					
-													  
-														 
-												   
-												 
-								  
-													 
-											 
-								
-									   
-											  
-							 
-										 
-								 
-												
-												   
-												  
-												
-												 
-												  
-													 
-												  
-								   
-								   
-											 
-									 
-									
-									   
-									  
-								   
-								   
-															   
-		 
 
-							 
-														
-										   
-						  
 
-											  
 
-											
 
-								   
 
-													   
-								  
-						   
-					   
-		 
 
-		
-													   
-						 
-						  
-	 
 
-	  
-   
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 }
 
-function Enviar_Pedido(id,idandamento) {
+function Enviar_Pedido(id, idandamento) {
 
-if(idandamento == 1){
-  Swal.fire({
-	title: 'Certeza que Deseja Enviar o Pedido para o Dep. Compras?',
-	text: "Você não poderá reverter esta ação!",
-	buttonsStyling: false,
-	showCancelButton: true,
-	customClass: {
-	  confirmButton: 'btn btn-primary btn-lg',
-	  cancelButton: 'btn btn-danger btn-lg',
-	  loader: 'custom-loader'
-							   
-	  
-					
-												 
+  if (idandamento == 1) {
+    Swal.fire({
+      title: 'Certeza que Deseja Enviar o Pedido para o Dep. Compras?',
+      text: "Você não poderá reverter esta ação!",
+      buttonsStyling: false,
+      showCancelButton: true,
+      customClass: {
+        confirmButton: 'btn btn-primary btn-lg',
+        cancelButton: 'btn btn-danger btn-lg',
+        loader: 'custom-loader'
 
 
-				   
-						  
-																   
-																																	 
-		
 
 
-										
-														 
-																			  
 
-								  
 
-							   
-							  
 
-								   
-																											 
 
-											   
-									   
-					  
 
-											   
-									   
-					  
 
- 
 
-												   
-			 
 
 
-							   
 
-						 
-		   
-
-										  
-									  
-										
-								  
-
-						  
-												
-							   
-	  
-					
-												 
-
-
-										
-
-														 
-																		
-
-								  
-
-																																															
-										 
-					  
- 
-
-
-															  
-			 
-
-
-											   
-
-										  
-									  
-										
-								  
-
-																																														
-									 
-				  
-
-				   
-						  
-																   
-																																	 
-		
-
-
-
-																 
-
-														   
-												
-																  
-			 
-													
-
-										   
-								
-								
-									 
-								 
-								   
-						   
-							  
-									
-
-					  
-									  
-																																																																																																																																																									  
-		  
-																 
-																																																										
-   
-
-
-									   
-			 
-		   
-				 
-			  
-			
-			   
-		   
-				   
- 
-
-													   
-												  
-	  
-												  
-					 
-																													  
-										
-				  
-							
-							   
-										
-										
-									 
-								   
-								 
-							 
-								   
-				   
-				  
-											  
-				  
-														  
-				  
-			   
-  
-
-									   
-							  
-					
-						
-						  
-						  
-				   
-																																									
-							  
-															
-			
-	 
-						 
-				  
-								
-												 
-	},
-	loaderHtml: '<div class="spinner-border text-primary"></div>',
-	allowOutsideClick: () => !Swal.isLoading()
-  }).then((result) => {
-	if (result.dismiss == 'timer') {
-	  Swal.fire({
-		type: 'error',
-		title: `Tempo de resposta ou inatividade atingido`,
-		timer: 10000,
-	  });
-	} else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
-	  return false;
-	}
-
-   
-
-
-
-
-
-												  
-
-													
-								   
-				  
-
-
-																  
-													 
-													 
-				  
-						   
-						  
-										   
-  
-
-
-												   
-
-																	 
-
-																	   
-																		
-																   
-															  
-
-							
-																												  
-	
-
-								
-																												  
-	
- 
-												
-
-
-
-
-							 
-
-		 
-															  
-												 
-					  
-					   
-			  
-										  
-										
-						 
-  
-															  
-				   
-					
-								   
-
-																	  
-								  
-						
-
-										 
-
-																	
-
-					 
-
-													 
-								
-						 
-					 
-	   
-	  
-										 
-					   
-						
-   
-
-	
- 
-
-
-
-									  
-
-				 
-		  
-						  
-
-
-
-							 
-
-															  
-
-									 
-								  
-													  
-
-									 
-									   
-	 
-								  
-									   
-	 
-
-						 
-						 
-						  
-								 
-							 
-						  
-							 
-							 
-							  
-								   
-						   
-						   
-					   
-						
-						  
-							  
-						  
-						 
-						 
-						 
-
-											   
-										
-					  
-
-											
-									 
-					  
-
-								 
-																																														  
-	
-   
-
-
-
-
-
-									 
-
-															  
-
-									 
-								  
-													  
-
-									 
-									   
-	 
-								  
-									   
-	 
 
-						 
-						   
-							
-								 
-							 
-						  
-							 
-							 
-							  
-								   
-						   
-						   
-					   
-						
-						  
-							  
-						  
-						 
-						 
-						 
 
-								 
-																																														 
-	
 
-   
-
-											 
-									  
-					
 
-										  
-								   
-					
 
-					   
 
 
-
-
 
-										
-
-												  
-
 
-												 
-				
-														 
-
-					   
-						 
-															   
 
-					 
-
-	  
-										  
-
-
-
-													
-				
-			
-													
-				  
-		   
-							   
-																																		  
- 
 
-				   
 
 
-										 
 
-												   
 
-
-											
 
-   
-														 
-									   
 
-									  
-										  
-							  
-								   
 
-
-		 
-																	
-
-
-
-
-
-																				   
-										  
-
-													  
-																
-
-							 
-							
-
-											 
-																																													 
-																					   
-																																		 
-																																		   
-																															
-																														  
-																																 
-																											   
-																																																				
-
-												  
-							   
-									 
-						   
-									 
-											
-											  
-							   
-							 
-
-																   
-
-		   
-	  
-									  
-
-																					 
-																								  
-																								  
-																								
-																									   
-
-											   
-																					 
-																									   
-																															   
-
-		
-																										   
-																													   
-																															 
-
- 
-
-							   
-									 
-						   
-									 
-											
-											  
-							   
-							 
-
-																  
-
-			
-
-
-
-											   
-																					
-
-		 
-																							  
-					   
-							  
-						  
-						 
-						
-						 
-
-																								   
-																				   
-								   
-										   
-
-					   
-
-	Swal.fire({
-	  type:'question',
-	  title: 'Motivo da Devolução do Pedido?',
-	  html: `<div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      },
+      loaderHtml: '<div class="spinner-border text-primary"></div>',
+      allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+      if (result.dismiss == 'timer') {
+        Swal.fire({
+          type: 'error',
+          title: `Tempo de resposta ou inatividade atingido`,
+          timer: 10000,
+        });
+      } else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
+        return false;
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      Swal.fire({
+        type: 'question',
+        title: 'Motivo da Devolução do Pedido?',
+        html: `<div>
 				  <div class=" input-group pt-0" >
 					  <input type="text" id="motivoDevolucao" class="swal2-input m-0 " placeholder="Motivo da Devolução do Pedido!" style="text-transform: uppercase">
 				  </div>
 			  </div>`,
-	  width: '25rem',
-	  focusConfirm: false,
-	  showCancelButton: true,
-	  confirmButtonText: 'Confirmar',
-	  cancelButtonText: 'Voltar',
-	  cancelButtonColor: '#3085d6',
-	  showLoaderOnConfirm: true,
-	  preConfirm: () => {
-		  motivoDevolucaoPedido = $('#motivoDevolucao').val();
-	
-		  if (!motivoDevolucaoPedido) {
-			  Swal.showValidationMessage(`Coloque o Motivo da Devolução do Pedido!`);
-			  $('#motivoDevolucao').focus();
-			  return false;
-	
-		  } else if (motivoDevolucaoPedido.length < 10) {
-			  Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 Caracteres!`)
-			  $('#motivoDevolucao').val('').focus();
-			  return false;
-
-		  } else {
-			  Swal.showLoading()
-				var dados = {
-				  "IDRESUMOPEDIDO": parseInt(id),
-				  "IDANDAMENTO": parseInt(idandamento),
-				  "TXTOBSDEVPEDIDO": (""+motivoDevolucaoPedido)
-				};
-
-				return ajaxPut("api/compras/atualizacao-andamento-pedido.xsjs", dados)
-				  .then((respostaPut)=>{
-					if(respostaPut.msg){
-					   funcSucessUpdateAndamentoPedido();
-
-					   CadPedidoFinanceiro(id);
-	  
-						const textdados = JSON.stringify(dados);
-						
-							textoFuncao = 'CADASTRO/ENVIAR PEDIDO PARA COMPRAS';
-						  
-						  var dadosCancelaAtivaDep = [{
-							  
-							  "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-							  "PATHFUNCAO":textoFuncao,
-							  "DADOS":textdados,
-							  "IP":ipCliente
-						  }];
-					  
-						  ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
-						  .then(funcSucessLog)
-						  .catch(funcError);
-
-					  }else{
-						throw new Error("Não Foi Possível Devolver o Pedido, FAVOR ENTRAR EM CONTATO COM O SUPORTE!");
-					  }
-  
-				  })
-				  .catch((erro)=>{
-					Swal.showValidationMessage("Não Foi Possível Devolver o Pedido, TENTE NOVAMENTE OU ENTRE EM CONTATO COM O SUPORTE!" + erro.message)
-				  });
-		  }
-	  }
-	}).then((result) => {
-	
-	  if (result.dismiss == 'timer') {
-	
-		  Swal.fire({
-			  type: 'error',
-			  title: `Tempo de resposta ou inatividade atingido`,
-			  timer: 60000,
-		  })
-	  } else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
-		  return false;
-					 
-																													 
-						 
-			
-		 
-
-	   
-							  
-
-										   
-				   
-																											   
-					   
-		  
-	  }
-	})
-
-							  
-			   
-											
-																			 
-					 
-	  
-
-   
-
-																										 
-			 
-																																																											  
-				   
-  })
-
-}else{
-Swal.fire({
-title: 'Certeza que Deseja Enviar o Pedido para o Dep. Compras?',
-text: "Você não poderá reverter esta ação!",
-buttonsStyling: false,
-showCancelButton: true,
-customClass: {
-confirmButton: 'btn btn-primary btn-lg',
-cancelButton: 'btn btn-danger btn-lg',
-loader: 'custom-loader'
-},
-loaderHtml: '<div class="spinner-border text-primary"></div>',
-preConfirm: () => {
-Swal.showLoading()
-return new Promise((resolve) => {
-  
-  var dados = {
-	"IDRESUMOPEDIDO": parseInt(id),
-	"IDANDAMENTO": parseInt(idandamento),
-	"TXTOBSDEVPEDIDO": ''
-  };
-  
-  ajaxPut("api/compras/atualizacao-andamento-pedido.xsjs", dados)
-  .then(funcSucessUpdateAndamentoPedido)
-  .catch(funcError);
-
-CadPedidoFinanceiro(id);
-  
-const textdados = JSON.stringify(dados);
-
-	textoFuncao = 'CADASTRO/ENVIAR PEDIDO PARA COMPRAS';
-  
-  var dadosCancelaAtivaDep = [{
-	  
-	  "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-	  "PATHFUNCAO":textoFuncao,
-	  "DADOS":textdados,
-	  "IP":ipCliente
-  }];
-														
-																   
-																	
-														  
-														  
-														  
-																  
-														   
-														   
-													
-													  
-														 
-															 
-															 
-															 
-																	 
-															 
-															
-																
-																	
-																  
-																		
-																  
-																	
-																	  
-																  
-																	  
-																			
-
-										
-								 
-											
-										
-								
-										   
-									
-									   
-											   
-									 
-									 
-							 
-							   
-									
-										  
-								   
-								 
-								 
-								 
-									   
-											 
-
-								
-							 
-		
-							   
- 
-
-														
-									  
-									
-								   
-									
-								  
- 
-
-													  
-								 
-									  
-									
- 
-
-													  
-										   
-								   
-										  
-		
-									 
- 
-
-							 
-								  
-		
-							  
- 
-
-												   
-									
-									
-		
-					   
-								  
- 
-
-												 
-								  
-								  
-		
-					  
-								 
- 
-
-						 
-																					   
-  
-
-								 
-																					   
-  
-
-					  
-																						 
-		   
-  
-
-						  
-																				   
-		   
-  
-
-							  
-																					
-  
-
-					 
-																				   
-		   
-  
-
-					  
-																						
-   
-  
-
-
-
-
-									
-
-											  
-										  
-												
-												  
-										
-											 
-										  
-									
-										  
-										  
-										 
-												   
-									  
-									  
-							  
-								
-								   
-												
-									
-								  
-								  
-								  
-											  
-
-								  
-								  
-														
-										  
-									  
-											
-												  
-								
-
-							   
-		   
-																			   
-								  
-				 
-  
-					   
-			 
-
-
-						 
-		   
-					   
-								
-				 
-  
-					   
-			 
-
-
-					
-								  
-																				   
-																						  
-																	  
-			   
-																			
-  
-						
-			 
-
-
-					   
-								  
-																				   
-																						  
-																	  
-			   
-																			
-  
-						   
-			 
-
-
-					   
-								  
-																				   
-																						  
-																	  
-			   
-																		
-  
-						   
-			 
-
-
-					 
-								  
-																				   
-																						  
-																	  
-			   
-																				   
-  
-							
-			 
-
-
-					 
-								  
-																				   
-																						  
-																	  
-			   
-																	 
-  
-						 
-			 
-
-
-					 
-								  
-																				   
-																						  
-																	  
-			   
-																	 
-  
-						 
-			 
-
-
-				 
-								  
-																				   
-																						  
-																	  
-			   
-																 
-  
-					 
-			 
-
-
-				  
-								  
-																				   
-																						  
-																	  
-			   
-																  
-  
-					  
-			 
-
-
-							  
-								  
-																				   
-																						  
-																	  
-			   
-																					  
-  
-								  
-			 
-
-
-													   
-								  
-																				   
-																						  
-																	  
-			   
-																			 
-  
-							   
-			 
-
-
-							
-								  
-																				   
-																						  
-																	  
-			   
-																					   
-  
-							
-			 
-
-
-  ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
-  .then(funcSucessLog)
-  .catch(funcError);
-		  
-																	  
-			   
-																						   
-  
-					   
-			 
-
-
-			
-
-							  
-										
-											  
-						   
-						   
-						   
-						 
-							  
-								
-				   
-						  
-					  
-								
-					  
-					  
-			   
-				 
-					
-						
-						
-						
-									 
-							 
-								   
-					   
-												 
-													 
-								 
-								 
-						   
-							  
-							 
-									  
- 
-
-								
-														 
-
-
-
-
-																	  
-
-																 
-						  
-								  
-				   
-		   
-						   
-										 
-				 
-})
-
-					   
-			 
-}
-
-				   
-
-				   
-
-																			 
-})
-											 
-
-		
-											   
-								  
-																	
- 
-
-										
-
-														
-
-						   
-
-												 
-							
-					 
-				 
-   
-
-												  
-					   
-						
-
-}
+        width: '25rem',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Voltar',
+        cancelButtonColor: '#3085d6',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+          motivoDevolucaoPedido = $('#motivoDevolucao').val();
+
+          if (!motivoDevolucaoPedido) {
+            Swal.showValidationMessage(`Coloque o Motivo da Devolução do Pedido!`);
+            $('#motivoDevolucao').focus();
+            return false;
+
+          } else if (motivoDevolucaoPedido.length < 10) {
+            Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 Caracteres!`)
+            $('#motivoDevolucao').val('').focus();
+            return false;
+
+          } else {
+            Swal.showLoading()
+            var dados = {
+              "IDRESUMOPEDIDO": parseInt(id),
+              "IDANDAMENTO": parseInt(idandamento),
+              "TXTOBSDEVPEDIDO": ("" + motivoDevolucaoPedido)
+            };
+
+            return ajaxPut("api/compras/atualizacao-andamento-pedido.xsjs", dados)
+              .then((respostaPut) => {
+                if (respostaPut.msg) {
+                  funcSucessUpdateAndamentoPedido();
+
+                  CadPedidoFinanceiro(id);
+
+                  const textdados = JSON.stringify(dados);
+
+                  textoFuncao = 'CADASTRO/ENVIAR PEDIDO PARA COMPRAS';
+
+                  var dadosCancelaAtivaDep = [{
+
+                    "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+                    "PATHFUNCAO": textoFuncao,
+                    "DADOS": textdados,
+                    "IP": ipCliente
+                  }];
+
+                  ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
+                    .then(funcSucessLog)
+                    .catch(funcError);
+
+                } else {
+                  throw new Error("Não Foi Possível Devolver o Pedido, FAVOR ENTRAR EM CONTATO COM O SUPORTE!");
+                }
+
+              })
+              .catch((erro) => {
+                Swal.showValidationMessage("Não Foi Possível Devolver o Pedido, TENTE NOVAMENTE OU ENTRE EM CONTATO COM O SUPORTE!" + erro.message)
+              });
+          }
+        }
+      }).then((result) => {
+
+        if (result.dismiss == 'timer') {
+
+          Swal.fire({
+            type: 'error',
+            title: `Tempo de resposta ou inatividade atingido`,
+            timer: 60000,
+          })
+        } else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
+          return false;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        }
+      })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    })
+
+  } else {
+    Swal.fire({
+      title: 'Certeza que Deseja Enviar o Pedido para o Dep. Compras?',
+      text: "Você não poderá reverter esta ação!",
+      buttonsStyling: false,
+      showCancelButton: true,
+      customClass: {
+        confirmButton: 'btn btn-primary btn-lg',
+        cancelButton: 'btn btn-danger btn-lg',
+        loader: 'custom-loader'
+      },
+      loaderHtml: '<div class="spinner-border text-primary"></div>',
+      preConfirm: () => {
+        Swal.showLoading()
+        return new Promise((resolve) => {
+
+          var dados = {
+            "IDRESUMOPEDIDO": parseInt(id),
+            "IDANDAMENTO": parseInt(idandamento),
+            "TXTOBSDEVPEDIDO": ''
+          };
+
+          ajaxPut("api/compras/atualizacao-andamento-pedido.xsjs", dados)
+            .then(funcSucessUpdateAndamentoPedido)
+            .catch(funcError);
+
+          CadPedidoFinanceiro(id);
+
+          const textdados = JSON.stringify(dados);
+
+          textoFuncao = 'CADASTRO/ENVIAR PEDIDO PARA COMPRAS';
+
+          var dadosCancelaAtivaDep = [{
+
+            "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+            "PATHFUNCAO": textoFuncao,
+            "DADOS": textdados,
+            "IP": ipCliente
+          }];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
+            .then(funcSucessLog)
+            .catch(funcError);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        })
+
+
+
+      }
+
+
+
+
+
+
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  }
 }
 
 function retornoListaPedidosCadFin(respostaListaPedidosCadFin) {
-				   
-											  
-								
-													  
-	  
-
-var numPageAtual = parseInt(respostaListaPedidosCadFin.page);
-
-
-
-if(respostaListaPedidosCadFin.data.length != 0){
-for (var j = 0; j < respostaListaPedidosCadFin.data.length; j++) {
-
-	  idGrupoPedido = respostaListaPedidosCadFin.data[j]['IDGRUPOPEDIDO'];
-	  idSubGrupoPedido = respostaListaPedidosCadFin.data[j]['IDSUBGRUPOPEDIDO'];
-	  idPedido = respostaListaPedidosCadFin.data[j]['IDPEDIDO'];
-	  dataPedido = respostaListaPedidosCadFin.data[j]['DTPEDIDO'];
-	  dataPedidoFormat = respostaListaPedidosCadFin.data[j]['DTPEDIDOFORMATADA'];
-	  dataPedidoEntrega = respostaListaPedidosCadFin.data[j]['DTPREVENTREGAFORMATADA'];
-	  DsCondPagPedido = respostaListaPedidosCadFin.data[j]['DSCONDICAOPAG'];
-	  NuParcCondPagPedido = respostaListaPedidosCadFin.data[j]['NUPARCELAS'];
-	  QtdDiasCondPagPedido = respostaListaPedidosCadFin.data[j]['QTDDIAS'];
-	  NuDias1CondPagPedido = respostaListaPedidosCadFin.data[j]['NUNDIA1PAG'];
-	  ModPedido = respostaListaPedidosCadFin.data[j]['MODPEDIDO'];
-	  TpDocCondPagPedido = respostaListaPedidosCadFin.data[j]['TPDOCUMENTO'];
-	  valorPedido = respostaListaPedidosCadFin.data[j]['VRTOTALLIQUIDO'];
-	  statusPedido = respostaListaPedidosCadFin.data[j]['STCANCELADO'];
-	  IdFornecedorPedido = respostaListaPedidosCadFin.data[j]['IDFORNECEDOR'];
-	  NoFornecedorPedido = respostaListaPedidosCadFin.data[j]['NOFORNECEDOR'];
-	  stPedido = respostaListaPedidosCadFin.data[j]['DSANDAMENTO'];
-	  stPedidoSetor = respostaListaPedidosCadFin.data[j]['DSSETOR'];
-	  
-	  totalVrPedidos = parseFloat(totalVrPedidos) + parseFloat(valorPedido);
-
-	  qtdDias = 0;
-	  totalqtddias = 0;
-	  valordivPedido =0;
-	  valorresultPedido=0;
-	  valorparc=0;
-	  contadornuparc =0;
-	  
-	  var tpConta = 'DESPESA';
-	  var idCatDesp = 1;
-	  var idEmpPag = 101;
-	  var idAndamentoPag = 8;
-	  var dsContaPag = 'COMPRA COMERCIAL';
-	  var stConcluido = 'False';
-	  var stConciliado = 'False';
-	  var stCancelado = 'False';
-	  
-	  var dadosTablePedPag = [];
-	  
-	  valordiv = parseFloat((valorPedido/NuParcCondPagPedido).toFixed(2));
-	 
-	  for (i = 1; i <= NuParcCondPagPedido; i++) {
-			  contadornuparc ++;
-			  
-			  valorparc += (valordiv); 
-
-			  if(i==0){
-				  finalparcela = dataPedidoFormat;
-			  }else{
-
-				  dtparcpedido = dataPedidoFormat.split('-');
-				  
-				  var dt = new Date(dtparcpedido[0], dtparcpedido[1], dtparcpedido[2]);
-
-				  e = i - 1;
-				  finalparcelapedido = dt.setMonth( dt.getMonth() + e );
-				  
-				  var dataParcPedido = new Date(finalparcelapedido);
-				  var diaParcPedido = dataParcPedido.getDate(); // 1-31
-				  var mesParcPedido = dataParcPedido.getMonth(); // 0-11 (zero=janeiro)
-				  var ano4ParcPedido = dataParcPedido.getFullYear(); // 4 dígitos
-				  
-				  mesParcPedidoatual = (mesParcPedido + 1);
-				  mesParcPedidoatualFormatado = String(mesParcPedidoatual);
-				  diachekPedido = String(diaParcPedido);
-				  
-				  if(mesParcPedidoatual == 4 || mesParcPedidoatual == 6 || mesParcPedidoatual == 9 || mesParcPedidoatual == 11){
-					  if(diaParcPedido == 31){
-						  var diachekPedido = String(diaParcPedido - 1);
-					  }
-				  }else if(mesParcPedidoatual == 2){
-					  if(diaParcPedido == 30){
-						  var diachekPedido = String(diaParcPedido - 2);
-					  }else if (diaParcPedido == 31){
-						  var diachekPedido = String(diaParcPedido - 3);
-					  }
-				  }
-
-				  finalparcela = ano4ParcPedido + '-' + (mesParcPedidoatualFormatado.padStart(2, '0')) + '-' + diachekPedido.padStart(2, '0');
-				  finalparcelaformat = diachekPedido.padStart(2, '0') + '-' + (mesParcPedidoatualFormatado.padStart(2, '0')) + '-' + ano4ParcPedido;
-				  
-			  }
-			  
-			  if(i==NuParcCondPagPedido){                      
-
-				  if(valorparc>valorPedido){
-																																																   
-	
-   
-
-					  valordivPedido =  parseFloat((valorparc - valorPedido).toFixed(2));
-					  valorresultPedido = valordiv - valordivPedido;                            
-				  }
-				  if(valorparc<valorPedido){
-
-					  valordivPedido =  parseFloat((valorPedido - valorparc).toFixed(2));
-					  valorresultPedido = valordiv + valordivPedido;
-				  }
-				  if(valorparc==valorPedido){
-
-					  valorresultPedido = valordiv;
-				  }
-			  }else{
-
-				  valorresultPedido = valordiv;
-			  }
-		  
-		  totalqtddias = totalqtddias + qtdDias;
-		  
-		  if(i==0){
-			  qtdDias = parseFloat(NuDias1CondPagPedido);
-		  }else{
-			  qtdDias = parseFloat(totalqtddias) + parseFloat(QtdDiasCondPagPedido);
-		  }
-
-		  var dadosDetPedPag = {
-			"finalparcelaformat":finalparcela,
-			"qtddiaspag":qtdDias,
-			"valorresultPedido":valorresultPedido,
-			"nuvezparc":contadornuparc,
-		  }
-		  
-		  dadosTablePedPag.push(dadosDetPedPag);
-		  
-
-																  
-
-																   
-
-																			  
-																		  
-																		  
-																		  
-																		  
-																		  
-																			  
-																		  
-
-											  
-										
-										  
-
-									   
-									
-	  }
-	  
- 
-
-							 
-																													  
-  
-
-								
-																									 
-  
-
-
-
-										
-
-	  var dados = [{ 
-		  "IDGRUPOEMPRESARIAL": parseInt(idGrupoPedido),
-		  "IDSUBGRUPOEMPRESARIAL": parseInt(idSubGrupoPedido),
-										
-
-							   
-						  
-						   
-			 
-							   
-						  
-							  
-			 
-	  
-
-						 
-		  "IDEMPRESAPAGADORA": parseInt(idEmpPag),
-		  "TPCONTA":tpConta,
-		  "IDRESUMOPEDIDO": parseInt(idPedido),
-		  "IDFORNECEDOR": parseInt(IdFornecedorPedido),
-		  "IDCATEGORIADESP": parseInt(idCatDesp),
-		  "IDANDAMENTO": parseInt(idAndamentoPag),
-		  "DSDESCRICAOCONTA":dsContaPag,
-		  "NOBENEFICIARIO":NoFornecedorPedido,
-		  "DTCOMPETENCIA":dataPedidoEntrega,
-		  "DSFORMAPAGCONTA":TpDocCondPagPedido,
-		  "QTDDIASPAGAMENTO": parseInt(QtdDiasCondPagPedido),
-		  "NUDOCORIGEM":idPedido,
-		  "OBSERVACAOPAGAMENTO":DsCondPagPedido,
-		  "STCONCLUIDO":stConcluido,
-		  "STCONCILIADO":stConciliado,
-		  "STCANCELADO":stCancelado,
-		  "DETALHEPEDPAG":dadosTablePedPag
-								  
-
-					   
-						  
-						   
-			 
-					   
-						  
-						  
-			 
-	  
-
-																							   
-							   
-					
 
 
 
 
-													   
 
-										  
-								  
-					   
 
-											  
-																
-			 
-												  
+  var numPageAtual = parseInt(respostaListaPedidosCadFin.page);
 
-									
-									
-										   
-								   
-									
 
-														
-			   
-					  
-														
-							   
-				 
-	   
-		  
-							 
-									  
-											 
-							
-	}];
-	  
-	  //console.table(dados);
-	  
-	  ajaxPost("api/financeiro/pedidos_compra.xsjs", dados)
-	  .then(funcSucessCadPedidoFinan)
-	  .catch(funcError);
-		  
-   
-}
-  
-}else{
-						 
-								  
-										 
-						
-   
 
-																	
-							 
-					
+  if (respostaListaPedidosCadFin.data.length != 0) {
+    for (var j = 0; j < respostaListaPedidosCadFin.data.length; j++) {
 
-}
+      idGrupoPedido = respostaListaPedidosCadFin.data[j]['IDGRUPOPEDIDO'];
+      idSubGrupoPedido = respostaListaPedidosCadFin.data[j]['IDSUBGRUPOPEDIDO'];
+      idPedido = respostaListaPedidosCadFin.data[j]['IDPEDIDO'];
+      dataPedido = respostaListaPedidosCadFin.data[j]['DTPEDIDO'];
+      dataPedidoFormat = respostaListaPedidosCadFin.data[j]['DTPEDIDOFORMATADA'];
+      dataPedidoEntrega = respostaListaPedidosCadFin.data[j]['DTPREVENTREGAFORMATADA'];
+      DsCondPagPedido = respostaListaPedidosCadFin.data[j]['DSCONDICAOPAG'];
+      NuParcCondPagPedido = respostaListaPedidosCadFin.data[j]['NUPARCELAS'];
+      QtdDiasCondPagPedido = respostaListaPedidosCadFin.data[j]['QTDDIAS'];
+      NuDias1CondPagPedido = respostaListaPedidosCadFin.data[j]['NUNDIA1PAG'];
+      ModPedido = respostaListaPedidosCadFin.data[j]['MODPEDIDO'];
+      TpDocCondPagPedido = respostaListaPedidosCadFin.data[j]['TPDOCUMENTO'];
+      valorPedido = respostaListaPedidosCadFin.data[j]['VRTOTALLIQUIDO'];
+      statusPedido = respostaListaPedidosCadFin.data[j]['STCANCELADO'];
+      IdFornecedorPedido = respostaListaPedidosCadFin.data[j]['IDFORNECEDOR'];
+      NoFornecedorPedido = respostaListaPedidosCadFin.data[j]['NOFORNECEDOR'];
+      stPedido = respostaListaPedidosCadFin.data[j]['DSANDAMENTO'];
+      stPedidoSetor = respostaListaPedidosCadFin.data[j]['DSSETOR'];
+
+      totalVrPedidos = parseFloat(totalVrPedidos) + parseFloat(valorPedido);
+
+      qtdDias = 0;
+      totalqtddias = 0;
+      valordivPedido = 0;
+      valorresultPedido = 0;
+      valorparc = 0;
+      contadornuparc = 0;
+
+      var tpConta = 'DESPESA';
+      var idCatDesp = 1;
+      var idEmpPag = 101;
+      var idAndamentoPag = 8;
+      var dsContaPag = 'COMPRA COMERCIAL';
+      var stConcluido = 'False';
+      var stConciliado = 'False';
+      var stCancelado = 'False';
+
+      var dadosTablePedPag = [];
+
+      valordiv = parseFloat((valorPedido / NuParcCondPagPedido).toFixed(2));
+
+      for (i = 1; i <= NuParcCondPagPedido; i++) {
+        contadornuparc++;
+
+        valorparc += (valordiv);
+
+        if (i == 0) {
+          finalparcela = dataPedidoFormat;
+        } else {
+
+          dtparcpedido = dataPedidoFormat.split('-');
+
+          var dt = new Date(dtparcpedido[0], dtparcpedido[1], dtparcpedido[2]);
+
+          e = i - 1;
+          finalparcelapedido = dt.setMonth(dt.getMonth() + e);
+
+          var dataParcPedido = new Date(finalparcelapedido);
+          var diaParcPedido = dataParcPedido.getDate(); // 1-31
+          var mesParcPedido = dataParcPedido.getMonth(); // 0-11 (zero=janeiro)
+          var ano4ParcPedido = dataParcPedido.getFullYear(); // 4 dígitos
+
+          mesParcPedidoatual = (mesParcPedido + 1);
+          mesParcPedidoatualFormatado = String(mesParcPedidoatual);
+          diachekPedido = String(diaParcPedido);
+
+          if (mesParcPedidoatual == 4 || mesParcPedidoatual == 6 || mesParcPedidoatual == 9 || mesParcPedidoatual == 11) {
+            if (diaParcPedido == 31) {
+              var diachekPedido = String(diaParcPedido - 1);
+            }
+          } else if (mesParcPedidoatual == 2) {
+            if (diaParcPedido == 30) {
+              var diachekPedido = String(diaParcPedido - 2);
+            } else if (diaParcPedido == 31) {
+              var diachekPedido = String(diaParcPedido - 3);
+            }
+          }
+
+          finalparcela = ano4ParcPedido + '-' + (mesParcPedidoatualFormatado.padStart(2, '0')) + '-' + diachekPedido.padStart(2, '0');
+          finalparcelaformat = diachekPedido.padStart(2, '0') + '-' + (mesParcPedidoatualFormatado.padStart(2, '0')) + '-' + ano4ParcPedido;
+
+        }
+
+        if (i == NuParcCondPagPedido) {
+
+          if (valorparc > valorPedido) {
+
+
+
+
+            valordivPedido = parseFloat((valorparc - valorPedido).toFixed(2));
+            valorresultPedido = valordiv - valordivPedido;
+          }
+          if (valorparc < valorPedido) {
+
+            valordivPedido = parseFloat((valorPedido - valorparc).toFixed(2));
+            valorresultPedido = valordiv + valordivPedido;
+          }
+          if (valorparc == valorPedido) {
+
+            valorresultPedido = valordiv;
+          }
+        } else {
+
+          valorresultPedido = valordiv;
+        }
+
+        totalqtddias = totalqtddias + qtdDias;
+
+        if (i == 0) {
+          qtdDias = parseFloat(NuDias1CondPagPedido);
+        } else {
+          qtdDias = parseFloat(totalqtddias) + parseFloat(QtdDiasCondPagPedido);
+        }
+
+        var dadosDetPedPag = {
+          "finalparcelaformat": finalparcela,
+          "qtddiaspag": qtdDias,
+          "valorresultPedido": valorresultPedido,
+          "nuvezparc": contadornuparc,
+        }
+
+        dadosTablePedPag.push(dadosDetPedPag);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      var dados = [{
+        "IDGRUPOEMPRESARIAL": parseInt(idGrupoPedido),
+        "IDSUBGRUPOEMPRESARIAL": parseInt(idSubGrupoPedido),
+
+
+
+
+
+
+
+
+
+
+
+
+
+        "IDEMPRESAPAGADORA": parseInt(idEmpPag),
+        "TPCONTA": tpConta,
+        "IDRESUMOPEDIDO": parseInt(idPedido),
+        "IDFORNECEDOR": parseInt(IdFornecedorPedido),
+        "IDCATEGORIADESP": parseInt(idCatDesp),
+        "IDANDAMENTO": parseInt(idAndamentoPag),
+        "DSDESCRICAOCONTA": dsContaPag,
+        "NOBENEFICIARIO": NoFornecedorPedido,
+        "DTCOMPETENCIA": dataPedidoEntrega,
+        "DSFORMAPAGCONTA": TpDocCondPagPedido,
+        "QTDDIASPAGAMENTO": parseInt(QtdDiasCondPagPedido),
+        "NUDOCORIGEM": idPedido,
+        "OBSERVACAOPAGAMENTO": DsCondPagPedido,
+        "STCONCLUIDO": stConcluido,
+        "STCONCILIADO": stConciliado,
+        "STCANCELADO": stCancelado,
+        "DETALHEPEDPAG": dadosTablePedPag
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      }];
+
+      //console.table(dados);
+
+      ajaxPost("api/financeiro/pedidos_compra.xsjs", dados)
+        .then(funcSucessCadPedidoFinan)
+        .catch(funcError);
+
+
+    }
+
+  } else {
+
+
+
+
+
+
+
+
+
+
+  }
 
 
 }
 
 function funcSucessCadPedidoFinan(idped) {
 
-ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=1&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
-.then(retornoListaPedidos)
-.catch(funcError);
-		
+  ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=500&page=1&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
+    .then(retornoListaPedidos)
+    .catch(funcError);
+
 }
 
 function CadPedidoFinanceiro(idped) {
 
-ajaxGet('api/financeiro/lista_pedidos.xsjs?idpedido='+idped)
-.then(retornoListaPedidosCadFin)
-						 
-						  
-												
-							   
-	  
-					
-												 
+  ajaxGet('api/financeiro/lista_pedidos.xsjs?idpedido=' + idped)
+    .then(retornoListaPedidosCadFin)
 
 
-				   
-						  
-																   
-																																	 
-		
 
 
-										
-														 
-																			  
-
-								  
-
-							  
-							   
-
-								   
-																											
-
-											   
-									   
-					  
-
-											   
-									   
-					  
-
- 
-
-												   
-			 
 
 
-							   
-
-						 
-		   
-
-										  
-							  
-								  
-
-						  
-												
-							   
-	  
-					
-												 
 
 
-										
-
-														 
-																		
-
-								  
-
-																																		
-										 
-					  
- 
 
 
-															  
-			 
 
 
-											   
 
-										  
-							  
-								  
 
-																																	
-									 
-.catch(funcError);
-		
-				   
-						  
-																   
-																																	 
-		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .catch(funcError);
+
+
+
+
+
+
 
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 function retornoListaCategoriaPedido(respostaListaCatPedido) {
 
-numPage = parseInt(respostaListaCatPedido.page);
+  numPage = parseInt(respostaListaCatPedido.page);
 
-if(numPage === 1){
-  $("#categoriaprod").empty();
-  $('#categoriaprod').append(
-	`<option value="">Selecione...</option>`
-								
-								
-										   
-							   
-								
-
-								   
-					  
-		  
-						
-   
-
-				  
-								 
-																																																																																																																																																									 
-		  
-															  
-																																																									   
-   
-
-
-									   
-		  
-		   
-			
-				  
- 
-
-													   
-												  
-	  
-					 
-																													  
-										
-				  
-							
-									 
-											   
-									 
-								   
-				   
-				  
-											  
-				  
-														  
-				  
-			   
-);
-
-									   
-							  
-					
-						
-						  
-						  
-				   
-																																									
-							  
-															
-			
-	 
-						 
-				  
-								
-												 
-	  
-	 
-						   
-					
-								  
-												  
-	  
-	 
-					  
-					
-							   
-											 
-	 
-   
-   
-}
-
-for (var i = 0; i < respostaListaCatPedido.data.length; i++) {
-
-IDCategPedido = respostaListaCatPedido.data[i]['IDCATEGORIAPEDIDO'];
-DSCategPedido = respostaListaCatPedido.data[i]['DSCATEGORIAPEDIDO'];
-  TPCategPedido = respostaListaCatPedido.data[i]['TIPOPEDIDO'];
-												  
-
-													
-								   
-				  
-
-
-																  
-													 
-													 
-				  
-						  
-$('#categoriaprod').append(
-	`<option value="` + IDCategPedido + `"> ` + TPCategPedido + ` - ` + DSCategPedido + `</option>`
-);
-
-
-												   
-																	 
-
-																	   
-																	   
-
-						   
-																								
-	
-							   
-																								
-	
- 
-												
+  if (numPage === 1) {
+    $("#categoriaprod").empty();
+    $('#categoriaprod').append(
+      `<option value="">Selecione...</option>`
 
 
 
 
-							 
-
-															  
-
-									 
-								  
-													  
-
-							 
-							 
-							  
-
-								 
-																																														  
-	
-   
 
 
 
-}
 
-							 
 
-		 
-															  
-												 
-					  
-					   
-			  
-										  
-										
-						 
-  
-															  
-				   
-					
-								   
 
-																	  
-							  
-						
 
-										 
 
-																	
 
-					 
 
-													 
-								
-						 
-					 
-	   
-	  
-										 
-					   
-						
-   
 
-	
- 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+  for (var i = 0; i < respostaListaCatPedido.data.length; i++) {
+
+    IDCategPedido = respostaListaCatPedido.data[i]['IDCATEGORIAPEDIDO'];
+    DSCategPedido = respostaListaCatPedido.data[i]['DSCATEGORIAPEDIDO'];
+    TPCategPedido = respostaListaCatPedido.data[i]['TIPOPEDIDO'];
+
+
+
+
+
+
+
+
+
+
+
+
+    $('#categoriaprod').append(
+      `<option value="` + IDCategPedido + `"> ` + TPCategPedido + ` - ` + DSCategPedido + `</option>`
+    );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
 
 function retornoListaCategoriasProd(respostaListaCategoriasProd) {
-listaTipoFiscalProd = respostaListaCategoriasProd.data;
-numPage = parseInt(respostaListaCategoriasProd.page);
-		  
-						  
+  listaTipoFiscalProd = respostaListaCategoriasProd.data;
+  numPage = parseInt(respostaListaCategoriasProd.page);
 
 
 
-									 
 
-															  
 
-									 
-								  
-													  
 
-							 
-							 
 
-								 
-																																														 
-	
 
-   
 
-															
-							  
-					
 
 
 
 
 
-													
 
-															
 
-														   
-														   
-														   
 
-									  
-								  
 
-							   
-							
-		
-							  
- 
 
-						
-																					 
-  
 
 
 
-											
 
-															  
 
-									  
-								   
-													   
 
-								 
-								 
-						  
-							  
 
-								  
-										
-	 
 
-								  
-																																																   
-	
 
 
-   
-											 
-									 
-					
 
-																			
-									  
-					
 
 
 
 
 
-																	
 
-																	
 
-																			   
-																	   
-																	   
-																		
-																		
-																		
-																			
-																	   
 
-										  
-								   
-										   
 
-								   
-								
-		
-								  
- 
 
-							  
-																																		
-  
 
-							
-																							 
-  
 
 
 
-									
 
-										  
-									  
-										   
 
-					   
-								  
-																				   
-																						  
-																	  
-			   
-																   
-  
-						   
-			 
 
 
 
-			   
 
-									
-							 
-							 
-								   
-					 
 
- 
 
-					  
 
-				 
-												 
-								
-					
-	  
-												
-								
-					
 
 
-										 
 
-											 
 
-				  
 
-											   
-						  
-				   
-			   
- 
 
-										
-					
-					   
 
 
 
-										
 
-						  
-								
-				 
 
 
-								 
 
-										  
-								  
 
-					   
-						  
-						   
-			 
-					   
-						  
-						  
-			 
-	  
 
-																							   
-								
-					
 
 
 
 
-										
 
-													  
-										
-										   
-										 
 
-							   
-						  
-						   
-			 
-							   
-						  
-						  
-			 
-	  
 
-						 
-										   
-										  
-												 
-						
-   
 
-																   
-							 
-					
 
 
 
 
-														
 
-										  
-								  
-					   
 
-											  
-																
-			 
-												  
 
-									
-									
-										   
-								   
-									
 
-														
-			   
-					  
-														
-							   
-				 
-	   
-		  
-							 
-									  
-											 
-							
-	   
 
-																		
-								 
-						
 
-   
- 
-	  
-						 
-								  
-										 
-						
-   
 
-																	
-							 
-					
 
 
 
 
-									 
 
-						   
-								 
-				 
 
 
-																			 
 
-						   
-						  
-												
-							   
-	  
-					
-												 
 
 
-				   
-						  
-																   
-																																	 
-		
 
 
-										
-														 
-																			  
 
-								  
 
-								
 
-								   
-																											 
 
-										   
-										  
-					  
 
- 
 
-													  
-			 
 
 
-								  
 
-							
-		   
 
-									   
-								   
-									 
 
-						  
-												
-							   
-	  
-					
-												 
 
 
-										
 
-														 
-																		
 
-								  
 
-																																									
-											
-					  
- 
 
 
-																 
-			 
 
 
-												  
 
-									   
-								   
-									 
 
-																																								
-										
-				  
 
-				   
-						  
-																   
-																																	 
-		
 
 
 
-																	   
 
-															  
-												   
-																	 
-			 
-													   
 
-									   
-									
-									   
-							   
-								  
-						   
-								   
 
-																																																													
-										  
-			   
-			 
-				   
-			  
-				 
-			 
-					 
- 
 
-													   
-													 
-	  
-					 
-																														 
-										
-				  
-							
-							   
-										
-										
-								   
-								 
-							 
-								   
-				   
-				  
-												 
-				  
-															 
-				  
-			   
-  
 
-										  
-								 
-					
-						
-						  
-						  
-				   
-																																									
-							  
-															
-			
-	 
-						 
-				  
-								
-												 
-	  
-	 
-						   
-					
-								  
-												  
-	  
-	 
-					  
-					
-							   
-											 
-	 
-   
-   
 
 
 
-																		
 
-														 
-														
-if (numPage === 1) {
-$("#prodcategorias").empty();
-$('#prodcategorias').append(
-  `<option value="">Selecione...</option>`
-);
-}
 
-for (var i = 0; i < respostaListaCategoriasProd.data.length; i++) {
 
-IDCATEGORIASPROD = respostaListaCategoriasProd.data[i]['IDCATEGORIAS'];
-DSCATEGORIASPROD = respostaListaCategoriasProd.data[i]['DSCATEGORIAS'];
-TPCATEGORIASPROD = respostaListaCategoriasProd.data[i]['TPCATEGORIAS'];
-$('#prodcategorias').append(
-  `<option value="` + IDCATEGORIASPROD + `"> ` + IDCATEGORIASPROD + ` - ` + DSCATEGORIASPROD + ` - ` + TPCATEGORIASPROD + `</option>`
-);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  if (numPage === 1) {
+    $("#prodcategorias").empty();
+    $('#prodcategorias').append(
+      `<option value="">Selecione...</option>`
+    );
+  }
+
+  for (var i = 0; i < respostaListaCategoriasProd.data.length; i++) {
+
+    IDCATEGORIASPROD = respostaListaCategoriasProd.data[i]['IDCATEGORIAS'];
+    DSCATEGORIASPROD = respostaListaCategoriasProd.data[i]['DSCATEGORIAS'];
+    TPCATEGORIASPROD = respostaListaCategoriasProd.data[i]['TPCATEGORIAS'];
+    $('#prodcategorias').append(
+      `<option value="` + IDCATEGORIASPROD + `"> ` + IDCATEGORIASPROD + ` - ` + DSCATEGORIASPROD + ` - ` + TPCATEGORIASPROD + `</option>`
+    );
+  }
 
 }
 
 function retornoListaUnidadeMedida(respostaListaUnidMed) {
-listaFornecedores = respostaListaUnidMed.data;
-numPage = parseInt(respostaListaUnidMed.page);
+  listaFornecedores = respostaListaUnidMed.data;
+  numPage = parseInt(respostaListaUnidMed.page);
 
-if(numPage === 1){
-  $("#unidprod").empty();
-  $('#unidprod').append(
+  if (numPage === 1) {
+    $("#unidprod").empty();
+    $('#unidprod').append(
 
-						   
-							 
-							  
-								   
-							   
-							
-							   
-							   
-								
-									 
-							 
-							 
-						 
-						  
-							
-								
-							
-						   
-						   
-						   
-
-									
-																																															 
-	
-
-   
-
-
 
-										   
-
-																 
-
-										
-									 
-														 
-
-						   
-							 
-							  
-								   
-							   
-							
-							   
-							   
-								
-									 
-							 
-							 
-						 
-						  
-							
-								
-							
-						   
-						   
-						   
-								
-
-									
-																																															
-	
 
-   
 
-																			
-								 
-					
 
 
-
-													  
-
-   
-														 
-									   
-
-										
-											
-								
-									 
 
-
-		 
-															
-
-
-
-
-
-																						 
-
-											 
 
-													 
-															   
-
-							 
-						
-
-												 
-																																																   
-																								 
-																																					 
-																																					 
-																																	  
-																																	
-																																		   
-																														 
-																																																								  
-
-													 
-								  
-										
-							  
-										
-											   
-												 
-								  
-								
-
-																			   
-
-		   
-
-	  
-										
-
-																						   
-																										
-																										
-																									  
-																											 
-
-												 
-																						   
-																											   
-																																	 
-
-		
-																												 
-																															   
-																																   
-
- 
-
-								   
-										 
-							   
-										 
-												
-												  
-								   
-								 
-
-																			  
-
-			
-
-
-
-												  
-																				
-
-		 
-																								  
-					   
-							  
-						  
-						 
-						
-						 
-
-																										   
-																						 
-									 
-											   
-
-					   
-
-			   
-																 
-				   
-							   
-							
-					
-								 
-
-						  
-
-																																 
-
-								   
-
-					 
-													
-							
-					   
-			
-				
-
-					 
-																													 
-						 
-			
-		 
-
-	   
-							  
-
-										   
-				   
-																											   
-					   
-		  
-	   
-	  
-
-							  
-			   
-											
-																			 
-					 
-	  
-
-   
-
-																												 
-			 
-																																																														  
-				   
-	
-
-																 
-			 
-						 
-								  
-				 
-	
-
- 
-
-
-
-
-
-														  
-
-															   
-
-																	 
-																				   
-																						 
-																  
-																	   
-														 
-																		
-																		 
-															   
-															   
-															   
-																	   
-																
-																
-														 
-														   
-															  
-																  
-																  
-																  
-																		  
-																  
-																 
-
-								 
-												
-											
-									
-											   
-										
-										   
-												   
-										 
-										 
-								 
-								   
-										
-											  
-									   
-									 
-									 
-									 
-										
-
-								  
-							   
-		
-								 
- 
-
-						   
-	`<option value="">Selecione...</option>`
-);
-
-}
-
-for (var i = 0; i < respostaListaUnidMed.data.length; i++) {
-
-IDUnidMedida = respostaListaUnidMed.data[i]['IDUNIDADEMEDIDA'];
-DSUnidMedida = respostaListaUnidMed.data[i]['DSUNIDADE'];
-  SGUnidMedida = respostaListaUnidMed.data[i]['DSSIGLA'];
-$('#unidprod').append(
-	`<option value="` + IDUnidMedida + `"> ` + SGUnidMedida + `</option>`
-									  
-												 
-											  
-										
-											  
-											  
-											 
-													   
-										  
-										  
-								  
-									
-									   
-													
-										
-									  
-									  
-									  
-											
-
-						   
-		   
-																		   
-								  
-				 
-  
-
-
-					 
-		   
-					   
-								
-				 
-  
-
-
-					  
-									 
-																				   
-																						  
-																	  
-			   
-																			   
-);
-						  
-			 
-
-
-						 
-									 
-																				   
-																						  
-																	  
-			   
-																			   
-  
-							 
-			 
-
-
-						 
-									 
-																				   
-																						  
-																	  
-			   
-																		   
-  
-							 
-			 
-
-
-					   
-									 
-																				   
-																						  
-																	  
-			   
-																					  
-  
-							  
-			 
-
-
-					   
-									 
-																				   
-																						  
-																	  
-			   
-																		
-  
-						   
-			 
-
-
-					   
-									 
-																				   
-																						  
-																	  
-			   
-																		
-  
-						   
-			 
-
-
-				   
-									 
-																				   
-																						  
-																	  
-			   
-																	
-  
-					   
-			 
-
-
-					
-									 
-																				   
-																						  
-																	  
-			   
-																	 
-  
-						
-			 
-
-
-
-			
-
-									   
-											  
-													
-							 
-							 
-					 
-								
-								  
-					 
-							
-						
-								  
-						
-						
-				 
-				   
-					  
-						  
-						  
-						  
-									   
-							 
-								   
-						
-
- 
-
-							
-													   
-
-
-}
-
-																	
-
-															 
-								
-
-				   
-		   
-						   
-										 
-				 
-  
-
-
-				   
-
-				   
-
-																				   
-															 
-											 
-
-		
-												  
-									 
-																	
- 
-
-										
-
-															
-
-						 
-
-												 
-							
-					 
-				 
-   
-
-											   
-					  
-					   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      `<option value="">Selecione...</option>`
+    );
+
+  }
+
+  for (var i = 0; i < respostaListaUnidMed.data.length; i++) {
+
+    IDUnidMedida = respostaListaUnidMed.data[i]['IDUNIDADEMEDIDA'];
+    DSUnidMedida = respostaListaUnidMed.data[i]['DSUNIDADE'];
+    SGUnidMedida = respostaListaUnidMed.data[i]['DSSIGLA'];
+    $('#unidprod').append(
+      `<option value="` + IDUnidMedida + `"> ` + SGUnidMedida + `</option>`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 }
 
 function retornoListaTecidos(respostaListaTipoTecido) {
-listaTipoTecido = respostaListaTipoTecido.data;
-numPage = parseInt(respostaListaTipoTecido.page);
+  listaTipoTecido = respostaListaTipoTecido.data;
+  numPage = parseInt(respostaListaTipoTecido.page);
 
-if(numPage === 1){
-  $("#tptecidoprod").empty();
-  $('#tptecidoprod').append(
-	`<option value="">Selecione...</option>`
-);
+  if (numPage === 1) {
+    $("#tptecidoprod").empty();
+    $('#tptecidoprod').append(
+      `<option value="">Selecione...</option>`
+    );
 
-}
+  }
 
-for (var i = 0; i < respostaListaTipoTecido.data.length; i++) {
+  for (var i = 0; i < respostaListaTipoTecido.data.length; i++) {
 
-IDTPTecido = respostaListaTipoTecido.data[i]['IDTPTECIDO'];
-DSTPTecido = respostaListaTipoTecido.data[i]['DSTIPOTECIDO'];
-  STTPTecido = respostaListaTipoTecido.data[i]['STATIVO'];
-$('#tptecidoprod').append(
-	`<option value="` + IDTPTecido + `"> ` + DSTPTecido + `</option>`					 
-);
-}
+    IDTPTecido = respostaListaTipoTecido.data[i]['IDTPTECIDO'];
+    DSTPTecido = respostaListaTipoTecido.data[i]['DSTIPOTECIDO'];
+    STTPTecido = respostaListaTipoTecido.data[i]['STATIVO'];
+    $('#tptecidoprod').append(
+      `<option value="` + IDTPTecido + `"> ` + DSTPTecido + `</option>`
+    );
+  }
 }
 
 function retornoListaFabricantePedido(respostaListaFabricante) {
 
-    $("#fabprod,#idfabpromo").empty();
-    $('#fabprod,#idfabpromo').append(
-        `<option value="">Selecione...</option>`											   
+  $("#fabprod,#idfabpromo").empty();
+  $('#fabprod,#idfabpromo').append(
+    `<option value="">Selecione...</option>`
+  );
+
+  for (var i = 0; i < respostaListaFabricante.data.length; i++) {
+
+    IDFabricante = respostaListaFabricante.data[i]['IDFABRICANTE'];
+    IDFabricanteSAP = respostaListaFabricante.data[i]['IDFABSAP'];
+    DSFabricante = respostaListaFabricante.data[i]['DSFABRICANTE'];
+
+    $('#fabprod').append(
+      `<option value="` + IDFabricante + `"> ` + IDFabricante + ` - ` + DSFabricante + `</option>`
+    );
+    $('#idfabpromo').append(
+      `<option value="` + IDFabricanteSAP + `"> ` + IDFabricante + ` - ` + DSFabricante + `</option>`
     );
 
-    for (var i = 0; i < respostaListaFabricante.data.length; i++) {
-    
-        IDFabricante = respostaListaFabricante.data[i]['IDFABRICANTE'];
-        IDFabricanteSAP = respostaListaFabricante.data[i]['IDFABSAP'];
-        DSFabricante = respostaListaFabricante.data[i]['DSFABRICANTE'];
-        
-        $('#fabprod').append(
-        	`<option value="` + IDFabricante + `"> ` + IDFabricante + ` - ` + DSFabricante + `</option>`
-        );
-        $('#idfabpromo').append(
-        	`<option value="` + IDFabricanteSAP + `"> ` + IDFabricante + ` - ` + DSFabricante + `</option>`
-        );
-    
-    }
+  }
 }
 
 function retornoListaLocalExp(respostaListaLocalExp) {
 
   $("#localexp").empty();
   $('#localexp').append(
-	`<option value="">Selecione...</option>`
-);
+    `<option value="">Selecione...</option>`
+  );
 
-for (var i = 0; i < respostaListaLocalExp.data.length; i++) {
+  for (var i = 0; i < respostaListaLocalExp.data.length; i++) {
 
-IDLocalExp = respostaListaLocalExp.data[i]['IDLOCALEXPOSICAO'];
-DSLocalExp = respostaListaLocalExp.data[i]['DSLOCALEXPOSICAO'];
-  STLocalExp = respostaListaLocalExp.data[i]['STATIVO'];
-$('#localexp').append(
-	`<option value="` + IDLocalExp + `"> ` + DSLocalExp + `</option>`
-);
-}
-}
-
-function retornoListaProdutoPedido(respostaListaProdPedGrupo) { 
-
-numPage = parseInt(respostaListaProdPedGrupo.page);
-if(numPage === 1){
-  $("#listprodpesqped").empty();
-  $('#listprodpesqped').append(
-	`<option value="">Selecione...</option>`
-);
+    IDLocalExp = respostaListaLocalExp.data[i]['IDLOCALEXPOSICAO'];
+    DSLocalExp = respostaListaLocalExp.data[i]['DSLOCALEXPOSICAO'];
+    STLocalExp = respostaListaLocalExp.data[i]['STATIVO'];
+    $('#localexp').append(
+      `<option value="` + IDLocalExp + `"> ` + DSLocalExp + `</option>`
+    );
+  }
 }
 
-for (var i = 0; i < respostaListaProdPedGrupo.data.length; i++) { 
+function retornoListaProdutoPedido(respostaListaProdPedGrupo) {
 
-  IDProdList = respostaListaProdPedGrupo.data[i]['IDPRODUTO'];
-  DSProdList = respostaListaProdPedGrupo.data[i]['DSNOME'];
-  NUCodBarrasProdList = respostaListaProdPedGrupo.data[i]['NUCODBARRAS'];
-  
-	$('#listprodpesqped').append(
-		`<option value="` + DSProdList + `"> ` + DSProdList + `</option>` 
-	);
-}
+  numPage = parseInt(respostaListaProdPedGrupo.page);
+  if (numPage === 1) {
+    $("#listprodpesqped").empty();
+    $('#listprodpesqped').append(
+      `<option value="">Selecione...</option>`
+    );
+  }
+
+  for (var i = 0; i < respostaListaProdPedGrupo.data.length; i++) {
+
+    IDProdList = respostaListaProdPedGrupo.data[i]['IDPRODUTO'];
+    DSProdList = respostaListaProdPedGrupo.data[i]['DSNOME'];
+    NUCodBarrasProdList = respostaListaProdPedGrupo.data[i]['NUCODBARRAS'];
+
+    $('#listprodpesqped').append(
+      `<option value="` + DSProdList + `"> ` + DSProdList + `</option>`
+    );
+  }
 
 }
 
 function retornoListaEstiloGrupo(respostaListaEstiloGrupo) {
 
-numPage = parseInt(respostaListaEstiloGrupo.page);
+  numPage = parseInt(respostaListaEstiloGrupo.page);
 
-if (numPage === 1) {
-$("#estiloprod").empty();
-$('#estiloprod').append(
-  `<option value="">Selecione...</option>`				   
-);
+  if (numPage === 1) {
+    $("#estiloprod").empty();
+    $('#estiloprod').append(
+      `<option value="">Selecione...</option>`
+    );
+  }
+
+  for (var i = 0; i < respostaListaEstiloGrupo.data.length; i++) {
+
+    IDEstiloGrupo = respostaListaEstiloGrupo.data[i]['IDESTILO'];
+    DSEstiloGrupo = respostaListaEstiloGrupo.data[i]['DSESTILO'];
+    $('#estiloprod').append(
+      `<option value="` + IDEstiloGrupo + `"> ` + IDEstiloGrupo + ` - ` + DSEstiloGrupo + `</option>`
+    );
+  }
 }
 
-for (var i = 0; i < respostaListaEstiloGrupo.data.length; i++) {
+function retornoListaTransportadora(respostaListaTransportadora) {
+  listaFornecedores = respostaListaTransportadora.data;
+  numPage = parseInt(respostaListaTransportadora.page);
 
-IDEstiloGrupo = respostaListaEstiloGrupo.data[i]['IDESTILO'];
-DSEstiloGrupo = respostaListaEstiloGrupo.data[i]['DSESTILO'];
-$('#estiloprod').append(
-  `<option value="` + IDEstiloGrupo + `"> ` + IDEstiloGrupo + ` - ` + DSEstiloGrupo + `</option>`
-);
-}
-}
-
-function retornoListaTransportadora(respostaListaTransportadora) { 
-listaFornecedores = respostaListaTransportadora.data;
-numPage = parseInt(respostaListaTransportadora.page);
-
-if(numPage === 1){
-  $("#idtransportadora").empty();
-  $('#idtransportadora').append(
-
-							 
-							 
-						   
-
-								 
-									 
-	 
-
-							   
-																																													   
-	
-
-   
-
-																		  
-							
-					
+  if (numPage === 1) {
+    $("#idtransportadora").empty();
+    $('#idtransportadora').append(
 
 
 
 
-												
-
-														  
-
-																  
-																  
-															  
-
-									
-								 
-		
-								   
- 
-
-									   
-									 
-
-							 
-	`<option value="">Selecione ...</option>`
-);
-}
-
-for (var i = 0; i < respostaListaTransportadora.data.length; i++) {
-
-  IDTransp = respostaListaTransportadora.data[i]['IDTRANSPORTADORA'];
-  DSTransp = respostaListaTransportadora.data[i]['NOFANTASIA'];
-	  CnpjTransp = respostaListaTransportadora.data[i]['NUCNPJ'];
-	$('#idtransportadora').append(
-		`<option value="` + IDTransp + `"> ` + CnpjTransp + ` - ` + DSTransp + `</option>`
-					 
-								
-																				   
-																						  
-																	  
-			   
-																								 
-  
-						   
-			 
-
-
-			
-
-										 
-														   
-							   
-					 
-
- 
-
-					 
-
-				 
-												  
-							  
-					
-	  
-												 
-							  
-					
-
-
-									  
-
-																   
-
-					   
-
-											   
-						  
-				   
-			   
- 
-
-											 
-					
-					   
 
 
 
-									  
-
-						  
-							  
-					 
 
 
 
-																				
-
-						   
-						  
-												
-							   
-	  
-					
-												 
 
 
-				   
-						  
-																   
-																																	 
-		
 
 
-										
-														 
-																			  
 
-								  
 
-							
 
-								   
-																													
 
-											   
-										  
-	);
 
-}
 
-													  
-			 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      `<option value="">Selecione ...</option>`
+    );
+  }
+
+  for (var i = 0; i < respostaListaTransportadora.data.length; i++) {
+
+    IDTransp = respostaListaTransportadora.data[i]['IDTRANSPORTADORA'];
+    DSTransp = respostaListaTransportadora.data[i]['NOFANTASIA'];
+    CnpjTransp = respostaListaTransportadora.data[i]['NUCNPJ'];
+    $('#idtransportadora').append(
+      `<option value="` + IDTransp + `"> ` + CnpjTransp + ` - ` + DSTransp + `</option>`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    );
+
+  }
+
+
+
 }
 
 function chamarProximaListaFornecedoresPedio(numPage) {
 
-ajaxGet('api/compras/fornecedor-produto.xsjs?page=' + numPage)
-.then(retornoListaFornecedorPedido)
-										 
-
-
-																 
-
-																   
-															 
-																
-
-					   
-																						  
-  
+  ajaxGet('api/compras/fornecedor-produto.xsjs?page=' + numPage)
+    .then(retornoListaFornecedorPedido)
 
 
 
-								  
-
-							
-		   
-
-									   
-										 
-
-						  
-												
-							   
-	  
-					
-												 
 
 
-										
-
-														 
-																		
-
-								  
-
-																															   
-											
-					  
- 
 
 
-																 
-			 
 
 
-											   
 
-									   
-										 
 
-																														   
-										
-.catch(funcError);
 
-				   
-						  
-																   
-																																	 
-		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .catch(funcError);
+
+
+
+
+
+
 
 }
 
 function retornoListaFornecedorPedido(respostaListaFornecedoresPedio) {
 
-    listaFornecedores = respostaListaFornecedoresPedio.data;
-    numPage = parseInt(respostaListaFornecedoresPedio.page);
+  listaFornecedores = respostaListaFornecedoresPedio.data;
+  numPage = parseInt(respostaListaFornecedoresPedio.page);
 
-    if (numPage === 1) {
-        $("#idforn,#idfornpromo").empty();
-        $('#idforn,#idfornpromo').append(
-            `<option value="">Selecione ...</option>`
-        );
-    }
+  if (numPage === 1) {
+    $("#idforn,#idfornpromo").empty();
+    $('#idforn,#idfornpromo').append(
+      `<option value="">Selecione ...</option>`
+    );
+  }
 
-    for (var i = 0; i < respostaListaFornecedoresPedio.data.length; i++) {
-    
-        IDFornecedor = respostaListaFornecedoresPedio.data[i]['IDFORNECEDOR'];
-        IDFornecedorSAP = respostaListaFornecedoresPedio.data[i]['IDFORNECEDORSAP'];
-        DSFornecedor = respostaListaFornecedoresPedio.data[i]['NORAZAOSOCIAL'];
-        DSFantFornecedor = respostaListaFornecedoresPedio.data[i]['NOFANTASIA'];
-        NrCpfCnpj = respostaListaFornecedoresPedio.data[i]['NUCNPJ'];
-        
-        $('#idforn').append(
-            `<option value="` + IDFornecedor + `"> ` + DSFantFornecedor + ` / ` + ` / ` + NrCpfCnpj + ` / ` + ` / ` + DSFornecedor + `</option>`								 
-        );
-        $('#idfornpromo').append(
-            `<option value="` + IDFornecedorSAP + `"> ` + DSFantFornecedor + ` / ` + ` / ` + NrCpfCnpj + ` / ` + ` / ` + DSFornecedor + `</option>`								 
-        );
-    }
+  for (var i = 0; i < respostaListaFornecedoresPedio.data.length; i++) {
 
-    if (respostaListaFornecedoresPedio.data.length > 0) {
-        chamarProximaListaFornecedoresPedio(numPage + 1);
-    }
+    IDFornecedor = respostaListaFornecedoresPedio.data[i]['IDFORNECEDOR'];
+    IDFornecedorSAP = respostaListaFornecedoresPedio.data[i]['IDFORNECEDORSAP'];
+    DSFornecedor = respostaListaFornecedoresPedio.data[i]['NORAZAOSOCIAL'];
+    DSFantFornecedor = respostaListaFornecedoresPedio.data[i]['NOFANTASIA'];
+    NrCpfCnpj = respostaListaFornecedoresPedio.data[i]['NUCNPJ'];
+
+    $('#idforn').append(
+      `<option value="` + IDFornecedor + `"> ` + DSFantFornecedor + ` / ` + ` / ` + NrCpfCnpj + ` / ` + ` / ` + DSFornecedor + `</option>`
+    );
+    $('#idfornpromo').append(
+      `<option value="` + IDFornecedorSAP + `"> ` + DSFantFornecedor + ` / ` + ` / ` + NrCpfCnpj + ` / ` + ` / ` + DSFornecedor + `</option>`
+    );
+  }
+
+  if (respostaListaFornecedoresPedio.data.length > 0) {
+    chamarProximaListaFornecedoresPedio(numPage + 1);
+  }
 }
 
 function retornoListaCondicaoPagSelect(respostaListaCondicaoPag) {
 
-$("#idcondicaopagamento").empty();
-$('#idcondicaopagamento').append(
-`<option value="">Selecione ...</option>`
-);
+  $("#idcondicaopagamento").empty();
+  $('#idcondicaopagamento').append(
+    `<option value="">Selecione ...</option>`
+  );
 
-for (var i = 0; i < respostaListaCondicaoPag.data.length; i++) {
+  for (var i = 0; i < respostaListaCondicaoPag.data.length; i++) {
 
-IDCondPag = respostaListaCondicaoPag.data[i]['IDCONDICAOPAGAMENTO'];
-DSCondPag = respostaListaCondicaoPag.data[i]['DSCONDICAOPAG'];
+    IDCondPag = respostaListaCondicaoPag.data[i]['IDCONDICAOPAGAMENTO'];
+    DSCondPag = respostaListaCondicaoPag.data[i]['DSCONDICAOPAG'];
 
-$('#idcondicaopagamento').append(
-  `<option value="` + IDCondPag + `"> ` + DSCondPag + `</option>`
-);
-}
+    $('#idcondicaopagamento').append(
+      `<option value="` + IDCondPag + `"> ` + DSCondPag + `</option>`
+    );
+  }
 }
 
 function retornoListaCompradorSelect(respostaListaComprador) {
@@ -6018,7 +6018,7 @@ function retornoListaCompradorSelect(respostaListaComprador) {
   $('#IdCompradorPedido').append(
     `<option value="">Selecione ...</option>`
   );
-  
+
   $("#idCompradorselect").empty();
   $('#idCompradorselect').append(
     `<option value="">Selecione ...</option>`
@@ -6040,288 +6040,288 @@ function retornoListaCompradorSelect(respostaListaComprador) {
 
 function retornoListaMarcaSelect(respostaListaMarcas) {
 
-$("#idmarca").empty();
-$("#idmarcaselect").empty();
-$('#idmarca').append(
-	`<option value="">Selecione ...</option>`
-);
-$('#idmarcaselect').append(
-	`<option value="">Selecione ...</option>`
-);
+  $("#idmarca").empty();
+  $("#idmarcaselect").empty();
+  $('#idmarca').append(
+    `<option value="">Selecione ...</option>`
+  );
+  $('#idmarcaselect').append(
+    `<option value="">Selecione ...</option>`
+  );
 
-for (var i = 0; i < respostaListaMarcas.data.length; i++) {
-    
-IDMarca = respostaListaMarcas.data[i]['IDGRUPOEMPRESARIAL'];
-DSMarca = respostaListaMarcas.data[i]['DSGRUPOEMPRESARIAL'];
+  for (var i = 0; i < respostaListaMarcas.data.length; i++) {
 
-$('#idmarca').append( 
-  `<option value="` + IDMarca + `"> ` + DSMarca + `</option>`
-);
-$('#idmarcaselect').append( 
-  `<option value="` + IDMarca + `"> ` + DSMarca + `</option>`
-);
-}
-}
+    IDMarca = respostaListaMarcas.data[i]['IDGRUPOEMPRESARIAL'];
+    DSMarca = respostaListaMarcas.data[i]['DSGRUPOEMPRESARIAL'];
 
-function retornoListaSubGrupoPedido(respostaListaSubGruposPedidos) { 
-
-listaSubGrupos = respostaListaSubGruposPedidos.data;
-
-IDGrupoAnterior = '';
-codHtml='';
-
-for (var i = 0; i < respostaListaSubGruposPedidos.data.length; i++) {
-
-IDSubGrupo = respostaListaSubGruposPedidos.data[i]['ID_ESTRUTURA'];
-IDSubGrupoSAP = respostaListaSubGruposPedidos.data[i]['IDSAP'];
-DSSubGrupo = respostaListaSubGruposPedidos.data[i]['ESTRUTURA'];
-IDGrupo = respostaListaSubGruposPedidos.data[i]['ID_GRUPO'];
-DSgrupoGrade = respostaListaSubGruposPedidos.data[i]['DS_GRUPO'];
-  
-  if(IDGrupo === IDGrupoAnterior){
-	  
-	  codHtml = codHtml + `<option value="` + IDSubGrupoSAP + `"> ` + DSSubGrupo + `</option>`;
-  }else{
-	  if(IDGrupoAnterior !== ''){
-		  codHtml = codHtml +`</optgroup>`;
-	  }
-	  codHtml = codHtml +`<optgroup label="`+DSgrupoGrade.toUpperCase()+`">`
-	  codHtml = codHtml +`<option value="` + IDSubGrupoSAP + `"> ` + DSSubGrupo + `</option>`
+    $('#idmarca').append(
+      `<option value="` + IDMarca + `"> ` + DSMarca + `</option>`
+    );
+    $('#idmarcaselect').append(
+      `<option value="` + IDMarca + `"> ` + DSMarca + `</option>`
+    );
+  }
 }
 
-IDGrupoAnterior = IDGrupo;
+function retornoListaSubGrupoPedido(respostaListaSubGruposPedidos) {
+
+  listaSubGrupos = respostaListaSubGruposPedidos.data;
+
+  IDGrupoAnterior = '';
+  codHtml = '';
+
+  for (var i = 0; i < respostaListaSubGruposPedidos.data.length; i++) {
+
+    IDSubGrupo = respostaListaSubGruposPedidos.data[i]['ID_ESTRUTURA'];
+    IDSubGrupoSAP = respostaListaSubGruposPedidos.data[i]['IDSAP'];
+    DSSubGrupo = respostaListaSubGruposPedidos.data[i]['ESTRUTURA'];
+    IDGrupo = respostaListaSubGruposPedidos.data[i]['ID_GRUPO'];
+    DSgrupoGrade = respostaListaSubGruposPedidos.data[i]['DS_GRUPO'];
+
+    if (IDGrupo === IDGrupoAnterior) {
+
+      codHtml = codHtml + `<option value="` + IDSubGrupoSAP + `"> ` + DSSubGrupo + `</option>`;
+    } else {
+      if (IDGrupoAnterior !== '') {
+        codHtml = codHtml + `</optgroup>`;
+      }
+      codHtml = codHtml + `<optgroup label="` + DSgrupoGrade.toUpperCase() + `">`
+      codHtml = codHtml + `<option value="` + IDSubGrupoSAP + `"> ` + DSSubGrupo + `</option>`
+    }
+
+    IDGrupoAnterior = IDGrupo;
+
+  }
+
+  codHtml = codHtml + '';
+
+  $('#idestruturaselect').html(codHtml);
+}
+
+function retornoListaCores(respostaListaCoresPedidos) {
+  listaCores = respostaListaCoresPedidos.data;
+
+  IDGrupoCorAnterior = '';
+  codHtmlCor = '';
+
+  codHtmlCor = codHtmlCor + `<option value="">Selecione...</option>`
+
+  for (var i = 0; i < respostaListaCoresPedidos.data.length; i++) {
+
+    IDCOR = respostaListaCoresPedidos.data[i]['ID_COR'];
+    DSCOR = respostaListaCoresPedidos.data[i]['DS_COR'];
+    IDGrupoCOR = respostaListaCoresPedidos.data[i]['ID_GRUPOCOR'];
+    DSGrupoCOR = respostaListaCoresPedidos.data[i]['DS_GRUPOCOR'];
+
+    if (IDGrupoCOR === IDGrupoCorAnterior) {
+
+      codHtmlCor = codHtmlCor + `<option value="` + IDCOR + `"> ` + DSCOR + `</option>`;
+    } else {
+      if (IDGrupoCorAnterior !== '') {
+        codHtmlCor = codHtmlCor + `</optgroup>`;
+      }
+      codHtmlCor = codHtmlCor + `<optgroup label="` + DSGrupoCOR.toUpperCase() + `">`
+      codHtmlCor = codHtmlCor + `<option value="` + IDCOR + `"> ` + DSCOR + `</option>`
+    }
+
+    IDGrupoCorAnterior = IDGrupoCOR;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+  codHtmlCor = codHtmlCor + '';
+  $('#corprod').html(codHtmlCor);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
 
-codHtml = codHtml + '';
+function modal_Cancelar_Pedido(id, status) {
 
-$('#idestruturaselect').html(codHtml);
-}
-
-function retornoListaCores(respostaListaCoresPedidos) { 
-listaCores = respostaListaCoresPedidos.data;
-
-IDGrupoCorAnterior = '';
-codHtmlCor='';
-
-codHtmlCor = codHtmlCor +`<option value="">Selecione...</option>`
-
-for (var i = 0; i < respostaListaCoresPedidos.data.length; i++) {
-
-IDCOR = respostaListaCoresPedidos.data[i]['ID_COR'];
-DSCOR = respostaListaCoresPedidos.data[i]['DS_COR'];
-  IDGrupoCOR = respostaListaCoresPedidos.data[i]['ID_GRUPOCOR'];
-  DSGrupoCOR = respostaListaCoresPedidos.data[i]['DS_GRUPOCOR'];
-
-  if(IDGrupoCOR === IDGrupoCorAnterior){
-	  
-	  codHtmlCor = codHtmlCor + `<option value="` + IDCOR + `"> ` + DSCOR + `</option>`;
-  }else{
-	  if(IDGrupoCorAnterior !== ''){
-		  codHtmlCor = codHtmlCor +`</optgroup>`;
-	  }
-	  codHtmlCor = codHtmlCor +`<optgroup label="`+DSGrupoCOR.toUpperCase()+`">`
-	  codHtmlCor = codHtmlCor +`<option value="` + IDCOR + `"> ` + DSCOR + `</option>`
-}
-
-IDGrupoCorAnterior = IDGrupoCOR;
-						  
-																   
-																																	 
-		
-
-
-										
-														 
-																			  
-
-								  
-
-									  
-
-								   
-																														   
-
-											   
-										  
-					  
-
- 
-
-														  
-			 
-}
-
-codHtmlCor = codHtmlCor + '';
-$('#corprod').html(codHtmlCor);
-								
-							   
-										 
-
-
-																
-
-																			
-																			
-																		  
-																		  
-
-								 
-																										
-  
-
-}
-
-function modal_Cancelar_Pedido(id,status) {
-
-if(status == 'True'){
-  msgtitulo = 'Cancelar';
-  textoCancelaPedido = "CANCELADO PELO DEP COMPRAS ADM";
-  idAndamento = 13;
-}else{
-  msgtitulo = 'Ativar';
-  textoCancelaPedido = "ATIVADO PELO DEP COMPRAS ADM";
-  idAndamento = 6;
-}
+  if (status == 'True') {
+    msgtitulo = 'Cancelar';
+    textoCancelaPedido = "CANCELADO PELO DEP COMPRAS ADM";
+    idAndamento = 13;
+  } else {
+    msgtitulo = 'Ativar';
+    textoCancelaPedido = "ATIVADO PELO DEP COMPRAS ADM";
+    idAndamento = 6;
+  }
 
   Swal.fire({
-		title: 'Certeza que Deseja Cancelar o Pedido?',
-		text: "Você não poderá reverter esta ação!",
-		buttonsStyling: false,
-		showCancelButton: true,
-		customClass: {
-		  confirmButton: 'btn btn-primary btn-lg',
-		  cancelButton: 'btn btn-danger btn-lg',
-		  loader: 'custom-loader'
-		},
-		loaderHtml: '<div class="spinner-border text-primary"></div>',
-		allowOutsideClick: () => !Swal.isLoading()
+    title: 'Certeza que Deseja Cancelar o Pedido?',
+    text: "Você não poderá reverter esta ação!",
+    buttonsStyling: false,
+    showCancelButton: true,
+    customClass: {
+      confirmButton: 'btn btn-primary btn-lg',
+      cancelButton: 'btn btn-danger btn-lg',
+      loader: 'custom-loader'
+    },
+    loaderHtml: '<div class="spinner-border text-primary"></div>',
+    allowOutsideClick: () => !Swal.isLoading()
   }).then((result) => {
-		if (result.dismiss == 'timer') {
-		  Swal.fire({
-			type: 'error',
-			title: `Tempo de resposta ou inatividade atingido`,
-			timer: 10000,
-		  });
-		} else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
-		  return false;
-		} else{
+    if (result.dismiss == 'timer') {
+      Swal.fire({
+        type: 'error',
+        title: `Tempo de resposta ou inatividade atingido`,
+        timer: 10000,
+      });
+    } else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
+      return false;
+    } else {
 
-			Swal.fire({
-			  type:'question',
-			  title: 'Motivo do Cancelamento do Pedido?',
-			  html: `<div>
+      Swal.fire({
+        type: 'question',
+        title: 'Motivo do Cancelamento do Pedido?',
+        html: `<div>
 						  <div class=" input-group pt-0" >
 							  <input type="text" id="motivoCancelPedido" class="swal2-input m-0 " placeholder="Motivo do Cancelamento do Pedido!" style="text-transform: uppercase">
 						  </div>
 					  </div>`,
-			  width: '25rem',
-			  focusConfirm: false,
-			  showCancelButton: true,
-			  confirmButtonText: 'Confirmar',
-			  cancelButtonText: 'Voltar',
-			  cancelButtonColor: '#3085d6',
-			  showLoaderOnConfirm: true,
-			  preConfirm: () => {
-				  motivoCancelaPedido = $('#motivoCancelPedido').val();
-			
-				  if (!motivoCancelaPedido) {
-					  Swal.showValidationMessage(`Coloque o Motivo da Cancelamento do Pedido!`);
-					  $('#motivoCancelPedido').focus();
-					  return false;
-			
-				  } else if (motivoCancelaPedido.length < 10) {
-					  Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 Caracteres!`)
-					  $('#motivoCancelPedido').val('').focus();
-					  return false;
-			
-				  } else {
-					  
-						
-				  }
-			  }
-			}).then((result) => {
-					
-				if (result.dismiss == 'timer') {
-				
-				  Swal.fire({
-					  type: 'error',
-					  title: `Tempo de resposta ou inatividade atingido`,
-					  timer: 60000,
-				  })
-				} else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
-				  return false;
-				} else{
-					let barraCarregamento = `<div id="BarraCarregamento" class="progress">
+        width: '25rem',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Voltar',
+        cancelButtonColor: '#3085d6',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+          motivoCancelaPedido = $('#motivoCancelPedido').val();
+
+          if (!motivoCancelaPedido) {
+            Swal.showValidationMessage(`Coloque o Motivo da Cancelamento do Pedido!`);
+            $('#motivoCancelPedido').focus();
+            return false;
+
+          } else if (motivoCancelaPedido.length < 10) {
+            Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 Caracteres!`)
+            $('#motivoCancelPedido').val('').focus();
+            return false;
+
+          } else {
+
+
+          }
+        }
+      }).then((result) => {
+
+        if (result.dismiss == 'timer') {
+
+          Swal.fire({
+            type: 'error',
+            title: `Tempo de resposta ou inatividade atingido`,
+            timer: 60000,
+          })
+        } else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
+          return false;
+        } else {
+          let barraCarregamento = `<div id="BarraCarregamento" class="progress">
 											  <div  class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div>
 										  </div>`
 
-					Swal.fire({
-					  html: barraCarregamento,
-					  type: 'info',
-					  title: 'Carregando Dados...Aguarde!',
-					  timer: 180000,
-					  backdrop: false,
-					  allowEscapeKey: false,
-					  allowOutsideClick: false,
-					  onOpen: async () => {
-						  Swal.showLoading();
-						  
-							let dados = {
-								"IDRESUMOPEDIDO": parseInt(id),
-								"IDANDAMENTO": parseInt(idAndamento),
-								"IDRESPCANCELAMENTO":parseInt(IDFuncionarioLogin),
-								"DSMOTIVOCANCELAMENTO": motivoCancelaPedido.toString(),
-								"DTCANCELAMENTO": dataAtualCampo,
-								"STCANCELADO":status
-							};
-					
-						  await ajaxPut("api/compras/cancelamento-pedido.xsjs", dados)
-								.then((respostaPut)=>{
-									   Swal.close();
-									   funcSucessCancelaPedido();                                    
-									})
-								.catch(funcError);
-					
-					  }
-					}).then((result) => {
-					  if (result.dismiss == "timer") {
-						  Swal.close();
-					
-						  Swal.fire({
-							  type: 'error',
-							  title: "Erro ao carregar os dados, recarregue a página e tente novamente",
-							  timer: 15000,
-						  });
-						  return false;
-					  }
-					})
-					
-					  let animacaoBarra = setInterval(() => {
-					  let barra = $($('.pace-progress')[0]).attr('data-progress')
-					  let barra2 = $($('.pace-progress')[0]).attr('data-progress-text')
-					
-					  $('#BarraCarregamento').html(`
+          Swal.fire({
+            html: barraCarregamento,
+            type: 'info',
+            title: 'Carregando Dados...Aguarde!',
+            timer: 180000,
+            backdrop: false,
+            allowEscapeKey: false,
+            allowOutsideClick: false,
+            onOpen: async () => {
+              Swal.showLoading();
+
+              let dados = {
+                "IDRESUMOPEDIDO": parseInt(id),
+                "IDANDAMENTO": parseInt(idAndamento),
+                "IDRESPCANCELAMENTO": parseInt(IDFuncionarioLogin),
+                "DSMOTIVOCANCELAMENTO": motivoCancelaPedido.toString(),
+                "DTCANCELAMENTO": dataAtualCampo,
+                "STCANCELADO": status
+              };
+
+              await ajaxPut("api/compras/cancelamento-pedido.xsjs", dados)
+                .then((respostaPut) => {
+                  Swal.close();
+                  funcSucessCancelaPedido();
+                })
+                .catch(funcError);
+
+            }
+          }).then((result) => {
+            if (result.dismiss == "timer") {
+              Swal.close();
+
+              Swal.fire({
+                type: 'error',
+                title: "Erro ao carregar os dados, recarregue a página e tente novamente",
+                timer: 15000,
+              });
+              return false;
+            }
+          })
+
+          let animacaoBarra = setInterval(() => {
+            let barra = $($('.pace-progress')[0]).attr('data-progress')
+            let barra2 = $($('.pace-progress')[0]).attr('data-progress-text')
+
+            $('#BarraCarregamento').html(`
 						  <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="${barra}" aria-valuemin="0" aria-valuemax="100" style="width: ${barra}%">${barra}%</div>
 						  `)
-					}, 700)
-				}
-			})
-		}
-	})
-			 
+          }, 700)
+        }
+      })
+    }
+  })
+
 }
 
 function modalReativarPedido(id) {
-    let motivoReativacao = '';
+  let motivoReativacao = '';
 
-    msgQuestion(`Certeza que Deseja Reativar o Pedido(${id}) ?`, "Você não poderá reverter esta ação!")
-        .then((result) => {
-            if (result?.value) {
-                Swal.fire({
-                    type: 'question',
-                    title: 'Motivo da Reativação do Pedido?',
-                    html: `
+  msgQuestion(`Certeza que Deseja Reativar o Pedido(${id}) ?`, "Você não poderá reverter esta ação!")
+    .then((result) => {
+      if (result?.value) {
+        Swal.fire({
+          type: 'question',
+          title: 'Motivo da Reativação do Pedido?',
+          html: `
                         <div class="d-block m-auto">
                             <div class="input-group d-block text-dark text-left pt-0">
                                 <input type="text" id="motivoReativacao" class="swal2-input m-0" autocomplete="off" placeholder="Digite o Motivo" style="text-transform: uppercase">
@@ -6329,330 +6329,330 @@ function modalReativarPedido(id) {
                             </div>
                         </div>
                     `,
-                    width: '25rem',
-                    focusConfirm: false,
-                    showCancelButton: true,
-                    confirmButtonText: 'Confirmar',
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonText: 'Cancelar',
-                    cancelButtonColor: '#d33',
-                    showLoaderOnConfirm: true,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    backdrop: true,
-                    onOpen: () => {
+          width: '25rem',
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: 'Confirmar',
+          confirmButtonColor: '#3085d6',
+          cancelButtonText: 'Cancelar',
+          cancelButtonColor: '#d33',
+          showLoaderOnConfirm: true,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          backdrop: true,
+          onOpen: () => {
 
-                        $('#motivoTroca').on('keyup', (e) => {
-                            $('#motivoTroca').val(e.target.value?.replace(/[^a-zA-Z0-9\s]/g, '')?.replace(/\s{2,}/g, ' '));
-                        });
+            $('#motivoTroca').on('keyup', (e) => {
+              $('#motivoTroca').val(e.target.value?.replace(/[^a-zA-Z0-9\s]/g, '')?.replace(/\s{2,}/g, ' '));
+            });
 
-                        $('#motivoReativacao').focus().on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() });
-                        $('#swal2-validation-message').addClass(' text-danger fw-700');
+            $('#motivoReativacao').focus().on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() });
+            $('#swal2-validation-message').addClass(' text-danger fw-700');
 
-                    },
-                    preConfirm: () => {
-                        motivoReativacao = $('#motivoReativacao').val()?.trim();
+          },
+          preConfirm: () => {
+            motivoReativacao = $('#motivoReativacao').val()?.trim();
 
-                        if (!motivoReativacao?.length || motivoReativacao?.length < 10) {
-                            $('#motivoReativacao').focus();
-                            return Swal.showValidationMessage(`Adicione o Motivo da Reativação Com no Mínimo 10 Caracteres!`);
-                        }
-
-                        if (motivoReativacao?.length > 200) {
-                            $('#motivoReativacao').focus();
-                            return Swal.showValidationMessage(`Motivo da Reativação Está Muito Grande, Abrevie!`);
-                        }
-                    }
-                }).then(async (resp) => {
-                    try {
-                        if (resp?.value) {
-                            animationLoadingStart('Enviando Dados, aguarde...');
-
-                            let dados = {
-                                "IDRESUMOPEDIDO": parseInt(id),
-                                "IDRESPREATIVACAO": parseInt(IDFuncionarioLogin),
-                                "TXTMOTIVOREATIVACAO": motivoReativacao.toUpperCase(),
-                            };
-
-                            let textdados = JSON.stringify(dados);
-                            let textoFuncao = 'COMPRASADM/REATIVAR PEDIDO';
-
-                            let dadosLog = [{
-                                "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-                                "PATHFUNCAO": textoFuncao,
-                                "DADOS": textdados,
-                                "IP": ipCliente
-                            }];
-
-                            await ajaxPut("api/compras/ativar-pedido.xsjs", dados).catch((error) => { throw error });
-
-                            await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw error });
-
-                            await msgSuccess('Reativação Realizada Com Sucesso!');
-
-                            pesq_pedidos(1);
-                        }
-                    } catch (error) {
-                        msgError(`Erro ao Tentar Reativar o Pedido(${id})`);
-                        console.log(error)
-                    }
-                })
+            if (!motivoReativacao?.length || motivoReativacao?.length < 10) {
+              $('#motivoReativacao').focus();
+              return Swal.showValidationMessage(`Adicione o Motivo da Reativação Com no Mínimo 10 Caracteres!`);
             }
+
+            if (motivoReativacao?.length > 200) {
+              $('#motivoReativacao').focus();
+              return Swal.showValidationMessage(`Motivo da Reativação Está Muito Grande, Abrevie!`);
+            }
+          }
+        }).then(async (resp) => {
+          try {
+            if (resp?.value) {
+              animationLoadingStart('Enviando Dados, aguarde...');
+
+              let dados = {
+                "IDRESUMOPEDIDO": parseInt(id),
+                "IDRESPREATIVACAO": parseInt(IDFuncionarioLogin),
+                "TXTMOTIVOREATIVACAO": motivoReativacao.toUpperCase(),
+              };
+
+              let textdados = JSON.stringify(dados);
+              let textoFuncao = 'COMPRASADM/REATIVAR PEDIDO';
+
+              let dadosLog = [{
+                "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+                "PATHFUNCAO": textoFuncao,
+                "DADOS": textdados,
+                "IP": ipCliente
+              }];
+
+              await ajaxPut("api/compras/ativar-pedido.xsjs", dados).catch((error) => { throw error });
+
+              await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw error });
+
+              await msgSuccess('Reativação Realizada Com Sucesso!');
+
+              pesq_pedidos(1);
+            }
+          } catch (error) {
+            msgError(`Erro ao Tentar Reativar o Pedido(${id})`);
+            console.log(error)
+          }
+        })
+      }
     })
 }
 
 function fechar_pedido() {
 
-id = $("#IDResPedidoAtual").val(); 
+  id = $("#IDResPedidoAtual").val();
 
-var tipoPedido = $("#idtipopedido").val(); 
-var MarcaPedido = $('#idmarca').select2('data');
-var CondPag = $("#idcondicaopagamento").val(); 
-var IDFornc = $("#idforn").val();
+  var tipoPedido = $("#idtipopedido").val();
+  var MarcaPedido = $('#idmarca').select2('data');
+  var CondPag = $("#idcondicaopagamento").val();
+  var IDFornc = $("#idforn").val();
 
-var DtPedido = $("#dtpedido").val();
-var DtPedidoEntrega = $("#dtentrega").val();
-var NoCompradorPedido = $("#nomecomprador").val();
-var IdMarcaPedido = $("#idmarca").val();
-var ObsFornPedido = $("#obsforn").val();
-var ObsIntPedido = $("#obsint").val();
-var TpFiscalPedido = $("#idfiscal").val();
-var IdEnviarPedido = $("#idenviar").val();
-var IdtipoPedido = $("#idtipopedido").val();
-var NoVendedorPedido = $("#novendedor").val();
-var EmailVendedorPedido = $("#emailvendedor").val();
-var VrDescIPedido = $("#VrDescontoPedidoI").val().replace(".", "").replace(",", ".");
-var VrDescIPedido = $("#VrDescontoPedidoI").val().replace(".", "").replace(",", ".");
-var VrDescIIPedido = $("#VrDescontoPedidoII").val().replace(".", "").replace(",", ".");
-var VrDescIIIPedido = $("#VrDescontoPedidoIII").val().replace(".", "").replace(",", ".");
-var vrComissaoPedido = $("#VrComissaoPedido").val().replace(".", "").replace(",", ".");
-var VrLiqPedido = $("#vrliquidopedido").val().replace(".", "").replace(",", ".");
-var IdTranspPedido = $("#idtransportadora").val();
-var TpFretePedido = $("#tpfrete").val();
-var stagrupado = 'False';
-var stcancelado = 'False';
-var stdistribuido = 'False';
-var idAndamento = 4;
+  var DtPedido = $("#dtpedido").val();
+  var DtPedidoEntrega = $("#dtentrega").val();
+  var NoCompradorPedido = $("#nomecomprador").val();
+  var IdMarcaPedido = $("#idmarca").val();
+  var ObsFornPedido = $("#obsforn").val();
+  var ObsIntPedido = $("#obsint").val();
+  var TpFiscalPedido = $("#idfiscal").val();
+  var IdEnviarPedido = $("#idenviar").val();
+  var IdtipoPedido = $("#idtipopedido").val();
+  var NoVendedorPedido = $("#novendedor").val();
+  var EmailVendedorPedido = $("#emailvendedor").val();
+  var VrDescIPedido = $("#VrDescontoPedidoI").val().replace(".", "").replace(",", ".");
+  var VrDescIPedido = $("#VrDescontoPedidoI").val().replace(".", "").replace(",", ".");
+  var VrDescIIPedido = $("#VrDescontoPedidoII").val().replace(".", "").replace(",", ".");
+  var VrDescIIIPedido = $("#VrDescontoPedidoIII").val().replace(".", "").replace(",", ".");
+  var vrComissaoPedido = $("#VrComissaoPedido").val().replace(".", "").replace(",", ".");
+  var VrLiqPedido = $("#vrliquidopedido").val().replace(".", "").replace(",", ".");
+  var IdTranspPedido = $("#idtransportadora").val();
+  var TpFretePedido = $("#tpfrete").val();
+  var stagrupado = 'False';
+  var stcancelado = 'False';
+  var stdistribuido = 'False';
+  var idAndamento = 4;
 
-if(MarcaPedido[0].text =='Selecione ...'){
-  alerta_select_marca();
-}else if(CondPag == ''){
-  alerta_select_condpag();
-}else if(tipoPedido == ''){
-  alerta_select_tipopedido();
-}else if(IDFornc == ''){
-  alerta_select_fornecedor();
-}else{
-  
-  if(id == 0){
-	  Swal.fire(
-		{
-			type: "warning",
-			  title: 'Pedido não pode ser Fechado',
-			  text: "Não existe Pedido Iniciado",
-			showConfirmButton: false,
-			timer: 2500
-		});
-  }else{
-	  Swal.fire({
-	  title: 'Certeza que Deseja Finalizar o Pedido?',
-	  text: "Você não poderá reverter esta ação!",
-	  buttonsStyling: false,
-	  showCancelButton: true,
-	  customClass: {
-		confirmButton: 'btn btn-primary btn-lg',
-		cancelButton: 'btn btn-danger btn-lg',
-		loader: 'custom-loader'
-	  },
-	  loaderHtml: '<div class="spinner-border text-primary"></div>',
-	  preConfirm: () => {
-		Swal.showLoading()
-		return new Promise((resolve) => {
+  if (MarcaPedido[0].text == 'Selecione ...') {
+    alerta_select_marca();
+  } else if (CondPag == '') {
+    alerta_select_condpag();
+  } else if (tipoPedido == '') {
+    alerta_select_tipopedido();
+  } else if (IDFornc == '') {
+    alerta_select_fornecedor();
+  } else {
 
-		  var dados = {
-			"IDRESUMOPEDIDO": parseInt(id),
-			"IDGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-			  "IDSUBGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-			  "IDCONDICAOPAGAMENTO": parseInt(CondPag),
-			  "IDFORNECEDOR": (IDFornc),
-			  "IDTRANSPORTADORA": parseInt(IdTranspPedido),
-			  "IDANDAMENTO": parseInt(idAndamento),
-			  "MODPEDIDO": tipoPedido,
-			  "NOVENDEDOR": NoVendedorPedido,
-			  "EEMAILVENDEDOR": EmailVendedorPedido,
-			  "DTPEDIDO": DtPedido,
-			  "DTPREVENTREGA": DtPedidoEntrega,
-			  "TPFRETE": TpFretePedido,
-			  "DESCPERC01": parseFloat(VrDescIPedido),
-			  "DESCPERC02": parseFloat(VrDescIIPedido),
-			  "DESCPERC03": parseFloat(VrDescIIIPedido),
-			  "PERCCOMISSAO": parseFloat(vrComissaoPedido),
-			  "VRTOTALLIQUIDO": parseFloat(VrLiqPedido),
-			  "OBSPEDIDO": ObsFornPedido,
-			  "OBSPEDIDO2": ObsIntPedido,
-			  "DTFECHAMENTOPEDIDO": dataAtualCampo,
-			  "DTCADASTRO": dataAtualCampo,
-			  "TPARQUIVO": IdEnviarPedido,
-			  "STDISTRIBUIDO": stdistribuido,
-			  "STAGRUPAPRODUTO": stagrupado,
-			  "STCANCELADO": stcancelado,
-			  "TPFISCAL": TpFiscalPedido
-		};
-		  
-		  //console.table(dados);
-		  
-		  ajaxPut("api/compras/finalizar-pedido.xsjs", dados)
-		  .then(funcSucessFinalizarPedido)
-		  .catch(funcError);
-		  
-		const textdados = JSON.stringify(dados);
-  
-		textoFuncao = 'COMPRAS/PEDIDO FINALIZADO';
-		  
-		  var dadosCancelaAtivaDep = [{
-			  
-			  "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-			  "PATHFUNCAO":textoFuncao,
-			  "DADOS":textdados,
-			  "IP":ipCliente
-		  }];
-	  
-		  ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
-		  .then(funcSucessLog)
-		  .catch(funcError);
-				  
-		})
-	  }
-	})
-	  
+    if (id == 0) {
+      Swal.fire(
+        {
+          type: "warning",
+          title: 'Pedido não pode ser Fechado',
+          text: "Não existe Pedido Iniciado",
+          showConfirmButton: false,
+          timer: 2500
+        });
+    } else {
+      Swal.fire({
+        title: 'Certeza que Deseja Finalizar o Pedido?',
+        text: "Você não poderá reverter esta ação!",
+        buttonsStyling: false,
+        showCancelButton: true,
+        customClass: {
+          confirmButton: 'btn btn-primary btn-lg',
+          cancelButton: 'btn btn-danger btn-lg',
+          loader: 'custom-loader'
+        },
+        loaderHtml: '<div class="spinner-border text-primary"></div>',
+        preConfirm: () => {
+          Swal.showLoading()
+          return new Promise((resolve) => {
+
+            var dados = {
+              "IDRESUMOPEDIDO": parseInt(id),
+              "IDGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
+              "IDSUBGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
+              "IDCONDICAOPAGAMENTO": parseInt(CondPag),
+              "IDFORNECEDOR": (IDFornc),
+              "IDTRANSPORTADORA": parseInt(IdTranspPedido),
+              "IDANDAMENTO": parseInt(idAndamento),
+              "MODPEDIDO": tipoPedido,
+              "NOVENDEDOR": NoVendedorPedido,
+              "EEMAILVENDEDOR": EmailVendedorPedido,
+              "DTPEDIDO": DtPedido,
+              "DTPREVENTREGA": DtPedidoEntrega,
+              "TPFRETE": TpFretePedido,
+              "DESCPERC01": parseFloat(VrDescIPedido),
+              "DESCPERC02": parseFloat(VrDescIIPedido),
+              "DESCPERC03": parseFloat(VrDescIIIPedido),
+              "PERCCOMISSAO": parseFloat(vrComissaoPedido),
+              "VRTOTALLIQUIDO": parseFloat(VrLiqPedido),
+              "OBSPEDIDO": ObsFornPedido,
+              "OBSPEDIDO2": ObsIntPedido,
+              "DTFECHAMENTOPEDIDO": dataAtualCampo,
+              "DTCADASTRO": dataAtualCampo,
+              "TPARQUIVO": IdEnviarPedido,
+              "STDISTRIBUIDO": stdistribuido,
+              "STAGRUPAPRODUTO": stagrupado,
+              "STCANCELADO": stcancelado,
+              "TPFISCAL": TpFiscalPedido
+            };
+
+            //console.table(dados);
+
+            ajaxPut("api/compras/finalizar-pedido.xsjs", dados)
+              .then(funcSucessFinalizarPedido)
+              .catch(funcError);
+
+            const textdados = JSON.stringify(dados);
+
+            textoFuncao = 'COMPRAS/PEDIDO FINALIZADO';
+
+            var dadosCancelaAtivaDep = [{
+
+              "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+              "PATHFUNCAO": textoFuncao,
+              "DADOS": textdados,
+              "IP": ipCliente
+            }];
+
+            ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
+              .then(funcSucessLog)
+              .catch(funcError);
+
+          })
+        }
+      })
+
+    }
   }
 }
-}
 
-function funcSucessLog(resposta) { 
+function funcSucessLog(resposta) {
 
 }
 
 function funcSucessCancelaPedido(resposta) {
 
-alerta_cancel_ativa_pedido();
-pesq_pedidos(1)
+  alerta_cancel_ativa_pedido();
+  pesq_pedidos(1)
 
 }
 
 function funcSucessUpdateStatusProdutoPedido(resposta) {
 
-var IdResumoPedidoLista = $("#IDResPedidoAtual").val();
+  var IdResumoPedidoLista = $("#IDResPedidoAtual").val();
 
-Swal.fire({
-  type: "success",
-  title: "Produto Excluído do Pedido: " + IdResumoPedidoLista + " com Sucesso ",
-  showConfirmButton: false,
-  timer: 2000
-});
+  Swal.fire({
+    type: "success",
+    title: "Produto Excluído do Pedido: " + IdResumoPedidoLista + " com Sucesso ",
+    showConfirmButton: false,
+    timer: 2000
+  });
 
-ajaxGet('api/compras/lista_detalhepedidos.xsjs?idpedido=' + IdResumoPedidoLista)
-.then(funcSucessResumoPedidoLista)
-.catch(funcError);
-
-}
-
-function modal_Cancelar_Produto_Pedido(id,status) {
-
-if(status == 'True'){
-  msgtitulo = 'Cancelar';
-  textoCancelaPedido = 'CANCELADO PELO COMPRADOR';
-}else{
-  msgtitulo = 'Ativar';
-  textoCancelaPedido = 'ATIVADO PELO COMPRADOR';
+  ajaxGet('api/compras/lista_detalhepedidos.xsjs?idpedido=' + IdResumoPedidoLista)
+    .then(funcSucessResumoPedidoLista)
+    .catch(funcError);
 
 }
 
-Swal.fire({
-title: 'Certeza que Deseja '+msgtitulo+' esse Produto do Pedido?',
-text: "Você não poderá reverter esta ação!",
-buttonsStyling: false,
-showCancelButton: true,
-customClass: {
-confirmButton: 'btn btn-primary btn-lg',
-cancelButton: 'btn btn-danger btn-lg',
-loader: 'custom-loader'
-},
-loaderHtml: '<div class="spinner-border text-primary"></div>',
-preConfirm: () => {
-Swal.showLoading()
-return new Promise((resolve) => {
-  
-  var dados = {
-	"IDDETALHEPEDIDO": parseInt(id),
-	"STCANCELADO":status
-  };
-  
-  ajaxPut("api/compras/atualizacao-status-produto-pedido.xsjs", dados)
-  .then(funcSucessUpdateStatusProdutoPedido)
-  .catch(funcError);
+function modal_Cancelar_Produto_Pedido(id, status) {
 
-const textdados = JSON.stringify(dados);
+  if (status == 'True') {
+    msgtitulo = 'Cancelar';
+    textoCancelaPedido = 'CANCELADO PELO COMPRADOR';
+  } else {
+    msgtitulo = 'Ativar';
+    textoCancelaPedido = 'ATIVADO PELO COMPRADOR';
 
-if(status=='True'){
-	textoFuncao = 'COMPRAS/CANCELAR PRODUTO DO PEDIDO';
-}else{
-	textoFuncao = 'COMPRAS/ATIVAR PRODUTO DO PEDIDO';
+  }
 
-}
-  
-  var dadosCancelaAtivaDep = [{
-	  
-	  "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-	  "PATHFUNCAO":textoFuncao,
-	  "DADOS":textdados,
-	  "IP":ipCliente
-  }];
-  
-  ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
-  .then(funcSucessLog)
-  .catch(funcError);
-		  
-})
-}
-})
+  Swal.fire({
+    title: 'Certeza que Deseja ' + msgtitulo + ' esse Produto do Pedido?',
+    text: "Você não poderá reverter esta ação!",
+    buttonsStyling: false,
+    showCancelButton: true,
+    customClass: {
+      confirmButton: 'btn btn-primary btn-lg',
+      cancelButton: 'btn btn-danger btn-lg',
+      loader: 'custom-loader'
+    },
+    loaderHtml: '<div class="spinner-border text-primary"></div>',
+    preConfirm: () => {
+      Swal.showLoading()
+      return new Promise((resolve) => {
+
+        var dados = {
+          "IDDETALHEPEDIDO": parseInt(id),
+          "STCANCELADO": status
+        };
+
+        ajaxPut("api/compras/atualizacao-status-produto-pedido.xsjs", dados)
+          .then(funcSucessUpdateStatusProdutoPedido)
+          .catch(funcError);
+
+        const textdados = JSON.stringify(dados);
+
+        if (status == 'True') {
+          textoFuncao = 'COMPRAS/CANCELAR PRODUTO DO PEDIDO';
+        } else {
+          textoFuncao = 'COMPRAS/ATIVAR PRODUTO DO PEDIDO';
+
+        }
+
+        var dadosCancelaAtivaDep = [{
+
+          "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+          "PATHFUNCAO": textoFuncao,
+          "DADOS": textdados,
+          "IP": ipCliente
+        }];
+
+        ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
+          .then(funcSucessLog)
+          .catch(funcError);
+
+      })
+    }
+  })
 }
 
 function funcSucessFinalizarPedido(resposta) {
 
-alerta_finalizar_pedido();
-window.location.replace("dashboardcompras.html");
+  alerta_finalizar_pedido();
+  window.location.replace("dashboardcompras.html");
 
 }
 
 function pagina_principal() {
 
-window.location.replace("dashboardcompras.html");
+  window.location.replace("dashboardcompras.html");
 }
 
 ////////////////////////////RELAÇÃO DE PRODUTOS TRANSFORMADOS DO PEDIDO//////////////////////////////////////////
-function pesq_prodcriado_pedidos_(numPage){
+function pesq_prodcriado_pedidos_(numPage) {
 
-var dataPesqInic = $("#parametro_dia_inicio").val();
-var dataPesqFim = $("#parametro_dia_fim").val();
-var idFornPesq = $("#idfornselect").val();
+  var dataPesqInic = $("#parametro_dia_inicio").val();
+  var dataPesqFim = $("#parametro_dia_fim").val();
+  var idFornPesq = $("#idfornselect").val();
 
-var idMarcaPesq = $("#idmarcaselect").val();
-var NuPedidoPesq = $("#npedio").val();
+  var idMarcaPesq = $("#idmarcaselect").val();
+  var NuPedidoPesq = $("#npedio").val();
 
-return ajaxGet('api/cadastro/cadastrar-produto-pedido.xsjs?iResPedido=' + NuPedidoPesq + '&dataPesquisaInicio=' + dataPesqInic +'&dataPesquisaFim=' + dataPesqFim)
-.then(funcSucessListaProdCriadoPedidoCompra)
-.catch(funcError);
+  return ajaxGet('api/cadastro/cadastrar-produto-pedido.xsjs?iResPedido=' + NuPedidoPesq + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim)
+    .then(funcSucessListaProdCriadoPedidoCompra)
+    .catch(funcError);
 }
 
 function funcSucessListaProdCriadoPedidoCompra(respostaProdCriadoPedidoCompra) {
-contadorDetPedido = 0;
-var numPageAtual = parseInt(respostaProdCriadoPedidoCompra.page);
-if(numPageAtual === 1){
-  totalQTDLista = 0;
+  contadorDetPedido = 0;
+  var numPageAtual = parseInt(respostaProdCriadoPedidoCompra.page);
+  if (numPageAtual === 1) {
+    totalQTDLista = 0;
 
-  $('#resultadoListaPedido').html(
-	  `<table id="dt-lista-prod-cad-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+    $('#resultadoListaPedido').html(
+      `<table id="dt-lista-prod-cad-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
 		  <thead class="bg-primary-600">
 			  <tr>
 				  <th>#</th>
@@ -6674,212 +6674,212 @@ if(numPageAtual === 1){
 		  </tfoot>
 	  </table>`
 
-  );
-		
-  var tableListaProdCad = $('#dt-lista-prod-cad-pedidos').DataTable({
-	  "columnDefs": [
-		  { "width": "05%", "targets": 0 },
-		  { "width": "8%", "targets": 1 },
-		  { "width": "15%", "targets": 2 },
-		  { "width": "26%", "targets": 3 },
-		  { "width": "8%", "targets": 4 },
-		  { "width": "8%", "targets": 5 },
-		  { "width": "8%", "targets": 6 },
-		  { "width": "8%", "targets": 7 },
-		  { "width": "8%", "targets": 8 },
-		  { "width": "8%", "targets": 9 },
-		  { "width": "8%", "targets": 10 } 
-	  ],
-	  deferRender:    true,
-	  paging: false,
-	  ordering:  false,
-	  //scrollY:        800,
-	  //scrollCollapse: false,
-	  //scroller:       false,
-	  responsive: true,
-	  dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-				  "<'row'<'col-sm-12'tr>>" +
-				  "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-	  buttons: [                        {
-					  extend: 'pdfHtml5',
-					  text: 'PDF',
-					  titleAttr: 'Generate PDF',
-					  className: 'btn-outline-danger btn-sm mr-1'
-				  },
-				  {
-					  extend: 'excelHtml5',
-					  text: 'Excel',
-					  titleAttr: 'Generate Excel',
-					  className: 'btn-outline-success btn-sm mr-1'
-				  },
-				  {
-					  extend: 'print',
-					  text: 'Imprimir',
-					  titleAttr: 'Imprimir Tabela',
-					  className: 'btn-outline-primary btn-sm'
-				  }
+    );
 
-	  ]
+    var tableListaProdCad = $('#dt-lista-prod-cad-pedidos').DataTable({
+      "columnDefs": [
+        { "width": "05%", "targets": 0 },
+        { "width": "8%", "targets": 1 },
+        { "width": "15%", "targets": 2 },
+        { "width": "26%", "targets": 3 },
+        { "width": "8%", "targets": 4 },
+        { "width": "8%", "targets": 5 },
+        { "width": "8%", "targets": 6 },
+        { "width": "8%", "targets": 7 },
+        { "width": "8%", "targets": 8 },
+        { "width": "8%", "targets": 9 },
+        { "width": "8%", "targets": 10 }
+      ],
+      deferRender: true,
+      paging: false,
+      ordering: false,
+      //scrollY:        800,
+      //scrollCollapse: false,
+      //scroller:       false,
+      responsive: true,
+      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+      buttons: [{
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Generate Excel',
+        className: 'btn-outline-success btn-sm mr-1'
+      },
+      {
+        extend: 'print',
+        text: 'Imprimir',
+        titleAttr: 'Imprimir Tabela',
+        className: 'btn-outline-primary btn-sm'
+      }
 
-  });
-  
-  tableListaProdCad.rows().remove().draw();
-  $('#totalListaProdCad').html('');
-}
+      ]
 
-if(respostaProdCriadoPedidoCompra.data.length != 0){
-for (var i = 0; i < respostaProdCriadoPedidoCompra.data.length; i++) { 
-	contadorDetPedido ++;
+    });
 
-	  idResListProdCad = respostaProdCriadoPedidoCompra.data[i]['IDRESUMOPEDIDO'];
-	  idDetListProdCad = respostaProdCriadoPedidoCompra.data[i]['IDDETALHEPRODUTOPEDIDO'];
-	  nuCodBarraListProdCad = respostaProdCriadoPedidoCompra.data[i]['CODBARRAS'];
-	  dsListProdCad = respostaProdCriadoPedidoCompra.data[i]['DSPRODUTO'];
-	  ncmListProdCad = respostaProdCriadoPedidoCompra.data[i]['NUNCM'];
-	  tmListProdCad = respostaProdCriadoPedidoCompra.data[i]['DSTAMANHO'];
-	  qtdListProdCad = respostaProdCriadoPedidoCompra.data[i]['QTDPRODUTO'];
-	  vcustoListProdCad = parseFloat(respostaProdCriadoPedidoCompra.data[i]['VRCUSTO']);
-	  vvendaListProdCad = parseFloat(respostaProdCriadoPedidoCompra.data[i]['VRVENDA']);
-	  vtcListProdCad = parseFloat(respostaProdCriadoPedidoCompra.data[i]['VRTOTALCUSTO']);
-	  qtdEstIdListProdCad = respostaProdCriadoPedidoCompra.data[i]['QTDESTOQUEIDEAL'];
-	  
-	  totalQTDLista = (totalQTDLista) + (qtdListProdCad);
+    tableListaProdCad.rows().remove().draw();
+    $('#totalListaProdCad').html('');
+  }
 
-  tableListaProdCad.row.add([
-		  `<label style="color: blue; font-size: 11px;">` + contadorDetPedido + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` + idResListProdCad + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` + nuCodBarraListProdCad + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` + dsListProdCad + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` + ncmListProdCad + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` + tmListProdCad + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` + qtdListProdCad + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` +(parseFloat(vcustoListProdCad).toLocaleString('pt-br', {minimumFractionDigits: 2})) + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` + (parseFloat(vvendaListProdCad).toLocaleString('pt-br', {minimumFractionDigits: 2})) + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` + (parseFloat(vtcListProdCad).toLocaleString('pt-br', {minimumFractionDigits: 2})) + `</label>`,
-		  `<label style="color: blue; font-size: 11px;">` + qtdEstIdListProdCad + `</label>`
-	  ]).draw(false);
+  if (respostaProdCriadoPedidoCompra.data.length != 0) {
+    for (var i = 0; i < respostaProdCriadoPedidoCompra.data.length; i++) {
+      contadorDetPedido++;
 
-}
-}else{
+      idResListProdCad = respostaProdCriadoPedidoCompra.data[i]['IDRESUMOPEDIDO'];
+      idDetListProdCad = respostaProdCriadoPedidoCompra.data[i]['IDDETALHEPRODUTOPEDIDO'];
+      nuCodBarraListProdCad = respostaProdCriadoPedidoCompra.data[i]['CODBARRAS'];
+      dsListProdCad = respostaProdCriadoPedidoCompra.data[i]['DSPRODUTO'];
+      ncmListProdCad = respostaProdCriadoPedidoCompra.data[i]['NUNCM'];
+      tmListProdCad = respostaProdCriadoPedidoCompra.data[i]['DSTAMANHO'];
+      qtdListProdCad = respostaProdCriadoPedidoCompra.data[i]['QTDPRODUTO'];
+      vcustoListProdCad = parseFloat(respostaProdCriadoPedidoCompra.data[i]['VRCUSTO']);
+      vvendaListProdCad = parseFloat(respostaProdCriadoPedidoCompra.data[i]['VRVENDA']);
+      vtcListProdCad = parseFloat(respostaProdCriadoPedidoCompra.data[i]['VRTOTALCUSTO']);
+      qtdEstIdListProdCad = respostaProdCriadoPedidoCompra.data[i]['QTDESTOQUEIDEAL'];
 
-}
+      totalQTDLista = (totalQTDLista) + (qtdListProdCad);
+
+      tableListaProdCad.row.add([
+        `<label style="color: blue; font-size: 11px;">` + contadorDetPedido + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + idResListProdCad + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + nuCodBarraListProdCad + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + dsListProdCad + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + ncmListProdCad + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + tmListProdCad + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + qtdListProdCad + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + (parseFloat(vcustoListProdCad).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + (parseFloat(vvendaListProdCad).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + (parseFloat(vtcListProdCad).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + qtdEstIdListProdCad + `</label>`
+      ]).draw(false);
+
+    }
+  } else {
+
+  }
 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 function funcError(data) {
-Swal.fire({
-type: "error",
-title: "Erro ao carregar os dados da página",
-showConfirmButton: false,
-timer: 15000
-});
+  Swal.fire({
+    type: "error",
+    title: "Erro ao carregar os dados da página",
+    showConfirmButton: false,
+    timer: 15000
+  });
 }
 
 //////////////////// ROTINA DISTRIBUIÇÃO DE COMPRAS HISTORICO ////////////////////
 // Leandro Massafera - 01/05/2023
 function filtrarfilial() {
 
-$("#idfilial").empty();
+  $("#idfilial").empty();
 
-idempresa = $('#idempresa').val();
+  idempresa = $('#idempresa').val();
 
-ajaxGet('api/comercial/empresa.xsjs?idmarca=' + idempresa)
-.then(retornoSelectFilial)
-.catch(funcErrorSelect);
+  ajaxGet('api/comercial/empresa.xsjs?idmarca=' + idempresa)
+    .then(retornoSelectFilial)
+    .catch(funcErrorSelect);
 }
 
 function DistribuicaoComprasHistorico() {
 
-numPage = 1;
+  numPage = 1;
 
-if (window.XMLHttpRequest) {
-// code for IE7+, Firefox, Chrome, Opera, Safari
-xmlhttp = new XMLHttpRequest();
-} else {
-// code for IE6, IE5
-xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-}
+  if (window.XMLHttpRequest) {
+    // code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+  } else {
+    // code for IE6, IE5
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
 
-xmlhttp.onreadystatechange = function () {
-if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-  document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
 
-  $("#idfornecedorpedido").select2();
+      $("#idfornecedorpedido").select2();
 
-  ajaxGet('api/compras/fornecedor.xsjs')
-	.then(retornoSelectFornecedor)
-	.catch(funcErrorSelect);
+      ajaxGet('api/compras/fornecedor.xsjs')
+        .then(retornoSelectFornecedor)
+        .catch(funcErrorSelect);
 
-  document.getElementById("filtrovendas").style.display = 'none';
-  document.getElementById("btnvisualizar").style.display = 'none';
-  document.getElementById("btnfinalizar").style.display = 'none';
-}
-};
+      document.getElementById("filtrovendas").style.display = 'none';
+      document.getElementById("btnvisualizar").style.display = 'none';
+      document.getElementById("btnfinalizar").style.display = 'none';
+    }
+  };
 
-xmlhttp.open("GET", "compras_action_distribuicaocomprashistorico.html", true);
-xmlhttp.send();
+  xmlhttp.open("GET", "compras_action_distribuicaocomprashistorico.html", true);
+  xmlhttp.send();
 }
 
 // Função para Pesquisar os Pedidos de Compra
 function pesquisarpedidocompra() {
 
-var datainicial = $("#datainicial").val();
-var datafinal = $("#datafinal").val();
-var idfornecedorpedido = $("#idfornecedorpedido").val();
-var idnumeropedido = $("#idnumeropedido").val();
+  var datainicial = $("#datainicial").val();
+  var datafinal = $("#datafinal").val();
+  var idfornecedorpedido = $("#idfornecedorpedido").val();
+  var idnumeropedido = $("#idnumeropedido").val();
 
-dataRetornoPedidoCompra = [];
-numPage = 1;
+  dataRetornoPedidoCompra = [];
+  numPage = 1;
 
-$("#resultadopedido").html(
-"<div align=\"center\">" +
-"<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
-"<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-"</div>"
-);
+  $("#resultadopedido").html(
+    "<div align=\"center\">" +
+    "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
+    "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
+    "</div>"
+  );
 
-if (window.XMLHttpRequest) {
-// code for IE7+, Firefox, Chrome, Opera, Safari
-xmlhttp = new XMLHttpRequest();
-} else {
-// code for IE6, IE5
-xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-}
+  if (window.XMLHttpRequest) {
+    // code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+  } else {
+    // code for IE6, IE5
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
 
-xmlhttp.onreadystatechange = function () {
-if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-  document.getElementById("resultadopedido").innerHTML = xmlhttp.responseText;
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      document.getElementById("resultadopedido").innerHTML = xmlhttp.responseText;
 
-  $("#idfornecedorpedido").select2();
+      $("#idfornecedorpedido").select2();
 
-  ajaxGet('api/compras/distribuicao-compras-historico.xsjs?page=' + numPage + '&id=' + idnumeropedido + '&idfornecedorpedido=' + idfornecedorpedido + '&datainicial=' + datainicial + '&datafinal=' + datafinal)
-	.then(retornoListaPedidoCompra)
-	.catch(funcError);
-}
-};
+      ajaxGet('api/compras/distribuicao-compras-historico.xsjs?page=' + numPage + '&id=' + idnumeropedido + '&idfornecedorpedido=' + idfornecedorpedido + '&datainicial=' + datainicial + '&datafinal=' + datafinal)
+        .then(retornoListaPedidoCompra)
+        .catch(funcError);
+    }
+  };
 
-xmlhttp.open("GET", "compras_action_distribuicaocomprashistorico.html", true);
-xmlhttp.send();
+  xmlhttp.open("GET", "compras_action_distribuicaocomprashistorico.html", true);
+  xmlhttp.send();
 }
 
 // Retorno das buscas dos Pedidos de Compras
 function retornoListaPedidoCompra(respostaListaPedidoCompra) {
 
-var numPageAtual = parseInt(respostaListaPedidoCompra.page);
-var BtnOpcao = "";
+  var numPageAtual = parseInt(respostaListaPedidoCompra.page);
+  var BtnOpcao = "";
 
-if (respostaListaPedidoCompra.data.length != 0) {
-for (var i = 0; i < respostaListaPedidoCompra.data.length; i++) {
+  if (respostaListaPedidoCompra.data.length != 0) {
+    for (var i = 0; i < respostaListaPedidoCompra.data.length; i++) {
 
-  var registro = respostaListaPedidoCompra.data[i];
+      var registro = respostaListaPedidoCompra.data[i];
 
-  IdResumoPedido = registro.IDPEDIDOCOMPRA;
-  Empresa = registro.EMPRESA;
-															  
+      IdResumoPedido = registro.IDPEDIDOCOMPRA;
+      Empresa = registro.EMPRESA;
 
-  BtnOpcao = `<div class="demo">
+
+      BtnOpcao = `<div class="demo">
 		  <div class="custom-control custom-radio" id="divRadio">
 			  <input type="radio" class="custom-control-input" id="id_`+ IdResumoPedido + `" name="radioresumopedido" value="` + IdResumoPedido + `">
 				  <label class="custom-control-label" for="id_`+ IdResumoPedido + `"></label>
@@ -6887,17 +6887,17 @@ for (var i = 0; i < respostaListaPedidoCompra.data.length; i++) {
 		  </div>
 	  </div>`;
 
-  dataRetornoPedidoCompra.push([IdResumoPedido
-	, Empresa
-						  
-	, BtnOpcao]);
-}
+      dataRetornoPedidoCompra.push([IdResumoPedido
+        , Empresa
 
-chamarProximaListaPedidoCompra(numPageAtual + 1);
-}
-else {
-$('#resultadopedido').html(
-  `<table id="dt-basic-pedido" class="table table-bordered table-hover table-striped w-100">
+        , BtnOpcao]);
+    }
+
+    chamarProximaListaPedidoCompra(numPageAtual + 1);
+  }
+  else {
+    $('#resultadopedido').html(
+      `<table id="dt-basic-pedido" class="table table-bordered table-hover table-striped w-100">
   <thead class="bg-primary-600">
 	<tr>
 	  <th>Nº Pedido</th>
@@ -6907,100 +6907,100 @@ $('#resultadopedido').html(
 	</tr>
   </thead>
 </table>`
-);
+    );
 
-$('#dt-basic-pedido').DataTable({
-  data: dataRetornoPedidoCompra,
-  "columnDefs": [
-	{ "width": "15%", "targets": 0 },
-	{ "width": "50%", "targets": 1 },
-	{ "width": "10%", "targets": 2 }
-									
-  ],
-  order: [
-	[0, 'desc'],
-  ],
-  deferRender: true,
-  responsive: true
-});
+    $('#dt-basic-pedido').DataTable({
+      data: dataRetornoPedidoCompra,
+      "columnDefs": [
+        { "width": "15%", "targets": 0 },
+        { "width": "50%", "targets": 1 },
+        { "width": "10%", "targets": 2 }
 
-$('#dt-basic-pedido').on('click', 'tr', function (e) {
-  var vals = $("input:radio[name='radioresumopedido']:checked", this).map(function () {
-	return this.value;
-  }).get();
-  IdRadioResumoPedido = vals[0];
-});
-document.getElementById("filtrovendas").style.display = 'block';
-}
+      ],
+      order: [
+        [0, 'desc'],
+      ],
+      deferRender: true,
+      responsive: true
+    });
+
+    $('#dt-basic-pedido').on('click', 'tr', function (e) {
+      var vals = $("input:radio[name='radioresumopedido']:checked", this).map(function () {
+        return this.value;
+      }).get();
+      IdRadioResumoPedido = vals[0];
+    });
+    document.getElementById("filtrovendas").style.display = 'block';
+  }
 }
 
 // Chama Proxima Lista dos Pedidos de Compras
 function chamarProximaListaPedidoCompra(numPage) {
-var datainicial = $("#datainicial").val();
-var datafinal = $("#datafinal").val();
-var idfornecedorpedido = $("#idfornecedorpedido").val();
-ajaxGet('api/compras/resumo-pedido.xsjs?page=' + numPage + '&idfornecedorpedido=' + idfornecedorpedido + '&datainicial=' + datainicial + '&datafinal=' + datafinal)
-.then(retornoListaPedidoCompra)
-.catch(funcError);
+  var datainicial = $("#datainicial").val();
+  var datafinal = $("#datafinal").val();
+  var idfornecedorpedido = $("#idfornecedorpedido").val();
+  ajaxGet('api/compras/resumo-pedido.xsjs?page=' + numPage + '&idfornecedorpedido=' + idfornecedorpedido + '&datainicial=' + datainicial + '&datafinal=' + datafinal)
+    .then(retornoListaPedidoCompra)
+    .catch(funcError);
 }
 
 // Função para Listar os Detalhes do Pedido de Compra
 function visualizarDetalhePedido(id) {
 
-dataRetornoDetalhePedido = [];
+  dataRetornoDetalhePedido = [];
 
-$.get('compras_action_detalhepedido.html', function (res) {
+  $.get('compras_action_detalhepedido.html', function (res) {
 
-numPage = 1;
+    numPage = 1;
 
-$('#resultadomodaldetalhepedido').html(res);
-$("#modaldetalhepedido").modal('show');
-$('#modaldetalhepedido').on('shown.bs.modal', function () { });
+    $('#resultadomodaldetalhepedido').html(res);
+    $("#modaldetalhepedido").modal('show');
+    $('#modaldetalhepedido').on('shown.bs.modal', function () { });
 
-return ajaxGet('api/compras/detalhe-distribuicao-compras.xsjs?page=' + numPage + '&id=' + id)
-  .then(retornoListaDetalhePedido)
-  .catch(funcError);
-})
+    return ajaxGet('api/compras/detalhe-distribuicao-compras.xsjs?page=' + numPage + '&id=' + id)
+      .then(retornoListaDetalhePedido)
+      .catch(funcError);
+  })
 }
 
 // Retorno das buscas dos Detalhes dos Pedidos de Compras
 function retornoListaDetalhePedido(respostaListaDetalhePedido) {
 
-var numPageAtual = parseInt(respostaListaDetalhePedido.page);
+  var numPageAtual = parseInt(respostaListaDetalhePedido.page);
 
-if (respostaListaDetalhePedido.data.length != 0) {
-for (var i = 0; i < respostaListaDetalhePedido.data.length; i++) {
+  if (respostaListaDetalhePedido.data.length != 0) {
+    for (var i = 0; i < respostaListaDetalhePedido.data.length; i++) {
 
-  var registro = respostaListaDetalhePedido.data[i];
+      var registro = respostaListaDetalhePedido.data[i];
 
-  IdDetalhePedido = registro.IDDETALHEPEDIDO;
-  IdResumoPedido = registro.IDRESUMOPEDIDO;
-  DescProduto = registro.DSPRODUTO;
-  DescMarca = registro.DSFABRICANTE;
-  DescEstMercadologica = registro.DSSUBGRUPOESTRUTURA;
-  DescCategorias = registro.DSCATEGORIAS;
-  DescTecido = registro.DSTIPOTECIDO;
-  DescCor = registro.DSCOR;
-  DescEstilo = registro.DSESTILO;
-  DescTamanho = registro.DSTAMANHO;
+      IdDetalhePedido = registro.IDDETALHEPEDIDO;
+      IdResumoPedido = registro.IDRESUMOPEDIDO;
+      DescProduto = registro.DSPRODUTO;
+      DescMarca = registro.DSFABRICANTE;
+      DescEstMercadologica = registro.DSSUBGRUPOESTRUTURA;
+      DescCategorias = registro.DSCATEGORIAS;
+      DescTecido = registro.DSTIPOTECIDO;
+      DescCor = registro.DSCOR;
+      DescEstilo = registro.DSESTILO;
+      DescTamanho = registro.DSTAMANHO;
 
-  dataRetornoDetalhePedido.push([IdDetalhePedido
-	, DescProduto
-	, DescMarca
-	, DescEstMercadologica
-	, DescCategorias
-	, DescTecido
-	, DescCor
-	, DescEstilo
-	, DescTamanho
-  ]);
-}
+      dataRetornoDetalhePedido.push([IdDetalhePedido
+        , DescProduto
+        , DescMarca
+        , DescEstMercadologica
+        , DescCategorias
+        , DescTecido
+        , DescCor
+        , DescEstilo
+        , DescTamanho
+      ]);
+    }
 
-chamarProximaListaDetalhePedido(numPageAtual + 1, IdResumoPedido);
-}
-else {
-$('#resultadodetalhepedido').html(
-  `<table id="dt-basic-detalhepedido" class="table table-bordered table-hover table-striped w-100">
+    chamarProximaListaDetalhePedido(numPageAtual + 1, IdResumoPedido);
+  }
+  else {
+    $('#resultadodetalhepedido').html(
+      `<table id="dt-basic-detalhepedido" class="table table-bordered table-hover table-striped w-100">
   <thead class="bg-primary-600">
 	<tr>
 	  <th>Nº Det Pedido</th>
@@ -7015,29 +7015,29 @@ $('#resultadodetalhepedido').html(
 	</tr>
   </thead>
 </table>`
-);
+    );
 
-$('#dt-basic-detalhepedido').DataTable({
-  data: dataRetornoDetalhePedido,
-  "columnDefs": [
-	{ "width": "10%", "targets": 0 },
-	{ "width": "20%", "targets": 1 },
-	{ "width": "15%", "targets": 2 },
-	{ "width": "15%", "targets": 3 },
-	{ "width": "10%", "targets": 4 },
-	{ "width": "10%", "targets": 5 },
-	{ "width": "10%", "targets": 6 },
-	{ "width": "10%", "targets": 7 },
-	{ "width": "10%", "targets": 8 }
-  ],
-  order: [
-	[0, 'desc'],
-  ],
-  deferRender: true,
-  //scrollY:        800,
-  //scrollCollapse: false,
-  //scroller:       false,
-  responsive: true/*,
+    $('#dt-basic-detalhepedido').DataTable({
+      data: dataRetornoDetalhePedido,
+      "columnDefs": [
+        { "width": "10%", "targets": 0 },
+        { "width": "20%", "targets": 1 },
+        { "width": "15%", "targets": 2 },
+        { "width": "15%", "targets": 3 },
+        { "width": "10%", "targets": 4 },
+        { "width": "10%", "targets": 5 },
+        { "width": "10%", "targets": 6 },
+        { "width": "10%", "targets": 7 },
+        { "width": "10%", "targets": 8 }
+      ],
+      order: [
+        [0, 'desc'],
+      ],
+      deferRender: true,
+      //scrollY:        800,
+      //scrollCollapse: false,
+      //scroller:       false,
+      responsive: true/*,
 	  dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
 				  "<'row'<'col-sm-12'tr>>" +
 				  "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
@@ -7061,298 +7061,298 @@ $('#dt-basic-detalhepedido').DataTable({
 					  className: 'btn-outline-primary btn-sm'
 				  }
 			  ]*/
-});
+    });
 
-}
+  }
 }
 
 // Chama Proxima Lista dos Detalhes dos Pedidos de Compras
 function chamarProximaListaDetalhePedido(numPage, id) {
-ajaxGet('api/compras/detalhe-distribuicao-compras.xsjs?page=' + numPage + '&id=' + id)
-.then(retornoListaDetalhePedido)
-.catch(funcError);
+  ajaxGet('api/compras/detalhe-distribuicao-compras.xsjs?page=' + numPage + '&id=' + id)
+    .then(retornoListaDetalhePedido)
+    .catch(funcError);
 }
 
 // Função que irá Pesquisar a Venda e Montrar a Sugestão
 function pesquisarvenda() {
 
-var idfornecedor = $('#idfornecedor').val();
-var datainicialvenda = $('#datainicialvenda').val();
-var datafinalvenda = $('#datafinalvenda').val();
-var idnumeropedido = $('#idnumeropedido').val();
+  var idfornecedor = $('#idfornecedor').val();
+  var datainicialvenda = $('#datainicialvenda').val();
+  var datafinalvenda = $('#datafinalvenda').val();
+  var idnumeropedido = $('#idnumeropedido').val();
 
-numPage = 1;
-dataRetornoDistribuicaoCompras = [];
+  numPage = 1;
+  dataRetornoDistribuicaoCompras = [];
 
-if (IdRadioResumoPedido == 0) {
-Swal.fire({
-  title: 'Atenção!',
-  type: 'warning',
-  title: 'Necessário escolher um Pedido!'
-})
-return;
-}
+  if (IdRadioResumoPedido == 0) {
+    Swal.fire({
+      title: 'Atenção!',
+      type: 'warning',
+      title: 'Necessário escolher um Pedido!'
+    })
+    return;
+  }
 
-ajaxGet('api/compras/distribuicao-compras-sugestoes-historico.xsjs?id=' + IdRadioResumoPedido)
-.then(retornoListaDistribuicaoCompras)
-.catch(funcError);
+  ajaxGet('api/compras/distribuicao-compras-sugestoes-historico.xsjs?id=' + IdRadioResumoPedido)
+    .then(retornoListaDistribuicaoCompras)
+    .catch(funcError);
 
 }
 
 // Retorno da Distribuição de Compras
 function retornoListaDistribuicaoCompras(respostaListaDistribuicaoCompras) {
 
-for (var i = 0; i < respostaListaDistribuicaoCompras.length; i++) {
+  for (var i = 0; i < respostaListaDistribuicaoCompras.length; i++) {
 
-var registro = respostaListaDistribuicaoCompras[i];
+    var registro = respostaListaDistribuicaoCompras[i];
 
-if (i === 0) {
-  $('#resultadodistribuicaocompras').html(
-	`<div class="scroll">
+    if (i === 0) {
+      $('#resultadodistribuicaocompras').html(
+        `<div class="scroll">
 		  <table id="dt-basic-distribuicao" class="table table-bordered table-hover table-striped w-100">
 			  <thead class="bg-primary-600" >
 				  <tr id="dt-basic-distribuicao-titulo"></tr>`);
-  $('#dt-basic-distribuicao-titulo').append(`
+      $('#dt-basic-distribuicao-titulo').append(`
 						  <th>Produto</div></th>
 						  <th>Valor</th>
 						  <th>Qtd</th>
 						  <th>Grade</th>
 						  <th>Total</th>`);
-  for (var j = 0; j < registro.Filiais.length; j++) {
-	var retFilial = registro.Filiais[j];
-	$('#dt-basic-distribuicao-titulo').append(`<th height="200px"><span class="rotate-270 text-nowrap h-200 d-flex pos-top" style="width:45px;">&nbsp;&nbsp;` + retFilial.DescFilial + `</span></th>`);
-  }
-}
-$('#dt-basic-distribuicao').append(`</thead>`);
-$('#dt-basic-distribuicao').append(`<tbody>`);
+      for (var j = 0; j < registro.Filiais.length; j++) {
+        var retFilial = registro.Filiais[j];
+        $('#dt-basic-distribuicao-titulo').append(`<th height="200px"><span class="rotate-270 text-nowrap h-200 d-flex pos-top" style="width:45px;">&nbsp;&nbsp;` + retFilial.DescFilial + `</span></th>`);
+      }
+    }
+    $('#dt-basic-distribuicao').append(`</thead>`);
+    $('#dt-basic-distribuicao').append(`<tbody>`);
 
-$('#dt-basic-distribuicao').append(`<tr>`);
-$('#dt-basic-distribuicao').append(`
+    $('#dt-basic-distribuicao').append(`<tr>`);
+    $('#dt-basic-distribuicao').append(`
 	  <th>` + registro.DescProduto + `</th>
 	  <th>` + registro.PrecoVenda + `</th>
 	  <th>` + registro.QtdGrade + `</th>
 	  <th>` + registro.Grade + `</th>
 	  <th><input type="text" name="totalqtd" id="`+ registro.CodBarras + `" value="" readonly size="2"></th>`);
-var totalqtd = 0;
-for (var k = 0; k < registro.Filiais.length; k++) {
-  var retfilialsugerida = registro.Filiais[k];
-  var qtdsugestao = 0;
-  var iddistribuicaocompras = 0;
-  var idfilial = retfilialsugerida.IdFilial;
-  var qtdsugestaoalterada = 0;
-  for (var l = 0; l < registro.Sugestao.length; l++) {
-	var retqtdsugerida = registro.Sugestao[l];
+    var totalqtd = 0;
+    for (var k = 0; k < registro.Filiais.length; k++) {
+      var retfilialsugerida = registro.Filiais[k];
+      var qtdsugestao = 0;
+      var iddistribuicaocompras = 0;
+      var idfilial = retfilialsugerida.IdFilial;
+      var qtdsugestaoalterada = 0;
+      for (var l = 0; l < registro.Sugestao.length; l++) {
+        var retqtdsugerida = registro.Sugestao[l];
 
-	if (parseInt(idfilial) === parseInt(retqtdsugerida.IdFilial)) {
-	  qtdsugestao = retqtdsugerida.QtdSugestao;
-	  iddistribuicaocompras = registro.Sugestao[l].IdDistribuicaoCompras;
-	  qtdsugestaoalterada = parseInt(registro.Sugestao[l].QtdSugestaoAlteracao) === 0 ? qtdsugestao : registro.Sugestao[l].QtdSugestaoAlteracao;
-	}
+        if (parseInt(idfilial) === parseInt(retqtdsugerida.IdFilial)) {
+          qtdsugestao = retqtdsugerida.QtdSugestao;
+          iddistribuicaocompras = registro.Sugestao[l].IdDistribuicaoCompras;
+          qtdsugestaoalterada = parseInt(registro.Sugestao[l].QtdSugestaoAlteracao) === 0 ? qtdsugestao : registro.Sugestao[l].QtdSugestaoAlteracao;
+        }
 
+      }
+
+      //$('#dt-basic-distribuicao').append(`<td>` + qtdsugestao + `</td>`);
+      $('#dt-basic-distribuicao').append(`<td><input type="text" name="qtdsugestaoalterada" size="2" id="` + iddistribuicaocompras + `:` + registro.IdPedidoCompra + `:` + registro.IdEmpresa + `:` + idfilial + `:` + registro.CodBarras + `" value="` + qtdsugestaoalterada + `" onchange="AlterarQtdSugestao(this.id);"><span style="display: none;">` + qtdsugestaoalterada + `</span></td>`);
+
+      totalqtd = totalqtd + parseInt(qtdsugestaoalterada);
+    }
+    document.getElementById(registro.CodBarras).value = totalqtd;
+    $('#dt-basic-distribuicao').append(`</tr>`);
   }
- 
-  //$('#dt-basic-distribuicao').append(`<td>` + qtdsugestao + `</td>`);
-  $('#dt-basic-distribuicao').append(`<td><input type="text" name="qtdsugestaoalterada" size="2" id="` + iddistribuicaocompras + `:` + registro.IdPedidoCompra + `:` + registro.IdEmpresa + `:` + idfilial + `:` + registro.CodBarras + `" value="` + qtdsugestaoalterada + `" onchange="AlterarQtdSugestao(this.id);"><span style="display: none;">` + qtdsugestaoalterada + `</span></td>`);
-																																																																																																			  
-  totalqtd = totalqtd + parseInt(qtdsugestaoalterada);
-}
-document.getElementById(registro.CodBarras).value = totalqtd;
-$('#dt-basic-distribuicao').append(`</tr>`);
-}
-$('#dt-basic-distribuicao').append(`</tbody></table></div>`);
-document.getElementById("btnvisualizar").style.display = 'block';
-document.getElementById("btnfinalizar").style.display = 'block';
+  $('#dt-basic-distribuicao').append(`</tbody></table></div>`);
+  document.getElementById("btnvisualizar").style.display = 'block';
+  document.getElementById("btnfinalizar").style.display = 'block';
 }
 
 // Função para Alterar a Quantidade Sugerida
 function AlterarQtdSugestao(id) {
 
-idchave = id.split(":");
-iddistribuicaocompras = idchave[0];
-idpedidocompra = idchave[1];
-idempresa = idchave[2];
-idfilial = idchave[3];
-codbarras = idchave[4];
-					
-qtdsugestaoalterada = parseInt(document.getElementById(id).value);
-qtdsugestao = parseInt(document.getElementById(id).defaultValue);
+  idchave = id.split(":");
+  iddistribuicaocompras = idchave[0];
+  idpedidocompra = idchave[1];
+  idempresa = idchave[2];
+  idfilial = idchave[3];
+  codbarras = idchave[4];
 
-qtdtotal = (parseInt(document.getElementById(codbarras).value) - qtdsugestao) + qtdsugestaoalterada;
+  qtdsugestaoalterada = parseInt(document.getElementById(id).value);
+  qtdsugestao = parseInt(document.getElementById(id).defaultValue);
 
-var dados = [{
-"IDDISTRIBUICAOCOMPRASHISTORICO": parseInt(iddistribuicaocompras)
-, "IDPEDIDOCOMPRA": parseInt(idpedidocompra)
-, "IDEMPRESA": parseInt(idempresa)
-, "IDFILIAL": parseInt(idfilial)
-, "CODBARRAS": codbarras
-, "QTDSUGESTAOALTERACAOHISTORICO": parseInt(qtdsugestaoalterada)
-, "IDUSUARIOALTERACAO": parseInt(IDFuncionarioLogin)
-, "FINALIZAR": 0
-}];
+  qtdtotal = (parseInt(document.getElementById(codbarras).value) - qtdsugestao) + qtdsugestaoalterada;
 
-ajaxPut("api/compras/distribuicao-compras-historico.xsjs", dados)
-.then(
-  function () {
-	document.getElementById(id).defaultValue = qtdsugestaoalterada;
-	document.getElementById(codbarras).value = qtdtotal;
-	alerta_atualizado_sucesso()
-  }
-)
-.catch(funcError);
+  var dados = [{
+    "IDDISTRIBUICAOCOMPRASHISTORICO": parseInt(iddistribuicaocompras)
+    , "IDPEDIDOCOMPRA": parseInt(idpedidocompra)
+    , "IDEMPRESA": parseInt(idempresa)
+    , "IDFILIAL": parseInt(idfilial)
+    , "CODBARRAS": codbarras
+    , "QTDSUGESTAOALTERACAOHISTORICO": parseInt(qtdsugestaoalterada)
+    , "IDUSUARIOALTERACAO": parseInt(IDFuncionarioLogin)
+    , "FINALIZAR": 0
+  }];
+
+  ajaxPut("api/compras/distribuicao-compras-historico.xsjs", dados)
+    .then(
+      function () {
+        document.getElementById(id).defaultValue = qtdsugestaoalterada;
+        document.getElementById(codbarras).value = qtdtotal;
+        alerta_atualizado_sucesso()
+      }
+    )
+    .catch(funcError);
 
 }
 
 // Função para Visualizar a Distribuição de Compras
 function visualizardistribuicaocompras() {
 
-if (window.XMLHttpRequest) {
-// code for IE7+, Firefox, Chrome, Opera, Safari
-xmlhttp = new XMLHttpRequest();
-} else {
-// code for IE6, IE5
-xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-}
+  if (window.XMLHttpRequest) {
+    // code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+  } else {
+    // code for IE6, IE5
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
 
-xmlhttp.onreadystatechange = function () {
-if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-  document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
 
-  ajaxGet('api/compras/distribuicao-compras-sugestoes-historico.xsjs?id=' + IdRadioResumoPedido)
-	.then(imprimirDistribuicaoCompras)
-	.catch(funcError);
-}
-}
-xmlhttp.open("GET", "compras_action_distribuicaocomprasmodal.html", true);
-xmlhttp.send();
+      ajaxGet('api/compras/distribuicao-compras-sugestoes-historico.xsjs?id=' + IdRadioResumoPedido)
+        .then(imprimirDistribuicaoCompras)
+        .catch(funcError);
+    }
+  }
+  xmlhttp.open("GET", "compras_action_distribuicaocomprasmodal.html", true);
+  xmlhttp.send();
 }
 
 // Função para Imprimir a Distribuição de Compras
 function imprimirDistribuicaoCompras(respostaListaDistribuicaoCompras) {
 
-for (var i = 0; i < respostaListaDistribuicaoCompras.length; i++) {
+  for (var i = 0; i < respostaListaDistribuicaoCompras.length; i++) {
 
-var registro = respostaListaDistribuicaoCompras[i];
+    var registro = respostaListaDistribuicaoCompras[i];
 
-if (i === 0) {
-  $('#resultadodistribuicaocompras').html(
-	`<div>
+    if (i === 0) {
+      $('#resultadodistribuicaocompras').html(
+        `<div>
 		  <table id="dt-basic-distribuicao" width="100%">
 			  <thead>
 				  <tr><th colspan="5">Nº Pedido ${IdRadioResumoPedido}</th></tr>
 				  <tr id="dt-basic-distribuicao-titulo"></tr>`);
-  $('#dt-basic-distribuicao-titulo').append(`
+      $('#dt-basic-distribuicao-titulo').append(`
 						  <th width="300px">Produto</th>
 						  <th width="60">Valor</th>
 						  <th width="60px">Qtd</th>
 						  <th width="50px">Grade</th>
 						  <th width="60px">Total</th>`);
-  for (var j = 0; j < registro.Filiais.length; j++) {
-	var retFilial = registro.Filiais[j];
-	$('#dt-basic-distribuicao-titulo').append(`<th height="170px"><span class="rotate-270 text-nowrap h-170 d-flex pos-bottom" style="width:20px;">&nbsp;&nbsp;` + retFilial.DescFilial + `</span></th>`);
-  }
-  $('#dt-basic-distribuicao').append(`</thead>`);
-  $('#dt-basic-distribuicao').append(`<tbody>`);
-}
+      for (var j = 0; j < registro.Filiais.length; j++) {
+        var retFilial = registro.Filiais[j];
+        $('#dt-basic-distribuicao-titulo').append(`<th height="170px"><span class="rotate-270 text-nowrap h-170 d-flex pos-bottom" style="width:20px;">&nbsp;&nbsp;` + retFilial.DescFilial + `</span></th>`);
+      }
+      $('#dt-basic-distribuicao').append(`</thead>`);
+      $('#dt-basic-distribuicao').append(`<tbody>`);
+    }
 
-$('#dt-basic-distribuicao').append(`<tr id="dt-basic-distribuicao-lista-` + i + `"></tr>`);
-$('#dt-basic-distribuicao-lista-' + i).append(`
+    $('#dt-basic-distribuicao').append(`<tr id="dt-basic-distribuicao-lista-` + i + `"></tr>`);
+    $('#dt-basic-distribuicao-lista-' + i).append(`
 	  <td>` + registro.DescProduto + `</td>
 	  <td>` + registro.PrecoVenda + `</td>
 	  <td>` + registro.QtdGrade + `</td>
 	  <td>` + registro.Grade + `</td>
 	  <td><span id="` + registro.CodBarras + `"></span></td>`);
-var totalqtd = 0;
-for (var k = 0; k < registro.Filiais.length; k++) {
-  var retfilialsugerida = registro.Filiais[k];
-  var qtdsugestao = 0;
-  var iddistribuicaocompras = 0;
-  var idfilial = retfilialsugerida.IdFilial;
-  var qtdsugestaoalterada = 0;
-  for (var l = 0; l < registro.Sugestao.length; l++) {
-	var retqtdsugerida = registro.Sugestao[l];
+    var totalqtd = 0;
+    for (var k = 0; k < registro.Filiais.length; k++) {
+      var retfilialsugerida = registro.Filiais[k];
+      var qtdsugestao = 0;
+      var iddistribuicaocompras = 0;
+      var idfilial = retfilialsugerida.IdFilial;
+      var qtdsugestaoalterada = 0;
+      for (var l = 0; l < registro.Sugestao.length; l++) {
+        var retqtdsugerida = registro.Sugestao[l];
 
-	if (parseInt(idfilial) === parseInt(retqtdsugerida.IdFilial)) {
-	  qtdsugestao = retqtdsugerida.QtdSugestao;
-	  iddistribuicaocompras = registro.Sugestao[l].IdDistribuicaoCompras;
-	  qtdsugestaoalterada = parseInt(registro.Sugestao[l].QtdSugestaoAlteracao) === 0 ? qtdsugestao : registro.Sugestao[l].QtdSugestaoAlteracao;
-	}
+        if (parseInt(idfilial) === parseInt(retqtdsugerida.IdFilial)) {
+          qtdsugestao = retqtdsugerida.QtdSugestao;
+          iddistribuicaocompras = registro.Sugestao[l].IdDistribuicaoCompras;
+          qtdsugestaoalterada = parseInt(registro.Sugestao[l].QtdSugestaoAlteracao) === 0 ? qtdsugestao : registro.Sugestao[l].QtdSugestaoAlteracao;
+        }
 
+      }
+      $('#dt-basic-distribuicao-lista-' + i).append(`<td>` + qtdsugestaoalterada + `</td>`);
+      totalqtd = totalqtd + parseInt(qtdsugestaoalterada);
+    }
+    $('#' + registro.CodBarras + '').text(totalqtd);
   }
-  $('#dt-basic-distribuicao-lista-' + i).append(`<td>` + qtdsugestaoalterada + `</td>`);
-  totalqtd = totalqtd + parseInt(qtdsugestaoalterada);
-}
-$('#' + registro.CodBarras + '').text(totalqtd);
-}
 }
 
 // Função de Impressão
 function printdiv() {
-window.print();
-return;
+  window.print();
+  return;
 }
 
 // Função Geração de Excel
 function printxls() {
 
-var htmls = "";
+  var htmls = "";
 
-var uri = 'data:application/vnd.ms-excel;base64,';
+  var uri = 'data:application/vnd.ms-excel;base64,';
 
-var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';
+  var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>';
 
-var base64 = function (s) {
-return window.btoa(unescape(encodeURIComponent(s)))
-};
+  var base64 = function (s) {
+    return window.btoa(unescape(encodeURIComponent(s)))
+  };
 
-var format = function (s, c) {
-return s.replace(/{(\w+)}/g, function (m, p) {
-  return c[p];
-})
-};
+  var format = function (s, c) {
+    return s.replace(/{(\w+)}/g, function (m, p) {
+      return c[p];
+    })
+  };
 
-htmls = document.getElementById('dt-basic-distribuicao');
+  htmls = document.getElementById('dt-basic-distribuicao');
 
-var ctx = {
-worksheet: 'Planilha 1',
-table: htmls.innerHTML
-}
+  var ctx = {
+    worksheet: 'Planilha 1',
+    table: htmls.innerHTML
+  }
 
-var link = document.createElement("a");
-link.download = "distribuicaocompras.xls";
-link.href = uri + base64(format(template, ctx));
-link.click();
+  var link = document.createElement("a");
+  link.download = "distribuicaocompras.xls";
+  link.href = uri + base64(format(template, ctx));
+  link.click();
 
 }
 
 // Função para Finalizar a Distribuição de Compras
 function finalizardistribuicaocompras() {
 
-var dados = [{
-"IDPEDIDOCOMPRA": parseInt(IdRadioResumoPedido)
-,"IDUSUARIO": parseInt(IDFuncionarioLogin)
-,"FINALIZAR": 2
-}];
+  var dados = [{
+    "IDPEDIDOCOMPRA": parseInt(IdRadioResumoPedido)
+    , "IDUSUARIO": parseInt(IDFuncionarioLogin)
+    , "FINALIZAR": 2
+  }];
 
-Swal.fire({
-	title: 'Deseja realmente FINALIZAR essa Distribuição?',
-	icon: 'warning',
-	showCancelButton: true,
-	confirmButtonColor: '#3085d6',
-	cancelButtonColor: '#d33',
-	confirmButtonText: 'Sim, quero Finalizar!',
-	cancelButtonText: 'Não'
-}).then((result) => {
-	if (result.value == true) {
-		ajaxPut("api/compras/distribuicao-compras-historico.xsjs", dados)
-	.then(function (){
-			  Swal.fire(
-				  'Distribuição Finalizada com Sucesso!',
-			  );
-			  DistribuicaoCompras();
-		  })
-	.catch(funcError);
-	}
-})
+  Swal.fire({
+    title: 'Deseja realmente FINALIZAR essa Distribuição?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sim, quero Finalizar!',
+    cancelButtonText: 'Não'
+  }).then((result) => {
+    if (result.value == true) {
+      ajaxPut("api/compras/distribuicao-compras-historico.xsjs", dados)
+        .then(function () {
+          Swal.fire(
+            'Distribuição Finalizada com Sucesso!',
+          );
+          DistribuicaoCompras();
+        })
+        .catch(funcError);
+    }
+  })
 }
 //////////////////// FIM ROTINA DISTRIBUIÇÃO DE COMPRAS HISTORICO ////////////////
 
@@ -7360,36 +7360,36 @@ Swal.fire({
 
 function retornoListaGrupoEmpresasSelect(respostaGrupoEmpresas) {
 
-        $("#idmarcaselect").empty();
-	    
-	for (var i = 0; i < respostaGrupoEmpresas.data.length; i++) {
+  $("#idmarcaselect").empty();
 
-		IDGrupo = respostaGrupoEmpresas.data[i]['IDGRUPOEMPRESARIAL'];
-		DSGrupo = respostaGrupoEmpresas.data[i]['GRUPOEMPRESARIAL'];
+  for (var i = 0; i < respostaGrupoEmpresas.data.length; i++) {
 
-			$('#idmarcaselect').append(
-				`<option value="` + IDGrupo + `"> ` + DSGrupo + `</option>`
-			);
-	}
+    IDGrupo = respostaGrupoEmpresas.data[i]['IDGRUPOEMPRESARIAL'];
+    DSGrupo = respostaGrupoEmpresas.data[i]['GRUPOEMPRESARIAL'];
+
+    $('#idmarcaselect').append(
+      `<option value="` + IDGrupo + `"> ` + DSGrupo + `</option>`
+    );
+  }
 }
 
 function retornoListaGrupoPedido(respostaListaGrupoPedido) {
-    
-    numPage = parseInt(respostaListaGrupoPedido.page);
 
-    if (numPage === 1) {
-        $("#idgrupoestruturaselect").empty();
-    }
+  numPage = parseInt(respostaListaGrupoPedido.page);
 
-    for (var i = 0; i < respostaListaGrupoPedido.data.length; i++) {
-        
-        IDGrupoEst = respostaListaGrupoPedido.data[i]['ID_GRUPO'];
-        DSGrupoEst = respostaListaGrupoPedido.data[i]['GRUPO'];
-        
-        $('#idgrupoestruturaselect').append( 
-          `<option value="` + IDGrupoEst + `"> ` + DSGrupoEst + `</option>`
-        );
-    }
+  if (numPage === 1) {
+    $("#idgrupoestruturaselect").empty();
+  }
+
+  for (var i = 0; i < respostaListaGrupoPedido.data.length; i++) {
+
+    IDGrupoEst = respostaListaGrupoPedido.data[i]['ID_GRUPO'];
+    DSGrupoEst = respostaListaGrupoPedido.data[i]['GRUPO'];
+
+    $('#idgrupoestruturaselect').append(
+      `<option value="` + IDGrupoEst + `"> ` + DSGrupoEst + `</option>`
+    );
+  }
 }
 
 function selecionafabricante() {
@@ -7410,24 +7410,24 @@ function selecionasubestrutura() {
     .catch(funcError);
 }
 
-function selecionaempresamarca(){
+function selecionaempresamarca() {
 
-    idmarca = $('#idmarcaselect').val();
+  idmarca = $('#idmarcaselect').val();
 
-    ajaxGet('api/compras/empresa.xsjs?idmarca=' + idmarca)
-	.then(retornoListaEmpresasSelect)
-	.catch(funcError);
+  ajaxGet('api/compras/empresa.xsjs?idmarca=' + idmarca)
+    .then(retornoListaEmpresasSelect)
+    .catch(funcError);
 }
 
 function retornoListaEmpresasSelect(respostaListaEmpresas) {
-    
-    let IdResumoEmpPromo = $("#IdResPromoEmp").val();
-    contador = 0;
-    numPageAtual = parseInt(respostaListaEmpresas.page);
-    if(numPageAtual === 1){
-      
-      $('#emplist').html(
-          `<table id="lista-emppromo" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+
+  let IdResumoEmpPromo = $("#IdResPromoEmp").val();
+  contador = 0;
+  numPageAtual = parseInt(respostaListaEmpresas.page);
+  if (numPageAtual === 1) {
+
+    $('#emplist').html(
+      `<table id="lista-emppromo" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
               <thead class="bg-primary-600">
                   <tr>
                       <th >*</th>
@@ -7440,65 +7440,65 @@ function retornoListaEmpresasSelect(respostaListaEmpresas) {
               <tfoot class="thead-themed">
               </tfoot>
           </table>`
-      );
-      
-      var tableListaEmpPromo = $('#lista-emppromo').DataTable({
-          "columnDefs": [
-              { "width": "5%", "targets": 0 },
-              { "width": "5%", "targets": 1 },
-              { "width": "90%", "targets": 2 }
-          ],
-          deferRender:    true,
-          paging: false,
-          ordering:  false,
-          //scrollY:        800,
-          //scrollCollapse: false,
-          //scroller:       false,
-          responsive: true,
-          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-                      "<'row'<'col-sm-12'tr>>" +
-                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-          buttons: [
+    );
 
-                    {
-                        text: 'Incluir Empresas',
-                        titleAttr: 'Incluir Todas as Empresas na Promoção',
-                        className: 'btn-outline-primary btn-sm mr-1',
-                        action: function () {
-                            cadastrar_empresas_promocao(IdResumoEmpPromo);
-                        }
-                    },
-                  ]
-      });
-      
+    var tableListaEmpPromo = $('#lista-emppromo').DataTable({
+      "columnDefs": [
+        { "width": "5%", "targets": 0 },
+        { "width": "5%", "targets": 1 },
+        { "width": "90%", "targets": 2 }
+      ],
+      deferRender: true,
+      paging: false,
+      ordering: false,
+      //scrollY:        800,
+      //scrollCollapse: false,
+      //scroller:       false,
+      responsive: true,
+      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+      buttons: [
+
+        {
+          text: 'Incluir Empresas',
+          titleAttr: 'Incluir Todas as Empresas na Promoção',
+          className: 'btn-outline-primary btn-sm mr-1',
+          action: function () {
+            cadastrar_empresas_promocao(IdResumoEmpPromo);
+          }
+        },
+      ]
+    });
+
     tableListaEmpPromo.rows().remove().draw();
   }
 
-  if(respostaListaEmpresas.data.length != 0){
-    
-	for (var i = 0; i < respostaListaEmpresas.data.length; i++) {
-	    
-        contador++;
-		IDEmpresa = respostaListaEmpresas.data[i]['IDEMPRESA'];
-		DSEmpresa = respostaListaEmpresas.data[i]['NOFANTASIA'];
+  if (respostaListaEmpresas.data.length != 0) {
 
-        tableListaEmpPromo.row.add([
-          `<label style="color: blue; font-size: 11px;">` + contador + `</label>`, 
-          ` <div class="custom-checkbox"> 
+    for (var i = 0; i < respostaListaEmpresas.data.length; i++) {
+
+      contador++;
+      IDEmpresa = respostaListaEmpresas.data[i]['IDEMPRESA'];
+      DSEmpresa = respostaListaEmpresas.data[i]['NOFANTASIA'];
+
+      tableListaEmpPromo.row.add([
+        `<label style="color: blue; font-size: 11px;">` + contador + `</label>`,
+        ` <div class="custom-checkbox"> 
               <input type="checkbox" class="custom-control" name="checkemppromo" idemp="${IDEmpresa}" checked>
             </div>`,
-          `<label style="font-size: 11px;">` + DSEmpresa + `</label>`,
-        ]).draw(false);
-	}
+        `<label style="font-size: 11px;">` + DSEmpresa + `</label>`,
+      ]).draw(false);
+    }
   }
-	
+
 }
 
 function ListaPromocoes() {
-    
-    dataRetornoPromocao = [];
-    contador = 0;
-  
+
+  dataRetornoPromocao = [];
+  contador = 0;
+
   if (window.XMLHttpRequest) {
     // code for IE7+, Firefox, Chrome, Opera, Safari
     xmlhttp = new XMLHttpRequest();
@@ -7518,14 +7518,14 @@ function ListaPromocoes() {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
       document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
 
-        $('.dataAtual').text(dataAtual);
-        $('#parametro_dia_inicio').val(dataAtualCampo2Meses);
-        $('#parametro_dia_fim').val(dataAtualCampo);
+      $('.dataAtual').text(dataAtual);
+      $('#parametro_dia_inicio').val(dataAtualCampo2Meses);
+      $('#parametro_dia_fim').val(dataAtualCampo);
 
-        ajaxGet('api/compras/lista_promocoes.xsjs?pageSize=1000&page=1&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
+      ajaxGet('api/compras/lista_promocoes.xsjs?pageSize=1000&page=1&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
         .then(retornoListaPromocoes)
         .catch(funcError);
-    
+
     }
   };
   xmlhttp.open("GET", "compras_promocao.html", true);
@@ -7534,7 +7534,7 @@ function ListaPromocoes() {
 
 function chamarProximaListaPromocao(numPage) {
 
-    ajaxGet('api/compras/lista_promocoes.xsjs?pageSize=1000&page=' + numPage + '&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
+  ajaxGet('api/compras/lista_promocoes.xsjs?pageSize=1000&page=' + numPage + '&dataPesquisaInicio=' + dataAtualCampo2Meses + '&dataPesquisaFim=' + dataAtualCampo)
     .then(retornoListaPromocoes)
     .catch(funcError);
 
@@ -7568,15 +7568,15 @@ function retornoListaPromocoes(respostaListaPromocoes) {
       let VrProdResPromo = registro.VLPRECOPRODUTO;
       let StEmpPromo = registro.STEMPRESAPROMO;
       let StDetOrigPromo = registro.STDETPROMOORIGEM;
-      
-          btnOpcaoPromo = `<div class="btn-group btn-group-xs">`+
-                                  //<button type="button" class="btn btn-warning btn-xs" title="Detalhar Empresas da Promoção" id="` + idResPromo + `" value="` +DsResPromo + `" onclick="modal_Detalhar_Empresas_Promocao(this.id, this.value)" ><i class="fal fa-eye"></i></button>`+
-                                  //<button type="button" class="btn btn-danger btn-xs" title="Detalhar Produtos da Promoção" id="` + idResPromo + `" value="` +DsResPromo + `" onclick="modal_Detalhar_Produtos_Promocao(this.id, this.value)" ><i class="fal fa-eye"></i></button>
-                                  `<button type="button" class="btn btn-primary btn-xs" title="Incluir Empresas na Promoção" id="` + idResPromo + `" value="` +DsResPromo + `" onclick="modal_Incluir_Empresas_Promocao(this.id, this.value)" ><i class="fal fa-plus mr-1"></i></button>
-                                  <button type="button" class="btn btn-success btn-xs" title="Incluir Produtos na Promoção" id="` + idResPromo + `" value="` +DsResPromo + `" onclick="modal_Incluir_Produtos_Promocao(this.id, this.value)" ><i class="fal fa-plus mr-1"></i></button>
+
+      btnOpcaoPromo = `<div class="btn-group btn-group-xs">` +
+        //<button type="button" class="btn btn-warning btn-xs" title="Detalhar Empresas da Promoção" id="` + idResPromo + `" value="` +DsResPromo + `" onclick="modal_Detalhar_Empresas_Promocao(this.id, this.value)" ><i class="fal fa-eye"></i></button>`+
+        //<button type="button" class="btn btn-danger btn-xs" title="Detalhar Produtos da Promoção" id="` + idResPromo + `" value="` +DsResPromo + `" onclick="modal_Detalhar_Produtos_Promocao(this.id, this.value)" ><i class="fal fa-eye"></i></button>
+        `<button type="button" class="btn btn-primary btn-xs" title="Incluir Empresas na Promoção" id="` + idResPromo + `" value="` + DsResPromo + `" onclick="modal_Incluir_Empresas_Promocao(this.id, this.value)" ><i class="fal fa-plus mr-1"></i></button>
+                                  <button type="button" class="btn btn-success btn-xs" title="Incluir Produtos na Promoção" id="` + idResPromo + `" value="` + DsResPromo + `" onclick="modal_Incluir_Produtos_Promocao(this.id, this.value)" ><i class="fal fa-plus mr-1"></i></button>
                         
                         </div>`;
-                              
+
       dataRetornoPromocao.push([contador,
         DsResPromo,
         DtIniResPromo,
@@ -7656,7 +7656,7 @@ function retornoListaPromocoes(respostaListaPromocoes) {
 
 }
 
-function modal_Detalhar_Empresas_Promocao(id,descpromo) {
+function modal_Detalhar_Empresas_Promocao(id, descpromo) {
 
   dataRetornoDetalhePromoEmp = [];
   contadorEmp = 0;
@@ -7668,19 +7668,19 @@ function modal_Detalhar_Empresas_Promocao(id,descpromo) {
     $('#resultadomodaldetalhepromocao').html(res);
     $("#modaldetalhepromocao").modal('show');
     $('#modaldetalhepromocao').on('shown.bs.modal', function () {
-        
-        $('#modaltitulodetalhepromo').html(`Detalhe da Promoção: ` + descpromo + ` - Nº ` + id + `
+
+      $('#modaltitulodetalhepromo').html(`Detalhe da Promoção: ` + descpromo + ` - Nº ` + id + `
                       <small class="m-0 text-muted">
                           Lista das Empresas da Promoção
                       </small>
                       `);
-                      
-        $('#footerdetalhepromocao').html(
-            `<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`
-        );
-        
+
+      $('#footerdetalhepromocao').html(
+        `<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`
+      );
+
     });
-    
+
     ajaxGet('api/compras/lista_empresapromocoes.xsjs?idResPromo=' + id)
       .then(retornoListaEmpPromocoes)
       .catch(funcError);
@@ -7690,13 +7690,13 @@ function modal_Detalhar_Empresas_Promocao(id,descpromo) {
 
 function retornoListaEmpPromocoes(respostaListaEmpPromocoes) {
 
-    let IdResumoEmpPromo = $("#IdResPromoEmp").val();
-    contadorEmp =0;
-    var numPageAtual = parseInt(respostaListaEmpPromocoes.page);
-    if(numPageAtual === 1){
-      
-        $('#cadempresaslist').html(
-          `<table id="dt-buttons-empresapromocao" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+  let IdResumoEmpPromo = $("#IdResPromoEmp").val();
+  contadorEmp = 0;
+  var numPageAtual = parseInt(respostaListaEmpPromocoes.page);
+  if (numPageAtual === 1) {
+
+    $('#cadempresaslist').html(
+      `<table id="dt-buttons-empresapromocao" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
                   <thead class="bg-primary-600">
                       <tr>
                           <th>*</th>
@@ -7710,25 +7710,25 @@ function retornoListaEmpPromocoes(respostaListaEmpPromocoes) {
                   <tfoot id="totalpromocaoemp"class="thead-themed">
                   </tfoot>
               </table>`
-        );
-            
-        var tableListaEmpPromo = $('#dt-buttons-empresapromocao').DataTable({
-          deferRender: true,
-          //scrollY:        800,
-          //scrollCollapse: false,
-          //scroller:       false,
-          responsive: true,
-          dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-          buttons: [
+    );
 
-          ]
-        });
-        
-      tableListaEmpPromo.rows().remove().draw();
-      $('#totalpromocaoemp').html('');
-    }
+    var tableListaEmpPromo = $('#dt-buttons-empresapromocao').DataTable({
+      deferRender: true,
+      //scrollY:        800,
+      //scrollCollapse: false,
+      //scroller:       false,
+      responsive: true,
+      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+      buttons: [
+
+      ]
+    });
+
+    tableListaEmpPromo.rows().remove().draw();
+    $('#totalpromocaoemp').html('');
+  }
 
   if (respostaListaEmpPromocoes.data.length != 0) {
     for (var i = 0; i < respostaListaEmpPromocoes.data.length; i++) {
@@ -7740,23 +7740,23 @@ function retornoListaEmpPromocoes(respostaListaEmpPromocoes) {
       let idEmpresaPromoEmp = registro.IDEMPRESA;
       let StEmpresaPromo = registro.STATIVO;
       let NoEmpresaPromo = registro.NOEMPPROMO;
-      
-        if(StEmpresaPromo=='True'){
-            StEmpresaPromo1 = 'ATIVO';
-        }else{
-            StEmpresaPromo1 = 'INATIVO';
-        }
-      
+
+      if (StEmpresaPromo == 'True') {
+        StEmpresaPromo1 = 'ATIVO';
+      } else {
+        StEmpresaPromo1 = 'INATIVO';
+      }
+
       btnOpcaoEmpPromo = `<div class="btn-group btn-group-xs">
-                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Empresa da Promoção" id="` + idEmpresaPromo + `" value="` +idEmpresaPromoEmp + `" onclick="excluir_Empresa_Promocao(this.id)" ><i class="fal fa-trash mr-1"></i></button>
+                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Empresa da Promoção" id="` + idEmpresaPromo + `" value="` + idEmpresaPromoEmp + `" onclick="excluir_Empresa_Promocao(this.id)" ><i class="fal fa-trash mr-1"></i></button>
                     </div>`;
 
       tableListaEmpPromo.row.add([
-                                  `<label style="color: blue; font-size: 11px;">` + contadorEmp + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + NoEmpresaPromo + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + StEmpresaPromo1 + `</label>`,
-                                    btnOpcaoEmpPromo
-                                ]).draw(false);
+        `<label style="color: blue; font-size: 11px;">` + contadorEmp + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + NoEmpresaPromo + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + StEmpresaPromo1 + `</label>`,
+        btnOpcaoEmpPromo
+      ]).draw(false);
     }
     //chamarProximaListaPromocao(numPageAtual + 1);
   } else {
@@ -7767,7 +7767,7 @@ function retornoListaEmpPromocoes(respostaListaEmpPromocoes) {
 
 }
 
-function modal_Detalhar_Produtos_Promocao(id,descpromo) {
+function modal_Detalhar_Produtos_Promocao(id, descpromo) {
 
   contadorProdOrig = 0;
   contadorProdDest = 0;
@@ -7779,23 +7779,23 @@ function modal_Detalhar_Produtos_Promocao(id,descpromo) {
     $('#resultadomodaldetalhepromocao').html(res);
     $("#modaldetalhepromocao").modal('show');
     $('#modaldetalhepromocao').on('shown.bs.modal', function () {
-        
-        $('#modaltitulodetalhepromo').html(`Detalhe da Promoção: ` + descpromo + ` - Nº ` + id + `
+
+      $('#modaltitulodetalhepromo').html(`Detalhe da Promoção: ` + descpromo + ` - Nº ` + id + `
                       <small class="m-0 text-muted">
                           Lista dos Produtos da Promoção
                       </small>
                       `);
-                      
-        $('#footerdetalhepromocao').html(
-            `<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`
-        );
-        
+
+      $('#footerdetalhepromocao').html(
+        `<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`
+      );
+
     });
-    
+
     ajaxGet('api/compras/lista_produtosorigempromocoes.xsjs?idResPromo=' + id)
       .then(retornoListaProdOrigemPromocoes)
       .catch(funcError);
-      
+
     ajaxGet('api/compras/lista_produtosdestinopromocoes.xsjs?idResPromo=' + id)
       .then(retornoListaProdDestinoPromocoes)
       .catch(funcError);
@@ -7806,10 +7806,10 @@ function modal_Detalhar_Produtos_Promocao(id,descpromo) {
 function retornoListaProdOrigemPromocoes(respostaListaProdOrigemPromocoes) {
 
   var numPageAtual = parseInt(respostaListaProdOrigemPromocoes.page);
-    if(numPageAtual === 1){
-      
-        $('#resultadodetalhepromocaoprodorigem').html(
-          `<table id="dt-buttons-prodorigempromocao" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+  if (numPageAtual === 1) {
+
+    $('#resultadodetalhepromocaoprodorigem').html(
+      `<table id="dt-buttons-prodorigempromocao" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
                   <thead class="bg-primary-600">
                       <tr>
                           <th>*</th>
@@ -7823,21 +7823,21 @@ function retornoListaProdOrigemPromocoes(respostaListaProdOrigemPromocoes) {
                   <tfoot id="totalpromocaoprodorigem"class="thead-themed">
                   </tfoot>
               </table>`
-        );
-            
-        tableListaProdOrigemPromo = $('#dt-buttons-prodorigempromocao').DataTable({
-         "columnDefs": [
-              { "width": "5%", "targets": 0 },
-              { "width": "8%", "targets": [1, 3] },
-          ],
-          "displayLength": 25,
-          deferRender: false,
-          ordering:  false
-        });
-        
-      tableListaProdOrigemPromo.rows().remove().draw();
-      $('#totalpromocaoprodorigem').html('');
-    }
+    );
+
+    tableListaProdOrigemPromo = $('#dt-buttons-prodorigempromocao').DataTable({
+      "columnDefs": [
+        { "width": "5%", "targets": 0 },
+        { "width": "8%", "targets": [1, 3] },
+      ],
+      "displayLength": 25,
+      deferRender: false,
+      ordering: false
+    });
+
+    tableListaProdOrigemPromo.rows().remove().draw();
+    $('#totalpromocaoprodorigem').html('');
+  }
 
   if (respostaListaProdOrigemPromocoes.data.length != 0) {
     for (var i = 0; i < respostaListaProdOrigemPromocoes.data.length; i++) {
@@ -7851,15 +7851,15 @@ function retornoListaProdOrigemPromocoes(respostaListaProdOrigemPromocoes) {
       let NoProdOrigPromo = registro.DSPRODUTO;
 
       btnOpcaoProdOrigPromo = `<div class="btn-group btn-group-xs">
-                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Produto da Promoção" id="` + idProdOrigPromo + `" value="` +idProdPromoProdOrig + `" onclick="modal_Cancelar_ProdOrigem_Promocao(this.id, this.value)" ><i class="fal fa-trash mr-1"></i></button>
+                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Produto da Promoção" id="` + idProdOrigPromo + `" value="` + idProdPromoProdOrig + `" onclick="modal_Cancelar_ProdOrigem_Promocao(this.id, this.value)" ><i class="fal fa-trash mr-1"></i></button>
                     </div>`;
 
       tableListaProdOrigemPromo.row.add([
-                                  `<label style="color: blue; font-size: 11px;">` + contadorProdOrig + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + CodBarrasProdOrigPromo + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + NoProdOrigPromo + `</label>`,
-                                    btnOpcaoProdOrigPromo
-                                ]).draw(false);
+        `<label style="color: blue; font-size: 11px;">` + contadorProdOrig + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + CodBarrasProdOrigPromo + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + NoProdOrigPromo + `</label>`,
+        btnOpcaoProdOrigPromo
+      ]).draw(false);
     }
     //chamarProximaListaPromocao(numPageAtual + 1);
   } else {
@@ -7873,10 +7873,10 @@ function retornoListaProdOrigemPromocoes(respostaListaProdOrigemPromocoes) {
 function retornoListaProdDestinoPromocoes(respostaListaProdDestinoPromocoes) {
 
   var numPageAtual = parseInt(respostaListaProdDestinoPromocoes.page);
-    if(numPageAtual === 1){
-      
-        $('#resultadodetalhepromocaoproddestino').html(
-          `<table id="dt-buttons-proddestinopromocao" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+  if (numPageAtual === 1) {
+
+    $('#resultadodetalhepromocaoproddestino').html(
+      `<table id="dt-buttons-proddestinopromocao" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
                   <thead class="bg-primary-600">
                       <tr>
                           <th>*</th>
@@ -7890,21 +7890,21 @@ function retornoListaProdDestinoPromocoes(respostaListaProdDestinoPromocoes) {
                   <tfoot id="totalpromocaoproddestino"class="thead-themed">
                   </tfoot>
               </table>`
-        );
-            
-        tableListaProdDestinoPromo = $('#dt-buttons-proddestinopromocao').DataTable({
-         "columnDefs": [
-              { "width": "5%", "targets": 0 },
-              { "width": "8%", "targets": [1, 3] },
-          ],
-          "displayLength": 25,
-          deferRender: false,
-          ordering:  false
-        });
-        
-      tableListaProdDestinoPromo.rows().remove().draw();
-      $('#totalpromocaoproddestino').html('');
-    }
+    );
+
+    tableListaProdDestinoPromo = $('#dt-buttons-proddestinopromocao').DataTable({
+      "columnDefs": [
+        { "width": "5%", "targets": 0 },
+        { "width": "8%", "targets": [1, 3] },
+      ],
+      "displayLength": 25,
+      deferRender: false,
+      ordering: false
+    });
+
+    tableListaProdDestinoPromo.rows().remove().draw();
+    $('#totalpromocaoproddestino').html('');
+  }
 
   if (respostaListaProdDestinoPromocoes.data.length != 0) {
     for (var i = 0; i < respostaListaProdDestinoPromocoes.data.length; i++) {
@@ -7918,15 +7918,15 @@ function retornoListaProdDestinoPromocoes(respostaListaProdDestinoPromocoes) {
       let NoProdDestPromo = registro.DSPRODUTODESTINO;
 
       btnOpcaoProdDestPromo = `<div class="btn-group btn-group-xs">
-                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Produto da Promoção" id="` + idProdDestPromo + `" value="` +idProdPromoProdDest + `" onclick="modal_Cancelar_ProdDestino_Promocao(this.id, this.value)" ><i class="fal fa-trash mr-1"></i></button>
+                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Produto da Promoção" id="` + idProdDestPromo + `" value="` + idProdPromoProdDest + `" onclick="modal_Cancelar_ProdDestino_Promocao(this.id, this.value)" ><i class="fal fa-trash mr-1"></i></button>
                     </div>`;
 
       tableListaProdDestinoPromo.row.add([
-                                  `<label style="color: blue; font-size: 11px;">` + contadorProdDest + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + CodBarrasProdDestPromo + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + NoProdDestPromo + `</label>`,
-                                    btnOpcaoProdDestPromo
-                                ]).draw(false);
+        `<label style="color: blue; font-size: 11px;">` + contadorProdDest + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + CodBarrasProdDestPromo + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + NoProdDestPromo + `</label>`,
+        btnOpcaoProdDestPromo
+      ]).draw(false);
     }
     //chamarProximaListaPromocao(numPageAtual + 1);
   } else {
@@ -7946,31 +7946,31 @@ function modal_Cad_Promocao() {
     $('#resultadomodaldetalhepromocao').html(res);
     $("#modaldetalhepromocao").modal('show');
     $('#modaldetalhepromocao').on('shown.bs.modal', function () {
-        
-        $('#dtinipromo').val(dataAtualCampo);
-        $('#dtfimpromo').val(dataAtualCampo);
-        $('#descpromocao').focus();
-        $("#staplicacaopromo").select2({
-            dropdownParent: $("#modaldetalhepromocao")
-        });
-        $("#stfatorpromo").select2({
-            dropdownParent: $("#modaldetalhepromocao")
-        });
-        $("#staplicacaosaidapromo").select2({
-            dropdownParent: $("#modaldetalhepromocao")
-        });
-      
-        $('#modaltitulodetalhepromo').html(`Promoção
+
+      $('#dtinipromo').val(dataAtualCampo);
+      $('#dtfimpromo').val(dataAtualCampo);
+      $('#descpromocao').focus();
+      $("#staplicacaopromo").select2({
+        dropdownParent: $("#modaldetalhepromocao")
+      });
+      $("#stfatorpromo").select2({
+        dropdownParent: $("#modaldetalhepromocao")
+      });
+      $("#staplicacaosaidapromo").select2({
+        dropdownParent: $("#modaldetalhepromocao")
+      });
+
+      $('#modaltitulodetalhepromo').html(`Promoção
                                               <small class="m-0 text-muted">
                                                   Cadastrar Promoção
                                               </small>
                                           `);
-                      
-        $('#footerdetalhepromocao').html(
-            `<button type="button" class="btn btn-success" onclick="cadastrar_promocao(1)">Cadastrar</button>
+
+      $('#footerdetalhepromocao').html(
+        `<button type="button" class="btn btn-success" onclick="cadastrar_promocao(1)">Cadastrar</button>
              <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`
-        );
-        
+      );
+
     });
 
   })
@@ -7979,193 +7979,193 @@ function modal_Cad_Promocao() {
 function selecionaraplic() {
 
   let dataListAplic = $("#staplicacaopromo").val();
-    $('#staplicacaosaidapromo').empty();
-    if(dataListAplic === ''){
-        $('#qtdaplicpromo').val(0).attr('readonly', 'readonly');
-        $('#vraplicpromo').val(0).attr('readonly', 'readonly');
-        $('#staplicacaosaidapromo').append(
-            `<option value="">Selecione...</option>
+  $('#staplicacaosaidapromo').empty();
+  if (dataListAplic === '') {
+    $('#qtdaplicpromo').val(0).attr('readonly', 'readonly');
+    $('#vraplicpromo').val(0).attr('readonly', 'readonly');
+    $('#staplicacaosaidapromo').append(
+      `<option value="">Selecione...</option>
             <option value="0">Por Pares</option>
             <option value="1">Todos</option>`
-        );
-    }else if (dataListAplic === '1'){
-        $('#qtdaplicpromo').val(2).removeAttr('readonly', 'readonly');
-        $('#vraplicpromo').val(0).attr('readonly', 'readonly');
-        $('#staplicacaosaidapromo').append(
-            `<option value="">Selecione...</option>
+    );
+  } else if (dataListAplic === '1') {
+    $('#qtdaplicpromo').val(2).removeAttr('readonly', 'readonly');
+    $('#vraplicpromo').val(0).attr('readonly', 'readonly');
+    $('#staplicacaosaidapromo').append(
+      `<option value="">Selecione...</option>
             <option value="0">Por Pares</option>
             <option value="1">Todos</option>`
-        );
-    }else if (dataListAplic === '2'){
-        $('#qtdaplicpromo').val(0).attr('readonly', 'readonly');
-        $('#vraplicpromo').val(0).removeAttr('readonly', 'readonly');
-        $('#staplicacaosaidapromo').append(
-            `<option value="">Selecione...</option>
+    );
+  } else if (dataListAplic === '2') {
+    $('#qtdaplicpromo').val(0).attr('readonly', 'readonly');
+    $('#vraplicpromo').val(0).removeAttr('readonly', 'readonly');
+    $('#staplicacaosaidapromo').append(
+      `<option value="">Selecione...</option>
             <option value="0">Por Pares</option>
             <option value="1">Todos</option>
             <option value="2">Ultimo QTD Entrada</option>`
-        );
-    }
-    
+    );
+  }
+
 }
 
 function selecionarafator() {
 
   let dataListFator = $("#stfatorpromo").val();
 
-    if(dataListFator === ''){
-        $('#vrprodfatorpromo').val(0).attr('readonly', 'readonly');
-        $('#vrdescfatorpromo').val(0).attr('readonly', 'readonly');
-        $('#percaplicpromo').val(0).attr('readonly', 'readonly');
-    }else if (dataListFator === '0'){
-        $('#vrprodfatorpromo').val(0).removeAttr('readonly', 'readonly');
-        $('#vrdescfatorpromo').val(0).attr('readonly', 'readonly');
-        $('#percaplicpromo').val(0).attr('readonly', 'readonly');
-        $('#vrprodfatorpromo').focus();
-        $('#vrprodfatorpromo').select();
-    }else if (dataListFator === '1'){
-        $('#vrprodfatorpromo').val(0).attr('readonly', 'readonly');
-        $('#vrdescfatorpromo').val(0).removeAttr('readonly', 'readonly');
-        $('#percaplicpromo').val(0).attr('readonly', 'readonly');
-        $('#vrdescfatorpromo').focus();
-        $('#vrdescfatorpromo').select();
-    }else if (dataListFator === '2'){
-        $('#vrprodfatorpromo').val(0).attr('readonly', 'readonly');
-        $('#vrdescfatorpromo').val(0).attr('readonly', 'readonly');
-        $('#percaplicpromo').val(0).removeAttr('readonly', 'readonly');
-        $('#percaplicpromo').focus();
-        $('#percaplicpromo').select();
-    }
-    
+  if (dataListFator === '') {
+    $('#vrprodfatorpromo').val(0).attr('readonly', 'readonly');
+    $('#vrdescfatorpromo').val(0).attr('readonly', 'readonly');
+    $('#percaplicpromo').val(0).attr('readonly', 'readonly');
+  } else if (dataListFator === '0') {
+    $('#vrprodfatorpromo').val(0).removeAttr('readonly', 'readonly');
+    $('#vrdescfatorpromo').val(0).attr('readonly', 'readonly');
+    $('#percaplicpromo').val(0).attr('readonly', 'readonly');
+    $('#vrprodfatorpromo').focus();
+    $('#vrprodfatorpromo').select();
+  } else if (dataListFator === '1') {
+    $('#vrprodfatorpromo').val(0).attr('readonly', 'readonly');
+    $('#vrdescfatorpromo').val(0).removeAttr('readonly', 'readonly');
+    $('#percaplicpromo').val(0).attr('readonly', 'readonly');
+    $('#vrdescfatorpromo').focus();
+    $('#vrdescfatorpromo').select();
+  } else if (dataListFator === '2') {
+    $('#vrprodfatorpromo').val(0).attr('readonly', 'readonly');
+    $('#vrdescfatorpromo').val(0).attr('readonly', 'readonly');
+    $('#percaplicpromo').val(0).removeAttr('readonly', 'readonly');
+    $('#percaplicpromo').focus();
+    $('#percaplicpromo').select();
+  }
+
 }
 
 function cadastrar_promocao(numacao) {
 
-    let descpromocao = $("#descpromocao").val();
-    let dtinipromo = $("#dtinipromo").val();
-    let dtfimpromo = $("#dtfimpromo").val();
-    let staplicacaopromo = $("#staplicacaopromo").val();
-    let staplicacaosaidapromo = $("#staplicacaosaidapromo").val();
-    let qtdaplicpromo = $("#qtdaplicpromo").val();
-    let vraplicpromo = $("#vraplicpromo").val().replace(".", "").replace(",", ".");
-    let stfatorpromo = $("#stfatorpromo").val();
-    let vrprodfatorpromo = $("#vrprodfatorpromo").val().replace(".", "").replace(",", ".");
-    let vrdescfatorpromo = $("#vrdescfatorpromo").val().replace(".", "").replace(",", ".");
-    let percaplicpromo = $("#percaplicpromo").val().replace(".", "").replace(",", ".");
-    let stemppromo = 'False';
-    let stdetpromoorig = 'False';
-    let stdetpromodest = 'False';
-    
-    let dtinipromoformat = dtinipromo + ' 00:00:00';
-    let dtfimpromoformat = dtfimpromo + ' 23:59:00';
-        
-    if (descpromocao == '') {
-        $("#resultadocadpromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> Informe a Descrição da Promoção.</div>"
-        );
-        $("#descpromocao").focus();
-        return false;
-    }
-  
-    if (staplicacaopromo == '') {
-        $("#resultadocadpromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> Informe um Tipo de Aplicação de Entrada para a Promoção.</div>"
-        );
-        $("#staplicacaopromo").focus();
-        return false;
-    }
-  
-    if (staplicacaosaidapromo == '') {
-        $("#resultadocadpromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> Informe um Tipo de Aplicação de Saída para a Promoção.</div>"
-        );
-        $("#staplicacaosaidapromo").focus();
-        return false;
-    }
-  
-    if (staplicacaopromo == '1' && qtdaplicpromo < 2) {
-        $("#resultadocadpromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> A Aplicação para a quantidade não pode ser menor que duas unidades.</div>"
-        );
-        $("#qtdaplicpromo").focus();
-        return false;
-    }
-  
-    if (staplicacaopromo == '2' && vraplicpromo <= 0) {
-        $("#resultadocadpromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> A Aplicação para o valor não pode ser menor que zero.</div>"
-        );
-        $("#vraplicpromo").focus();
-        return false;
-    }
-  
-    if (stfatorpromo == '') {
-        $("#resultadocadpromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> Informe um Fator para a Promoção.</div>"
-        );
-        $("#stfatorpromo").focus();
-        return false;
-    }
-  
-    if (stfatorpromo == '0' && vrprodfatorpromo <= 0) {
-        $("#resultadocadpromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> O valor para o Produto não pode ser menor que zero.</div>"
-        );
-        $("#vrprodfatorpromo").focus();
-        return false;
-    }
-  
-    if (stfatorpromo == '1' && vrdescfatorpromo <= 0) {
-        $("#resultadocadpromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> O valor do Desconto não pode ser menor que zero.</div>"
-        );
-        $("#vrdescfatorpromo").focus();
-        return false;
-    }
-  
-    if (stfatorpromo == '2' && percaplicpromo <= 0) {
-        $("#resultadocadpromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> O Percentual não pode ser menor que zero.</div>"
-        );
-        $("#percaplicpromo").focus();
-        return false;
-    }
+  let descpromocao = $("#descpromocao").val();
+  let dtinipromo = $("#dtinipromo").val();
+  let dtfimpromo = $("#dtfimpromo").val();
+  let staplicacaopromo = $("#staplicacaopromo").val();
+  let staplicacaosaidapromo = $("#staplicacaosaidapromo").val();
+  let qtdaplicpromo = $("#qtdaplicpromo").val();
+  let vraplicpromo = $("#vraplicpromo").val().replace(".", "").replace(",", ".");
+  let stfatorpromo = $("#stfatorpromo").val();
+  let vrprodfatorpromo = $("#vrprodfatorpromo").val().replace(".", "").replace(",", ".");
+  let vrdescfatorpromo = $("#vrdescfatorpromo").val().replace(".", "").replace(",", ".");
+  let percaplicpromo = $("#percaplicpromo").val().replace(".", "").replace(",", ".");
+  let stemppromo = 'False';
+  let stdetpromoorig = 'False';
+  let stdetpromodest = 'False';
+
+  let dtinipromoformat = dtinipromo + ' 00:00:00';
+  let dtfimpromoformat = dtfimpromo + ' 23:59:00';
+
+  if (descpromocao == '') {
+    $("#resultadocadpromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> Informe a Descrição da Promoção.</div>"
+    );
+    $("#descpromocao").focus();
+    return false;
+  }
+
+  if (staplicacaopromo == '') {
+    $("#resultadocadpromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> Informe um Tipo de Aplicação de Entrada para a Promoção.</div>"
+    );
+    $("#staplicacaopromo").focus();
+    return false;
+  }
+
+  if (staplicacaosaidapromo == '') {
+    $("#resultadocadpromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> Informe um Tipo de Aplicação de Saída para a Promoção.</div>"
+    );
+    $("#staplicacaosaidapromo").focus();
+    return false;
+  }
+
+  if (staplicacaopromo == '1' && qtdaplicpromo < 2) {
+    $("#resultadocadpromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> A Aplicação para a quantidade não pode ser menor que duas unidades.</div>"
+    );
+    $("#qtdaplicpromo").focus();
+    return false;
+  }
+
+  if (staplicacaopromo == '2' && vraplicpromo <= 0) {
+    $("#resultadocadpromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> A Aplicação para o valor não pode ser menor que zero.</div>"
+    );
+    $("#vraplicpromo").focus();
+    return false;
+  }
+
+  if (stfatorpromo == '') {
+    $("#resultadocadpromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> Informe um Fator para a Promoção.</div>"
+    );
+    $("#stfatorpromo").focus();
+    return false;
+  }
+
+  if (stfatorpromo == '0' && vrprodfatorpromo <= 0) {
+    $("#resultadocadpromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> O valor para o Produto não pode ser menor que zero.</div>"
+    );
+    $("#vrprodfatorpromo").focus();
+    return false;
+  }
+
+  if (stfatorpromo == '1' && vrdescfatorpromo <= 0) {
+    $("#resultadocadpromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> O valor do Desconto não pode ser menor que zero.</div>"
+    );
+    $("#vrdescfatorpromo").focus();
+    return false;
+  }
+
+  if (stfatorpromo == '2' && percaplicpromo <= 0) {
+    $("#resultadocadpromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> O Percentual não pode ser menor que zero.</div>"
+    );
+    $("#percaplicpromo").focus();
+    return false;
+  }
 
   var dados = [{
 
@@ -8201,11 +8201,11 @@ function cadastrar_promocao(numacao) {
 function funcSucessCadPromocao(resposta) {
 
   Swal.fire({
-      type: "success",
-      title: "Promoção Cadastrado com Sucesso ",
-      text: "Você deverá Cadastrar as Empresas e os Produtos que irão fazer parte dessa Promoção!",
-      showConfirmButton: false,
-      timer: 3500
+    type: "success",
+    title: "Promoção Cadastrado com Sucesso ",
+    text: "Você deverá Cadastrar as Empresas e os Produtos que irão fazer parte dessa Promoção!",
+    showConfirmButton: false,
+    timer: 3500
   });
   $("#modaldetalhepromocao").modal('hide');
   ListaPromocoes();
@@ -8214,16 +8214,16 @@ function funcSucessCadPromocao(resposta) {
 function funcSucessUpdatePromocao(resposta) {
 
   Swal.fire({
-      type: "success",
-      title: "Promoção Atualizada com Sucesso ",
-      showConfirmButton: false,
-      timer: 3500
+    type: "success",
+    title: "Promoção Atualizada com Sucesso ",
+    showConfirmButton: false,
+    timer: 3500
   });
   $("#modaldetalhepromocao").modal('hide');
   ListaPromocoes();
 }
 
-function modal_Incluir_Empresas_Promocao(id,descpromo) {
+function modal_Incluir_Empresas_Promocao(id, descpromo) {
 
   $.get('compras_action_cadempresapromocao.html', function (res) {
 
@@ -8232,71 +8232,71 @@ function modal_Incluir_Empresas_Promocao(id,descpromo) {
     $('#resultadomodaldetalhepromocao').html(res);
     $("#modaldetalhepromocao").modal('show');
     $('#modaldetalhepromocao').on('shown.bs.modal', function () {
-        
-        $('#IdResPromoEmp').val(id);
-        
-        $('#modaltitulodetalhepromo').html(`Promoção: ` + descpromo + ` - Nº ` + id + `
+
+      $('#IdResPromoEmp').val(id);
+
+      $('#modaltitulodetalhepromo').html(`Promoção: ` + descpromo + ` - Nº ` + id + `
                       <small class="m-0 text-muted">
                           Inclusão das Empresas na Promoção
                       </small>
                       `);
 
-        $("#idmarcaselect").select2({
-            dropdownParent: $("#modaldetalhepromocao")
-        }); 
+      $("#idmarcaselect").select2({
+        dropdownParent: $("#modaldetalhepromocao")
+      });
 
-        $('#footerdetalhepromocao').html(
-            `<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`
-        );
-        
+      $('#footerdetalhepromocao').html(
+        `<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`
+      );
+
     });
-    
+
     ajaxGet('api/informatica/grupoempresas.xsjs')
-        .then(retornoListaGrupoEmpresasSelect)
-        .catch(funcError);
+      .then(retornoListaGrupoEmpresasSelect)
+      .catch(funcError);
 
     ajaxGet('api/compras/lista_empresapromocoes.xsjs?idResPromo=' + id)
       .then(retornoListaEmpPromocoes)
       .catch(funcError);
-      
+
   })
 }
 
 function cadastrar_empresas_promocao(idrespromo) {
 
-    let IdMarcaSelet = $("#idmarcaselect").val();
-    let StEmpPromo ='True';
-    var empresas = $('[name="checkemppromo"]:checked');
-    var empresasSelecionadas = empresas.length;
-    var dadosTableEmpresa = [];
+  let IdMarcaSelet = $("#idmarcaselect").val();
+  let StEmpPromo = 'True';
+  var empresas = $('[name="checkemppromo"]:checked');
+  var empresasSelecionadas = empresas.length;
+  var dadosTableEmpresa = [];
 
-    if (!empresasSelecionadas) {
-        Swal.fire({
-          type: 'info',
-          title: 'Selecione ao menos uma Empresa!',
-          showConfirmButton: false,
-          timer: 2000
-        });
-        return false;
-    }
-  
-    empresas.each(function() {
-        let idpromoemp = $(this).attr('idemp');
-        dadosTableEmpresa.push(idpromoemp);
-    })
+  if (!empresasSelecionadas) {
+    Swal.fire({
+      type: 'info',
+      title: 'Selecione ao menos uma Empresa!',
+      showConfirmButton: false,
+      timer: 2000
+    });
+    return false;
+  }
 
-    if (IdMarcaSelet == 0) {
-        $("#resultadocademppromocao").html(
-          "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-          "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-          "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-          "</button>" +
-          "<strong>Atenção!</strong> Informe uma Marca.</div>"
-        );
-        $("#idmarcaselect").focus();
-        return false;
-    }
-    
+  empresas.each(function () {
+    let idpromoemp = $(this).attr('idemp');
+    dadosTableEmpresa.push(idpromoemp);
+  })
+
+  if (IdMarcaSelet == 0) {
+    $("#resultadocademppromocao").html(
+      "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+      "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+      "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+      "</button>" +
+      "<strong>Atenção!</strong> Informe uma Marca.</div>"
+    );
+    $("#idmarcaselect").focus();
+    return false;
+  }
+
   var dados = [{
 
     "IDRESUMOPROMOCAOMARKETING": parseInt(idrespromo),
@@ -8306,31 +8306,31 @@ function cadastrar_empresas_promocao(idrespromo) {
 
   }];
 
-    ajaxPost("api/compras/lista_empresapromocoes.xsjs", dados)
-      .then(funcSucessCadEmpPromocao)
-      .catch(funcError);
+  ajaxPost("api/compras/lista_empresapromocoes.xsjs", dados)
+    .then(funcSucessCadEmpPromocao)
+    .catch(funcError);
 
 
 }
 
 function funcSucessCadEmpPromocao(resposta) {
 
-    let IdResumoEmpPromo = $("#IdResPromoEmp").val();
+  let IdResumoEmpPromo = $("#IdResPromoEmp").val();
 
-    Swal.fire({
-        type: "success",
-        title: "Empresas incluídas na Promoção com Sucesso ",
-        showConfirmButton: false,
-        timer: 3500
-    });
+  Swal.fire({
+    type: "success",
+    title: "Empresas incluídas na Promoção com Sucesso ",
+    showConfirmButton: false,
+    timer: 3500
+  });
 
-    ajaxGet('api/compras/lista_empresapromocoes.xsjs?idResPromo=' + IdResumoEmpPromo)
-      .then(retornoListaEmpPromocoes)
-      .catch(funcError);
-      
+  ajaxGet('api/compras/lista_empresapromocoes.xsjs?idResPromo=' + IdResumoEmpPromo)
+    .then(retornoListaEmpPromocoes)
+    .catch(funcError);
+
 }
 
-function modal_Incluir_Produtos_Promocao(id,descpromo) {
+function modal_Incluir_Produtos_Promocao(id, descpromo) {
 
   $.get('compras_action_cadprodutospromocao.html', function (res) {
 
@@ -8339,90 +8339,90 @@ function modal_Incluir_Produtos_Promocao(id,descpromo) {
     $('#resultadomodaldetalhepromocao').html(res);
     $("#modaldetalhepromocao").modal('show');
     $('#modaldetalhepromocao').on('shown.bs.modal', function () {
-        
-        $('#IdResPromo').val(id);
-        
-        $('#modaltitulodetalhepromo').html(`Promoção: ` + descpromo + ` - Nº ` + id + `
+
+      $('#IdResPromo').val(id);
+
+      $('#modaltitulodetalhepromo').html(`Promoção: ` + descpromo + ` - Nº ` + id + `
                       <small class="m-0 text-muted">
                           Inclusão dos Produtos na Promoção
                       </small>
                       `);
-                      
-        $("#descprodpromo").focus();
-        
-        $("#idgrupoestruturaselect").select2({
-            dropdownParent: $("#modaldetalhepromocao")
-        }); 
-        
-        $("#idestruturaselect").select2({
-            dropdownParent: $("#modaldetalhepromocao")
-        }); 
-        
-        $("#idfornpromo").select2({
+
+      $("#descprodpromo").focus();
+
+      $("#idgrupoestruturaselect").select2({
         dropdownParent: $("#modaldetalhepromocao")
-        });
-        
-        $("#idfabpromo").select2({
+      });
+
+      $("#idestruturaselect").select2({
         dropdownParent: $("#modaldetalhepromocao")
-        });
-      
-        $('#footerdetalhepromocao').html(
-            `<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`
-        );
-        
+      });
+
+      $("#idfornpromo").select2({
+        dropdownParent: $("#modaldetalhepromocao")
+      });
+
+      $("#idfabpromo").select2({
+        dropdownParent: $("#modaldetalhepromocao")
+      });
+
+      $('#footerdetalhepromocao').html(
+        `<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`
+      );
+
     });
 
-          
-        ajaxGet('api/compras/fornecedor-produto.xsjs')
-            .then(retornoListaFornecedorPedido)
-            .catch(funcError);
-                
-        ajaxGet('api/comercial/grupo-produto.xsjs')
-            .then(retornoListaGrupoPedido)
-            .catch(funcError);
 
-        ajaxGet('api/compras/lista_produtosorigempromocoes.xsjs?idResPromo=' + id)
-          .then(retornoListaCadProdOrigem)
-          .catch(funcError);
-      
-        ajaxGet('api/compras/lista_produtosdestinopromocoes.xsjs?idResPromo=' + id)
-          .then(retornoListaCadProdDestino)
-          .catch(funcError);
-    
+    ajaxGet('api/compras/fornecedor-produto.xsjs')
+      .then(retornoListaFornecedorPedido)
+      .catch(funcError);
+
+    ajaxGet('api/comercial/grupo-produto.xsjs')
+      .then(retornoListaGrupoPedido)
+      .catch(funcError);
+
+    ajaxGet('api/compras/lista_produtosorigempromocoes.xsjs?idResPromo=' + id)
+      .then(retornoListaCadProdOrigem)
+      .catch(funcError);
+
+    ajaxGet('api/compras/lista_produtosdestinopromocoes.xsjs?idResPromo=' + id)
+      .then(retornoListaCadProdDestino)
+      .catch(funcError);
+
   })
 }
 
-function selecionaprodpromo(){
+function selecionaprodpromo() {
 
-    var idestruturapromo = $('#idestruturaselect').val();
-    var descprodpromo = $('#descprodpromo').val();
-    var codbarrasprodpromo = $('#codbarraprodpromocao').val();
-    var idfornprodpromo = $('#idfornpromo').val();
-    var idfabprodpromo = $('#idfabpromo').val();
-    var idgrupoestprodpromo = $("#idgrupoestruturaselect").val();
+  var idestruturapromo = $('#idestruturaselect').val();
+  var descprodpromo = $('#descprodpromo').val();
+  var codbarrasprodpromo = $('#codbarraprodpromocao').val();
+  var idfornprodpromo = $('#idfornpromo').val();
+  var idfabprodpromo = $('#idfabpromo').val();
+  var idgrupoestprodpromo = $("#idgrupoestruturaselect").val();
 
-      $("#prodlist").html(
-        "<div align=\"center\">" +
-        "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>"  +
-        "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-        "</div>"
-      );
-      
-        ajaxGet('api/compras/produto_estrutura.xsjs?idestrutura=' + idestruturapromo + '&descprod=' + descprodpromo + '&codbarraprod=' + codbarrasprodpromo + '&fornprodpromo=' + idfornprodpromo + '&fabprodpromo=' + idfabprodpromo + '&grupoestprodpromo=' + idgrupoestprodpromo)
-    	.then(retornoListaProdutosSelect)
-    	.catch(funcError);
+  $("#prodlist").html(
+    "<div align=\"center\">" +
+    "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
+    "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
+    "</div>"
+  );
+
+  ajaxGet('api/compras/produto_estrutura.xsjs?idestrutura=' + idestruturapromo + '&descprod=' + descprodpromo + '&codbarraprod=' + codbarrasprodpromo + '&fornprodpromo=' + idfornprodpromo + '&fabprodpromo=' + idfabprodpromo + '&grupoestprodpromo=' + idgrupoestprodpromo)
+    .then(retornoListaProdutosSelect)
+    .catch(funcError);
 
 }
 
 function retornoListaProdutosSelect(respostaListaProdutosPromo) {
-    
-    contador = 0;
-    let IdResumoProdPromo = $("#IdResPromo").val();
-    numPageAtual = parseInt(respostaListaProdutosPromo.page);
-    if(numPageAtual === 1){
-      
-      $('#prodlist').html(
-          `<table id="lista-prodpromo" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+
+  contador = 0;
+  let IdResumoProdPromo = $("#IdResPromo").val();
+  numPageAtual = parseInt(respostaListaProdutosPromo.page);
+  if (numPageAtual === 1) {
+
+    $('#prodlist').html(
+      `<table id="lista-prodpromo" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
               <thead class="bg-primary-600">
                   <tr>
                       <th >*</th>
@@ -8438,149 +8438,149 @@ function retornoListaProdutosSelect(respostaListaProdutosPromo) {
               <tfoot class="thead-themed">
               </tfoot>
           </table>`
-      );
-      
-      var tableListaProdPromo = $('#lista-prodpromo').DataTable({
-          "columnDefs": [
-              { "width": "5%", "targets": 0 },
-              { "width": "5%", "targets": 1 },
-              { "width": "10%", "targets": 2 },
-              { "width": "15%", "targets": 3 },
-              { "width": "10%", "targets": 4 },
-              { "width": "55%", "targets": 5 }
-          ],
-          deferRender:    true,
-          paging: false,
-          ordering:  false,
-          //scrollY:        800,
-          //scrollCollapse: false,
-          //scroller:       false,
-          responsive: true,
-          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-                      "<'row'<'col-sm-12'tr>>" +
-                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-          buttons: [
-                    {
-                        text: 'Incluir Produtos Origem',
-                        titleAttr: 'Incluir Todos os Produtos de Origem na Promoção',
-                        className: 'btn-outline-primary btn-sm mr-1',
-                        action: function () {
-                            Incluir_Todos_Produtos_Promocao(IdResumoProdPromo,1);
-                        }
-                    },
-                    {
-                        text: 'Incluir Produtos Destino',
-                        titleAttr: 'Incluir Todos os Produtos de Destino na Promoção',
-                        className: 'btn-outline-danger btn-sm mr-1',
-                        action: function () {
-                            Incluir_Todos_Produtos_Promocao(IdResumoProdPromo,2);
-                        }
-                    },
-                  ]
-      });
-      
+    );
+
+    var tableListaProdPromo = $('#lista-prodpromo').DataTable({
+      "columnDefs": [
+        { "width": "5%", "targets": 0 },
+        { "width": "5%", "targets": 1 },
+        { "width": "10%", "targets": 2 },
+        { "width": "15%", "targets": 3 },
+        { "width": "10%", "targets": 4 },
+        { "width": "55%", "targets": 5 }
+      ],
+      deferRender: true,
+      paging: false,
+      ordering: false,
+      //scrollY:        800,
+      //scrollCollapse: false,
+      //scroller:       false,
+      responsive: true,
+      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+      buttons: [
+        {
+          text: 'Incluir Produtos Origem',
+          titleAttr: 'Incluir Todos os Produtos de Origem na Promoção',
+          className: 'btn-outline-primary btn-sm mr-1',
+          action: function () {
+            Incluir_Todos_Produtos_Promocao(IdResumoProdPromo, 1);
+          }
+        },
+        {
+          text: 'Incluir Produtos Destino',
+          titleAttr: 'Incluir Todos os Produtos de Destino na Promoção',
+          className: 'btn-outline-danger btn-sm mr-1',
+          action: function () {
+            Incluir_Todos_Produtos_Promocao(IdResumoProdPromo, 2);
+          }
+        },
+      ]
+    });
+
     tableListaProdPromo.rows().remove().draw();
   }
 
-  if(respostaListaProdutosPromo.data.length != 0){
-    
-	for (var i = 0; i < respostaListaProdutosPromo.data.length; i++) {
-	    
-        contador++;
-		IDProdPromo = respostaListaProdutosPromo.data[i]['IDPRODUTO'];
-		GrupoProdPromo = respostaListaProdutosPromo.data[i]['GRUPO'];
-		IdSubGrupoProdPromo = respostaListaProdutosPromo.data[i]['IDSUBGRUPO'];
-		SubGrupoProdPromo = respostaListaProdutosPromo.data[i]['SUBGRUPO'];
-		CodBarraProdPromoa = respostaListaProdutosPromo.data[i]['NUCODBARRAS'];
-		DSProdPromo = respostaListaProdutosPromo.data[i]['DSNOME'];
+  if (respostaListaProdutosPromo.data.length != 0) {
 
-        tableListaProdPromo.row.add([
-          `<label style="color: blue; font-size: 11px;">` + contador + `</label>`, 
-          ` <div class="custom-checkbox"> 
+    for (var i = 0; i < respostaListaProdutosPromo.data.length; i++) {
+
+      contador++;
+      IDProdPromo = respostaListaProdutosPromo.data[i]['IDPRODUTO'];
+      GrupoProdPromo = respostaListaProdutosPromo.data[i]['GRUPO'];
+      IdSubGrupoProdPromo = respostaListaProdutosPromo.data[i]['IDSUBGRUPO'];
+      SubGrupoProdPromo = respostaListaProdutosPromo.data[i]['SUBGRUPO'];
+      CodBarraProdPromoa = respostaListaProdutosPromo.data[i]['NUCODBARRAS'];
+      DSProdPromo = respostaListaProdutosPromo.data[i]['DSNOME'];
+
+      tableListaProdPromo.row.add([
+        `<label style="color: blue; font-size: 11px;">` + contador + `</label>`,
+        ` <div class="custom-checkbox"> 
               <input type="checkbox" class="custom-control" name="checkprodpromo" idprod="${IDProdPromo}" checked>
             </div>`,
-          `<label style="font-size: 11px;">` + GrupoProdPromo + `</label>`,
-          `<label style="font-size: 11px;">` + SubGrupoProdPromo + `</label>`,
-          `<label style="font-size: 11px;">` + CodBarraProdPromoa + `</label>`,
-          `<label style="font-size: 11px;">` + DSProdPromo + `</label>`,
-        ]).draw(false);
-	}
+        `<label style="font-size: 11px;">` + GrupoProdPromo + `</label>`,
+        `<label style="font-size: 11px;">` + SubGrupoProdPromo + `</label>`,
+        `<label style="font-size: 11px;">` + CodBarraProdPromoa + `</label>`,
+        `<label style="font-size: 11px;">` + DSProdPromo + `</label>`,
+      ]).draw(false);
+    }
   }
-	
+
 }
 
-function Incluir_Todos_Produtos_Promocao(idrespromo,status) {
+function Incluir_Todos_Produtos_Promocao(idrespromo, status) {
 
-    let StProdPromo ='True';
-    var produtos = $('[name="checkprodpromo"]:checked');
-    var produtosSelecionadas = produtos.length;
-    var dadosTableProdutos = [];
+  let StProdPromo = 'True';
+  var produtos = $('[name="checkprodpromo"]:checked');
+  var produtosSelecionadas = produtos.length;
+  var dadosTableProdutos = [];
 
-    if (!produtosSelecionadas) {
-        Swal.fire({
-          type: 'info',
-          title: 'Selecione ao menos um Produto!',
-          showConfirmButton: false,
-          timer: 2000
-        });
-        return false;
-    }
-  
-    produtos.each(function() {
-        let idpromoprod = $(this).attr('idprod');
-        dadosTableProdutos.push(idpromoprod);
-    })
-    
-    var dados = [{
-    
-        "IDRESUMOPROMOCAOMARKETING": parseInt(idrespromo),
-        "PRODUTOS": (dadosTableProdutos),
-        "STATIVO": StProdPromo
-    
-    }];
+  if (!produtosSelecionadas) {
+    Swal.fire({
+      type: 'info',
+      title: 'Selecione ao menos um Produto!',
+      showConfirmButton: false,
+      timer: 2000
+    });
+    return false;
+  }
 
-    if(status === 1){
-        ajaxPost("api/compras/lista_produtosorigempromocoes.xsjs", dados)
-          .then(funcSucessCadProdPromocao)
-          .catch(funcError);
-    }else{
-        ajaxPost("api/compras/lista_produtosdestinopromocoes.xsjs", dados)
-          .then(funcSucessCadProdPromocao)
-          .catch(funcError);
-        
-    }
+  produtos.each(function () {
+    let idpromoprod = $(this).attr('idprod');
+    dadosTableProdutos.push(idpromoprod);
+  })
+
+  var dados = [{
+
+    "IDRESUMOPROMOCAOMARKETING": parseInt(idrespromo),
+    "PRODUTOS": (dadosTableProdutos),
+    "STATIVO": StProdPromo
+
+  }];
+
+  if (status === 1) {
+    ajaxPost("api/compras/lista_produtosorigempromocoes.xsjs", dados)
+      .then(funcSucessCadProdPromocao)
+      .catch(funcError);
+  } else {
+    ajaxPost("api/compras/lista_produtosdestinopromocoes.xsjs", dados)
+      .then(funcSucessCadProdPromocao)
+      .catch(funcError);
+
+  }
 
 
 }
 
 function funcSucessCadProdPromocao(resposta) {
 
-    let IdResumoProdPromo = $("#IdResPromo").val();
+  let IdResumoProdPromo = $("#IdResPromo").val();
 
   Swal.fire({
-      type: "success",
-      title: "Produtos incluídos na Promoção com Sucesso ",
-      showConfirmButton: false,
-      timer: 3500
+    type: "success",
+    title: "Produtos incluídos na Promoção com Sucesso ",
+    showConfirmButton: false,
+    timer: 3500
   });
 
-    ajaxGet('api/compras/lista_produtosorigempromocoes.xsjs?idResPromo=' + IdResumoProdPromo)
-      .then(retornoListaCadProdOrigem)
-      .catch(funcError);
-      
-    ajaxGet('api/compras/lista_produtosdestinopromocoes.xsjs?idResPromo=' + IdResumoProdPromo)
-      .then(retornoListaCadProdDestino)
-      .catch(funcError);
-      
+  ajaxGet('api/compras/lista_produtosorigempromocoes.xsjs?idResPromo=' + IdResumoProdPromo)
+    .then(retornoListaCadProdOrigem)
+    .catch(funcError);
+
+  ajaxGet('api/compras/lista_produtosdestinopromocoes.xsjs?idResPromo=' + IdResumoProdPromo)
+    .then(retornoListaCadProdDestino)
+    .catch(funcError);
+
 }
 
 function retornoListaCadProdOrigem(respostaListaCadProdOrigem) {
-    contadorCadProdOrig = 0;
+  contadorCadProdOrig = 0;
   var numPageAtual = parseInt(respostaListaCadProdOrigem.page);
-    if(numPageAtual === 1){
-      
-        $('#prodorigemlist').html(
-          `<table id="dt-buttons-cadprodorigem" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+  if (numPageAtual === 1) {
+
+    $('#prodorigemlist').html(
+      `<table id="dt-buttons-cadprodorigem" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
                   <thead class="bg-primary-600">
                       <tr>
                           <th>*</th>
@@ -8594,20 +8594,20 @@ function retornoListaCadProdOrigem(respostaListaCadProdOrigem) {
                   <tfoot class="thead-themed">
                   </tfoot>
               </table>`
-        );
-            
-        tableListaCadProdOrigem = $('#dt-buttons-cadprodorigem').DataTable({
-         "columnDefs": [
-              { "width": "5%", "targets": 0 },
-              { "width": "8%", "targets": [1, 3] },
-          ],
-          "displayLength": 25,
-          deferRender: false,
-          ordering:  false
-        });
-        
-      tableListaCadProdOrigem.rows().remove().draw();
-    }
+    );
+
+    tableListaCadProdOrigem = $('#dt-buttons-cadprodorigem').DataTable({
+      "columnDefs": [
+        { "width": "5%", "targets": 0 },
+        { "width": "8%", "targets": [1, 3] },
+      ],
+      "displayLength": 25,
+      deferRender: false,
+      ordering: false
+    });
+
+    tableListaCadProdOrigem.rows().remove().draw();
+  }
 
   if (respostaListaCadProdOrigem.data.length != 0) {
     for (var i = 0; i < respostaListaCadProdOrigem.data.length; i++) {
@@ -8621,15 +8621,15 @@ function retornoListaCadProdOrigem(respostaListaCadProdOrigem) {
       let NoProdOrigCad = registro.DSPRODUTO;
 
       btnOpcaoProdOrigCad = `<div class="btn-group btn-group-xs">
-                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Produto da Promoção" id="` + idProdOrigCad + `" value="` +idProdCadProdOrig + `" onclick="excluir_ProdOrigem_Promocao(this.id)" ><i class="fal fa-trash mr-1"></i></button>
+                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Produto da Promoção" id="` + idProdOrigCad + `" value="` + idProdCadProdOrig + `" onclick="excluir_ProdOrigem_Promocao(this.id)" ><i class="fal fa-trash mr-1"></i></button>
                     </div>`;
 
       tableListaCadProdOrigem.row.add([
-                                  `<label style="color: blue; font-size: 11px;">` + contadorCadProdOrig + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + CodBarrasProdOrigCad + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + NoProdOrigCad + `</label>`,
-                                    btnOpcaoProdOrigCad
-                                ]).draw(false);
+        `<label style="color: blue; font-size: 11px;">` + contadorCadProdOrig + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + CodBarrasProdOrigCad + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + NoProdOrigCad + `</label>`,
+        btnOpcaoProdOrigCad
+      ]).draw(false);
     }
     //chamarProximaListaPromocao(numPageAtual + 1);
   } else {
@@ -8641,12 +8641,12 @@ function retornoListaCadProdOrigem(respostaListaCadProdOrigem) {
 }
 
 function retornoListaCadProdDestino(respostaListaCadProdDestino) {
-    contadorCadProdDest = 0;
+  contadorCadProdDest = 0;
   var numPageAtual = parseInt(respostaListaCadProdDestino.page);
-    if(numPageAtual === 1){
-      
-        $('#proddestinolist').html(
-          `<table id="dt-buttons-cadproddestino" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+  if (numPageAtual === 1) {
+
+    $('#proddestinolist').html(
+      `<table id="dt-buttons-cadproddestino" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
                   <thead class="bg-primary-600">
                       <tr>
                           <th>*</th>
@@ -8660,20 +8660,20 @@ function retornoListaCadProdDestino(respostaListaCadProdDestino) {
                   <tfoot class="thead-themed">
                   </tfoot>
               </table>`
-        );
-            
-        tableListaCadProdDestino = $('#dt-buttons-cadproddestino').DataTable({
-         "columnDefs": [
-              { "width": "5%", "targets": 0 },
-              { "width": "8%", "targets": [1, 3] },
-          ],
-          "displayLength": 25,
-          deferRender: false,
-          ordering:  false
-        });
-        
-      tableListaCadProdDestino.rows().remove().draw();
-    }
+    );
+
+    tableListaCadProdDestino = $('#dt-buttons-cadproddestino').DataTable({
+      "columnDefs": [
+        { "width": "5%", "targets": 0 },
+        { "width": "8%", "targets": [1, 3] },
+      ],
+      "displayLength": 25,
+      deferRender: false,
+      ordering: false
+    });
+
+    tableListaCadProdDestino.rows().remove().draw();
+  }
 
   if (respostaListaCadProdDestino.data.length != 0) {
     for (var i = 0; i < respostaListaCadProdDestino.data.length; i++) {
@@ -8687,15 +8687,15 @@ function retornoListaCadProdDestino(respostaListaCadProdDestino) {
       let NoProdDestCad = registro.DSPRODUTODESTINO;
 
       btnOpcaoProdDestCad = `<div class="btn-group btn-group-xs">
-                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Produto da Promoção" id="` + idProdDestCad + `" value="` +idProdCadProdDest + `" onclick="excluir_ProdDestino_Promocao(this.id)" ><i class="fal fa-trash mr-1"></i></button>
+                              <button type="button" class="btn btn-danger btn-xs" title="Excluir Produto da Promoção" id="` + idProdDestCad + `" value="` + idProdCadProdDest + `" onclick="excluir_ProdDestino_Promocao(this.id)" ><i class="fal fa-trash mr-1"></i></button>
                     </div>`;
 
       tableListaCadProdDestino.row.add([
-                                  `<label style="color: blue; font-size: 11px;">` + contadorCadProdDest + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + CodBarrasProdDestCad + `</label>`,
-                                  `<label style="color: blue; font-size: 11px;">` + NoProdDestCad + `</label>`,
-                                    btnOpcaoProdDestCad
-                                ]).draw(false);
+        `<label style="color: blue; font-size: 11px;">` + contadorCadProdDest + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + CodBarrasProdDestCad + `</label>`,
+        `<label style="color: blue; font-size: 11px;">` + NoProdDestCad + `</label>`,
+        btnOpcaoProdDestCad
+      ]).draw(false);
     }
     //chamarProximaListaPromocao(numPageAtual + 1);
   } else {
@@ -8734,19 +8734,19 @@ function excluir_ProdDestino_Promocao(id) {
 
 function funcSucessDelProdDestPromocao(resposta) {
 
-    let IdResumoProdPromo = $("#IdResPromo").val();
+  let IdResumoProdPromo = $("#IdResPromo").val();
 
   Swal.fire({
-      type: "success",
-      title: "Produto excluído da Promoção com Sucesso ",
-      showConfirmButton: false,
-      timer: 3500
+    type: "success",
+    title: "Produto excluído da Promoção com Sucesso ",
+    showConfirmButton: false,
+    timer: 3500
   });
 
-    ajaxGet('api/compras/lista_produtosdestinopromocoes.xsjs?idResPromo=' + IdResumoProdPromo)
-      .then(retornoListaCadProdDestino)
-      .catch(funcError);
-      
+  ajaxGet('api/compras/lista_produtosdestinopromocoes.xsjs?idResPromo=' + IdResumoProdPromo)
+    .then(retornoListaCadProdDestino)
+    .catch(funcError);
+
 }
 
 function excluir_ProdOrigem_Promocao(id) {
@@ -8777,19 +8777,19 @@ function excluir_ProdOrigem_Promocao(id) {
 
 function funcSucessDelProdOrigemPromocao(resposta) {
 
-    let IdResumoProdPromo = $("#IdResPromo").val();
+  let IdResumoProdPromo = $("#IdResPromo").val();
 
   Swal.fire({
-      type: "success",
-      title: "Produto excluído da Promoção com Sucesso ",
-      showConfirmButton: false,
-      timer: 3500
+    type: "success",
+    title: "Produto excluído da Promoção com Sucesso ",
+    showConfirmButton: false,
+    timer: 3500
   });
 
-    ajaxGet('api/compras/lista_produtosorigempromocoes.xsjs?idResPromo=' + IdResumoProdPromo)
-      .then(retornoListaCadProdOrigem)
-      .catch(funcError);
-      
+  ajaxGet('api/compras/lista_produtosorigempromocoes.xsjs?idResPromo=' + IdResumoProdPromo)
+    .then(retornoListaCadProdOrigem)
+    .catch(funcError);
+
 }
 
 function excluir_Empresa_Promocao(id) {
@@ -8820,17 +8820,17 @@ function excluir_Empresa_Promocao(id) {
 
 function funcSucessDelEmpresaPromocao(resposta) {
 
-    let IdResumoEmpPromo = $("#IdResPromoEmp").val();
+  let IdResumoEmpPromo = $("#IdResPromoEmp").val();
 
   Swal.fire({
-      type: "success",
-      title: "Empresa excluída da Promoção com Sucesso ",
-      showConfirmButton: false,
-      timer: 3500
+    type: "success",
+    title: "Empresa excluída da Promoção com Sucesso ",
+    showConfirmButton: false,
+    timer: 3500
   });
 
-    ajaxGet('api/compras/lista_empresapromocoes.xsjs?idResPromo=' + IdResumoEmpPromo)
-      .then(retornoListaEmpPromocoes)
-      .catch(funcError);
-      
+  ajaxGet('api/compras/lista_empresapromocoes.xsjs?idResPromo=' + IdResumoEmpPromo)
+    .then(retornoListaEmpPromocoes)
+    .catch(funcError);
+
 }
