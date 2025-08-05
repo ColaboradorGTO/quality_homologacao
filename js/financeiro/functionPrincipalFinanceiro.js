@@ -12352,26 +12352,26 @@ function retornoListaBancoConsolidado(respostaListaBancoConsolidado) {
                 className: 'btn-outline-primary btn-sm'
             }
         ],
-        footerCallback: function (row, data, start, end, display) {
-            const api = this.api();
+      footerCallback: function (row, data, start, end, display) {
+        const api = this.api();
 
-            function parseValor(val) {
-                return parseFloat(String(val).replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
-            }
-
-            const totalCols = 15;
-            for (let i = 1; i <= totalCols; i++) {
-                let total = api
-                    .column(i, { page: 'current' }) // ou 'all'
-                    .data()
-                    .reduce((a, b) => parseValor(a) + parseValor(b), 0);
-
-                $(api.column(i).footer()).html(mascaraValor(total.toFixed(2)));
-            }
-
-            // Primeira coluna: label "Total"
-            $(api.column(0).footer()).html('<strong>Total</strong>');
+        function parseValor(val) {
+          return $.isNumeric(val) ? val : parseFloat(String(val).replace(/[R$\s.]/g, '').replace(',', '.') || 0);
         }
+
+        const totalCols = 15;
+        for (let i = 1; i <= totalCols; i++) {
+          let total = api
+            .column(i, { page: 'current' }) // ou 'all'
+            .data()
+            .reduce((a, b) => parseValor(a) + parseValor(b), 0);
+
+          $(api.column(i).footer()).html(mascaraValor(total.toFixed(2)));
+        }
+
+        // Primeira coluna: label "Total"
+        $(api.column(0).footer()).html('<strong>Total</strong>');
+      }
     });
 }
 
