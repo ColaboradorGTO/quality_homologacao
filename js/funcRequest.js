@@ -242,8 +242,10 @@ async function startSessionValidator() {
   await sessionValidator();
 
   setInterval(async () => {
-    await sessionValidate();
+    await sessionValidator();
   }, 1800000);
 }
 
-startSessionValidator();
+$(document).ready(async function () {
+  await startSessionValidator();
+});

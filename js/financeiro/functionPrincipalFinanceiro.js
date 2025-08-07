@@ -8005,107 +8005,108 @@ async function pesq_vendas_pix_dtw() {
 }
 
 async function retornoListaVendasPixDTW(respostaListaVendasPix) {
-    let { data } = respostaListaVendasPix || '';
-    let dataRetornoVendasPixDTW = [];
-    let totalVrRecebidoPix = 0;
+  let { data } = respostaListaVendasPix || '';
+  let dataRetornoVendasPixDTW = [];
+  let totalVrRecebidoPix = 0;
 
-    if (data.length != 0) {
-        $('#btnIntegrarTodosPagamentosPix').removeClass('d-none')
+  if (data.length != 0) {
+    $('#btnIntegrarTodosPagamentosPix').removeClass('d-none')
 
-        for (let registro of data) {
-            let contaDebitoSap = '1.01.01.02.0003';
-            let contaCreditoSap = '1.01.01.01.9998';
+    for (let registro of data) {
+      let contaDebitoSap = '1.01.01.02.0003';
+      let contaCreditoSap = '1.01.01.01.9998';
 
-            let idVenda = registro.IDVENDA; // Pegando o IDVENDA como referência para o botão
+      let idVenda = registro.IDVENDA; // Pegando o IDVENDA como referência para o botão
 
-            let dataCompensacao = registro.DATA_COMPENSACAO;
-            let idEmpresa = registro.NOFANTASIA.substring(1, 5)
-            let noFantasia = registro.NOFANTASIA;
-            let NVenda = registro.IDVENDA;
-            let TipoPag = registro.DSTIPOPAGAMENTO;
-            let vrRecebidoPix = registro.PIX;
-            let DTVenda = registro.DATAVENDA;
-            let NuAutorizacao = registro.NUAUTORIZACAO;
-            let erroLogIntegracao = registro.ERROR_LOG_SAP_PIX || '';
-            let docEntryContasReceber = Number(registro.DOCENTRY_SAP_CONTAS_A_RECEBER_PGTO_PIX);
-            let stEmFilaParaIntegracao = registro.STATUS_BLOQUEIO_ATUALIZACAO == 'True';
-            let caixaSelecao = `
+      let idVendaPagamento = registro.IDVENDAPAGAMENTO;
+      let dataCompensacao = registro.DATA_COMPENSACAO;
+      let idEmpresa = registro.NOFANTASIA.substring(1, 5)
+      let noFantasia = registro.NOFANTASIA;
+      let NVenda = registro.IDVENDA;
+      let TipoPag = registro.DSTIPOPAGAMENTO;
+      let vrRecebidoPix = registro.PIX;
+      let DTVenda = registro.DATAVENDA;
+      let NuAutorizacao = registro.NUAUTORIZACAO;
+      let erroLogIntegracao = registro.ERROR_LOG_SAP_PIX || '';
+      let docEntryContasReceber = Number(registro.DOCENTRY_SAP_CONTAS_A_RECEBER_PGTO_PIX);
+      let stEmFilaParaIntegracao = registro.STATUS_BLOQUEIO_ATUALIZACAO == 'True';
+      let caixaSelecao = `
                 <div class="custom-control custom-checkbox">
-                    <input id="${NVenda}" type="checkbox" class="custom-control-input" name="chkPgtoPixVenda" onchange="selecionarLinhaTable(this)">
-                    <label class="custom-control-label" for="${NVenda}"></label>
+                    <input id="${idVendaPagamento}" type="checkbox" class="custom-control-input" name="chkPgtoPixVenda" onchange="selecionarLinhaTable(this)">
+                    <label class="custom-control-label" for="${idVendaPagamento}"></label>
                 </div>
             `;
 
-            let btnIntegrar = `
-                <button type="button" class="btn btn-info btn-xs mr-2" title="Integrar Conciliação" onclick="integrarPagamentoPixNoSAP('${NVenda}');">
+      let btnIntegrar = `
+                <button type="button" class="btn btn-info btn-xs mr-2" title="Integrar Conciliação" onclick="integrarPagamentoPixNoSAP('${idVendaPagamento}');">
                     <span class="fal fa-cloud-upload mr-1"></span>Integrar
                 </button>
             `;
 
-            let htmlSelecao = caixaSelecao;
-            let htmlStatusIntegracao = `<label class="text-info fw-900" style="font-size: 12px;"><b>Pronto para Integração</b></label>`;
-            let htmlOpcaoBtns = '';
-            let btnStatus = '';
+      let htmlSelecao = caixaSelecao;
+      let htmlStatusIntegracao = `<label class="text-info fw-900" style="font-size: 12px;"><b>Pronto para Integração</b></label>`;
+      let htmlOpcaoBtns = '';
+      let btnStatus = '';
 
-            if (docEntryContasReceber == 0) {
-                if (stEmFilaParaIntegracao) {
-                    btnStatus = `
+      if (docEntryContasReceber == 0) {
+        if (stEmFilaParaIntegracao) {
+          btnStatus = `
                         <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração PIX" onclick="msgInfo('Em Processo de Integração, Aguarde...', 'Motivo: Já está em processo de integração no SAP');">
                             <span class="fal fa-eye mr-1"></span>Status
                         </button>
                     `;
 
-                    btnIntegrar = '';
+          btnIntegrar = '';
 
-                    htmlStatusIntegracao = `<label class="text-primary cursor-pointer fw-900" style="font-size: 12px;" title='Aguardando na Fila de Integração'><b>Aguardando na Fila de Integração</b></label>`;
-                } else {
-                    if (erroLogIntegracao?.length > 0) {
-                        erroLogIntegracao = await translateText(erroLogIntegracao.replaceAll("'", '').replaceAll(';', ' '));
+          htmlStatusIntegracao = `<label class="text-primary cursor-pointer fw-900" style="font-size: 12px;" title='Aguardando na Fila de Integração'><b>Aguardando na Fila de Integração</b></label>`;
+        } else {
+          if (erroLogIntegracao?.length > 0) {
+            erroLogIntegracao = await translateText(erroLogIntegracao.replaceAll("'", '').replaceAll(';', ' '));
 
-                        htmlStatusIntegracao = `<label class="text-danger cursor-pointer fw-900" style="font-size: 12px;" title='${erroLogIntegracao}'><b>Error ao integrar</b></label>`;
+            htmlStatusIntegracao = `<label class="text-danger cursor-pointer fw-900" style="font-size: 12px;" title='${erroLogIntegracao}'><b>Error ao integrar</b></label>`;
 
-                        btnStatus = `
+            btnStatus = `
                             <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgWarning('Erro ao integrar no SAP', 'Motivo: ${erroLogIntegracao}');">
                                 <span class="fal fa-eye mr-1"></span>Status
                             </button>
                         `;
-                    }
-                }
+          }
+        }
 
-                htmlOpcaoBtns = `
+        htmlOpcaoBtns = `
                     <div class="d-flex justify-content-center">
                         ${btnStatus}
                         ${btnIntegrar}
                     </div>
                 `;
-            } else {
-                htmlSelecao = '';
-                htmlOpcaoBtns = '';
+      } else {
+        htmlSelecao = '';
+        htmlOpcaoBtns = '';
 
-                htmlStatusIntegracao = `<label class="text-success fw-900" style="font-size: 12px;"><b>Integrado</b></label>`;
-            }
+        htmlStatusIntegracao = `<label class="text-success fw-900" style="font-size: 12px;"><b>Integrado</b></label>`;
+      }
 
-            totalVrRecebidoPix += parseFloat(vrRecebidoPix);
+      totalVrRecebidoPix += parseFloat(vrRecebidoPix);
 
-            dataRetornoVendasPixDTW.push([
-                htmlSelecao,
-                idEmpresa,
-                noFantasia,
-                NVenda,
-                TipoPag,
-                vrRecebidoPix,
-                DTVenda,
-                NuAutorizacao,
-                dataCompensacao ? dataCompensacao : 'NÃO INFORMADO',
-                contaCreditoSap,
-                contaDebitoSap,
-                htmlStatusIntegracao,
-                htmlOpcaoBtns
-            ]);
-        }
+      dataRetornoVendasPixDTW.push([
+        htmlSelecao,
+        idEmpresa,
+        noFantasia,
+        NVenda,
+        TipoPag,
+        vrRecebidoPix,
+        DTVenda,
+        NuAutorizacao,
+        dataCompensacao ? dataCompensacao : 'NÃO INFORMADO',
+        contaCreditoSap,
+        contaDebitoSap,
+        htmlStatusIntegracao,
+        htmlOpcaoBtns
+      ]);
     }
+  }
 
-    $('#resultadoVendaPixPeriodoDTW').html(`
+  $('#resultadoVendaPixPeriodoDTW').html(`
         <table id="dt-basic-vendaspix-dtw" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
             <thead class="bg-primary-600">
                 <tr>
@@ -8129,17 +8130,17 @@ async function retornoListaVendasPixDTW(respostaListaVendasPix) {
         </table>
     `);
 
-    $('#dt-basic-vendaspix-dtw').DataTable({
-        data: dataRetornoVendasPixDTW,
-        deferRender: true,
-        responsive: false,
-        scrollX: true,
-        dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-            "<'row'<'col-sm-12 caixa-selecao'>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        initComplete: function () {
-            $('.caixa-selecao').html(`
+  $('#dt-basic-vendaspix-dtw').DataTable({
+    data: dataRetornoVendasPixDTW,
+    deferRender: false,
+    responsive: false,
+    scrollX: true,
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12 caixa-selecao'>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    initComplete: function () {
+      $('.caixa-selecao').html(`
                 <div id="chkMarcaTodos" class="mb-1 ${dataRetornoVendasPixDTW.length > 0 ? '' : 'd-none'}">
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" id="selectAllPgtoPix" class="custom-control-input" onclick="selecionarTodosPagamentosPix(this)">
@@ -8147,70 +8148,73 @@ async function retornoListaVendasPixDTW(respostaListaVendasPix) {
                     </div>
                 </div>
             `);
-        },
-        buttons: [
-            {
-                extend: 'pdfHtml5',
-                text: 'PDF',
-                titleAttr: 'Generate PDF',
-                className: 'btn-outline-danger btn-sm mr-1'
-            },
-            {
-                extend: 'excelHtml5',
-                text: 'Excel',
-                titleAttr: 'Gerar Excel',
-                className: 'btn-outline-success btn-sm mr-1',
-                exportOptions: {
-                    format: {
-                        body: function (data, row, column, node) {
-                            if (column === 5 || column === 7) {
-                                return formatarData(data);
-                            }
-                            if (column === 4) {
-                                return parseFloat(data.toString().replace('.', ','));
-                            }
+    },
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        filename: 'Relatório de Pix Compensados',
+        title: 'Relatório de Pix Compensados',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+          format: {
+            body: function (data, row, column, node) {
+              if (column === 5 || column === 7) {
+                return formatarData(data);
+              }
+              if (column === 4) {
+                return parseFloat(data.toString().replace('.', ','));
+              }
 
-                            return data;
-                        }
-                    }
-                }
-            },
-            {
-                extend: 'csvHtml5',
-                text: 'Csv',
-                titleAttr: 'Generate Csv',
-                fieldSeparator: ',',
-                title: 'Vendas_Para_Conciliar',
-                charset: 'UTF-8',
-                bom: true,
-                className: 'btn-outline-info btn-sm',
-                exportOptions: {
-                    format: {
-                        body: function (data, row, column, node) {
-                            if (column === 5 || column === 7) {
-                                return formatarData(data);
-                            }
-                            if (column === 4) {
-                                return parseFloat(data.toString().replace('.', ','));
-                            }
-
-                            return data;
-                        }
-                    }
-
-                }
-
-            },
-            {
-                extend: 'print',
-                text: 'Print',
-                titleAttr: 'Print Table',
-                className: 'btn-outline-primary btn-sm'
+              return data;
             }
-        ]
-    });
+          }
+        }
+      },
+      {
+        extend: 'csvHtml5',
+        text: 'Csv',
+        titleAttr: 'Generate Csv',
+        fieldSeparator: ',',
+        title: 'Vendas_Para_Conciliar',
+        charset: 'UTF-8',
+        bom: true,
+        className: 'btn-outline-info btn-sm',
+        exportOptions: {
+          format: {
+            body: function (data, row, column, node) {
+              if (column === 5 || column === 7) {
+                return formatarData(data);
+              }
+              if (column === 4) {
+                return parseFloat(data.toString().replace('.', ','));
+              }
 
-    $('#totalResultadoVendaPixPeriodoDTW').html(`
+              return data;
+            }
+          }
+
+        }
+
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ]
+  });
+
+  $('#totalResultadoVendaPixPeriodoDTW').html(`
         <tr>
             <th colspan="4" style="text-align: center;">Total</th>
             <th style="text-align: right;">${mascaraValor(parseFloat(totalVrRecebidoPix).toFixed(2))}</th>
@@ -8220,116 +8224,118 @@ async function retornoListaVendasPixDTW(respostaListaVendasPix) {
 }
 
 function integrarTodosPagamentosPixNoSAP() {
-    let dados = [];
+  let dados = [];
 
-    msgQuestion('Certeza que Deseja Integrar todos os Pagamentos PIX selecionados no SAP?')
-        .then(async (respQuestion) => {
-            try {
-                if (respQuestion.value == true) {
-                    let tabela = $('#dt-basic-vendaspix-dtw').DataTable();
+  msgQuestion('Certeza que Deseja Integrar todos os Pagamentos PIX selecionados no SAP?')
+    .then(async (respQuestion) => {
+      try {
+        if (respQuestion.value == true) {
+          let tabela = $('#dt-basic-vendaspix-dtw').DataTable();
 
-                    animationLoadingStart('Integrando PIX...', 100, false);
+          animationLoadingStart('Integrando PIX...', 100, false);
 
-                    tabela.rows().every(function () {
-                        let linhaTabela = $(this.node())
-                        let chkLine = linhaTabela.find("input[name='chkPgtoPixVenda']:checked") || false;
+          tabela.rows().every(function () {
+            let linhaTabela = $(this.node())
+            let chkLine = linhaTabela.find("input[name='chkPgtoPixVenda']:checked") || false;
 
-                        if ($(chkLine).prop('checked')) {
-                            let idVenda = $(chkLine).attr('id');
+            if ($(chkLine).prop('checked')) {
+              let idVendaPagamento = $(chkLine).attr('id');
 
-                            dados.push({
-                                "IDVENDA": idVenda
-                            })
-                        }
-                    });
-                    //   return console.log('FOi: ', dados)
-                    if (dados.length <= 0) {
-                        return msgInfo('Nenhum registro selecionado!', 'Verifique e tente novamente!')
-                    }
-
-                    let textdados = JSON.stringify(dados);
-                    let textoFuncao = 'FINANCEIRO/INTEGRACAO TODOS OS PAGAMENTOS PIX DE VENDA';
-                    let dadosLog = [{
-                        "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-                        "PATHFUNCAO": textoFuncao,
-                        "DADOS": textdados,
-                        "IP": ipCliente
-                    }];
-
-                    let msgRetorno = '';
-                    let text = '';
-
-                    await ajaxPost('api/service-layer/deposito/jobs/pix-integracao.xsjs', dados)
-                        .catch((error) => {
-
-                            if (error?.status !== 400) {
-                                msgRetorno = 'Tempo de processamento em tela expirado!';
-                                text = 'As integrações continuarão em segundo plano, para verificar status, pesquise novamente!'
-                                return;
-                            } else {
-                                throw new Error(error);
-                            }
-                        });
-
-                    await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
-
-                    msgRetorno.length > 0 ? await msgInfo(msgRetorno, text, false) : await msgSuccess('Integrado com sucesso!');
-
-                    pesq_conciliar_banco();
-                }
-            } catch (error) {
-                console.log(error);
-                msgError('Erro ao enviar os dados');
+              dados.push({
+                "IDVENDAPAGAMENTO": idVendaPagamento
+              })
             }
-        })
+          });
+          //   return console.log('FOi: ', dados)
+          if (dados.length <= 0) {
+            return msgInfo('Nenhum registro selecionado!', 'Verifique e tente novamente!')
+          }
+
+          let textdados = JSON.stringify(dados);
+          let textoFuncao = 'FINANCEIRO/INTEGRACAO TODOS OS PAGAMENTOS PIX DE VENDA';
+          let dadosLog = [{
+            "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+            "PATHFUNCAO": textoFuncao,
+            "DADOS": textdados,
+            "IP": ipCliente
+          }];
+
+          let msgRetorno = '';
+          let text = '';
+
+          //return console.log('PIX: ', dados) 
+
+          await ajaxPost('api/service-layer/pagamentos/jobs/pix-integracao.xsjs', dados)
+            .catch((error) => {
+
+              if (error?.status !== 400) {
+                msgRetorno = 'Tempo de processamento em tela expirado!';
+                text = 'As integrações continuarão em segundo plano, para verificar status, pesquise novamente!'
+                return;
+              } else {
+                throw new Error(error);
+              }
+            });
+
+          await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
+
+          msgRetorno.length > 0 ? await msgInfo(msgRetorno, text, false) : await msgSuccess('Integrado com sucesso!');
+
+          pesq_conciliar_banco();
+        }
+      } catch (error) {
+        console.log(error);
+        msgError('Erro ao enviar os dados');
+      }
+    })
 }
 
-function integrarPagamentoPixNoSAP(idVenda) {
-    msgQuestion('Certeza que Deseja Integrar o PIX no SAP?')
-        .then(async (respQuestion) => {
-            try {
-                if (respQuestion.value == true) {
-                    animationLoadingStart('Integrando o PIX...', 100, false);
+function integrarPagamentoPixNoSAP(idVendaPagamento) {
+  msgQuestion('Certeza que Deseja Integrar o PIX no SAP?')
+    .then(async (respQuestion) => {
+      try {
+        if (respQuestion.value == true) {
+          animationLoadingStart('Integrando o PIX...', 100, false);
 
-                    let dados = [{
-                        "IDVENDA": idVenda
-                    }];
+          let dados = [{
+            "IDVENDAPAGAMENTO": idVendaPagamento
+          }];
 
-                    let textdados = JSON.stringify(dados);
-                    let textoFuncao = 'FINANCEIRO/INTEGRACAO DO PAGAMENTO PIX VENDA';
-                    let dadosLog = [{
-                        "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-                        "PATHFUNCAO": textoFuncao,
-                        "DADOS": textdados,
-                        "IP": ipCliente
-                    }];
+          let textdados = JSON.stringify(dados);
+          let textoFuncao = 'FINANCEIRO/INTEGRACAO DO PAGAMENTO PIX VENDA';
+          let dadosLog = [{
+            "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+            "PATHFUNCAO": textoFuncao,
+            "DADOS": textdados,
+            "IP": ipCliente
+          }];
 
-                    let msgRetorno = '';
-                    let text = '';
+          let msgRetorno = '';
+          let text = '';
 
-                    await ajaxPost(`api/service-layer/deposito/jobs/pix-integracao.xsjs?`, dados)
-                        .catch((error) => {
+          await ajaxPost(`api/service-layer/pagamentos/jobs/pix-integracao.xsjs?`, dados)
+            .catch((error) => {
 
-                            if (error?.status !== 400) {
-                                msgRetorno = 'Tempo de processamento em tela expirado!';
-                                text = 'As integrações continuarão em segundo plano, para verificar status, pesquise novamente!'
-                                return;
-                            } else {
-                                throw new Error(error);
-                            }
-                        });
+              if (error?.status !== 400) {
+                msgRetorno = 'Tempo de processamento em tela expirado!';
+                text = 'As integrações continuarão em segundo plano, para verificar status, pesquise novamente!'
+                return;
+              } else {
+                throw new Error(error);
+              }
+            });
 
-                    await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
+          await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
 
-                    msgRetorno.length > 0 ? await msgInfo(msgRetorno, text, false) : await msgSuccess('Integrado com sucesso!');
+          msgRetorno.length > 0 ? await msgInfo(msgRetorno, text, false) : await msgSuccess('Integrado com sucesso!');
 
-                    pesq_vendas_pix_dtw();
-                }
-            } catch (error) {
-                console.log(error);
-                msgError('Erro ao enviar os dados');
-            }
-        })
+          pesq_vendas_pix_dtw();
+        }
+      } catch (error) {
+        console.log(error);
+        msgError('Erro ao enviar os dados');
+      }
+    })
 }
 
 async function pesq_vendas_pix_capa_dtw() {
