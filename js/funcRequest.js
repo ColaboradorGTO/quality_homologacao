@@ -246,4 +246,6 @@ async function startSessionValidator() {
   }, 1800000);
 }
 
-startSessionValidator();
+$(document).ready(async function () {
+  await startSessionValidator();
+});
