@@ -16,8 +16,10 @@ function maskValorEmDecimal(valor, numMaxCasasDecimais = 2) {
 }
 
 function maskValorEmInteiro(valor) {
-    return new Intl.NumberFormat('br-BR', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(valor)
+  valor = !$.isNumeric(valor) ? valor.replace(/[^0-9-,]/g, "").replace(',', '.') : valor;
+
+  return new Intl.NumberFormat('br-BR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+  }).format(valor)
 }

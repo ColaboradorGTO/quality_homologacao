@@ -1,5 +1,12 @@
 var stAmbienteLocal = !window.location.href.split(window.location.pathname)[0].includes('http://164.152.245.77:8000/quality/concentrador');
-var url_homologacao = stAmbienteLocal ? "http://164.152.245.77:8000/quality/concentrador_homologacao/" : "";
+var url_host = stAmbienteLocal ? "http://164.152.245.77:8000/quality/concentrador_homologacao/" : "";
+
+function maskValorEmInteiro(valor) {
+  return new Intl.NumberFormat('br-BR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(valor)
+}
 
 function ajaxPost(url, jsonData) {
 
@@ -7,7 +14,7 @@ function ajaxPost(url, jsonData) {
     function (resolve, reject) {
 
       $.ajax({
-        url: (url_homologacao + url),
+        url: (url_host + url),
         data: JSON.stringify(jsonData),
         type: "POST",
         dataType: 'json',
@@ -32,7 +39,7 @@ function ajaxPut(url, jsonData) {
     function (resolve, reject) {
 
       $.ajax({
-        url: (url_homologacao + url),
+        url: (url_host + url),
         data: JSON.stringify(jsonData),
         type: "PUT",
         dataType: 'json',
@@ -57,7 +64,7 @@ function ajaxGet(url) {
     function (resolve, reject) {
 
       $.ajax({
-        url: (url_homologacao + url),
+        url: (url_host + url),
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -81,7 +88,7 @@ function ajaxGet2(url) {
     function (resolve, reject) {
 
       $.ajax({
-        url: (url_homologacao + url),
+        url: (url_host + url),
         type: "GET",
         dataType: 'json',
         contentType: 'application/json',
@@ -242,7 +249,7 @@ async function startSessionValidator() {
   await sessionValidator();
 
   setInterval(async () => {
-    await sessionValidate();
+    await sessionValidator();
   }, 1800000);
 }
 

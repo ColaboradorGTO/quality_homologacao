@@ -1,46 +1,50 @@
 async function enviarZPLParaImpressora(labelPagesZPL) {
-    let arrayLabelPage = labelPagesZPL.split('^XZ');
-    let contador = 0;
-    let LabelPageZPL = '';
+  let arrayLabelPage = labelPagesZPL.split('^XZ') || [];
+  let contador = 0;
+  let LabelPageZPL = '';
 
-    arrayLabelPage.pop();
+  if (arrayLabelPage.length == 0) {
+    return msgWarning('Nenhum arquivo enviado para impressão, verifique e tente novamente!');
+  }
 
-    animationLoadingStart('Conectando a Impressora, aguarde...', false);
+  arrayLabelPage.pop();
 
-    const socket = new WebSocket('ws://localhost:9090');
+  animationLoadingStart('Conectando a Impressora, aguarde...', false);
 
-    await new Promise((resolve, reject) => {
-        socket.onopen = resolve;
-        socket.onerror = (err) => reject(new Error('Falha na conexão com o serviço de impressão do Quality!'));
-        setTimeout(() => reject(new Error('Tempo limite de conexão excedido!')), 10000);
-    });
+  const socket = new WebSocket('ws://localhost:9090');
 
-    animationLoadingStart('Imprimindo, aguarde...', false);
+  await new Promise((resolve, reject) => {
+    socket.onopen = resolve;
+    socket.onerror = (err) => reject(new Error('Falha na conexão com o serviço de impressão do Quality!'));
+    setTimeout(() => reject(new Error('Tempo limite de conexão excedido!')), 10000);
+  });
 
-    for (let i = 0; i < arrayLabelPage.length; i++) {
-        LabelPageZPL += arrayLabelPage[i].length ? arrayLabelPage[i].concat('^XZ') : ''
+  animationLoadingStart('Imprimindo, aguarde...', false);
 
-        contador++;
+  for (let i = 0; i < arrayLabelPage.length; i++) {
+    LabelPageZPL += arrayLabelPage[i].length ? arrayLabelPage[i].concat('^XZ') : '';
 
-        if (contador == 2 || i == (arrayLabelPage.length - 1)) {
+    contador++;
 
-            if(LabelPageZPL.length) {
-                socket.send(LabelPageZPL.trim());
+    if (contador == 2 || i == (arrayLabelPage.length - 1)) {
 
-                await new Promise((resolve, reject) => {
-                    socket.onmessage = (e) => (e?.data?.includes("ERROR") ? reject(new Error(e?.data)) : resolve(e?.data));
-                    socket.onerror = (err) => reject(new Error('Erro na comunicação com a impressora!'));
-                    socket.onclose = () => resolve('Impressão enviada com sucesso!');
-                    setTimeout(() => reject(new Error('Tempo limite de resposta excedido')), 10000);
-                });
+      if (LabelPageZPL.length) {
+        socket.send(LabelPageZPL.trim());
 
-                LabelPageZPL = '';
-                contador = 0;
-            }
-        }
+        await new Promise((resolve, reject) => {
+          socket.onmessage = (e) => (e?.data?.includes("ERROR") ? reject(new Error(e?.data)) : resolve(e?.data));
+          socket.onerror = (err) => reject(new Error('Erro na comunicação com a impressora!'));
+          socket.onclose = () => resolve('Impressão enviada com sucesso!');
+          setTimeout(() => reject(new Error('Tempo limite de resposta excedido')), 10000);
+        });
+
+        LabelPageZPL = '';
+        contador = 0;
+      }
     }
+  }
 
-    socket.close();
+  socket.close();
 
-    animationLoadingStop();
+  animationLoadingStop();
 }
