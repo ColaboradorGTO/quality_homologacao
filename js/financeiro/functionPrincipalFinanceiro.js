@@ -11898,135 +11898,152 @@ async function pesq_conciliar_banco() {
 }
 
 async function retornoListaConciliarBanco(respostaListaConciliarBanco) {
-    let { data } = respostaListaConciliarBanco || '';
-    let totalVrDepositadoCons = 0;
-    let dadosTable = [];
+  let { data } = respostaListaConciliarBanco || '';
+  let totalVrDepositadoCons = 0;
+  let dadosTable = [];
 
-    if (data?.length > 0) {
-        $('#btnIntegrarTodosDepositos').removeClass('d-none').addClass('d-flex');
+  if (data?.length > 0) {
+    $('#btnIntegrarTodosDepositos').removeClass('d-none').addClass('d-flex');
 
-        for (let registro of data) {
-            let idDepositoConciliar = registro.IDDEPOSITOLOJA;
-            let dataMovimentoCaixaConciliar = registro.DTMOVIMENTOCAIXA;
-            let dataCompensacaoConciliar = registro.DTCOMPENSACAO || '';
-            let dataDepositoConciliar = registro.DTDEPOSITO;
-            let valorDepositoConciliar = registro.VRDEPOSITO;
-            let statusConciliar = registro.STCANCELADO;
-            let descricaoContaBancoConciliar = registro.DSCONTABANCO;
-            let DocumentoConciliar = registro.NUDOCDEPOSITO;
-            let descricaoBancoConciliar = registro.DSBANCO;
-            let noFantasiaConciliar = registro.NOFANTASIA;
-            let stConferidoDepConciliar = registro.STCONFERIDO;
-            let stIntegrado = registro?.STINTEGRADOSAP == 'True';
-            let docEntryContasPagar = registro?.DOCENTRY_SAP_CONTAS_A_PAGAR || 0;
-            let docEntryContasReceber = registro?.DOCENTRY_SAP_CONTAS_A_RECEBER || 0;
-            let stEmFilaParaIntegracao = registro.STATUS_BLOQUEIO_ATUALIZACAO == 'True';
-            let erroLogIntegracao = registro?.ERRORLOGSAP?.trim() || '';
-            let htmlStatusConciliar = `<label style="color: red; font-size: 11px;"><b>Dep. Cancelado</b></label>`;
-            let htmlStConfConciliar = `<label style="color: red; font-size: 11px;"><b>Não Conciliado</b></label>`;
-            let htmlOpcaoConciliar = '';
-            let htmlSelecao = '';
-            let msgErrorComum = 'Account for cash payments has not been defined';
-            let caixaSelecao = `
-                <div class="custom-control custom-checkbox">
-                    <input id="${idDepositoConciliar}" type="checkbox" class="custom-control-input" name="chkConciliacao" onchange="selecionarLinhaTable(this)">
-                    <label class="custom-control-label" for="${idDepositoConciliar}"></label>
-                </div>
+    for (let registro of data) {
+      let idDepositoConciliar = registro.IDDEPOSITOLOJA;
+      let dataMovimentoCaixaConciliar = registro.DTMOVIMENTOCAIXA;
+      let dataCompensacaoConciliar = registro.DTCOMPENSACAO || '';
+      let dtMovDeposito = registro?.DTMOVDEP;
+      let dataDepositoConciliar = registro.DTDEPOSITO;
+      let valorDepositoConciliar = registro.VRDEPOSITO;
+      let statusConciliar = registro.STCANCELADO;
+      let descricaoContaBancoConciliar = registro.DSCONTABANCO;
+      let DocumentoConciliar = registro.NUDOCDEPOSITO;
+      let descricaoBancoConciliar = registro.DSBANCO;
+      let noFantasiaConciliar = registro.NOFANTASIA;
+      let stConferidoDepConciliar = registro.STCONFERIDO;
+      let stIntegrado = registro?.STINTEGRADOSAP == 'True';
+      let docEntryContasPagar = registro?.DOCENTRY_SAP_CONTAS_A_PAGAR || 0;
+      let docEntryContasReceber = registro?.DOCENTRY_SAP_CONTAS_A_RECEBER || 0;
+      let stEmFilaParaIntegracao = registro.STATUS_BLOQUEIO_ATUALIZACAO == 'True';
+      let erroLogIntegracao = registro?.ERRORLOGSAP?.trim()?.length > 0 ? ('Motivo: ' + registro?.ERRORLOGSAP?.trim()) : '';
+      let htmlStatusConciliar = `<label style="color: red; font-size: 11px;"><b>Dep. Cancelado</b></label>`;
+      let htmlStConfConciliar = `<label style="color: red; font-size: 11px;"><b>Não Conciliado</b></label>`;
+      let htmlOpcaoConciliar = '';
+      let htmlSelecao = '';
+      let typeFuncMsg = erroLogIntegracao?.length > 0 ? 'msgWarning' : 'msgInfo';
+      let titleMsgStatus = typeFuncMsg == 'msgWarning' ? 'Erro ao integrar no SAP' : 'Conciliado';
+      let msgErrorComum = 'Motivo: Account for cash payments has not been defined';
+      let caixaSelecao = `
+        <div class="custom-control custom-checkbox">
+            <input id="${idDepositoConciliar}" type="checkbox" class="custom-control-input" name="chkConciliacao" onchange="selecionarLinhaTable(this)">
+            <label class="custom-control-label" for="${idDepositoConciliar}"></label>
+        </div>
+      `;
+
+      let btnStatus = `
+        <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="${typeFuncMsg}('${titleMsgStatus}', '${erroLogIntegracao || 'Pronto para Integrar'}');">
+            <span class="d-block fal fa-eye mr-1"></span>Status
+        </button>
+      `;
+
+      let btnEditar = `
+        <button type="button" class="btn btn-warning btn-xs mr-2" title="Editar Data Movimento Conciliação" onclick="editarDataMovimentoConciliacaoDeposito('${idDepositoConciliar}', '${dtMovDeposito}');">
+            <span class="d-block fal fa-pen mr-1"></span>Editar
+        </button>
+      `;
+
+      let btnIntegrar = `
+        <button type="button" class="btn btn-info btn-xs mr-2" title="Integrar Conciliação" id="${idDepositoConciliar}" onclick="integrarConciliacaoDepositoNoSAP(this.id);">
+            <span class="d-block fal fa-cloud-upload mr-1"></span>Integrar
+        </button>
+      `;
+
+      let btnCancelar = `
+        <button type="button" class="btn btn-danger btn-xs" title="Cancelar Conciliação" id="${idDepositoConciliar}" onclick="cancelarConciliacaoDeposito(this.id);">
+            <span class="d-block fal fa-times mr-1"></span>Cancelar
+        </button>
+      `;
+
+      if (docEntryContasPagar > 0 || docEntryContasReceber > 0) {
+        btnCancelar = '';
+      }
+
+      if (stConferidoDepConciliar == 'True') {
+        htmlStConfConciliar = `<label class="text-info fw-900" style="font-size: 12px;"><b>Conciliado</b></label>`;
+
+        if (!stIntegrado) {
+          if (stEmFilaParaIntegracao) {
+            btnStatus = `
+              <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgInfo('Em Processo de Integração, Aguarde...', 'Motivo: Já está em processo de integração no SAP');">
+                  <span class="d-block fal fa-eye mr-1"></span>Status
+              </button>
             `;
-            let btnStatus = `
+
+            btnIntegrar = '';
+            btnCancelar = '';
+
+            htmlStConfConciliar = `<label class="text-primary cursor-pointer fw-900" style="font-size: 12px;" title='Conciliado e Aguardando na Fila de Integração'><b>Conciliado e Aguardando na Fila de Integração</b></label>`;
+          } else {
+            htmlSelecao = caixaSelecao;
+
+            if (erroLogIntegracao?.length > 0) {
+              if (erroLogIntegracao !== msgErrorComum) {
+                erroLogIntegracao = await translateText(erroLogIntegracao);
+              }
+
+              erroLogIntegracao = erroLogIntegracao == msgErrorComum ? 'Conta de pagamentos em dinheiro não foi definida' : erroLogIntegracao.replaceAll("'", '');
+
+              htmlStConfConciliar = `<label class="text-danger cursor-pointer fw-900" style="font-size: 12px;" title='${erroLogIntegracao}'><b>Conciliado / Error ao integrar</b></label>`;
+
+              btnStatus = `
                 <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgWarning('Erro ao integrar no SAP', 'Motivo: ${erroLogIntegracao}');">
-                    <span class="fal fa-eye mr-1"></span>Status
+                    <span class="d-block fal fa-eye mr-1"></span>Status
                 </button>
-            `;
-
-            let btnIntegrar = `
-                <button type="button" class="btn btn-info btn-xs mr-2" title="Integrar Conciliação" id="${idDepositoConciliar}" onclick="integrarConciliacaoDepositoNoSAP(this.id);">
-                    <span class="fal fa-cloud-upload mr-1"></span>Integrar
-                </button>
-            `;
-
-            let btnCancelar = `
-                <button type="button" class="btn btn-danger btn-xs" title="Cancelar Conciliação" id="${idDepositoConciliar}" onclick="cancelarConciliacaoDeposito(this.id);">
-                    <span class="fal fa-times mr-1"></span>Cancelar
-                </button>
-            `;
-
-            if (docEntryContasPagar > 0 || docEntryContasReceber > 0){
-                btnCancelar = '';
+              `;
             }
+          }
 
-            if (stConferidoDepConciliar == 'True') {
-                htmlStConfConciliar = `<label class="text-info fw-900" style="font-size: 12px;"><b>Conciliado</b></label>`;
+          htmlOpcaoConciliar = `
+            <div class="d-flex justify-content-start">
+              ${btnStatus}
+              ${btnEditar}
+              ${btnIntegrar}
+              ${btnCancelar}
+            </div>
+          `;
+        } else {
+          htmlStConfConciliar = `<label class="text-success fw-900" style="font-size: 12px;"><b>Conciliado e Integrado</b></label>`;
 
-                if(!stIntegrado){
-                    if (stEmFilaParaIntegracao) {
-                        btnStatus = `
-                            <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgInfo('Em Processo de Integração, Aguarde...', 'Motivo: Já está em processo de integração no SAP');">
-                                <span class="fal fa-eye mr-1"></span>Status
-                            </button>
-                        `;
-
-                        btnIntegrar = '';
-                        btnCancelar = '';
-
-                        htmlStConfConciliar = `<label class="text-primary cursor-pointer fw-900" style="font-size: 12px;" title='Conciliado e Aguardando na Fila de Integração'><b>Conciliado e Aguardando na Fila de Integração</b></label>`;
-                    } else {
-                        htmlSelecao = caixaSelecao;
-
-                        if (erroLogIntegracao?.length > 0) {
-                            if (erroLogIntegracao !== msgErrorComum) {
-                                erroLogIntegracao = await translateText(erroLogIntegracao);
-                            }
-
-                            erroLogIntegracao = erroLogIntegracao == msgErrorComum ? 'Conta de pagamentos em dinheiro não foi definida' : erroLogIntegracao.replaceAll("'", '');
-
-                            htmlStConfConciliar = `<label class="text-danger cursor-pointer fw-900" style="font-size: 12px;" title='${erroLogIntegracao}'><b>Conciliado / Error ao integrar</b></label>`;
-
-                            btnStatus = `
-                                <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgWarning('Erro ao integrar no SAP', 'Motivo: ${erroLogIntegracao}');">
-                                    <span class="fal fa-eye mr-1"></span>Status
-                                </button>
-                            `;
-                        }
-                    }
-
-                    htmlOpcaoConciliar = `
-                        <div class="d-flex justify-content-center">
-                            ${btnStatus}
-                            ${btnIntegrar}
-                            ${btnCancelar}
-                        </div>
-                    `;
-                } else {
-                    htmlStConfConciliar = `<label class="text-success fw-900" style="font-size: 12px;"><b>Conciliado e Integrado</b></label>`;
-                }
-            }
-
-            if (statusConciliar === 'False') {
-                htmlStatusConciliar = `<label style="color: blue; font-size: 12px;"><b>Dep. Ativo</b></label>`;
-                totalVrDepositadoCons = parseFloat(totalVrDepositadoCons) + parseFloat(valorDepositoConciliar);
-            }
-
-            dadosTable.push([
-                htmlSelecao,
-                idDepositoConciliar,
-                noFantasiaConciliar,
-                dataCompensacaoConciliar,
-                dataDepositoConciliar,
-                dataMovimentoCaixaConciliar,
-                descricaoBancoConciliar,
-                (parseFloat(valorDepositoConciliar).toFixed(2)),
-                DocumentoConciliar,
-                htmlStatusConciliar,
-                htmlStConfConciliar,
-                htmlOpcaoConciliar
-            ]);
-
+          htmlOpcaoConciliar = `
+            <div class="d-flex justify-content-start">
+              ${btnEditar}
+            </div>
+          `;
         }
+      }
+
+      if (statusConciliar === 'False') {
+        htmlStatusConciliar = `<label style="color: blue; font-size: 12px;"><b>Dep. Ativo</b></label>`;
+        totalVrDepositadoCons = parseFloat(totalVrDepositadoCons) + parseFloat(valorDepositoConciliar);
+      }
+
+      dadosTable.push([
+        htmlSelecao,
+        idDepositoConciliar,
+        noFantasiaConciliar,
+        dataCompensacaoConciliar,
+        dataDepositoConciliar,
+        dataMovimentoCaixaConciliar,
+        descricaoBancoConciliar,
+        (parseFloat(valorDepositoConciliar).toFixed(2)),
+        DocumentoConciliar,
+        htmlStatusConciliar,
+        htmlStConfConciliar,
+        htmlOpcaoConciliar
+      ]);
 
     }
 
-    $('#resultado').html(`
+  }
+
+  $('#resultado').html(`
         <div class="row">
             <div class="col-xl-12">
                 <div id="panel-1" class="panel">
@@ -12074,93 +12091,65 @@ async function retornoListaConciliarBanco(respostaListaConciliarBanco) {
         </div>
     `);
 
-    $('#dt-basic-conciliarbanco').DataTable({
-        data: dadosTable,
-        deferRender: false,
-        responsive: true,
-        scrollX: true,
-        dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-            "<'row'<'col-sm-12 caixa-selecao'>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        columnDefs: [
-            { className: 'text-center', targets: 0 }
-        ],
-        buttons: [
-            {
-                extend: 'pdfHtml5',
-                text: 'PDF',
-                titleAttr: 'Generate PDF',
-                className: 'btn-outline-danger btn-sm mr-1'
-            },
-            {
-                extend: 'excelHtml5',
-                text: 'Excel',
-                titleAttr: 'Gerar Excel',
-                className: 'btn-outline-success btn-sm mr-1',
-                exportOptions: {
-                    columns: ':visible',
-                    format: {
-                        body: function (data, row, column, node) {
-                            data = $('<p>' + data + '</p>').text();
-                            return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
-                        }
-                    }
-                }
-            },
-            {
-                extend: 'print',
-                text: 'Print',
-                titleAttr: 'Print Table',
-                className: 'btn-outline-primary btn-sm'
+  $('#dt-basic-conciliarbanco').DataTable({
+    data: dadosTable,
+    deferRender: false,
+    responsive: true,
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12 caixa-selecao'>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    columnDefs: [
+      { className: 'text-center', targets: 0 }
+    ],
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
             }
-        ],
-        /*footerCallback: function (row, data, start, end, display) {
-            const api = this.api();
-
-            function parseValor(val) {
-                return parseFloat(String(val).replace(',', '.')) || 0;
-            }
-
-            let total = api
-                .column(6, { page: 'current' }) // ou 'all'
-                .data()
-                .reduce((a, b) => parseValor(a) + parseValor(b), 0);
-
-            $(api.column(6).footer()).html(mascaraValor(total.toFixed(2)));
-
-            $(api.column(2).footer()).html('<strong>Total</strong>');
-        }*/
-        initComplete: function () {
-            $('.caixa-selecao').html(`
-                <div id="chkMarcaTodos" class="mb-1 ${dadosTable.length > 0 ? '' : 'd-none'}">
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" id="selectAllConciliacoes" class="custom-control-input" onclick="selecionarTodasConciliações(this)">
-                        <label class="custom-control-label" for="selectAllConciliacoes">Marcar Todos</label>
-                    </div>
-                </div>
-            `);
+          }
         }
-    });
-    /* 
-     tabela.on('draw', function () {
-         tabela.rows({ page: 'current' }).every(function () {
-             const $row = $(this.node());
-             const checkbox = $row.find('input[type="checkbox"]:checked');
- 
-             console.log('CHECK: ', $row)
- 
-            // checkbox && checkbox.prop('checked', true).trigger('change');
-         });
-     });
- */
-    $('#totalResultadoConciliarBanco').html(
-        `<tr>
-            <th colspan="7" style="text-align: center;">Total</th>
-            <th>` + mascaraValor(parseFloat(totalVrDepositadoCons).toFixed(2)) + `</th>
-            <th colspan="4" style="text-align: center;"></th>
-        </tr>`
-    );
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ],
+    initComplete: function () {
+      $('.caixa-selecao').html(`
+        <div id="chkMarcaTodos" class="mb-1 ${dadosTable.length > 0 ? '' : 'd-none'}">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" id="selectAllConciliacoes" class="custom-control-input" onclick="selecionarTodasConciliações(this)">
+                <label class="custom-control-label" for="selectAllConciliacoes">Marcar Todos</label>
+            </div>
+        </div>
+      `);
+    }
+  });
+
+  $('#totalResultadoConciliarBanco').html(`
+    <tr>
+      <th colspan="7" style="text-align: center;">Total</th>
+      <th>${mascaraValor(parseFloat(totalVrDepositadoCons).toFixed(2))}</th>
+      <th colspan="4" style="text-align: center;"></th>
+    </tr>
+  `);
 
 }
 
@@ -12527,6 +12516,89 @@ function cancelarConciliacaoDeposito(idDeposito) {
                 msgError('Erro ao enviar os dados');
             }
         })
+}
+
+function editarDataMovimentoConciliacaoDeposito(idDeposito, dtOriginal){
+  let dtMovimentoNovo = '';
+
+  Swal.fire({
+    type:'info',
+    title: "Insira a nova Data Movimento: ",
+    html: `
+      <div>
+        <input type="date" id="dtModal" class="form-control swal2-input w-50" value="${dtOriginal}">
+      </div>
+    `,
+    focusConfirm: false,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showCloseButton: true,
+    confirmButtonText: 'Confirmar',
+    confirmButtonColor: '#d33',
+    showCancelButton: true,
+    cancelButtonColor: '#3085d6',
+    cancelButtonText: 'Cancelar',
+    preConfirm: () => {
+      let dtModal = $('#dtModal').val();
+      let date = new Date(dtModal);
+      let now = new Date();
+
+      if (isNaN(date.getTime())) {
+        Swal.showValidationMessage(`<span class="text-danger fw-900">Nova Data Movimento vazia ou inválida!</span>`);
+      }
+
+      if (dtModal == dtOriginal){
+        Swal.showValidationMessage(`<span class="text-danger fw-900">Nova Data Movimento não pode ser igual a Data Original!</span>`);
+      }
+
+      date.setHours(0, 0, 0, 0);
+      now.setHours(0, 0, 0, 0);
+
+      if(date.getTime() > now.getTime()){
+        Swal.showValidationMessage(`<span class="text-danger fw-900">Nova Data Movimento não pode ser maior que a data atual!</span>`);
+      };
+
+      dtMovimentoNovo = dtModal;
+    }
+  })
+  .then((resp)=> {
+    if(resp?.value){
+      msgQuestion('Certeza que Deseja Alterar a Data de Movimento do Depósito?')
+        .then(async (respQuestion) => {
+          try {
+            if (respQuestion.value == true) {
+              animationLoadingStart('Atualizando Data do Movimento...', 100, false);
+
+              let dados = [{
+                "IDDEPOSITOLOJA": parseInt(idDeposito),
+                "DTMOVIMENTOCAIXA": dtMovimentoNovo
+              }];
+
+              let textdados = JSON.stringify(dados);
+              let textoFuncao = 'FINANCEIRO/ALTERAÇÃO DATA DE MOVIMENTO DO DEPOSITO';
+              let dadosLog = [{
+                "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+                "PATHFUNCAO": textoFuncao,
+                "DADOS": textdados,
+                "IP": ipCliente
+              }];
+
+              await ajaxPut(`api/financeiro/deposito-alteracao-data-movimento.xsjs?`, dados);
+
+              await ajaxPost("api/log-web.xsjs", dadosLog);
+
+              await msgSuccess('Data de Movimento Alterada Com Sucesso!');
+
+              pesq_conciliar_banco();
+            }
+          } catch (error) {
+            console.log(error);
+            msgError('Erro ao tentar alterar a data de movimento');
+          }
+        })
+    }
+
+  })
 }
 
 function funcSucessUpdateConcDep() {
