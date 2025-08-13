@@ -1107,7 +1107,10 @@ function retornoListaPedidos(respostaListaPedidos) {
 
 }
 
-function Enviar_Pedido_Compras(id,idandamento) {
+function Enviar_Pedido_Compras(id, idandamento) {
+  if (IDFuncionarioLogin != 1459 && IDFuncionarioLogin != 632) {
+    return msgInfo('Usuário sem permissão!', 'Fale com o seu gestor!');
+  }
 
   Swal.fire({
     title: 'Certeza que Deseja Enviar o Pedido para o Dep. Compras?',
@@ -1134,7 +1137,7 @@ function Enviar_Pedido_Compras(id,idandamento) {
     }
 
     Swal.fire({
-      type:'question',
+      type: 'question',
       title: 'Motivo da Devolução do Pedido?',
       html: `<div>
                   <div class=" input-group pt-0" >
@@ -1149,72 +1152,76 @@ function Enviar_Pedido_Compras(id,idandamento) {
       cancelButtonColor: '#3085d6',
       showLoaderOnConfirm: true,
       preConfirm: () => {
-          motivoDevolucaoPedido = $('#motivoDevolucao').val();
-    
-          if (!motivoDevolucaoPedido) {
-              Swal.showValidationMessage(`Coloque o Motivo da Devolução do Pedido!`);
-              $('#motivoDevolucao').focus();
-              return false;
-    
-          } else if (motivoDevolucaoPedido.length < 10) {
-              Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 Caracteres!`)
-              $('#motivoDevolucao').val('').focus();
-              return false;
+        motivoDevolucaoPedido = $('#motivoDevolucao').val();
 
-          } else {
-              Swal.showLoading()
-                var dados = {
-                  "IDRESUMOPEDIDO": parseInt(id),
-                  "IDANDAMENTO": parseInt(idandamento),
-                  "TXTOBSDEVPEDIDO": (""+motivoDevolucaoPedido)
-                };
+        if (!motivoDevolucaoPedido) {
+          Swal.showValidationMessage(`Coloque o Motivo da Devolução do Pedido!`);
+          $('#motivoDevolucao').focus();
+          return false;
 
-                return ajaxPut("api/compras/atualizacao-andamento-pedido.xsjs", dados)
-                  .then((respostaPut)=>{
-                    if(respostaPut.msg){
-                       funcSucessUpdateAndamentoPedido();
-                       const textdados = JSON.stringify(dados);
+        } else if (motivoDevolucaoPedido.length < 10) {
+          Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 Caracteres!`)
+          $('#motivoDevolucao').val('').focus();
+          return false;
 
-                      textoFuncao = 'CADASTRO/ENVIAR PEDIDO PARA COMPRAS';
+        } else {
+          Swal.showLoading()
+          var dados = {
+            "IDRESUMOPEDIDO": parseInt(id),
+            "IDANDAMENTO": parseInt(idandamento),
+            "TXTOBSDEVPEDIDO": ("" + motivoDevolucaoPedido)
+          };
 
-                      var dadosCancelaAtivaDep = [{
+          return ajaxPut("api/compras/atualizacao-andamento-pedido.xsjs", dados)
+            .then((respostaPut) => {
+              if (respostaPut.msg) {
+                funcSucessUpdateAndamentoPedido();
+                const textdados = JSON.stringify(dados);
 
-                        "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-                        "PATHFUNCAO": textoFuncao,
-                        "DADOS": textdados,
-                        "IP": ipCliente
-                      }];
+                textoFuncao = 'CADASTRO/ENVIAR PEDIDO PARA COMPRAS';
 
-                      ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
-                        .then(funcSucessLog)
-                        .catch(funcError);
+                var dadosCancelaAtivaDep = [{
 
-                      }else{
-                    throw new Error("Não Foi Possível Devolver o Pedido, FAVOR ENTRAR EM CONTATO COM O SUPORTE!"); }
-  
-                  })
-                  .catch((erro)=>{
-                    Swal.showValidationMessage("Não Foi Possível Devolver o Pedido, TENTE NOVAMENTE OU ENTRE EM CONTATO COM O SUPORTE!" + erro.message)
-                  });
-          }
+                  "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+                  "PATHFUNCAO": textoFuncao,
+                  "DADOS": textdados,
+                  "IP": ipCliente
+                }];
+
+                ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
+                  .then(funcSucessLog)
+                  .catch(funcError);
+
+              } else {
+                throw new Error("Não Foi Possível Devolver o Pedido, FAVOR ENTRAR EM CONTATO COM O SUPORTE!");
+              }
+
+            })
+            .catch((erro) => {
+              Swal.showValidationMessage("Não Foi Possível Devolver o Pedido, TENTE NOVAMENTE OU ENTRE EM CONTATO COM O SUPORTE!" + erro.message)
+            });
+        }
       }
     }).then((result) => {
-    
+
       if (result.dismiss == 'timer') {
-    
-          Swal.fire({
-              type: 'error',
-              title: `Tempo de resposta ou inatividade atingido`,
-              timer: 60000,
-          })
+
+        Swal.fire({
+          type: 'error',
+          title: `Tempo de resposta ou inatividade atingido`,
+          timer: 60000,
+        })
       } else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
-          return false;
+        return false;
       }
     })
   })
 }
 
-function Enviar_Pedido_Compras_adm(id,idandamento) {
+function Enviar_Pedido_Compras_adm(id, idandamento) {
+  if (IDFuncionarioLogin != 1459 && IDFuncionarioLogin != 632) {
+    return msgInfo('Usuário sem permissão!', 'Fale com o seu gestor!');
+  }
 
   Swal.fire({
     title: 'Certeza que Deseja Enviar o Pedido para o Dep. Compras Adm?',
@@ -1241,7 +1248,7 @@ function Enviar_Pedido_Compras_adm(id,idandamento) {
     }
 
     Swal.fire({
-      type:'question',
+      type: 'question',
       title: 'Motivo da Devolução do Pedido?',
       html: `<div>
                   <div class=" input-group pt-0" >
@@ -1256,66 +1263,67 @@ function Enviar_Pedido_Compras_adm(id,idandamento) {
       cancelButtonColor: '#3085d6',
       showLoaderOnConfirm: true,
       preConfirm: () => {
-          motivoDevolucaoPedido = $('#motivoDevolucao').val();
-    
-          if (!motivoDevolucaoPedido) {
-              Swal.showValidationMessage(`Coloque o Motivo da Devolução do Pedido!`);
-              $('#motivoDevolucao').focus();
-              return false;
-    
-          } else if (motivoDevolucaoPedido.length < 10) {
-              Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 Caracteres!`)
-              $('#motivoDevolucao').val('').focus();
-              return false;
+        motivoDevolucaoPedido = $('#motivoDevolucao').val();
 
-          } else {
-              Swal.showLoading()
-                var dados = {
-                  "IDRESUMOPEDIDO": parseInt(id),
-                  "IDANDAMENTO": parseInt(idandamento),
-                  "TXTOBSDEVPEDIDO": (""+motivoDevolucaoPedido)
-                };
+        if (!motivoDevolucaoPedido) {
+          Swal.showValidationMessage(`Coloque o Motivo da Devolução do Pedido!`);
+          $('#motivoDevolucao').focus();
+          return false;
 
-                return ajaxPut("api/compras/atualizacao-andamento-pedido.xsjs", dados)
-                  .then((respostaPut)=>{
-                    if(respostaPut.msg){
-                       funcSucessUpdateAndamentoPedido();
-                       const textdados = JSON.stringify(dados);
+        } else if (motivoDevolucaoPedido.length < 10) {
+          Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 Caracteres!`)
+          $('#motivoDevolucao').val('').focus();
+          return false;
 
-                      textoFuncao = 'CADASTRO/ENVIAR PEDIDO PARA COMPRAS ADM';
+        } else {
+          Swal.showLoading()
+          var dados = {
+            "IDRESUMOPEDIDO": parseInt(id),
+            "IDANDAMENTO": parseInt(idandamento),
+            "TXTOBSDEVPEDIDO": ("" + motivoDevolucaoPedido)
+          };
 
-                      var dadosCancelaAtivaDep = [{
+          return ajaxPut("api/compras/atualizacao-andamento-pedido.xsjs", dados)
+            .then((respostaPut) => {
+              if (respostaPut.msg) {
+                funcSucessUpdateAndamentoPedido();
+                const textdados = JSON.stringify(dados);
 
-                        "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-                        "PATHFUNCAO": textoFuncao,
-                        "DADOS": textdados,
-                        "IP": ipCliente
-                      }];
+                textoFuncao = 'CADASTRO/ENVIAR PEDIDO PARA COMPRAS ADM';
 
-                      ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
-                        .then(funcSucessLog)
-                        .catch(funcError);
+                var dadosCancelaAtivaDep = [{
 
-                      }else{
-                    throw new Error("Não Foi Possível Devolver o Pedido, FAVOR ENTRAR EM CONTATO COM O SUPORTE!"); }
-  
-                  })
-                  .catch((erro)=>{
-                    Swal.showValidationMessage("Não Foi Possível Devolver o Pedido, TENTE NOVAMENTE OU ENTRE EM CONTATO COM O SUPORTE!" + erro.message)
-                  });
-          }
+                  "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+                  "PATHFUNCAO": textoFuncao,
+                  "DADOS": textdados,
+                  "IP": ipCliente
+                }];
+
+                ajaxPost("api/log-web.xsjs", dadosCancelaAtivaDep)
+                  .then(funcSucessLog)
+                  .catch(funcError);
+
+              } else {
+                throw new Error("Não Foi Possível Devolver o Pedido, FAVOR ENTRAR EM CONTATO COM O SUPORTE!");
+              }
+
+            })
+            .catch((erro) => {
+              Swal.showValidationMessage("Não Foi Possível Devolver o Pedido, TENTE NOVAMENTE OU ENTRE EM CONTATO COM O SUPORTE!" + erro.message)
+            });
+        }
       }
     }).then((result) => {
-    
+
       if (result.dismiss == 'timer') {
-    
-          Swal.fire({
-              type: 'error',
-              title: `Tempo de resposta ou inatividade atingido`,
-              timer: 60000,
-          })
+
+        Swal.fire({
+          type: 'error',
+          title: `Tempo de resposta ou inatividade atingido`,
+          timer: 60000,
+        })
       } else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
-          return false;
+        return false;
       }
     })
   })
