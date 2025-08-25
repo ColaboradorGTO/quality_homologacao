@@ -17362,7 +17362,7 @@ async function enviarDadosMalote(element, idMalote) {
   AUTOR: Hendryw Deyvison
   E-MAIL: hendryw.deyvison@gmail.com
   DATA: 27/11/2023
-  DATA_ATUALIZAÇÃO: 09/06/2025
+  DATA_ATUALIZAÇÃO: 21/08/2025
 */
 
 // Inicio Variaveis Globais da Rotina De Etiquetas//
@@ -17370,197 +17370,270 @@ var acumuladorEtiquetas;
 var acumuladorEtiquetasZPL;
 var stSaveAcumulador = false;
 
-var idEmpresasTesteEtiqueta = [4, 5, 6, 13, 15, 16, 17, 18, 19, 21, 26, 28, 32, 35, 36, 38, 41, 44, 45, 50, 56, 62, 65, 67, 68, 69, 70, 76, 78, 81, 83, 86, 89, 92, 96, 102, 104, 111, 114, 118, 120, 121, 123];
+var idEmpresasTesteEtiqueta = [4, 5, 6, 9, 12, 13, 15, 16, 17, 18, 19, 21, 26, 30, 32, 35, 36, 38, 39, 41, 44, 45, 48, 50, 56, 62, 67, 68, 69, 70, 76, 78, 83, 86, 89, 92, 95, 96, 102, 104, 111, 114, 116, 117, 118, 120, 121, 123];
 // Fim Variaveis Globais da Rotina De Etiquetas//
 
-function ListaProdutosEtiqueta() {
-  async function CarregarActionPage() {
-    return new Promise((resolve, reject) => {
+// Inicio Funções Globais da Rotina De Etiquetas//
+async function selecionaTodasLinhasProdEtiqueta(element) {
+  let tabela = $('#dt-basic-lista-prodEtiquetas').DataTable();
+  let stChecked = $(element).prop('checked');
+  let stInputsChecked = false;
 
-      $.get("cadastro_action_ProdEtiqueta.html", function (resp) {
-        $('#js-page-content').html(resp);
+  if (stChecked) {
+    await Swal.fire({
+      type: 'question',
+      title: 'Selecione o modo de seleção',
+      text: 'Deseja selecionar todos da tabela ou somente o que está em tela?',
+      showConfirmButton: true,
+      showCancelButton: true,
+      showCloseButton: true,
+      confirmButtonText: 'Todos os registros',
+      cancelButtonText: 'Apenas o que está tela',
+      cancelButtonColor: '#2196F3',
+      allowOutsideClick: false,
+    })
+      .then(async (resp) => {
+        if (resp.value) {
+          tabela.rows().every(function () {
+            let linhaTabela = $(this.node())
 
-        $('#idListaPreco').select2();
-        $('#numPedidoEtiqueta').select2();
+            linhaTabela.find('input[name="selecaoProdEtiqueta"]:not(:disabled)').prop('checked', stChecked).trigger('change');
 
-        $('#idProdEtiqueta').on('keypress', (e) => { if (e.keyCode == 13) pesquisaProdutos() });
-        $('#descProdEtiqueta').on('keypress', (e) => { if (e.keyCode == 13) pesquisaProdutos() });
-        $('#codBarrasProdEtiqueta').on('keypress', (e) => { if (e.keyCode == 13) pesquisaProdutos() });
-
-        funcPesquisaNoSelect('numPedidoEtiqueta', pesquisaNoSelect);
-
-        resolve();
-      }).fail(() => reject('Erro ao carregar a Página, Tente novamente!'));
-
-    });
-  }
-
-  async function CarregarListaGrupo() {
-    return new Promise(async (resolve, reject) => {
-      try {
-        let urlApi = `api/produtos/listas-de-precos-SAP.xsjs?`;
-
-        let resp = await ajaxGet(`${urlApi}&page=1`);
-
-        let page = Number(resp.page);
-
-        let pages = page ? Math.round(Number(resp.rows) / 1000) : '';
-
-        if (resp.data.length && resp.data.length == 1000) {
-          proximaPaginaListaGrupo();
-
-          async function proximaPaginaListaGrupo() {
-            try {
-              page++;
-
-              let resp2 = await ajaxGet(`${urlApi}&page=${page}`);
-
-              if (resp2.data.length) {
-                resp.data.push(...resp2.data);
-
-                pages && $('#numPagesLoading').html(`${page} de ${pages}`);
-
-                proximaPaginaListaGrupo();
-
-              } else {
-                retornoListadePreçosGrupos(resp);
-                resolve();
-              }
-            } catch {
-              console.log('Erro ao carregar as listas de preços');
-              reject('Erro ao carregar as listas de preços, tente novamente!');
+            if (!stInputsChecked) {
+              stInputsChecked = linhaTabela.find('input[name="selecaoProdEtiqueta"]:not(:disabled)').prop('checked') || false;
             }
-          }
-
-        } else {
-          retornoListadePreçosGrupos(resp);
-          resolve();
+          });
         }
-      } catch {
-        console.log('Erro ao carregar as listas de preços');
-        reject('Erro ao carregar as listas de preços, tente novamente!');
-      }
 
+        if (resp.dismiss == 'cancel') {
+          $('input[name="selecaoProdEtiqueta"]:not(:disabled)').prop('checked', stChecked).trigger('change');
+
+          if (!stInputsChecked) {
+            stInputsChecked = $('input[name="selecaoProdEtiqueta"]:not(:disabled)').prop('checked') || false;
+          }
+        }
+      })
+  } else {
+    tabela.rows().every(function () {
+      let linhaTabela = $(this.node())
+
+      linhaTabela.find('input[name="selecaoProdEtiqueta"]:not(:disabled)').prop('checked', stChecked).trigger('change');
     });
-
-
   }
 
-  async function CarregarListaLojas() {
-    return new Promise(async (resolve, reject) => {
-      try {
-        let urlApi = `api/empresa.xsjs?`;
+  console.log(stInputsChecked);
 
-        let resp = await ajaxGet(`${urlApi}&page=1`);
+  $(element).prop('checked', stInputsChecked);
 
-        let page = Number(resp.page);
-
-        let pages = page ? Math.round(Number(resp.rows) / 1000) : '';
-
-        if (resp.data.length && resp.data.length == 1000) {
-          proximaPaginaListaLojas();
-
-          async function proximaPaginaListaLojas() {
-            try {
-              page++;
-
-              let resp2 = await ajaxGet(`${urlApi}&page=${page}`);
-
-              if (resp2.data.length) {
-                resp.data.push(...resp2.data);
-
-                pages && $('#numPagesLoading').html(`${page} de ${pages}`);
-
-                proximaPaginaListaLojas();
-
-              } else {
-                retornoListadePreçosLojas(resp);
-                resolve();
-              }
-            } catch {
-              console.log('Erro ao carregar as listas de preços');
-              reject('Erro ao carregar as listas de preços, tente novamente!');
-            }
-          }
-
-        } else {
-          retornoListadePreçosLojas(resp);
-          resolve();
-        }
-      } catch {
-        console.log('Erro ao carregar as listas de preços');
-        reject('Erro ao carregar as listas de preços, tente novamente!');
-      }
-
-    });
+  if (stInputsChecked) {
+    $('.text-Marcar-Desmarcar-Todos').text('Desmarcar Todos');
 
 
-  }
+    $('#btnAcumuladorImpEtiqueta').removeClass('d-none');
+    $('#btnImpEtiqueta').removeClass('d-none');
+  } else {
+    $('.text-Marcar-Desmarcar-Todos').text('Marcar Todos');
 
-  async function loadPage() {
-    let modalLoading = setTimeout(() => animacaoCarregamento(), delayMaximo);
+    $('#btnAcumuladorImpEtiqueta').addClass('d-none');
 
-    try {
-      await CarregarActionPage();
-      await CarregarListaGrupo();
-      //  await CarregarListaLojas();
-
-      acumuladorEtiquetas = '';
-      acumuladorEtiquetasZPL = '';
-
-      $('#idListaPreco').val(IDEmpresaLogin).trigger('change');
-      $('#idListaPreco').attr('disabled', true);
-
-      $('.numPedidoEtiqueta').addClass('d-none');
-
-      clearTimeout(modalLoading);
-      Swal.close();
-
-    } catch (error) {
-      clearTimeout(modalLoading);
-      Swal.close();
-
-      msgError(error);
+    if (!acumuladorEtiquetas?.length) {
+      $('#btnImpEtiqueta').addClass('d-none');
+      $('#btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
     }
   }
-
-  loadPage();
 
 }
 
-function retornoListadePreçosGrupos(dadosListasPreco) {
-  let listaPreco = dadosListasPreco.data.length ? dadosListasPreco.data : '';
+function selecionaLinhaProdEtiqueta(elementoChk) {
+  let stCheckLinha = $(elementoChk).prop('checked');
+  let linhaElemento = $(elementoChk).closest('tr');
 
-  for (let i = 0; i < listaPreco.length; i++) {
-    let lista = listaPreco[i]['listaPreco'];
+  if (stCheckLinha) {
+    linhaElemento.addClass('selected fw-900').css("opacity", 0.8);
+    linhaElemento.attr('title', 'Selecionado!');
+  } else {
+    linhaElemento.removeClass('selected fw-900').css("opacity", 1);
+    linhaElemento.attr('title', 'Não Selecionado');
+  }
 
-    if (i == 0) {
-      $('#idListaPreco').html('');
+  let lengthInputs = Number($('[name="selecaoProdEtiqueta"]:not(:disabled)').length);
+  let lengthInputsCheckeds = Number($('[name="selecaoProdEtiqueta"]:not(:disabled):checked').length);
+  let lengthAcumulador = Number(acumuladorEtiquetas?.length)
 
-      $('#idListaPreco').append(`
-              <option value="">Selecione...</option>`
-      );
+  if (!lengthInputsCheckeds) {
+    $('#selecaoTodosProdEtiqueta').prop('checked', false);
+    $('.text-Marcar-Desmarcar-Todos').text('Marcar Todos');
+
+    $('#btnAcumuladorImpEtiqueta').addClass('d-none');
+
+    if (!lengthAcumulador) {
+      $('#btnImpEtiqueta').addClass('d-none');
+      $('#btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
+
     }
 
-    if (lista.IDEMPRESA && lista.STATIVO == 'True') {
-      $('#idListaPreco').append(`
-          <option value="${lista.IDEMPRESA}" title="${lista.IDRESUMOLISTAPRECO}" >${lista.NOMELISTA}</option>
-      `);
+  }
+
+  if (lengthInputsCheckeds) {
+    $('#selecaoTodosProdEtiqueta').prop('checked', true);
+    $('.text-Marcar-Desmarcar-Todos').text('Desmarcar Todos');
+
+    $('#btnAcumuladorImpEtiqueta').removeClass('d-none');
+    $('#btnImpEtiqueta').removeClass('d-none');
+  }
+}
+
+function trocaQtdProd(element) {
+  let linhaProdTabela = $(element).closest('tr');
+  let valorInput = Number(element.value.replace(/\D/g, '') || 0);
+  let inputQtdProd = linhaProdTabela.find('td:eq(1) input');
+
+  valorInput = valorInput || 1;
+
+  element.value = valorInput;
+
+  $(inputQtdProd).attr('qtdprod', valorInput);
+
+  !$(inputQtdProd).prop('checked') && $(inputQtdProd).click();
+}
+
+function acumuladorImpEtiquetas(stClick = true) {
+  let tabela = $('#dt-basic-lista-prodEtiquetas').DataTable();
+
+  if (!acumuladorEtiquetas?.length) {
+    acumuladorEtiquetas = [];
+  }
+
+  tabela.rows().every(function () {
+    let linhaTabela = $(this.node());
+    let produtos = linhaTabela.find('input[name="selecaoProdEtiqueta"]:checked');
+
+    produtos.each(function () {
+      let idProduto = $(this).attr('id');
+      let descricaoProd = $(this).attr('descricaoProd');
+      let estiloProd = $(this).attr('estiloProd');
+      let tamanhoProd = $(this).attr('tamanhoProd');
+      let precoVenda = Number(this.value);
+      let codBarras = $(this).attr('codBarras');
+      let qtdEtiqueta = Number($(this).attr('qtdprod'));
+      let localExpProd = $(this).attr('localExposicaoProd') || '';
+      let listaPreco = $(this).attr('grupoprod');
+      let marcaProd = $(this).attr('marcaprod');
+      let stProdExistente = acumuladorEtiquetas.find(item => item.idProduto === idProduto && item.listaPreco === listaPreco);
+
+      if (stProdExistente) {
+        stProdExistente.qtdEtiqueta += parseInt(qtdEtiqueta);
+
+      } else {
+
+        acumuladorEtiquetas.push({
+          idProduto,
+          descricaoProd,
+          estiloProd,
+          tamanhoProd,
+          precoVenda,
+          codBarras,
+          qtdEtiqueta,
+          localExpProd,
+          listaPreco,
+          marcaProd,
+        });
+      }
+    });
+  });
+
+  if (stClick) {
+    stSaveAcumulador = true;
+    msgSuccess('Guardado com Sucesso!');
+    $('#btnDeletarAcumuladorImpEtiquetas').removeClass('d-none');
+  }
+}
+
+function deletarAcumuladorImpEtiquetas() {
+
+  Swal.fire({
+    type: 'question',
+    title: 'Deseja Limpar as Etiquetas Guardadas?',
+    text: 'Esta ação não poderá ser desfeita!',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Limpar!',
+    cancelButtonText: 'Não, Voltar!',
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#2196F3',
+    preConfirm: () => {
+      acumuladorEtiquetas = '';
+      stSaveAcumulador = false;
+
+      $('#btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
+
+      $('#selecaoTodosProdEtiqueta').prop('checked', false);
+      selecionaTodasLinhasProdEtiqueta($('#selecaoTodosProdEtiqueta')[0]);
+
+      !$('[name="selecaoProdEtiqueta"]:checked')?.length && $('#btnImpEtiqueta').addClass('d-none');
+
+    }
+  })
+    .then(resp => resp.value && msgSuccess('Limpo com Sucesso!'))
+}
+// Fim Funções Globais da Rotina De Etiquetas//
+
+async function ListaProdutosEtiqueta() {
+  try {
+    animationLoadingStart();
+
+    await $.get("cadastro_action_ProdEtiqueta.html", (resp) => $('#js-page-content').html(resp));
+
+    await ajaxGetAllData('api/produtos/listas-de-precos-SAP.xsjs', false).then(retornoListadePreçosGrupos);
+    //await ajaxGetAllData('api/empresa.xsjs', false).then(retornoListadePreçosLojas);
+
+    $('#idListaPreco').select2();
+
+    // $('#numPedidoEtiqueta').select2();
+    // funcPesquisaNoSelect('numPedidoEtiqueta', pesquisaNoSelect);
+
+    $('#idListaPreco').attr('disabled', true).val(IDEmpresaLogin).trigger('change');
+
+    $('.numPedidoEtiqueta').addClass('d-none');
+
+    $('#idProdEtiqueta').on('keypress', (e) => { if (e.keyCode == 13) pesquisaProdutos() });
+    $('#descProdEtiqueta').on('keypress', (e) => { if (e.keyCode == 13) pesquisaProdutos() });
+    $('#codBarrasProdEtiqueta').on('keypress', (e) => { if (e.keyCode == 13) pesquisaProdutos() });
+
+    animationLoadingStop();
+
+  } catch (error) {
+    msgError();
+    console.log(error);
+  }
+}
+
+function retornoListadePreçosGrupos(dadosListasPreco) {
+  let { data } = dadosListasPreco || [];
+
+  $('#idListaPreco').html(`<option value="">Selecione...</option>`);
+
+  for (let { listaPreco } of data) {
+    let {
+      IDEMPRESA,
+      STATIVO,
+      IDRESUMOLISTAPRECO,
+      NOMELISTA
+    } = listaPreco || '';
+
+    if (IDEMPRESA && STATIVO == 'True') {
+      $('#idListaPreco').append(`<option value="${IDEMPRESA}" title="${IDRESUMOLISTAPRECO}" >${NOMELISTA}</option>`);
     }
   }
 }
 
 function retornoListadePreçosLojas(respostaListadePreços) {
-  let listaPreco = respostaListadePreços.data.length ? respostaListadePreços.data : '';
+  let { data } = respostaListadePreços || [];
 
-  if (listaPreco) {
-    for (let lista of listaPreco) {
-      $('#idListaPreco').append(`
-          <option title="LOJA" value="${lista['IDEMPRESA']}">${lista['NOFANTASIA']}</option>
-        `);
-    }
+  $('#idListaPreco').html(`<option value="">Selecione...</option>`);
+
+  for (let { IDEMPRESA, NOFANTASIA } of data) {
+    $('#idListaPreco').append(`<option title="LOJA" value="${IDEMPRESA}">${NOFANTASIA}</option>`);
   }
-
 }
 
 function funcPesquisaNoSelect(idSelect, funcao) {
@@ -17646,229 +17719,127 @@ function retornoPesqProdutoPorPedido(respostaDadosProdutos, descFormatada) {
 }
 
 function pesquisaProdutos() {
-  let idProduto = $('#idProdEtiqueta').val() ? $('#idProdEtiqueta').val().trim() : "";
-  let descProd = $('#descProdEtiqueta').val() ? $('#descProdEtiqueta').val().trim() : "";
-  let codBarras = $('#codBarrasProdEtiqueta').val() ? $('#codBarrasProdEtiqueta').val().replace(/\D/g, '') : "";
+  let idProduto = $('#idProdEtiqueta')?.val()?.trim() || "";
+  let descProd = $('#descProdEtiqueta')?.val()?.trim() || "";
+  let codBarras = $('#codBarrasProdEtiqueta')?.val()?.replace(/\D/g, '') || "";
   let idLista = $('#idListaPreco').select2('data')[0]?.title || "";
 
-  async function CarregarProdPesquisados() {
-    if (idLista && idProduto || descProd || codBarras) {
-      return new Promise(async (resolve, reject) => {
-        try {
-          let urlApi = `api/produtos/lista-produtos-etiqueta-SAP.xsjs?idLista=${idLista}&id=${idProduto}&descProd=${descProd}&codeBars=${codBarras}`;
-
-          let resp = await ajaxGet(`${urlApi}&page=1`);
-
-          let page = Number(resp.page);
-
-          let pages = page ? Math.round(Number(resp.rows) / 1000) : '';
-
-          if (resp.data.length && resp.data.length == 1000) {
-            proximaPaginaProdPesquisados();
-
-            async function proximaPaginaProdPesquisados() {
-              try {
-                page++;
-
-                let resp2 = await ajaxGet(`${urlApi}&page=${page}`);
-
-                if (resp2.data.length) {
-                  resp.data.push(...resp2.data);
-
-                  pages && $('#numPagesLoading').html(`${page} de ${pages}`);
-
-                  proximaPaginaProdPesquisados();
-
-                } else {
-                  retornoPesquisaProdutos(resp);
-                  resolve();
-                }
-              } catch {
-                console.log('Erro ao carregar os produtos');
-                reject('Erro ao carregar os produtos, tente novamente!');
-              }
-            }
-
-          } else {
-            retornoPesquisaProdutos(resp);
-            resolve();
-          }
-        } catch {
-          console.log('Erro ao carregar os produtos');
-          reject('Erro ao carregar os produtos, tente novamente!');
-        }
-
+  if (idLista && idProduto || descProd || codBarras) {
+    return ajaxGetAllData(`api/produtos/lista-produtos-etiqueta-SAP.xsjs?idLista=${idLista}&id=${idProduto}&descProd=${descProd}&codeBars=${codBarras}`)
+      .then(retornoPesquisaProdutos)
+      .catch((error) => {
+        console.log(error);
+        msgError('Erro ao Carregar os Produtos, Tente Novamente!')
       });
-
-    }
   }
 
-  async function loadSearch() {
-    let modalLoading = setTimeout(() => animacaoCarregamento(), delayMaximo);
-    try {
-      await CarregarProdPesquisados();
+  msgWarning('Digite o Identificador, Descrição ou Código de Barras do Produto!');
 
-      clearTimeout(modalLoading);
-      Swal.close();
-
-    } catch (error) {
-      clearTimeout(modalLoading);
-      Swal.close();
-
-      msgError(error);
-    }
-  }
-
-  loadSearch();
 }
 
 function retornoPesquisaProdutos(respostaPesquisaProdutos) {
-  $('#idProdEtiqueta').val('');
-  $('#descProdEtiqueta').val('');
-  $('#codBarrasProdEtiqueta').val('');
-  $('#numPedidoEtiqueta').val('0').trigger('change');
-  $('#btnAcumuladorImpEtiqueta').addClass('d-none');
+  let { data } = respostaPesquisaProdutos || [];
+  let dadosProdTable = [];
+  let contador = 0;
 
+  $('#btnAcumuladorImpEtiqueta').addClass('d-none');
   !acumuladorEtiquetas?.length ? $('#btnImpEtiqueta').addClass('d-none') : $('#btnImpEtiqueta').removeClass('d-none');
 
-  let dadosProd = respostaPesquisaProdutos.data;
-  let dadosProdTable = [];
 
-  if (dadosProd.length) {
-    let contador = 0;
-    let idProd;
-    let dsProd;
-    let estiloProd;
-    let codBarras;
-    let tamanho;
-    let precoVenda;
-    let idGrupo;
-    let grupo;
-    let subgrupo;
-    let idEmpresa;
-    let noFantasia;
-    let qtdProd;
-    let marcaProd;
-    let localExpProd;
-    let opcoes;
+  if (data.length) {
+    for (let registro of data) {
+      let idProd = registro?.IDPRODUTO;
+      let dsProd = registro?.DSNOME || registro?.DSPRODUTO;
+      let subgrupo = registro?.SUBGRUPO ? (registro?.SUBGRUPO).split('-') : '';
+      let codBarras = registro?.NUCODBARRAS || registro?.CODBARRAS;
+      let tamanho = (registro?.TAMANHO || registro?.DSTAMANHO || ((dsProd.split(' ')).pop()).replace(/[^\w\s]/gi, ''))?.toUpperCase();
+      let precoVenda = Number(registro?.PRECOVENDA || registro?.VRUNITLIQDETALHEPEDIDO);
+      let marcaProd = registro?.MARCA || '';
+      let grupo = registro?.DSLISTAPRECO || registro?.IDSUBGRUPOEMPRESARIAL || 0;
+      let localExpProd = registro?.DSLOCALEXPOSICAO || '';
+      let stAtivo = registro?.STATIVO || 'True';
+      let arrayGrupos = [
+        'Todos',
+        'Tesoura',
+        'Magazine',
+        'Yorus',
+        'Free Center'
+      ];
+      let estiloProd = registro?.DSESTILO || '';
+      let stCodBarrasValid = isValidEAN13(codBarras) ? 'True' : 'False';
+      let stDisabled = stAtivo !== 'True' || stCodBarrasValid !== 'True' ? 'disabled' : '';
 
-    for (let i = 0; i < dadosProd.length; i++) {
-      stCancelado = dadosProd[i]['STCANCELADO'];
+      let qtdProd = `
+        <div class="d-flex justify-content-center"> 
+          <input type="number" class="text-center rounded" name="qtdProdutoEtiqueta" value="1" style="width: 80%;" onchange="trocaQtdProd(this)" ${stDisabled}>
+        </div>
+      `;
 
-      if (!stCancelado) {
-        contador++;
-        idProd = dadosProd[i]['IDPRODUTO'];
-        dsProd = dadosProd[i]['DSNOME'];
-        subgrupo = dadosProd[i]['SUBGRUPO'] ? (dadosProd[i]['SUBGRUPO']).split('-') : '';
-        estiloProd = dadosProd[i]['DSESTILO'] || '';
-        codBarras = dadosProd[i]['NUCODBARRAS'] || '';
-        marcaProd = dadosProd[i]['MARCA'] || '';
-        tamanho = dadosProd[i]['TAMANHO'] || ((dsProd.split(' ')).pop()).toUpperCase().replace(/[^\w\s]/gi, '');
-        precoVenda = Number(dadosProd[i]['PRECOVENDA']);
-        idGrupo = dadosProd[i]['IDGRUPOEMPRESARIAL'] || '';
-        idEmpresa = dadosProd[i]['IDEMPRESA'] || '';
-        grupo = dadosProd[i]['DSLISTAPRECO'] || '';
-        noFantasia = dadosProd[i]['NOFANTASIA'] || '';
-        localExpProd = dadosProd[i]['DSLOCALEXPOSICAO'] || '';
-        qtdProd = `
-                    <div class="custom-control"> 
-                        <input type="text" name="qtdProdutoEtiqueta" value="1" style="width: 50px; text-align: center;" onchange="trocaQtdProd(this)">
-                    </div>
-                    `;
+      let labelStAtivo = `<label class="text-${stAtivo === 'True' ? 'info' : 'danger'} fw-900">${stAtivo === 'True' ? 'Ativo' : 'Inativo'}</label>`;
 
-        opcoes = `
-              <div class="custom-control custom-checkbox"> 
-                <input type="checkbox" class="custom-control-input" name="selecaoProdEtiqueta" id="${idProd}" descricaoProd="${dsProd}" codBarras="${codBarras}" tamanhoProd="${tamanho}" value="${precoVenda}" qtdProd="1" grupoProd="${grupo}" estiloProd="${estiloProd}" marcaProd="${marcaProd}" localExposicaoProd="${localExpProd}" onchange="selecionaLinhaProdEtiqueta(this.id)"><label class="custom-control-label" for="${idProd}"></label>
-              </div>
-            `;
+      if (registro?.STTRANSFORMADO == 'True') {
+        subgrupo = subgrupo?.length > 0 ? subgrupo?.split('-') : '';
+        estiloProd = estiloProd?.length > 0 ? (' - ' + estiloProd) : '';
 
-        dadosProdTable.push([
-          contador,
-          opcoes,
-          codBarras,
-          dsProd,
-          tamanho,
-          qtdProd,
-          maskValor(precoVenda),
-          grupo,
-          estiloProd,
-          marcaProd
-        ]);
+        subgrupo = subgrupo?.length > 0 ? subgrupo?.pop()?.split(' ')?.join(' - ') : '';
+        grupo = arrayGrupos[grupo];
 
-      } else if (dadosProd[i]['STTRANSFORMADO']) {
-        contador++;
-        idProd = dadosProd[i]['IDPRODUTO'];
-        dsProd = dadosProd[i]['DSPRODUTO'];
-        subgrupo = dadosProd[i]['SUBGRUPO'] ? (dadosProd[i]['SUBGRUPO']).split('-') : '';
-        estiloProd = dadosProd[i]['DSESTILO'] ? (' - ' + dadosProd[i]['DSESTILO']) : '';
-        tamanho = dadosProd[i]['DSTAMANHO'].toUpperCase() || '';
-        codBarras = dadosProd[i]['CODBARRAS'];
-        marcaProd = dadosProd[i]['MARCA'] || '';
-        precoVenda = dadosProd[i]['VRUNITLIQDETALHEPEDIDO'];
-        grupo = dadosProd[i]['IDSUBGRUPOEMPRESARIAL'];
-        localExpProd = dadosProd[i]['DSLOCALEXPOSICAO'] || '';
-
-        qtdProd = `
-              <div class="custom-control"> 
-                <input type="text" name="qtdProdutoEtiqueta" value="1" style="width: 50px; text-align: center;">
-              </div>
-            `;/*` `
-            <div class="btn-group btn-group-xs">
-              <button type="button" class="btn btn-primary btn-xs" title="Imprimir" id="${idProd}" onclick="imprimirEtiquetaProd(this.id, 1, 'EM ANALISE');"><span class="fal fa-print p-1"></span></button>
-            </div>
-            `;*/
-        subgrupo = subgrupo && subgrupo.pop().split(' ').join(' - ');
-        estiloProd = estiloProd ? subgrupo ? subgrupo + ' - ' + estiloProd : estiloProd : subgrupo;
-        grupo = !grupo ? 'Todos' : grupo == 1 ? 'Tesoura' : grupo == 2 ? 'Magazine' : grupo == 3 ? 'Yorus' : 'Free Center';
-
-        opcoes = `
-              <div class="custom-control custom-checkbox"> 
-                <input type="checkbox" class="custom-control-input" name="selecaoProdEtiqueta" id="${idProd}" descricaoProd="${dsProd}" codBarras="${codBarras}" tamanhoProd="${tamanho}" value="${precoVenda}" grupoProd="${grupo}" estiloProd="${estiloProd}" marcaProd="${marcaProd}" localExposicaoProd="${localExpProd}" onchange="selecionaLinhaProdEtiqueta(this.id)"><label class="custom-control-label" for="${idProd}"/></label>
-              </div>
-            `;
-
-        dadosProdTable.push([
-          contador,
-          opcoes,
-          codBarras,
-          dsProd,
-          tamanho,
-          qtdProd,
-          maskValor(precoVenda),
-          grupo,
-          estiloProd,
-          marcaProd
-        ])
+        if (estiloProd?.length > 0) {
+          estiloProd = subgrupo?.length > 0 ? (subgrupo + ' - ' + estiloProd) : estiloProd;
+        } else {
+          estiloProd = subgrupo;
+        }
       }
+
+      let opcoes = `
+        <div class="custom-control custom-checkbox"> 
+          <input type="checkbox" class="custom-control-input" name="selecaoProdEtiqueta" id="${idProd}" descricaoProd="${dsProd}" codBarras="${codBarras}" tamanhoProd="${tamanho}" value="${precoVenda}" qtdProd="1" grupoProd="${grupo}" estiloProd="${estiloProd}" marcaProd="${marcaProd}" localExposicaoProd="${localExpProd}" stAtivo=${stAtivo} stCodBarrasValid=${stCodBarrasValid} onchange="selecionaLinhaProdEtiqueta(this)" ${stDisabled}><label class="custom-control-label" for="${idProd}"></label>
+        </div>
+      `;
+
+      contador++;
+
+      dadosProdTable.push([
+        contador,
+        opcoes,
+        codBarras,
+        dsProd,
+        tamanho,
+        qtdProd,
+        maskValor(precoVenda),
+        grupo,
+        estiloProd,
+        marcaProd,
+        labelStAtivo
+      ]);
 
     }
 
   }
 
   $('#resultado').html(`
-      <div class="col-sm-12 col-xl-12">
-        <table id="dt-basic-lista-prodEtiquetas" class="table table-bordered table-hover table-striped w-100">
-          <thead class="bg-primary-600">
-              <tr>
-                <th>#</th>
-                <th>Opções</th>
-                <th>Cod. Barras</th>
-                <th class="tdCenter">Produto</th>
-                <th>Tamanho</th>
-                <th>Quantidade</th>
-                <th>Pr.Venda</th>
-                <th>Grupo</th>
-                <th>Estilo</th>
-                <th>Marca</th>
-              </tr>
-          </thead>
-          <tbody>
-          </tbody>
-          <tfoot>
-          </tfoot>
-        </table>
-      </div>
-    `);
+    <div class="col-sm-12 col-xl-12">
+      <table id="dt-basic-lista-prodEtiquetas" class="table table-bordered table-hover table-striped w-100">
+        <thead class="bg-primary-600 text-center">
+          <tr>
+            <th>#</th>
+            <th>Opções</th>
+            <th>Cod. Barras</th>
+            <th class="tdCenter">Produto</th>
+            <th>Tamanho</th>
+            <th>Quantidade</th>
+            <th>Pr.Venda</th>
+            <th>Grupo</th>
+            <th>Estilo</th>
+            <th>Marca</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+  `);
 
   $('#dt-basic-lista-prodEtiquetas').DataTable({
     data: dadosProdTable,
@@ -17877,25 +17848,36 @@ function retornoPesquisaProdutos(respostaPesquisaProdutos) {
     pageLength: 50,
     searching: true,
     info: true,
-    deferRender: true,
+    deferRender: false,
     responsive: true,
     autoWidth: true,
     columnDefs: [
       {
-        targets: [1, 2, 4, 5, 6, 7, 8, 9],
-        className: 'text-center'
-      }
+        targets: 1,
+        className: 'text-center ',
+        orderDataType: 'input-checkbox'
+      },
+      {
+        targets: [4, 10],
+        className: 'text-center '
+      },
+      {
+        targets: 5,
+        className: 'text-center ',
+        orderDataType: 'input-number'
+      },
     ],
     columns: [
       { width: '5%' },
       { width: '5%' },
-      { width: '10%' },
+      { width: '7%' },
       { width: '35%' },
       { width: '5%' },
       { width: '5%' },
       { width: '5%' },
-      { width: '15%' },
       { width: '10%' },
+      { width: '10%' },
+      { width: '8%' },
       { width: '5%' }
     ],
     language: {
@@ -17903,205 +17885,48 @@ function retornoPesquisaProdutos(respostaPesquisaProdutos) {
     },
     initComplete: function () {
       $('#dt-basic-lista-prodEtiquetas').before(`
-            <div id="chkMarcaTodos" class="mb-1 ${!dadosProd.length ? 'd-none' : ''}">
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" name="selecaoTodosProdEtiqueta" id="selecaoTodosProdEtiqueta" onclick="selecionaTodasLinhasProdEtiqueta(this)"><label class="custom-control-label text-Marcar-Desmarcar-Todos" for="selecaoTodosProdEtiqueta">Marcar Todos</label>
-                </div>
-            </div>
-        `);
-    }
-  });
+        <div id="chkMarcaTodos" class="mb-1 ${!data.length ? 'd-none' : ''}">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input" name="selecaoTodosProdEtiqueta" id="selecaoTodosProdEtiqueta" onclick="selecionaTodasLinhasProdEtiqueta(this)"><label class="custom-control-label text-Marcar-Desmarcar-Todos" for="selecaoTodosProdEtiqueta">Marcar Todos</label>
+          </div>
+        </div>
+      `);
+    },
+    drawCallback: function (settings) {
+      var api = this.api();
+      var orderCol = api.order()[0][0];
 
-}
-
-function selecionaTodasLinhasProdEtiqueta(element) {
-  let inputs = $('[name="selecaoProdEtiqueta"]');
-  let linhas = '';
-  let codBarrasProds = '';
-  let isInvalid = false;
-
-  if ($(element).prop('checked')) {
-    inputs.map((indice, input) => {
-      if (!$(input).prop('checked')) {
-
-        if (!isValidEAN13($(input).attr('codbarras'))) {
-          isInvalid = true;
-          linhas += `${indice + 1}, `
-          codBarrasProds += `${$(input).attr('codbarras')}, `;
-        } else {
-          $(input).prop('checked', true);
-          selecionaLinhaProdEtiqueta($(input).attr('id'));
-        }
+      if (orderCol === 1) {
+        api.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+          cell.innerHTML = i + 1;
+        });
       }
-    });
-    $('.text-Marcar-Desmarcar-Todos').text('Desmarcar Todos');
 
-    $('#btnAcumuladorImpEtiqueta').removeClass('d-none');
-    $('#btnImpEtiqueta').removeClass('d-none');
+      let inputs = $('input[name="selecaoProdEtiqueta"]:disabled');
 
-  } else {
+      inputs.each((i, elemento) => {
+        let stAtivo = $(elemento).attr('stAtivo');
+        let stCodBarrasInvalid = isValidEAN13($(elemento).attr('codBarras'));
+        let linhaElemento = $(elemento).closest('tr');
+        let txtStAtivo = stAtivo == 'False' ? 'Produto Inativado' : '';
+        let txtCodBarraInvalid = !stCodBarrasInvalid ? 'Código de Barras Inválido' : '';
 
-    inputs.map((indice, input) => {
-      if ($(input).prop('checked')) {
-        $(input).prop('checked', false);
+        let txtTitleTr = [txtStAtivo, txtCodBarraInvalid].filter(Boolean).join(' & ');
 
+        linhaElemento.addClass('text-danger').css("opacity", 0.8);
+        linhaElemento.attr('title', txtTitleTr);
 
-        selecionaLinhaProdEtiqueta($(input).attr('id'));
-      }
-    });
-
-    $('.text-Marcar-Desmarcar-Todos').text('Marcar Todos');
-
-    $('#btnAcumuladorImpEtiqueta').addClass('d-none');
-
-    if (!acumuladorEtiquetas?.length) {
-      $('#btnImpEtiqueta').addClass('d-none');
-      $('#btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
-    }
-  }
-
-  if (isInvalid) {
-    return msgError(`Os produtos das linhas (${linhas}) estão com os códigos de barras em formato inválido, entre em contato com o departamento de cadastro de produtos`, `Códigos de Barras:( ${codBarrasProds})`);
-  }
-}
-
-function selecionaLinhaProdEtiqueta(id) {
-  let linhaSelecionada = $(`#${id}`).closest('tr');
-  let lengthInputs = Number($('[name="selecaoProdEtiqueta"]').length);
-  let lengthInputsCheckeds = Number($('[name="selecaoProdEtiqueta"]:checked').length);
-  let lengthAcumulador = Number(acumuladorEtiquetas?.length)
-  let element = $(`#${id}`);
-
-  linhaSelecionada.toggleClass('selected').css("opacity", linhaSelecionada.hasClass('selected') ? 0.8 : 1);
-  linhaSelecionada.attr('title', linhaSelecionada.hasClass('selected') ? 'PRODUTO SELECIONADO PARA IMPRIMIR!' : 'PRODUTO PARA IMPRESSÃO DE ETIQUETA!');
-
-  if ($(element).prop('checked') && !isValidEAN13(element.attr('codbarras'))) {
-    return msgError(`O código de barras(${element.attr('codbarras')}) do produto(${element.attr('descricaoprod')}) que está linha: ${$(linhaSelecionada).find('td:first').text()} está em formato inválido, entre em contato com o departamento de cadastro de produtos`)
-      .then(() => {
-        $(`#${id}`).prop('checked', false);
-        linhaSelecionada.toggleClass('selected').css("opacity", 1);
-        linhaSelecionada.attr('title', 'PRODUTO PARA IMPRESSÃO DE ETIQUETA!');
       })
-  }
-
-  if (!lengthInputsCheckeds) {
-    $('#selecaoTodosProdEtiqueta').prop('checked', false);
-    $('.text-Marcar-Desmarcar-Todos').text('Marcar Todos');
-
-    $('#btnAcumuladorImpEtiqueta').addClass('d-none');
-
-    if (!lengthAcumulador) {
-      $('#btnImpEtiqueta').addClass('d-none');
-      $('#btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
-
-    }
-  } if (lengthInputsCheckeds && lengthInputsCheckeds < lengthInputs) {
-    // $('#selecaoTodosProdEtiqueta').prop('checked', false);
-    // $('.text-Marcar-Desmarcar-Todos').text('Marcar Todos');
-
-    $('#btnAcumuladorImpEtiqueta').removeClass('d-none');
-    $('#btnImpEtiqueta').removeClass('d-none');
-
-  } if (lengthInputsCheckeds == lengthInputs) {
-    $('#selecaoTodosProdEtiqueta').prop('checked', true);
-    $('.text-Marcar-Desmarcar-Todos').text('Desmarcar Todos');
-
-    $('#btnAcumuladorImpEtiqueta').removeClass('d-none');
-    $('#btnImpEtiqueta').removeClass('d-none');
-  }
-}
-
-function trocaQtdProd(element) {
-  let linhaProdTabela = $(element).closest('tr');
-  let valorInput = Number(element.value.replace(/\D/g, '') || 0);
-  let inputQtdProd = linhaProdTabela.find('td:eq(1) input');
-
-  valorInput = valorInput || 1;
-
-  element.value = valorInput;
-
-  $(inputQtdProd).attr('qtdprod', valorInput);
-}
-
-function acumuladorImpEtiquetas(stClick = true) {
-  let produtos = $('[name="selecaoProdEtiqueta"]:checked');
-
-  if (!acumuladorEtiquetas?.length) {
-    acumuladorEtiquetas = [];
-  }
-
-  produtos.each(function () {
-    let idProduto = $(this).attr('id');
-    let descricaoProd = $(this).attr('descricaoProd');
-    let estiloProd = $(this).attr('estiloProd');
-    let tamanhoProd = $(this).attr('tamanhoProd');
-    let precoVenda = Number(this.value);
-    let codBarras = $(this).attr('codBarras');
-    let qtdEtiqueta = Number($(this).attr('qtdprod'));
-    let localExpProd = $(this).attr('localExposicaoProd') || '';
-    let listaPreco = $(this).attr('grupoprod');
-    let marcaProd = $(this).attr('marcaprod');
-    let stProdExistente = acumuladorEtiquetas.find(item => item.idProduto === idProduto && item.listaPreco === listaPreco);
-
-    if (stProdExistente) {
-      stProdExistente.qtdEtiqueta += parseInt(qtdEtiqueta);
-
-    } else {
-
-      acumuladorEtiquetas.push({
-        idProduto,
-        descricaoProd,
-        estiloProd,
-        tamanhoProd,
-        precoVenda,
-        codBarras,
-        qtdEtiqueta,
-        localExpProd,
-        listaPreco,
-        marcaProd,
-      });
     }
   });
 
-  if (stClick) {
-    stSaveAcumulador = true;
-    msgSuccess('Guardado com Sucesso!');
-    $('#btnDeletarAcumuladorImpEtiquetas').removeClass('d-none');
-  }
-}
-
-function deletarAcumuladorImpEtiquetas() {
-
-  Swal.fire({
-    type: 'question',
-    title: 'Deseja Limpar as Etiquetas Guardadas?',
-    text: 'Esta ação não poderá ser desfeita!',
-    showCancelButton: true,
-    confirmButtonText: 'Sim, Limpar!',
-    cancelButtonText: 'Não, Voltar!',
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#2196F3',
-    preConfirm: () => {
-      acumuladorEtiquetas = '';
-      stSaveAcumulador = false;
-
-      $('#btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
-
-      $('#selecaoTodosProdEtiqueta').prop('checked', false);
-      selecionaTodasLinhasProdEtiqueta($('#selecaoTodosProdEtiqueta')[0]);
-
-      !$('[name="selecaoProdEtiqueta"]:checked')?.length && $('#btnImpEtiqueta').addClass('d-none');
-
-    }
-  })
-    .then(resp => resp.value && msgSuccess('Limpo com Sucesso!'))
 }
 
 function listarProdsParaImprimir() {
   let listProdutos = [];
   let indice = 0;
   let tableProds = `
-        <div id="qtdProdsEtiquetas" class="d-flex flex-column  ml-4"></div>
+      <div id="qtdProdsEtiquetas" class="d-flex flex-column  ml-4"></div>
         <div class="row m-2 tableDados">
             <div class="col-sm-12 col-xl-12">
                 <div id="panel-1" class="panel">
@@ -18138,8 +17963,8 @@ function listarProdsParaImprimir() {
                   <span class="fal fa-print mr-2"></span>Impressão
                 </button>
             </div>
-        </div>    
-    `;
+      </div>    
+  `;
 
   if (!stSaveAcumulador) {
     acumuladorEtiquetas = '';
@@ -18528,154 +18353,144 @@ async function montarZplEtiquetasProdutos() {
 
   dataLabelsZPLToPrint += contador !== 0 ? endPageLabel : '';
 
-  return dataLabelsZPLToPrint;
+  return dataLabelsZPLToPrint.replace(/^[ \t]+/gm, '').replace(/^\s*$/gm, '');
 }
 
 async function impEtiquetaProdutos() {
-  if (idEmpresasTesteEtiqueta.includes(IDEmpresaLogin)) {
-    try {
+  try {
+    if (idEmpresasTesteEtiqueta.includes(IDEmpresaLogin)) {
       let dataZPLToPrint = await montarZplEtiquetasProdutos();
 
       await enviarZPLParaImpressora(dataZPLToPrint).catch((error) => { throw error });
 
-      msgSuccess('Processo de Impressão Finalizado!')
+    } else {
+      animacaoCarregamento('Aguardando o processo de impressão, favor finalizar a impressão...', 1);
 
-    } catch (error) {
-      console.log(error);
-      msgError(error);
-    }
-  } else {
-
-    animacaoCarregamento('Aguardando o processo de impressão, favor finalizar a impressão...', 1);
-
-    let conteudo = document.getElementById('resultadoImpEtiquetaProd').innerHTML;
-    let html = `
-          <html>
-              <head>
-                  <meta charset="utf-8">
-                  <title>Impressão</title>
-                  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"> 
-                  <style>
-                      body {       
-                        font-family: 'Roboto', sans-serif !important;
-                        font-size: 13px;
-                        letter-spacing: -0.05px !important;
-                        margin: 1px !important;
-                        transform: rotate(0deg);
-                        transform-origin: center;
-                      }
-      
-                      @media print{
-                      
-                          @page {
-                                  size: 11.5cm 8.5cm; 
-                                  margin: -3cm;
-                                  orientation: portrait;
+      let conteudo = document.getElementById('resultadoImpEtiquetaProd').innerHTML;
+      let html = `
+            <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Impressão</title>
+                    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"> 
+                    <style>
+                        body {       
+                          font-family: 'Roboto', sans-serif !important;
+                          font-size: 13px;
+                          letter-spacing: -0.05px !important;
+                          margin: 1px !important;
+                          transform: rotate(0deg);
+                          transform-origin: center;
+                        }
+        
+                        @media print{
+                        
+                            @page {
+                                    size: 11.5cm 8.5cm; 
+                                    margin: -3cm;
+                                    orientation: portrait;
+                                }
+                                
+                              #codBarrasEtiqueta{
+                                  width: 100% !important;
+                                  height: 100px !important;
+                              }
+        
+                            .etiqueta-page {
+                                display: flex;
+                                flex-wrap: wrap;
+                                align-content: flex-start;
+                                margin: 2px;
+                                width: 100%;
+                                height: 95%;
+                                padding: 0;
+                            }
+        
+                            .etiqueta-card {
+                                width: 26.3% ;
+                                height: 100%;
+                                margin-right: 7%;
+                                margin-bottom: 0;
+                                padding: 29% 0 0 0 !important;
+                                box-sizing: border-box;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: left;
+                                align-items: left;
+                                page-break-after: always;
+                            }
+        
+                            .dsProd{
+                                width: 103% !important;
+                                height: 35% !important;
+                                margin: 0 0 2px 4px  !important;
+                            }
+        
+                            .dsProd p{
+                                font-size: 1.3em !important;
+                                letter-spacing: -0.5px !important;
+                                margin: 0 0 0 3px !important;
+                            }
+        
+                            .divTamanho{
+                                display: flex;
+                                margin: 0 2px -0.9375em 2px;
+                            }
+                              
+                              .tamanhoDesc{
+                                  font-weight: bold;
                               }
                               
-                            #codBarrasEtiqueta{
-                                width: 100% !important;
-                                height: 100px !important;
+                            .tamanho{
+                                border: 1px solid black;
+                                text-align: center;
+                                padding: 2px !important;
                             }
-      
-                          .etiqueta-page {
-                              display: flex;
-                              flex-wrap: wrap;
-                              align-content: flex-start;
-                              margin: 2px;
-                              width: 100%;
-                              height: 95%;
-                              padding: 0;
-                          }
-      
-                          .etiqueta-card {
-                              width: 26.3% ;
-                              height: 100%;
-                              margin-right: 7%;
-                              margin-bottom: 0;
-                              padding: 29% 0 0 0 !important;
-                              box-sizing: border-box;
-                              display: flex;
-                              flex-direction: column;
-                              justify-content: left;
-                              align-items: left;
-                              page-break-after: always;
-                          }
-      
-                          .dsProd{
-                              width: 103% !important;
-                              height: 35% !important;
-                              margin: 0 0 2px 4px  !important;
-                          }
-      
-                          .dsProd p{
-                              font-size: 1.3em !important;
-                              letter-spacing: -0.5px !important;
-                              margin: 0 0 0 3px !important;
-                          }
-      
-                          .divTamanho{
-                              display: flex;
-                              margin: 0 2px -0.9375em 2px;
-                          }
-                            
-                            .tamanhoDesc{
+        
+        
+                            .preco{
+                                font-size: 1.8em !important;
                                 font-weight: bold;
+                                letter-spacing: -2px !important;
+                                display: flex !important;
+                                justify-content: flex-end !important;
+                                align-items: flex-end !important;
+                                width: 100% !important;
+                                margin-right: -12% !important;
+                                margin-bottom: -6px !important;
                             }
-                            
-                          .tamanho{
-                              border: 1px solid black;
-                              text-align: center;
-                              padding: 2px !important;
-                          }
-      
-      
-                          .preco{
-                              font-size: 1.8em !important;
-                              font-weight: bold;
-                              letter-spacing: -2px !important;
-                              display: flex !important;
-                              justify-content: flex-end !important;
-                              align-items: flex-end !important;
-                              width: 100% !important;
-                              margin-right: -12% !important;
-                              margin-bottom: -6px !important;
-                          }
-      
-                          .svgEtiqueta{ 
-                              width: 110%
-                          }
-      
-                          h2{
-                              font-size: 1.31em !important;
-                              margin: 0% !important;
-                          }
-                      }
-                  </style>
-                  <script>
-                    window.onafterprint = function() {
-                        window.close();
-                    };
-                    window.document.addEventListener('DOMContentLoaded', function() {
-                        window.focus();
-                        window.print();
-                    });
-                  </script>
-              </head>
-              <body>
-        `;
-    let tela_impressao = window.open('', '', '');
+        
+                            .svgEtiqueta{ 
+                                width: 110%
+                            }
+        
+                            h2{
+                                font-size: 1.31em !important;
+                                margin: 0% !important;
+                            }
+                        }
+                    </style>
+                    <script>
+                      window.onafterprint = function() {
+                          window.close();
+                      };
+                      window.document.addEventListener('DOMContentLoaded', function() {
+                          window.focus();
+                          window.print();
+                      });
+                    </script>
+                </head>
+                <body>
+          `;
+      let tela_impressao = window.open('', '', '');
 
-    tela_impressao.document.open();
-    tela_impressao.document.write(html);
-    tela_impressao.document.write(conteudo);
-    tela_impressao.document.write('</body></html>');
-    tela_impressao.document.close();
-    // tela_impressao.window.print();
-    // setTimeout(()=>{tela_impressao.window.close()}, 3000)
+      tela_impressao.document.open();
+      tela_impressao.document.write(html);
+      tela_impressao.document.write(conteudo);
+      tela_impressao.document.write('</body></html>');
+      tela_impressao.document.close();
 
-    // setTimeout(()=>{ 
-    animationLoadingStop()
+    }
 
     msgSuccess('Processo Impressão Finalizado!').then(() => {
       $('#modalImpEtiquetaProd').modal('hide');
@@ -18683,16 +18498,20 @@ async function impEtiquetaProdutos() {
       acumuladorEtiquetas = '';
       stSaveAcumulador = false;
 
-      $('#selecaoTodosProdEtiqueta').prop('checked', false)
-      selecionaTodasLinhasProdEtiqueta($('#selecaoTodosProdEtiqueta')[0])
+      $('#btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
+
+
+      $('#selecaoTodosProdEtiqueta').prop('checked', false).trigger('change');
     })
-    //}, 500)
+
+  } catch (error) {
+    console.log(error);
+    msgError(error);
   }
-
-
 }
 
 //? ======================================================== FIM ROTINA IMPRESSÃO ETIQUETAS CONSULTA NO SAP ======================================================== //
+
 
 //? ============================= INICIO ROTINA - IMPRESSÃO DE ETIQUETAS REMANEJAMENTO LOJA =============================?//
 // Autor: Hendryw Deyvsison
