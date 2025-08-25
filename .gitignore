@@ -41,5 +41,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/js/funcRequest.js
+js/funcRequest.js
 .vscode
