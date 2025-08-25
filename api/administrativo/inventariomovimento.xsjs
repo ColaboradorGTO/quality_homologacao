@@ -90,7 +90,7 @@ function fnHandleGet(byId) {
         query = query + 'AND p.GRUPO IN (' + listarDescGrupo + ') ';
     }
     if(IdSubgrupo){
-        query = query + 'AND p.IDSUBGRUPO IN (\'' + IdSubgrupo + '\') ';
+        query += ` AND p.IDSUBGRUPO IN(${IdSubgrupo.split(',').join(',')})`;
     }
     if(IdMarca){
         query += ` AND p.IDMARCA IN (${IdMarca.split(',').join(',')}) `;
