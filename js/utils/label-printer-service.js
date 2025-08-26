@@ -3,7 +3,7 @@ async function enviarZPLParaImpressora(labelPagesZPL) {
     return msgWarning('Nenhum arquivo enviado para impressão, verifique e tente novamente!');
   }
 
-  labelPagesZPL = labelPagesZPL.replace(/^[ \t]+/gm, '').replace(/^\s*$/gm, '');
+  labelPagesZPL = labelPagesZPL.replace(/^[ \t]+/gm, '').replace(/^\s*$(?:\r\n?|\n)/gm, '');
 
   animationLoadingStart('Conectando a Impressora, aguarde...', false);
 
