@@ -1,0 +1,150 @@
+<div id="div-pai" class="form-group">
+    <input type="hidden" name="IDEmpresaAtualizar" id="IDEmpresaAtualizar" value="">
+    <div class="row">
+        <div class="col-sm-4 col-xl-4">
+            <label class="form-label" for="IdGrupoEmpresarial">Grupo Empresarial</label>
+            <div class="input-group">
+                <select class="select2 form-control" name="IdGrupoEmpresarial" id="IdGrupoEmpresarial" disabled>
+                    <option value="">Selecione...</option>
+                    <option value="1">Tesoura de Ouro</option>
+                    <option value="2">Magazine</option>
+                    <option value="3">Yorus</option>
+                    <option value="4">Free Center</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-sm-4 col-xl-4">
+          <label class="form-label" for="status">Situação</label>
+          <div class="input-group">
+              <select class="select2 form-control" name="status" id="status" disabled>
+                  <option value="">Selecione...</option>
+                  <option value="True">ATIVO</option>
+                  <option value="False">INATIVO</option>
+              </select>
+          </div>
+      </div>
+      <div class="col-sm-4 col-xl-4">
+        <label class="form-label" for="dataCriacao">Data de Criação</label>
+        <div class="input-group">
+            <input type="date" id="dataCriacao" name="dataCriacao" class="form-control input" style="text-transform: uppercase" value="" readonly>
+        </div>
+    </div>
+    </div>
+    <div class="form-group" hidden> 
+      <div class="row">
+          <div class="col-sm-3 col-xl-3">
+              <label class="form-label" for="cnpj">CNPJ</label>
+              <div class="input-group">
+                  <input type="text" id="cnpj" maxlength="18" name="cnpj" class="form-control input" style="text-transform: uppercase"value="" readonly>
+              </div>
+          </div>
+          <div class="col-sm-3 col-xl-3">
+            <label class="form-label" for="inscricaoEstadual">Inscriação Estadual</label>
+            <div class="input-group">
+                <input type="text" id="inscricaoEstadual" maxlength="9" name="inscricaoEstadual" class="form-control input" style="text-transform: uppercase" value="" readonly>
+            </div>
+         </div>
+         <div class="col-sm-3 col-xl-3">
+          <label class="form-label" for="inscricaoMunicipal">Inscrição Municipal</label>
+          <div class="input-group">
+              <input type="text" id="inscricaoMunicipal" name="inscricaoMunicipal" class="form-control input" style="text-transform: uppercase" value="" readonly>
+          </div>
+       </div>
+         <div class="col-sm-3 col-xl-3">
+          <label class="form-label" for="cnae">CNAE</label>
+          <div class="input-group">
+              <input type="text" id="cnae" maxlength="9" name="cnae" class="form-control input" style="text-transform: uppercase" value="" readonly>
+          </div>
+       </div>
+      </div>
+    </div>
+    <div class="form-group"> 
+      <div class="row">
+        <div class="col-sm-6 col-xl-6" hidden>
+          <label class="form-label" for="razaoSocial">Razão Social</label>
+          <div class="input-group">
+              <input type="text" id="razaoSocial" name="razaoSocial" class="form-control input" style="text-transform: uppercase" value="" readonly>
+          </div>
+      </div>
+          <div class="col-sm-12 col-xl-12">
+              <label class="form-label" for="nomeFantasia">Nome Fantasia</label>
+              <div class="input-group">
+                  <input type="text" id="nomeFantasia" name="nomeFantasia" class="form-control input" style="text-transform: uppercase" value="" readonly>
+              </div>
+          </div>
+        </div>
+     </div>
+
+     <div class="form-group"> 
+      <div class="row">
+        <div class="col-sm-4 col-xl-4">
+          <label class="form-label" for="cep">CEP</label>
+          <div class="input-group">
+              <input  onkeypress="mascaraCepTempoReal(this)" inputmode="numeric" type="text" id="cep" maxlength="10" name="cep" class="form-control input" style="text-transform: uppercase" value="" readonly>
+          </div>
+      </div>
+        <div class="col-sm-4 col-xl-4">
+          <label class="form-label" for="endereco">Endereço</label>
+          <div class="input-group">
+              <input type="text" id="endereco" name="endereco" class="form-control input" style="text-transform: uppercase" value="" readonly>
+          </div>
+      </div>
+          <div class="col-sm-4 col-xl-4">
+              <label class="form-label" for="complemento">Complemento</label>
+              <div class="input-group">
+                  <input type="text" maxlength="70" id="complemento" name="complemento" class="form-control input" style="text-transform: uppercase" value="" readonly>
+              </div>
+          </div>
+          
+          <div class="col-sm-4 col-xl-4">
+            <label class="form-label" for="bairro">Bairro</label>
+            <div class="input-group">
+                <input type="text" id="bairro" name="bairro" class="form-control input" style="text-transform: uppercase" value="" readonly>
+            </div>
+        </div>
+            <div class="col-sm-4 col-xl-4">
+                <label class="form-label" for="cidade">Cidade</label>
+                <div class="input-group">
+                    <input type="text" id="cidade" name="cidade" class="form-control input" style="text-transform: uppercase" value="" readonly>
+                </div>
+            </div>
+            <div class="col-sm-4 col-xl-4">
+              <label class="form-label" for="estado">Estado</label>
+              <div class="input-group">
+                  <input type="text" maxlength="2" id="estado" name="estado" class="form-control input" style="text-transform: uppercase" value="" readonly>
+              </div>
+          </div>
+          <div class="col-sm-3 col-xl-3" hidden>
+            <label class="form-label" for="ibge">IBGE</label>
+            <div class="input-group">
+                <input type="text" id="ibge" name="ibge" class="form-control input"  style="text-transform: uppercase" value="" readonly>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-6">
+          <label class="form-label" for="email">E-mail</label>
+          <div class="input-group" id="emailEditar">
+              <input type="text" id="email" name="email" class="form-control input" style="text-transform: uppercase" value="" readonly>
+          </div>
+      </div>
+          <div class="col-sm-6 col-xl-6">
+              <label class="form-label" for="telefone">Telefone</label>
+              <div class="input-group" id="telefoneEditar">
+                  <input onkeypress="mascaraTelefoneTempoReal(this)" maxlength="16" type="text" id="telefone" name="telefone" class="form-control input" style="text-transform: uppercase" value="" readonly>
+              </div>
+          </div>
+          <div class="col-sm-3 col-xl-3" hidden>
+            <label class="form-label" for="pis">PIS</label>
+            <div class="input-group">
+                <input type="text" id="pis" name="pis" class="form-control input" style="text-transform: uppercase" value="" readonly>
+            </div>
+        </div>
+        <div class="col-sm-3 col-xl-3" hidden>
+          <label class="form-label" for="cofins">COFINS</label>
+          <div class="input-group">
+              <input type="text" id="cofins" name="cofins" class="form-control input" style="text-transform: uppercase" value="" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
