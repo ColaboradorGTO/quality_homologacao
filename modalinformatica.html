@@ -550,3 +550,30 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Detalhar Empresa-->
+<div class="modal fade" id="detalheEmpresa" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados da Empresa
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formDetalharEmpresa" name="formDetalharEmpresa" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resultadoModalDetalheEmpresa">
+  
+                    </div>
+                    <div class="modal-footer" id="footerDetalheEmpresa">
+                        <button type="button" class="btn btn-success" onclick="validaAtualizarEmpresa()">Atualizar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+  </div>

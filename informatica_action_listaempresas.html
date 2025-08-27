@@ -1,4 +1,4 @@
-<ol class="breadcrumb page-breadcrumb">
+<!--<ol class="breadcrumb page-breadcrumb">
     <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
     <li class="breadcrumb-item active">Empresas</li>
     <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
@@ -38,6 +38,53 @@
                                     <span class="fal fa-plus mr-1"></span>
                                     Cadastrar
                                 </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                        </div>
+                      </div>
+                    </div>
+                    <div id="resultado">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+-->
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Empresas</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i> Empresas <span class='fw-300'></span>
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    Pesquisa <span class="fw-300"><i> Por Loja</i></span>
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="panel-tag">
+                        <div class="row">
+                            <div id="divEmpresa" class="col-sm-6 col-xl-4">
+                                <label class="form-label" for="tpempresa">Empresa</label>
+                                <div class="input-group">
+                                    <select class="select2 form-control" name="idloja" id="idloja">
+                                        <option value="">Selecione...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-2 mt-1">
+                                <br>
+                                <button class="btn btn-primary" type="button" onclick="pesquisarEmpresas()"><span class="fal fa-search mr-1"></span>Pesquisar</button>
                             </div>
                         </div>
                         <div class="row">
