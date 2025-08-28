@@ -80,7 +80,7 @@
         <div class="col-sm-4 col-xl-4">
           <label class="form-label" for="cep">CEP</label>
           <div class="input-group">
-              <input  onkeypress="mascaraCepTempoReal(this)" inputmode="numeric" type="text" id="cep" maxlength="10" name="cep" class="form-control input" style="text-transform: uppercase" value="" readonly>
+              <input oninput="mascaraCepTempoReal(this)" onkeypress="mascaraCepTempoReal(this)" inputmode="numeric" type="text" id="cep" maxlength="10" name="cep" class="form-control input" style="text-transform: uppercase" value="" readonly>
           </div>
       </div>
         <div class="col-sm-4 col-xl-4">
@@ -130,7 +130,7 @@
           <div class="col-sm-6 col-xl-6">
               <label class="form-label" for="telefone">Telefone</label>
               <div class="input-group" id="telefoneEditar">
-                  <input onkeypress="mascaraTelefoneTempoReal(this)" maxlength="16" type="text" id="telefone" name="telefone" class="form-control input" style="text-transform: uppercase" value="" readonly>
+                  <input oninput="mascaraTelefoneTempoReal(this)" onkeypress="mascaraTelefoneTempoReal(this)" maxlength="16" type="text" id="telefone" name="telefone" class="form-control input" style="text-transform: uppercase" value="" readonly>
               </div>
           </div>
           <div class="col-sm-3 col-xl-3" hidden>
