@@ -116,15 +116,7 @@ function fnHandlePut() {
         ' "NUCEP" = ?, ' +
         ' "NUIBGE" = ?, ' +
         ' "EEMAILPRINCIPAL" = ?, ' +
-        ' "EEMAILCOMERCIAL" = ?, ' +
-        ' "EEMAILFINANCEIRO" = ?, ' +
-        ' "EEMAILCONTABILIDADE" = ?, ' +
-        ' "NUTELPUBLICO" = ?, ' +
-        ' "NUTELCOMERCIAL" = ?, ' +
-        ' "NUTELFINANCEIRO" = ?, ' +
         ' "NUTELGERENCIA" = ?, ' +
-        ' "EURL" = ?, ' +
-        ' "PATHIMG" = ?, ' +
         ' "NUCNAE" = ?, ' +
         ' "STECOMMERCE" = ?, ' +
         ' "DTULTATUALIZACAO" = ?, ' +
@@ -158,22 +150,14 @@ function fnHandlePut() {
         pStmt.setString(16, registro.NUCEP);
         pStmt.setString(17, registro.NUIBGE);
         pStmt.setString(18, registro.EEMAILPRINCIPAL);
-        pStmt.setString(19, registro.EEMAILCOMERCIAL);
-        pStmt.setString(20, registro.EEMAILFINANCEIRO);
-        pStmt.setString(21, registro.EEMAILCONTABILIDADE);
-        pStmt.setString(22, registro.NUTELPUBLICO);
-        pStmt.setString(23, registro.NUTELCOMERCIAL);
-        pStmt.setString(24, registro.NUTELFINANCEIRO);
-        pStmt.setString(25, registro.NUTELGERENCIA);
-        pStmt.setString(26, registro.EURL);
-        pStmt.setString(27, registro.PATHIMG);
-        pStmt.setString(28, registro.NUCNAE);
-        pStmt.setString(29, registro.STECOMMERCE);
-        pStmt.setDate(30, registro.DTULTATUALIZACAO);
-        pStmt.setString(31, registro.STATIVO);
-        pStmt.setFloat(32, registro.ALIQPIS);
-        pStmt.setFloat(33, registro.ALIQCOFINS);
-        pStmt.setInt(34, registro.IDEMPRESA);
+        pStmt.setString(19, registro.NUTELGERENCIA);
+        pStmt.setString(20, registro.NUCNAE);
+        pStmt.setString(21, registro.STECOMMERCE);
+        pStmt.setDate(22, registro.DTULTATUALIZACAO);
+        pStmt.setString(23, registro.STATIVO);
+        pStmt.setFloat(24, registro.ALIQPIS);
+        pStmt.setFloat(25, registro.ALIQCOFINS);
+        pStmt.setInt(26, registro.IDEMPRESA);
                     
     	pStmt.execute();
     }
