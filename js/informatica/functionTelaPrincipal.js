@@ -84,7 +84,8 @@ function mascaraValor(valor) {
 }
 
 function mascaraCep(valor) {
-	valor = String(valor).replace(/\D/g, "");
+
+	valor = String(valor).replace(/\D/g, "").slice(0, 8);
 
     if (valor) {
         valor = valor.replace(/^(\d{2})(\d)/, "$1.$2")
@@ -95,50 +96,46 @@ function mascaraCep(valor) {
     return valor;
 }
 
-function mascaraCepTempoReal(input) {
-  input.addEventListener('input', (evento) => {
-    const valorAtual = evento.target.value;
+function mascaraCepTempoReal(elemento) {
+    const valorAtual = elemento.value;
     const valorComMascara = mascaraCep(valorAtual);
-    evento.target.value = valorComMascara;
-  });
-}
-
-function limparMascara(valor) {
-    return valor.replace(/\D/g, '');
+    elemento.value = valorComMascara;
 }
 
 function mascaraTelefone(valor) {
 
-    valor = String(valor).replace(/\D/g, "")
+    valor = String(valor).replace(/\D/g, "").slice(0, 11);
 
     if (valor) {
         valor = valor.replace(/^(\d{0})(\d)/, "$1($2")
 
         valor = valor.replace(/(\d{2})(\d)/, "$1) $2")
 
-        valor = valor.replace(/(\d{3})(\d)/, "$1$2-")
+        valor = valor.length > 9 ? valor.replace(/(\d{3})(\d)/, "$1$2-"): valor;
 
         if (valor.length > 14) {
             valor = valor.replace(/\D/g, '')
             valor = valor.replace(/(\d{2})(\d)/, "($1) $2")
+            console.log(`valo1: ${valor}`)
             valor = valor.replace(/(\d)(\d{8})$/, "$1 $2")
+            console.log(`valo2: ${valor}`)
             valor = valor.replace(/(\d)(\d{4})$/, "$1-$2")
-
+            console.log(`valo3: ${valor}`)
         }
     }
 
     return valor
 }
 
-function mascaraTelefoneTempoReal(input) {
-  input.addEventListener('input', (evento) => {
-    const valorAtual = evento.target.value;
+function mascaraTelefoneTempoReal(elemento) {
+    let valorAtual = elemento.value;
     const valorComMascara = mascaraTelefone(valorAtual);
-    evento.target.value = valorComMascara;
-  });
+    elemento.value = valorComMascara;
 }
 
-
+function limparMascara(valor) {
+    return valor.replace(/\D/g, '');
+}
 
 function newDataTable(tipo) {
 
@@ -4742,7 +4739,7 @@ function ListaEmpresas() {
     }
   };
 
-  xmlhttp.open("GET", "informatica_action_listaempresas.html", true);
+  xmlhttp.open("GET", "informatica_action_listaempresas_old.html", true);
   xmlhttp.send();
 }
 
@@ -4810,7 +4807,7 @@ function pesq_empresas() {
         .catch(funcError);
     }
   };
-  xmlhttp.open("GET", "informatica_action_pesqempresas.html", true);
+  xmlhttp.open("GET", "informatica_action_pesqempresas_old.html", true);
   xmlhttp.send();
 }
 
@@ -6511,12 +6508,8 @@ function ListaPromocao() {
 ///////////////////////////////////////////////////////////// Gabriel Figueredo - 27/08/2023 /////////////////////////////////////////////////////////////
 
 async function listarEmpresas() {
-      $("#resultadoPesquisaEmpresa").html(
-        "<div align=\"center\">" +
-        "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>" +
-        "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-        "</div>"
-      );
+
+      animationLoadingStart();
 
       try {
 
@@ -6529,6 +6522,8 @@ async function listarEmpresas() {
       };
 
       pesquisarEmpresas();
+
+      animationLoadingStop();
 };
 
 function retornoEmpresasSelect(respostaEmpresasSelect) {
@@ -6601,7 +6596,7 @@ function retornoPesquisaListaEmpresa(respostaPesquisaListaEmpresa) {
                 idEmpresa,
                 dsEmpresa,
                 email,
-                telefone,
+                mascaraTelefone(telefone),
                 opcoes
             ]);
         }
@@ -6677,14 +6672,14 @@ function retornoDetalhePesquisaEmpresa(respostaDetalhePesquisaEmpresa) {
     $('#status').val(registro.STATIVO);
     $('#dataCriacao').val(registro.DTULTATUALIZACAO.slice(0, 10));
     $('#nomeFantasia').val(registro.NOFANTASIA);
-    $('#cep').val(registro.NUCEP);
+    $('#cep').val(mascaraCep(registro.NUCEP));
     $('#endereco').val(registro.EENDERECO);
     $('#complemento').val(registro.ECOMPLEMENTO);
     $('#bairro').val(registro.EBAIRRO);
     $('#cidade').val(registro.ECIDADE);
     $('#estado').val(registro.SGUF);
     $('#email').val(registro.EEMAILPRINCIPAL);
-    $('#telefone').val(registro.NUTELGERENCIA);
+    $('#telefone').val(mascaraTelefone(registro.NUTELGERENCIA));
 
 }
 
@@ -6733,10 +6728,10 @@ function retornoDadosEmpresa(respAtualizarEmpresa) {
     $("#bairro").val(registro.EBAIRRO);
     $("#cidade").val(registro.ECIDADE);
     $("#estado").val(registro.SGUF);
-    $("#cep").val(mascaraCep(registro.NUCEP));
+    $("#cep").val(mascaraCep(registro.NUCEP).slice(0, 10));
     $("#ibge").val(registro.NUIBGE);
     $("#email").val(registro.EEMAILPRINCIPAL);
-    $("#telefone").val(mascaraTelefone(registro.NUTELGERENCIA));
+    $("#telefone").val(mascaraTelefone(registro.NUTELGERENCIA).slice(0, 16));
     $("#dataCriacao").val((registro.DTULTATUALIZACAO).slice(0, 10));
     $("#status").val(registro.STATIVO);
     $("#pis").val(registro.ALIQPIS);
@@ -6791,8 +6786,22 @@ async function atualizarEmpresa() {
     let dados = await validarDadosEmpresa();
 
     if(dados) {
+
+      let textdados = JSON.stringify(dados);
+
+      let dadosLog = [
+          {
+              "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+              "PATHFUNCAO": "INFORMATICA/EDICAO EMPRESA",
+              "DADOS": textdados,
+              "IP": ipCliente
+          }
+      ];
+
       try {
-        await ajaxPut('api/empresa.xsjs', dados).then(funcSuccessUpdateEmpresa)
+        await ajaxPut('api/empresa.xsjs', dados);
+        await ajaxPost("api/log-web.xsjs", dadosLog);
+        funcSuccessUpdateEmpresa();
       } catch(error) {
         msgError(error);
       }
