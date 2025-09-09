@@ -12036,10 +12036,6 @@ async function valida_e_preenche_cep_empresa_com_API_externa(cepSemFormato, stUl
                 $("#Estado").val(dadosCep?.uf);
                 $("#NuIBGE").val(dadosCep?.ibge);
 
-                if($('#tipoClienteEmpresa').val() == 'CPF'){
-                    $('#idIndicacaoIE').val((dadosCep?.uf == 'DF' ? 2 : 9)).trigger('change');
-                }
-
             } else{
                 $("#Bairro, #NuIBGE, #Cidade, #Estado").val('');
 
@@ -18349,6 +18345,7 @@ async function montarZplEtiquetasProdutos() {
     ^PW850
     ^LL320
     ^CI28
+    ^BY2,3,500
   `;
   let endPageLabel = '^XZ';
   let dataLabelsZPLToPrint = startPageLabel;
@@ -18384,7 +18381,6 @@ async function montarZplEtiquetasProdutos() {
           ^FO${positionDefault},265^A0N,22^FDTAM^FS
           ^FO${positionPrice},300^A0,${fontSizePrice}^FD${precoVenda}^FS
           ^FO${positionTamanho},300^A0N,22^FD${tamanhoProd}^FS
-          ^BY1.6,3,500
           ^FO${positionCodBars},340
           ^BEN,55,Y,N
           ^FD${codBarras}^FS
@@ -18565,7 +18561,6 @@ async function impEtiquetaProdutos() {
 }
 
 //? ======================================================== FIM ROTINA IMPRESSÃO ETIQUETAS CONSULTA NO SAP ======================================================== //
-
 
 //? ============================= INICIO ROTINA - IMPRESSÃO DE ETIQUETAS REMANEJAMENTO LOJA =============================?//
 // Autor: Hendryw Deyvsison
@@ -18795,3 +18790,4 @@ async function imprimirEtiquetaRemanejamento() {
         console.error(error);
     }
 }
+//? ============================= FIM ROTINA - IMPRESSÃO DE ETIQUETAS REMANEJAMENTO LOJA =============================?//

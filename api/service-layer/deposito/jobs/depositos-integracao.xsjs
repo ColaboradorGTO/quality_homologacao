@@ -376,16 +376,16 @@ function integrarDepositosNoSAP(byId) {
         INNER JOIN "VAR_DB_NAME".BANCO TBB ON
             TBC.IDBANCO = TBB.IDBANCO
         WHERE
-            /*(TO_DATE(TBD.DTMOVIMENTOCAIXA) BETWEEN '2025-05-25' AND '2025-06-30')
-            AND (TO_DATE(TBD.DTDEPOSITO) BETWEEN '2025-06-01' AND '2025-06-30')
-            AND */
             1 = ?
+            --AND TO_DATE(TBD.DTDEPOSITO) >= '2025-08-01'
             AND TBD.STATIVO = 'True'
             AND TBD.STCANCELADO = 'False'
             AND TBD.STCONFERIDO = 'True'
             AND TBD.STATUS_BLOQUEIO_ATUALIZACAO = 'False'
+            AND (TBC.TPCONTA = 'BANCO' OR TBC.TPCONTA = 'TRANSPORTEVALORES' OR TBC.TPCONTA = 'DEVSOBRA')
             --AND IFNULL(TO_VARCHAR(TBD.ERRORLOGSAP), '') = ''
-            AND ((TBD.DTDEPOSITO <> TBD.DTCOMPENSACAO AND IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) = 0) OR IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_RECEBER, 0) = 0)
+            AND TBD.DTCOMPENSACAO IS NOT NULL 
+            AND (IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) = 0 OR IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_RECEBER, 0) = 0)
     `;
 	
 	var bodyJson = JSON.parse($.request.body.asString()); 
@@ -420,6 +420,7 @@ function integrarDepositosNoSAP(byId) {
             let registro = dadosDeposito[i];
             let {
                 IDDEPOSITOLOJA,
+                TPCONTA,
                 DTDEPOSITO,
                 DTCOMPENSACAO,
                 DOCENTRY_SAP_CONTAS_A_PAGAR,
@@ -439,7 +440,7 @@ function integrarDepositosNoSAP(byId) {
                 }
             }
             
-            if(DOCENTRY_SAP_CONTAS_A_RECEBER == 0 && (stIntegrarNaTransitoria == false || respIntegracaoNaTransitoria == true)){//(respIntegracaoNaTransitoria == null || respIntegracaoNaTransitoria == true)){
+            if(TPCONTA !== 'DEVSOBRA' && DOCENTRY_SAP_CONTAS_A_RECEBER == 0 && respIntegracaoNaTransitoria == true){
                 let stIntegrarNaContaBanco = !fnValidarIntegracaoContasReceberSAP(IDDEPOSITOLOJA, false);
                 
                 if(stIntegrarNaContaBanco){
