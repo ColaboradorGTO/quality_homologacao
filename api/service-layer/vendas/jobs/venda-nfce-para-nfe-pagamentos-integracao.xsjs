@@ -185,7 +185,7 @@ function excutePagamentoNaoIntegrado(byId) {
             
             let queryPagamentoPix = `
                 SELECT 
-                    "VALORRECEBIDO" 
+                    SUM("VALORRECEBIDO") AS "VALORRECEBIDO"
                 FROM 
                     "VAR_DB_NAME".VENDAPAGAMENTO 
                 WHERE 
