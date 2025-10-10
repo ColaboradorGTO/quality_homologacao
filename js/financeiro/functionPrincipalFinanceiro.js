@@ -11518,235 +11518,235 @@ async function updateDadosMalote(idMalote, modo) {
 //? ============================================== INICIO ROTINA MENU LISTA CONCILIAÇÃO POR BANCOS ==============================================//
 
 function retornoListaContaBancoSelect(respostaListaContaBancos) {
-  let { data } = respostaListaContaBancos || '';
+    let { data } = respostaListaContaBancos || '';
 
-  $('#idcontabanco').html('<option value="">Selecione...</option>');
+    $('#idcontabanco').html('<option value="">Selecione...</option>');
 
-  for (let { IDCONTABANCO, DSCONTABANCO } of data) {
-    $('#idcontabanco').append(
-      `<option value="${IDCONTABANCO}"> ${IDCONTABANCO} - ${DSCONTABANCO}</option>`
-    );
-  }
+    for (let { IDCONTABANCO, DSCONTABANCO } of data) {
+        $('#idcontabanco').append(
+            `<option value="${IDCONTABANCO}"> ${IDCONTABANCO} - ${DSCONTABANCO}</option>`
+        );
+    }
 
-  $('#idcontabanco').select2();
+    $('#idcontabanco').select2();
 }
 
 function formatarData(data) {
-  if (!data) return '';
+    if (!data) return '';
 
-  // Verifica se a data está no formato ISO 8601
-  if (data.includes('T')) {
-    const dataObj = new Date(data);
-    return `${dataObj.getFullYear()}${('0' + (dataObj.getMonth() + 1)).slice(-2)}${('0' + dataObj.getDate()).slice(-2)}`;
-  }
+    // Verifica se a data está no formato ISO 8601
+    if (data.includes('T')) {
+        const dataObj = new Date(data);
+        return `${dataObj.getFullYear()}${('0' + (dataObj.getMonth() + 1)).slice(-2)}${('0' + dataObj.getDate()).slice(-2)}`;
+    }
 
-  // Verifica se a data está no formato yyyy-mm-dd
-  if (data.includes('-')) {
-    return data.replace(/-/g, '');
-  }
+    // Verifica se a data está no formato yyyy-mm-dd
+    if (data.includes('-')) {
+        return data.replace(/-/g, '');
+    }
 
-  // Verifica se a data está no formato dd/mm/yyyy
-  if (data.includes('/')) {
-    const partes = data.split(' ')[0].split('/');
-    return `${partes[2]}${partes[1]}${partes[0]}`;
-  }
+    // Verifica se a data está no formato dd/mm/yyyy
+    if (data.includes('/')) {
+        const partes = data.split(' ')[0].split('/');
+        return `${partes[2]}${partes[1]}${partes[0]}`;
+    }
 
-  return '';
+    return '';
 }
 
 function selecionarTodasConciliações(element) {
-  let id = $(element).attr('id');
-  let label = $(`label[for='${id}']`);
-  let stChecked = $(element).prop('checked');
-  let tabela = $('#dt-basic-conciliarbanco').DataTable();
+    let id = $(element).attr('id');
+    let label = $(`label[for='${id}']`);
+    let stChecked = $(element).prop('checked');
+    let tabela = $('#dt-basic-conciliarbanco').DataTable();
 
-  label.text(stChecked ? 'Desmarcar Todos' : 'Marcar Todos');
+    label.text(stChecked ? 'Desmarcar Todos' : 'Marcar Todos');
 
-  if (stChecked) {
-    Swal.fire({
-      type: 'question',
-      title: 'Selecione o modo de seleção',
-      text: 'Deseja selecionar todos da tabela ou somente o que está em tela?',
-      showConfirmButton: true,
-      showCancelButton: true,
-      showCloseButton: true,
-      confirmButtonText: 'Todos os registros',
-      cancelButtonText: 'Apenas o que está tela',
-      cancelButtonColor: '#2196F3',
-      allowOutsideClick: false,
-    })
-      .then((resp) => {
-        if (resp.value) {
-          tabela.rows().every(function () {
+    if(stChecked){
+        Swal.fire({
+            type: 'question',
+            title: 'Selecione o modo de seleção',
+            text: 'Deseja selecionar todos da tabela ou somente o que está em tela?',
+            showConfirmButton: true,
+            showCancelButton: true,
+            showCloseButton: true,
+            confirmButtonText: 'Todos os registros',
+            cancelButtonText: 'Apenas o que está tela',
+            cancelButtonColor: '#2196F3',
+            allowOutsideClick: false,
+        })
+        .then((resp)=>{
+            if(resp.value){
+                tabela.rows().every(function () {
+                    let linhaTabela = $(this.node())
+                    $row = linhaTabela;
+
+                    linhaTabela.find("input[name='chkConciliacao']").prop('checked', stChecked).trigger('change');
+                });
+            } 
+
+            if (resp.dismiss == 'cancel'){
+                $("input[name='chkConciliacao']").prop('checked', stChecked).trigger('change');
+            }
+        })
+    } else {
+        tabela.rows().every(function () {
             let linhaTabela = $(this.node())
             $row = linhaTabela;
 
-            linhaTabela.find("input[name='chkConciliacao']").prop('checked', stChecked).trigger('change');
-          });
-        }
-
-        if (resp.dismiss == 'cancel') {
-          $("input[name='chkConciliacao']").prop('checked', stChecked).trigger('change');
-        }
-      })
-  } else {
-    tabela.rows().every(function () {
-      let linhaTabela = $(this.node())
-      $row = linhaTabela;
-
-      linhaTabela.find("input[name='chkConciliacao'").prop('checked', stChecked).trigger('change');
-    });
-  }
+            linhaTabela.find("input[name='chkConciliacao'").prop('checked', stChecked).trigger('change');
+        });
+    }
 }
 
 async function ListaConciliarBanco() {
-  try {
-    animationLoadingStart();
+    try {
+        animationLoadingStart();
 
-    await $.get("financeiro_action_listconciliarbanco.html", (respHtml) => {
-      $("#js-page-content").html(respHtml);
+        await $.get("financeiro_action_listconciliarbanco.html", (respHtml) => {
+            $("#js-page-content").html(respHtml);
 
-      $('.dataAtual').text(dataAtual);
-      $("#idcontabanco").select2();
-    })
-      .fail((error) => { throw new Error(error) });
+            $('.dataAtual').text(dataAtual);
+            $("#idcontabanco").select2();
+        })
+            .fail((error) => { throw new Error(error) });
 
-    await ajaxGetAllData('api/conta-banco.xsjs', false)
-      .then(retornoListaContaBancoSelect)
-      .catch((error) => { throw new Error(error) });
+        await ajaxGetAllData('api/conta-banco.xsjs', false)
+            .then(retornoListaContaBancoSelect)
+            .catch((error) => { throw new Error(error) });
 
-    animationLoadingStop();
+        animationLoadingStop();
 
-    setTimeout(() => $("#idcontabanco").select2('open'), 300);
-  } catch (error) {
-    console.log(error);
-    msgError();
-  }
+        setTimeout(() => $("#idcontabanco").select2('open'), 300);
+    } catch (error) {
+        console.log(error);
+        msgError();
+    }
 }
 
 async function pesq_conciliar_banco_compensacao() {
-  try {
-    let IDConta = $("#idcontabanco").val() || '';
-    let datapesqinicio = $("#dtconsultainicio").val() || '';
-    let datapesqfim = $("#dtconsultafim").val() || '';
-    let datacompinicio = $("#dtcompinicio").val() || '';
-    let datacompfim = $("#dtcompfim").val() || '';
-    let datamovinicio = $("#dtmovinicio").val() || '';
-    let datamovfim = $("#dtmovfim").val() || '';
+    try {
+        let IDConta = $("#idcontabanco").val() || '';
+        let datapesqinicio = $("#dtconsultainicio").val() || '';
+        let datapesqfim = $("#dtconsultafim").val() || '';
+        let datacompinicio = $("#dtcompinicio").val() || '';
+        let datacompfim = $("#dtcompfim").val() || '';
+        let datamovinicio = $("#dtmovinicio").val() || '';
+        let datamovfim = $("#dtmovfim").val() || '';
 
 
-    if ((datapesqinicio == '' && datapesqfim == '') && (datacompinicio == '' && datacompfim == '') && (datamovinicio == '' && datamovfim == '')) {
-      return msgWarning('Informe ao menos uma das Datas para a pesquisa').then(() => {
-        setTimeout(() => $("#dtconsultainicio").focus(), 300)
-      });
+        if ((datapesqinicio == '' && datapesqfim == '') && (datacompinicio == '' && datacompfim == '') && (datamovinicio == '' && datamovfim == '')) {
+            return msgWarning('Informe ao menos uma das Datas para a pesquisa').then(() => {
+                setTimeout(() => $("#dtconsultainicio").focus(), 300)
+            });
+        }
+
+        if ((datapesqinicio != '' && datapesqfim != '') && (datacompinicio != '' && datacompfim != '') && (datamovinicio != '' && datamovfim != '')) {
+
+            return msgWarning('Informe só uma das Datas: DEPÓSITO OU COMPENSAÇÃO').then(() => {
+                setTimeout(() => $("#dtconsultainicio").focus(), 300)
+            });
+        }
+
+        await ajaxGetAllData(`api/financeiro/deposito-loja.xsjs?page=1&pageSize=1000&idConta=${IDConta}&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}&dataCompInicio=${datacompinicio}&dataCompFim=${datacompfim}&datamovinicio=${datamovinicio}&datamovfim=${datamovfim}`)
+            .then(retornoListaConciliarCompensacao)
+            .catch((error) => { throw new Error(error) });
+
+        if (datamovinicio != '' && datamovfim != '') {
+            $('.panel-hdr').html(`<h2>Lista de Compensação <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data do Movimento</span></h2>`);
+        }
+
+        if (datacompinicio != '' && datacompfim != '') {
+            $('.panel-hdr').html(`<h2>Lista de Compensação <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data da Compensação</span></h2>`);
+        }
+
+        if (datapesqinicio != '' && datapesqfim != '') {
+            $('.panel-hdr').html(`<h2>Lista de Compensação <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data do Depósito</span></h2>`);
+        }
+
+    } catch (error) {
+        console.log(error);
+        msgError();
     }
-
-    if ((datapesqinicio != '' && datapesqfim != '') && (datacompinicio != '' && datacompfim != '') && (datamovinicio != '' && datamovfim != '')) {
-
-      return msgWarning('Informe só uma das Datas: DEPÓSITO OU COMPENSAÇÃO').then(() => {
-        setTimeout(() => $("#dtconsultainicio").focus(), 300)
-      });
-    }
-
-    await ajaxGetAllData(`api/financeiro/deposito-loja.xsjs?page=1&pageSize=1000&idConta=${IDConta}&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}&dataCompInicio=${datacompinicio}&dataCompFim=${datacompfim}&datamovinicio=${datamovinicio}&datamovfim=${datamovfim}`)
-      .then(retornoListaConciliarCompensacao)
-      .catch((error) => { throw new Error(error) });
-
-    if (datamovinicio != '' && datamovfim != '') {
-      $('.panel-hdr').html(`<h2>Lista de Compensação <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data do Movimento</span></h2>`);
-    }
-
-    if (datacompinicio != '' && datacompfim != '') {
-      $('.panel-hdr').html(`<h2>Lista de Compensação <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data da Compensação</span></h2>`);
-    }
-
-    if (datapesqinicio != '' && datapesqfim != '') {
-      $('.panel-hdr').html(`<h2>Lista de Compensação <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data do Depósito</span></h2>`);
-    }
-
-  } catch (error) {
-    console.log(error);
-    msgError();
-  }
 }
 
 function retornoListaConciliarCompensacao(respostaListaConciliarCompensacao) {
-  let { data } = respostaListaConciliarCompensacao || '';
-  let contaBancoSelecionada = $('#idcontabanco').val();
-  let dadosTable = [];
-  let totalVrDepositadoCons = 0;
+    let { data } = respostaListaConciliarCompensacao || '';
+    let contaBancoSelecionada = $('#idcontabanco').val();
+    let dadosTable = [];
+    let totalVrDepositadoCons = 0;
 
-  $('#totalResultadoConciliarBanco').html('');
+    $('#totalResultadoConciliarBanco').html('');
 
-  if (data?.length > 0) {
-    for (let registro of data) {
-      let contaCreditoSap = registro.CONTACREDITOSAP;
-      let contaDebitoSap = registro.NUCONTASAP;
-      let idDepositoConciliar = registro.IDDEPOSITOLOJA;
-      let dataMovimentoCaixaConciliar = registro.DTMOVIMENTOCAIXA;
-      let dataCompensacaoConciliar = registro.DTCOMPENSACAO;
-      let dataDepositoConciliar = registro.DTDEPOSITO;
+    if (data?.length > 0) {
+        for (let registro of data) {
+            let contaCreditoSap = registro.CONTACREDITOSAP;
+            let contaDebitoSap = registro.NUCONTASAP;
+            let idDepositoConciliar = registro.IDDEPOSITOLOJA;
+            let dataMovimentoCaixaConciliar = registro.DTMOVIMENTOCAIXA;
+            let dataCompensacaoConciliar = registro.DTCOMPENSACAO;
+            let dataDepositoConciliar = registro.DTDEPOSITO;
 
-      let valorDepositoConciliar = registro.VRDEPOSITO;
-      let statusConciliar = registro.STCANCELADO;
-      let descricaoContaBancoConciliar = registro.DSCONTABANCO;
-      let DocumentoConciliar = registro.NUDOCDEPOSITO;
-      let descricaoBancoConciliar = registro.DSBANCO;
-      let noFantasiaConciliar = registro.NOFANTASIA;
-      let stConferidoDepConciliar = registro.STCONFERIDO;
-      let contaTransitoriaSap = '';
+            let valorDepositoConciliar = registro.VRDEPOSITO;
+            let statusConciliar = registro.STCANCELADO;
+            let descricaoContaBancoConciliar = registro.DSCONTABANCO;
+            let DocumentoConciliar = registro.NUDOCDEPOSITO;
+            let descricaoBancoConciliar = registro.DSBANCO;
+            let noFantasiaConciliar = registro.NOFANTASIA;
+            let stConferidoDepConciliar = registro.STCONFERIDO;
+            let contaTransitoriaSap = '';
 
-      if (contaBancoSelecionada === '43' || contaBancoSelecionada === '218' || contaBancoSelecionada === '58' || contaBancoSelecionada === '10006' || contaBancoSelecionada === '10018' || contaBancoSelecionada === '10008') {
-        contaTransitoriaSap = '1.01.01.01.0003';
-      } else if (contaBancoSelecionada === '3') {
-        contaTransitoriaSap = '1.01.01.01.0004';
-      } else if (contaBancoSelecionada === '10023') {
-        contaTransitoriaSap = '4.01.01.09.0004';
-      } else if (contaBancoSelecionada === '10') {
-        contaTransitoriaSap = '1.01.01.01.0002';
-      }
+            if (contaBancoSelecionada === '43' || contaBancoSelecionada === '218' || contaBancoSelecionada === '58' || contaBancoSelecionada === '10006' || contaBancoSelecionada === '10018' || contaBancoSelecionada === '10008') {
+                contaTransitoriaSap = '1.01.01.01.0003';
+            } else if (contaBancoSelecionada === '3') {
+                contaTransitoriaSap = '1.01.01.01.0004';
+            } else if (contaBancoSelecionada === '10023') {
+                contaTransitoriaSap = '4.01.01.09.0004';
+            } else if (contaBancoSelecionada === '10') {
+                contaTransitoriaSap = '1.01.01.01.0002';
+            }
 
-      if (stConferidoDepConciliar == 'True') {
-        htmlStConfConciliar = `<label style="color: green; font-size: 11px;"><b>Conciliado</b></label>`;
-        htmlOpcaoConciliar = `<div class="btn-group btn-group-xs">
+            if (stConferidoDepConciliar == 'True') {
+                htmlStConfConciliar = `<label style="color: green; font-size: 11px;"><b>Conciliado</b></label>`;
+                htmlOpcaoConciliar = `<div class="btn-group btn-group-xs">
                             <button type="button" class="btn btn-danger btn-xs" title="Cancelar Conciliação" id="`+ idDepositoConciliar + `" onclick="cancelarConciliacaoDeposito(this.id);">Cancelar</button>
                         </div>`;
-      } else {
-        htmlStConfConciliar = `<label style="color: red; font-size: 11px;"><b>Não Conciliado</b></label>`;
-        htmlOpcaoConciliar = `<div class="btn-group btn-group-xs"></div>`;
-      }
+            } else {
+                htmlStConfConciliar = `<label style="color: red; font-size: 11px;"><b>Não Conciliado</b></label>`;
+                htmlOpcaoConciliar = `<div class="btn-group btn-group-xs"></div>`;
+            }
 
-      if (dataCompensacaoConciliar == null || dataCompensacaoConciliar == '') {
-        dataCompensacaoConciliar = '';
-      } else {
-        dataCompensacaoConciliar = dataCompensacaoConciliar;
-      }
+            if (dataCompensacaoConciliar == null || dataCompensacaoConciliar == '') {
+                dataCompensacaoConciliar = '';
+            } else {
+                dataCompensacaoConciliar = dataCompensacaoConciliar;
+            }
 
-      if (statusConciliar === 'False') {
-        htmlStatusConciliar = `<label style="color: blue; font-size: 11px;"><b>Dep. Ativo</b></label>`;
-        totalVrDepositadoCons = totalVrDepositadoCons + valorDepositoConciliar;
-      } else if (statusConciliar === 'True') {
-        htmlStatusConciliar = `<label style="color: red; font-size: 11px;"><b>Dep. Cancelado</b></label>`;
-      }
+            if (statusConciliar === 'False') {
+                htmlStatusConciliar = `<label style="color: blue; font-size: 11px;"><b>Dep. Ativo</b></label>`;
+                totalVrDepositadoCons = totalVrDepositadoCons + valorDepositoConciliar;
+            } else if (statusConciliar === 'True') {
+                htmlStatusConciliar = `<label style="color: red; font-size: 11px;"><b>Dep. Cancelado</b></label>`;
+            }
 
-      dadosTable.push([
-        noFantasiaConciliar,
-        contaTransitoriaSap,
-        contaDebitoSap,
-        dataCompensacaoConciliar,
-        descricaoBancoConciliar,
-        parseFloat(valorDepositoConciliar.replace(',', '.')),
-        DocumentoConciliar,
-        htmlStatusConciliar,
-        htmlStConfConciliar,
-        htmlOpcaoConciliar
-      ]);
+            dadosTable.push([
+                noFantasiaConciliar,
+                contaTransitoriaSap,
+                contaDebitoSap,
+                dataCompensacaoConciliar,
+                descricaoBancoConciliar,
+                parseFloat(valorDepositoConciliar.replace(',', '.')),
+                DocumentoConciliar,
+                htmlStatusConciliar,
+                htmlStConfConciliar,
+                htmlOpcaoConciliar
+            ]);
+
+        }
 
     }
 
-  }
-
-  $('#resultado').html(`
+    $('#resultado').html(`
         <div class="row">
             <div class="col-xl-12">
                 <div id="panel-1" class="panel">
@@ -11788,113 +11788,113 @@ function retornoListaConciliarCompensacao(respostaListaConciliarCompensacao) {
     `);
 
 
-  $('#dt-basic-conciliarbanco').DataTable({
-    data: dadosTable,
-    deferRender: true,
-    title: 'Conciliação de Depósitos Compensação  por Bancos',
-    responsive: true,
-    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-      "<'row'<'col-sm-12'tr>>" +
-      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-    buttons: [
-      {
-        extend: 'pdfHtml5',
-        text: 'PDF',
-        titleAttr: 'Generate PDF',
-        className: 'btn-outline-danger btn-sm mr-1'
-      },
-      {
-        extend: 'excelHtml5',
-        text: 'Excel',
-        titleAttr: 'Gerar Excel',
-        className: 'btn-outline-success btn-sm mr-1',
-        exportOptions: {
-          format: {
-            body: function (data, row, column, node) {
-              if (column === 3) {
-                return formatarData(data);
-              }
-              if (column === 5) {
-                return parseFloat(data.toString().replace('.', ','));
-              }
-              if (column === 7 || column === 8 || column === 9) {
-                return $(data).text();
-              }
-              return data;
+    $('#dt-basic-conciliarbanco').DataTable({
+        data: dadosTable,
+        deferRender: true,
+        title: 'Conciliação de Depósitos Compensação  por Bancos',
+        responsive: true,
+        dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            {
+                extend: 'pdfHtml5',
+                text: 'PDF',
+                titleAttr: 'Generate PDF',
+                className: 'btn-outline-danger btn-sm mr-1'
+            },
+            {
+                extend: 'excelHtml5',
+                text: 'Excel',
+                titleAttr: 'Gerar Excel',
+                className: 'btn-outline-success btn-sm mr-1',
+                exportOptions: {
+                    format: {
+                        body: function (data, row, column, node) {
+                            if (column === 3) {
+                                return formatarData(data);
+                            }
+                            if (column === 5) {
+                                return parseFloat(data.toString().replace('.', ','));
+                            }
+                            if (column === 7 || column === 8 || column === 9) {
+                                return $(data).text();
+                            }
+                            return data;
+                        }
+                    }
+
+                }
+            },
+            {
+                extend: 'print',
+                text: 'Print',
+                titleAttr: 'Print Table',
+                className: 'btn-outline-primary btn-sm'
             }
-          }
+        ]
+    });
 
-        }
-      },
-      {
-        extend: 'print',
-        text: 'Print',
-        titleAttr: 'Print Table',
-        className: 'btn-outline-primary btn-sm'
-      }
-    ]
-  });
-
-  $('#totalResultadoConciliarBanco').html(
-    `<tr>
+    $('#totalResultadoConciliarBanco').html(
+        `<tr>
             <th colspan="5" style="text-align: center;">Total</th>
             <th>` + mascaraValor(parseFloat(totalVrDepositadoCons).toFixed(2)) + `</th>
             <th colspan="4" style="text-align: center;"></th>
         </tr>`
-  );
+    );
 }
 
 async function pesq_conciliar_banco() {
-  try {
-    let IDConta = $("#idcontabanco").val() || '';
-    let datapesqinicio = $("#dtconsultainicio").val() || '';
-    let datapesqfim = $("#dtconsultafim").val() || '';
-    let datacompinicio = $("#dtcompinicio").val() || '';
-    let datacompfim = $("#dtcompfim").val() || '';
-    let datamovinicio = $("#dtmovinicio").val() || '';
-    let datamovfim = $("#dtmovfim").val() || '';
+    try {
+        let IDConta = $("#idcontabanco").val() || '';
+        let datapesqinicio = $("#dtconsultainicio").val() || '';
+        let datapesqfim = $("#dtconsultafim").val() || '';
+        let datacompinicio = $("#dtcompinicio").val() || '';
+        let datacompfim = $("#dtcompfim").val() || '';
+        let datamovinicio = $("#dtmovinicio").val() || '';
+        let datamovfim = $("#dtmovfim").val() || '';
 
-    $('#btnIntegrarTodosDepositos').removeClass('d-flex').addClass('d-none');
+        $('#btnIntegrarTodosDepositos').removeClass('d-flex').addClass('d-none');
 
-    if ((datapesqinicio == '' && datapesqfim == '') && (datacompinicio == '' && datacompfim == '') && (datamovinicio == '' && datamovfim == '')) {
-      return msgWarning('Informe ao menos uma das Datas para a pesquisa').then(() => {
-        setTimeout(() => $("#dtconsultainicio").focus(), 300)
-      });
+        if ((datapesqinicio == '' && datapesqfim == '') && (datacompinicio == '' && datacompfim == '') && (datamovinicio == '' && datamovfim == '')) {
+            return msgWarning('Informe ao menos uma das Datas para a pesquisa').then(() => {
+                setTimeout(() => $("#dtconsultainicio").focus(), 300)
+            });
+        }
+
+        if ((datapesqinicio != '' && datapesqfim != '') && (datacompinicio != '' && datacompfim != '') && (datamovinicio != '' && datamovfim != '')) {
+
+            return msgWarning('Informe só uma das Datas: DEPÓSITO OU COMPENSAÇÃO').then(() => {
+                setTimeout(() => $("#dtconsultainicio").focus(), 300)
+            });
+        }
+
+        animationLoadingStart();
+
+        let dados = await ajaxGetAllData(`api/financeiro/deposito-loja.xsjs?page=1&idConta=${IDConta}&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}&dataCompInicio=${datacompinicio}&dataCompFim=${datacompfim}&datamovinicio=${datamovinicio}&datamovfim=${datamovfim}`, false);
+
+        await retornoListaConciliarBanco(dados);
+
+        $('.dataAtual').text(dataAtual);
+
+        if (datamovinicio != '' && datamovfim != '') {
+            $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data do Movimento</span></h2>`);
+        }
+
+        if (datacompinicio != '' && datacompfim != '') {
+            $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data da Compensação</span></h2>`);
+        }
+
+        if (datapesqinicio != '' && datapesqfim != '') {
+            $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data do Depósito</span></h2>`);
+        }
+
+        animationLoadingStop();
+
+    } catch (error) {
+        console.log(error);
+        msgError();
     }
-
-    if ((datapesqinicio != '' && datapesqfim != '') && (datacompinicio != '' && datacompfim != '') && (datamovinicio != '' && datamovfim != '')) {
-
-      return msgWarning('Informe só uma das Datas: DEPÓSITO OU COMPENSAÇÃO').then(() => {
-        setTimeout(() => $("#dtconsultainicio").focus(), 300)
-      });
-    }
-
-    animationLoadingStart();
-
-    let dados = await ajaxGetAllData(`api/financeiro/deposito-loja.xsjs?page=1&idConta=${IDConta}&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}&dataCompInicio=${datacompinicio}&dataCompFim=${datacompfim}&datamovinicio=${datamovinicio}&datamovfim=${datamovfim}`, false);
-
-    await retornoListaConciliarBanco(dados);
-
-    $('.dataAtual').text(dataAtual);
-
-    if (datamovinicio != '' && datamovfim != '') {
-      $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data do Movimento</span></h2>`);
-    }
-
-    if (datacompinicio != '' && datacompfim != '') {
-      $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data da Compensação</span></h2>`);
-    }
-
-    if (datapesqinicio != '' && datapesqfim != '') {
-      $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Por Bancos</i> - Pesquisa pela data do Depósito</span></h2>`);
-    }
-
-    animationLoadingStop();
-
-  } catch (error) {
-    console.log(error);
-    msgError();
-  }
 }
 
 async function retornoListaConciliarBanco(respostaListaConciliarBanco) {
@@ -11909,6 +11909,7 @@ async function retornoListaConciliarBanco(respostaListaConciliarBanco) {
       let idDepositoConciliar = registro.IDDEPOSITOLOJA;
       let dataMovimentoCaixaConciliar = registro.DTMOVIMENTOCAIXA;
       let dataCompensacaoConciliar = registro.DTCOMPENSACAO || '';
+      let dtMovDeposito = registro?.DTMOVDEP;
       let dataDepositoConciliar = registro.DTDEPOSITO;
       let valorDepositoConciliar = registro.VRDEPOSITO;
       let statusConciliar = registro.STCANCELADO;
@@ -11921,35 +11922,44 @@ async function retornoListaConciliarBanco(respostaListaConciliarBanco) {
       let docEntryContasPagar = registro?.DOCENTRY_SAP_CONTAS_A_PAGAR || 0;
       let docEntryContasReceber = registro?.DOCENTRY_SAP_CONTAS_A_RECEBER || 0;
       let stEmFilaParaIntegracao = registro.STATUS_BLOQUEIO_ATUALIZACAO == 'True';
-      let erroLogIntegracao = registro?.ERRORLOGSAP?.trim() || '';
+      let erroLogIntegracao = registro?.ERRORLOGSAP?.trim()?.length > 0 ? ('Motivo: ' + registro?.ERRORLOGSAP?.trim()) : '';
       let htmlStatusConciliar = `<label style="color: red; font-size: 11px;"><b>Dep. Cancelado</b></label>`;
       let htmlStConfConciliar = `<label style="color: red; font-size: 11px;"><b>Não Conciliado</b></label>`;
       let htmlOpcaoConciliar = '';
       let htmlSelecao = '';
-      let msgErrorComum = 'Account for cash payments has not been defined';
+      let typeFuncMsg = erroLogIntegracao?.length > 0 ? 'msgWarning' : 'msgInfo';
+      let titleMsgStatus = typeFuncMsg == 'msgWarning' ? 'Erro ao integrar no SAP' : 'Conciliado';
+      let msgErrorComum = 'Motivo: Account for cash payments has not been defined';
       let caixaSelecao = `
-                <div class="custom-control custom-checkbox">
-                    <input id="${idDepositoConciliar}" type="checkbox" class="custom-control-input" name="chkConciliacao" onchange="selecionarLinhaTable(this)">
-                    <label class="custom-control-label" for="${idDepositoConciliar}"></label>
-                </div>
-            `;
+        <div class="custom-control custom-checkbox">
+            <input id="${idDepositoConciliar}" type="checkbox" class="custom-control-input" name="chkConciliacao" onchange="selecionarLinhaTable(this)">
+            <label class="custom-control-label" for="${idDepositoConciliar}"></label>
+        </div>
+      `;
+
       let btnStatus = `
-                <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgWarning('Erro ao integrar no SAP', 'Motivo: ${erroLogIntegracao}');">
-                    <span class="fal fa-eye mr-1"></span>Status
-                </button>
-            `;
+        <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="${typeFuncMsg}('${titleMsgStatus}', '${erroLogIntegracao || 'Pronto para Integrar'}');">
+            <span class="d-block fal fa-eye mr-1"></span>Status
+        </button>
+      `;
+
+      let btnEditar = `
+        <button type="button" class="btn btn-warning btn-xs mr-2" title="Editar Data Movimento Conciliação" onclick="editarDataMovimentoConciliacaoDeposito('${idDepositoConciliar}', '${dtMovDeposito}');">
+            <span class="d-block fal fa-pen mr-1"></span>Editar
+        </button>
+      `;
 
       let btnIntegrar = `
-                <button type="button" class="btn btn-info btn-xs mr-2" title="Integrar Conciliação" id="${idDepositoConciliar}" onclick="integrarConciliacaoDepositoNoSAP(this.id);">
-                    <span class="fal fa-cloud-upload mr-1"></span>Integrar
-                </button>
-            `;
+        <button type="button" class="btn btn-info btn-xs mr-2" title="Integrar Conciliação" id="${idDepositoConciliar}" onclick="integrarConciliacaoDepositoNoSAP(this.id);">
+            <span class="d-block fal fa-cloud-upload mr-1"></span>Integrar
+        </button>
+      `;
 
       let btnCancelar = `
-                <button type="button" class="btn btn-danger btn-xs" title="Cancelar Conciliação" id="${idDepositoConciliar}" onclick="cancelarConciliacaoDeposito(this.id);">
-                    <span class="fal fa-times mr-1"></span>Cancelar
-                </button>
-            `;
+        <button type="button" class="btn btn-danger btn-xs" title="Cancelar Conciliação" id="${idDepositoConciliar}" onclick="cancelarConciliacaoDeposito(this.id);">
+            <span class="d-block fal fa-times mr-1"></span>Cancelar
+        </button>
+      `;
 
       if (docEntryContasPagar > 0 || docEntryContasReceber > 0) {
         btnCancelar = '';
@@ -11961,10 +11971,10 @@ async function retornoListaConciliarBanco(respostaListaConciliarBanco) {
         if (!stIntegrado) {
           if (stEmFilaParaIntegracao) {
             btnStatus = `
-                            <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgInfo('Em Processo de Integração, Aguarde...', 'Motivo: Já está em processo de integração no SAP');">
-                                <span class="fal fa-eye mr-1"></span>Status
-                            </button>
-                        `;
+              <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgInfo('Em Processo de Integração, Aguarde...', 'Motivo: Já está em processo de integração no SAP');">
+                  <span class="d-block fal fa-eye mr-1"></span>Status
+              </button>
+            `;
 
             btnIntegrar = '';
             btnCancelar = '';
@@ -11983,22 +11993,29 @@ async function retornoListaConciliarBanco(respostaListaConciliarBanco) {
               htmlStConfConciliar = `<label class="text-danger cursor-pointer fw-900" style="font-size: 12px;" title='${erroLogIntegracao}'><b>Conciliado / Error ao integrar</b></label>`;
 
               btnStatus = `
-                                <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgWarning('Erro ao integrar no SAP', 'Motivo: ${erroLogIntegracao}');">
-                                    <span class="fal fa-eye mr-1"></span>Status
-                                </button>
-                            `;
+                <button type="button" class="btn btn-primary btn-xs  mr-2" title="Visualizar Status Integração Conciliação" onclick="msgWarning('Erro ao integrar no SAP', 'Motivo: ${erroLogIntegracao}');">
+                    <span class="d-block fal fa-eye mr-1"></span>Status
+                </button>
+              `;
             }
           }
 
           htmlOpcaoConciliar = `
-                        <div class="d-flex justify-content-center">
-                            ${btnStatus}
-                            ${btnIntegrar}
-                            ${btnCancelar}
-                        </div>
-                    `;
+            <div class="d-flex justify-content-start">
+              ${btnStatus}
+              ${btnEditar}
+              ${btnIntegrar}
+              ${btnCancelar}
+            </div>
+          `;
         } else {
           htmlStConfConciliar = `<label class="text-success fw-900" style="font-size: 12px;"><b>Conciliado e Integrado</b></label>`;
+
+          htmlOpcaoConciliar = `
+            <div class="d-flex justify-content-start">
+              ${btnEditar}
+            </div>
+          `;
         }
       }
 
@@ -12078,7 +12095,6 @@ async function retornoListaConciliarBanco(respostaListaConciliarBanco) {
     data: dadosTable,
     deferRender: false,
     responsive: true,
-    scrollX: true,
     dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
       "<'row'<'col-sm-12 caixa-selecao'>>" +
       "<'row'<'col-sm-12'tr>>" +
@@ -12115,107 +12131,80 @@ async function retornoListaConciliarBanco(respostaListaConciliarBanco) {
         className: 'btn-outline-primary btn-sm'
       }
     ],
-    /*footerCallback: function (row, data, start, end, display) {
-        const api = this.api();
-
-        function parseValor(val) {
-            return parseFloat(String(val).replace(',', '.')) || 0;
-        }
-
-        let total = api
-            .column(6, { page: 'current' }) // ou 'all'
-            .data()
-            .reduce((a, b) => parseValor(a) + parseValor(b), 0);
-
-        $(api.column(6).footer()).html(mascaraValor(total.toFixed(2)));
-
-        $(api.column(2).footer()).html('<strong>Total</strong>');
-    }*/
     initComplete: function () {
       $('.caixa-selecao').html(`
-                <div id="chkMarcaTodos" class="mb-1 ${dadosTable.length > 0 ? '' : 'd-none'}">
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" id="selectAllConciliacoes" class="custom-control-input" onclick="selecionarTodasConciliações(this)">
-                        <label class="custom-control-label" for="selectAllConciliacoes">Marcar Todos</label>
-                    </div>
-                </div>
-            `);
+        <div id="chkMarcaTodos" class="mb-1 ${dadosTable.length > 0 ? '' : 'd-none'}">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" id="selectAllConciliacoes" class="custom-control-input" onclick="selecionarTodasConciliações(this)">
+                <label class="custom-control-label" for="selectAllConciliacoes">Marcar Todos</label>
+            </div>
+        </div>
+      `);
     }
   });
-  /* 
-   tabela.on('draw', function () {
-       tabela.rows({ page: 'current' }).every(function () {
-           const $row = $(this.node());
-           const checkbox = $row.find('input[type="checkbox"]:checked');
- 
-           console.log('CHECK: ', $row)
- 
-          // checkbox && checkbox.prop('checked', true).trigger('change');
-       });
-   });
-*/
-  $('#totalResultadoConciliarBanco').html(
-    `<tr>
-            <th colspan="7" style="text-align: center;">Total</th>
-            <th>` + mascaraValor(parseFloat(totalVrDepositadoCons).toFixed(2)) + `</th>
-            <th colspan="4" style="text-align: center;"></th>
-        </tr>`
-  );
+
+  $('#totalResultadoConciliarBanco').html(`
+    <tr>
+      <th colspan="7" style="text-align: center;">Total</th>
+      <th>${mascaraValor(parseFloat(totalVrDepositadoCons).toFixed(2))}</th>
+      <th colspan="4" style="text-align: center;"></th>
+    </tr>
+  `);
 
 }
 
 async function pesq_conciliar_banco_consolidado() {
-  try {
-    let IDConta = $("#idcontabanco").val() || '';
-    let datapesqinicio = $("#dtconsultainicio").val() || '';
-    let datapesqfim = $("#dtconsultafim").val() || '';
-    let datacompinicio = $("#dtcompinicio").val() || '';
-    let datacompfim = $("#dtcompfim").val() || '';
-    let datamovinicio = $("#dtmovinicio").val() || '';
-    let datamovfim = $("#dtmovfim").val() || '';
+    try {
+        let IDConta = $("#idcontabanco").val() || '';
+        let datapesqinicio = $("#dtconsultainicio").val() || '';
+        let datapesqfim = $("#dtconsultafim").val() || '';
+        let datacompinicio = $("#dtcompinicio").val() || '';
+        let datacompfim = $("#dtcompfim").val() || '';
+        let datamovinicio = $("#dtmovinicio").val() || '';
+        let datamovfim = $("#dtmovfim").val() || '';
 
-    $('#btnIntegrarTodosDepositos').removeClass('d-flex').addClass('d-none');
+        $('#btnIntegrarTodosDepositos').removeClass('d-flex').addClass('d-none');
 
-    if ((datapesqinicio == '' && datapesqfim == '') && (datacompinicio == '' && datacompfim == '') && (datamovinicio == '' && datamovfim == '')) {
-      return msgWarning('Informe ao menos uma das Datas para a pesquisa').then(() => {
-        setTimeout(() => $("#dtconsultainicio").focus(), 300)
-      });
+        if ((datapesqinicio == '' && datapesqfim == '') && (datacompinicio == '' && datacompfim == '') && (datamovinicio == '' && datamovfim == '')) {
+            return msgWarning('Informe ao menos uma das Datas para a pesquisa').then(() => {
+                setTimeout(() => $("#dtconsultainicio").focus(), 300)
+            });
+        }
+
+        if ((datapesqinicio != '' && datapesqfim != '') && (datacompinicio != '' && datacompfim != '') && (datamovinicio != '' && datamovfim != '')) {
+
+            return msgWarning('Informe só uma das Datas: DEPÓSITO OU COMPENSAÇÃO').then(() => {
+                setTimeout(() => $("#dtconsultainicio").focus(), 300)
+            });
+        }
+
+        await ajaxGetAllData(`api/financeiro/deposito-loja-consolidado.xsjs?page=1&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}&dataCompInicio=${datacompinicio}&dataCompFim=${datacompfim}&datamovinicio=${datamovinicio}&datamovfim=${datamovfim}`)
+            .then(retornoListaBancoConsolidado)
+            .catch((error) => { throw new Error(error) });
+
+        if (datamovinicio != '' && datamovfim != '') {
+            $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Consolidado Por Marca e Por Bancos</i> - Pesquisa pela data do Movimento</span></h2>`);
+        }
+
+        if (datacompinicio != '' && datacompfim != '') {
+            $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Consolidado Por Marca e Por Bancos</i> - Pesquisa pela data da Compensação</span></h2>`);
+        }
+
+        if (datapesqinicio != '' && datapesqfim != '') {
+            $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Consolidado Por Marca e Por Bancos</i> - Pesquisa pela data do Depósito</span></h2>`);
+        }
+
+    } catch (error) {
+        console.log(error);
+        msgError();
     }
-
-    if ((datapesqinicio != '' && datapesqfim != '') && (datacompinicio != '' && datacompfim != '') && (datamovinicio != '' && datamovfim != '')) {
-
-      return msgWarning('Informe só uma das Datas: DEPÓSITO OU COMPENSAÇÃO').then(() => {
-        setTimeout(() => $("#dtconsultainicio").focus(), 300)
-      });
-    }
-
-    await ajaxGetAllData(`api/financeiro/deposito-loja-consolidado.xsjs?page=1&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}&dataCompInicio=${datacompinicio}&dataCompFim=${datacompfim}&datamovinicio=${datamovinicio}&datamovfim=${datamovfim}`)
-      .then(retornoListaBancoConsolidado)
-      .catch((error) => { throw new Error(error) });
-
-    if (datamovinicio != '' && datamovfim != '') {
-      $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Consolidado Por Marca e Por Bancos</i> - Pesquisa pela data do Movimento</span></h2>`);
-    }
-
-    if (datacompinicio != '' && datacompfim != '') {
-      $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Consolidado Por Marca e Por Bancos</i> - Pesquisa pela data da Compensação</span></h2>`);
-    }
-
-    if (datapesqinicio != '' && datapesqfim != '') {
-      $('.panel-hdr').html(`<h2>Lista de Depósitos <span class="fw-300"><i>Consolidado Por Marca e Por Bancos</i> - Pesquisa pela data do Depósito</span></h2>`);
-    }
-
-  } catch (error) {
-    console.log(error);
-    msgError();
-  }
 }
 
 function retornoListaBancoConsolidado(respostaListaBancoConsolidado) {
-  let { data } = respostaListaBancoConsolidado || '';
-  let dadosTable = [];
+    let { data } = respostaListaBancoConsolidado || '';
+    let dadosTable = [];
 
-  $('#resultado').html(`
+    $('#resultado').html(`
         <div class="row">
             <div class="col-xl-12">
                 <div id="panel-1" class="panel">
@@ -12279,264 +12268,347 @@ function retornoListaBancoConsolidado(respostaListaBancoConsolidado) {
         </div>
     `);
 
-  if (data.length > 0) {
-    for (let registro of data) {
-      let DsSubGrupoEmp = registro.DSSUBGRUPOEMPRESARIAL;
-      let VrTotalBB = registro.TOTALDEPBB;
-      let VrTotalITAU = registro.TOTALDEPITAU;
-      let VrTotalBRAD = registro.TOTALDEPBRAD;
-      let VrTotalBRB = registro.TOTALDEPBRB;
-      let VrTotalCX = registro.TOTALDEPCX;
-      let VrTotalSANT = registro.TOTALDEPSANT;
-      let VrTotalTED = registro.TOTALDEPTED;
-      let VrTotalCXTES = registro.TOTALDEPCXTES;
-      let VrTotalCREDS = registro.TOTALDEPCREDS;
-      let VrTotalDPIX = registro.TOTALDEPDPIX;
-      let VrTotalDDIN = registro.TOTALDEPDDIN;
-      let VrTotalPROM = registro.TOTALDEPPROM;
-      let VrTotalTVALOR = registro.TOTALDEPTVALOR;
-      let VrTotalDEVCX = registro.TOTALDEPDEVCX;
-      let VrDepositadoBandeira = parseFloat(VrTotalBB) + parseFloat(VrTotalBRB) + parseFloat(VrTotalBRAD) + parseFloat(VrTotalITAU) + parseFloat(VrTotalCX) + parseFloat(VrTotalSANT) + parseFloat(VrTotalTED) + parseFloat(VrTotalCXTES) + parseFloat(VrTotalCREDS) + parseFloat(VrTotalDPIX) + parseFloat(VrTotalDDIN) + parseFloat(VrTotalPROM) + parseFloat(VrTotalTVALOR) + parseFloat(VrTotalDEVCX);
+    if (data.length > 0) {
+        for (let registro of data) {
+            let DsSubGrupoEmp = registro.DSSUBGRUPOEMPRESARIAL;
+            let VrTotalBB = registro.TOTALDEPBB;
+            let VrTotalITAU = registro.TOTALDEPITAU;
+            let VrTotalBRAD = registro.TOTALDEPBRAD;
+            let VrTotalBRB = registro.TOTALDEPBRB;
+            let VrTotalCX = registro.TOTALDEPCX;
+            let VrTotalSANT = registro.TOTALDEPSANT;
+            let VrTotalTED = registro.TOTALDEPTED;
+            let VrTotalCXTES = registro.TOTALDEPCXTES;
+            let VrTotalCREDS = registro.TOTALDEPCREDS;
+            let VrTotalDPIX = registro.TOTALDEPDPIX;
+            let VrTotalDDIN = registro.TOTALDEPDDIN;
+            let VrTotalPROM = registro.TOTALDEPPROM;
+            let VrTotalTVALOR = registro.TOTALDEPTVALOR;
+            let VrTotalDEVCX = registro.TOTALDEPDEVCX;
+            let VrDepositadoBandeira = parseFloat(VrTotalBB) + parseFloat(VrTotalBRB) + parseFloat(VrTotalBRAD) + parseFloat(VrTotalITAU) + parseFloat(VrTotalCX) + parseFloat(VrTotalSANT) + parseFloat(VrTotalTED) + parseFloat(VrTotalCXTES) + parseFloat(VrTotalCREDS) + parseFloat(VrTotalDPIX) + parseFloat(VrTotalDDIN) + parseFloat(VrTotalPROM) + parseFloat(VrTotalTVALOR) + parseFloat(VrTotalDEVCX);
 
-      dadosTable.push([
-        DsSubGrupoEmp,
-        mascaraValor(parseFloat(VrTotalBB).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalITAU).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalBRAD).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalBRB).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalCX).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalSANT).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalTED).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalCXTES).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalCREDS).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalDPIX).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalDDIN).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalPROM).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalTVALOR).toFixed(2)),
-        mascaraValor(parseFloat(VrTotalDEVCX).toFixed(2)),
-        mascaraValor(parseFloat(VrDepositadoBandeira).toFixed(2)),
-      ]);
+            dadosTable.push([
+                DsSubGrupoEmp,
+                mascaraValor(parseFloat(VrTotalBB).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalITAU).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalBRAD).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalBRB).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalCX).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalSANT).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalTED).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalCXTES).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalCREDS).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalDPIX).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalDDIN).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalPROM).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalTVALOR).toFixed(2)),
+                mascaraValor(parseFloat(VrTotalDEVCX).toFixed(2)),
+                mascaraValor(parseFloat(VrDepositadoBandeira).toFixed(2)),
+            ]);
 
-    }
-
-  }
-
-  $('#dt-basic-consolidar').DataTable({
-    data: dadosTable,
-    deferRender: true,
-    responsive: false,
-    scrollX: true,
-    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-      "<'row'<'col-sm-12'tr>>" +
-      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-    buttons: [
-      {
-        extend: 'pdfHtml5',
-        text: 'PDF',
-        titleAttr: 'Generate PDF',
-        className: 'btn-outline-danger btn-sm mr-1'
-      },
-      {
-        extend: 'excelHtml5',
-        text: 'Excel',
-        titleAttr: 'Gerar Excel',
-        className: 'btn-outline-success btn-sm mr-1',
-        exportOptions: {
-          columns: ':visible',
-          format: {
-            body: function (data, row, column, node) {
-              data = $('<p>' + data + '</p>').text();
-              return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
-            }
-          }
         }
-      },
-      {
-        extend: 'print',
-        text: 'Print',
-        titleAttr: 'Print Table',
-        className: 'btn-outline-primary btn-sm'
-      }
-    ],
-    footerCallback: function (row, data, start, end, display) {
-      const api = this.api();
 
-      function parseValor(val) {
-        return $.isNumeric(val) ? val : parseFloat(String(val).replace(/[R$\s.]/g, '').replace(',', '.') || 0);
-      }
-
-      const totalCols = 15;
-      for (let i = 1; i <= totalCols; i++) {
-        let total = api
-          .column(i, { page: 'current' }) // ou 'all'
-          .data()
-          .reduce((a, b) => parseValor(a) + parseValor(b), 0);
-
-        $(api.column(i).footer()).html(mascaraValor(total.toFixed(2)));
-      }
-
-      // Primeira coluna: label "Total"
-      $(api.column(0).footer()).html('<strong>Total</strong>');
     }
-  });
+
+    $('#dt-basic-consolidar').DataTable({
+        data: dadosTable,
+        deferRender: true,
+        responsive: false,
+        scrollX: true,
+        dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            {
+                extend: 'pdfHtml5',
+                text: 'PDF',
+                titleAttr: 'Generate PDF',
+                className: 'btn-outline-danger btn-sm mr-1'
+            },
+            {
+                extend: 'excelHtml5',
+                text: 'Excel',
+                titleAttr: 'Gerar Excel',
+                className: 'btn-outline-success btn-sm mr-1',
+                exportOptions: {
+                    columns: ':visible',
+                    format: {
+                        body: function (data, row, column, node) {
+                            data = $('<p>' + data + '</p>').text();
+                            return $.isNumeric(data.replace(/[R$\s.]/g, '').replace(',', '.')) ? data.replace(',', '.') : data;
+                        }
+                    }
+                }
+            },
+            {
+                extend: 'print',
+                text: 'Print',
+                titleAttr: 'Print Table',
+                className: 'btn-outline-primary btn-sm'
+            }
+        ],
+        footerCallback: function (row, data, start, end, display) {
+            const api = this.api();
+
+            function parseValor(val) {
+                return $.isNumeric(val) ? val : parseFloat(String(val).replace(/[R$\s.]/g, '').replace(',', '.') || 0);
+            }
+
+            const totalCols = 15;
+            for (let i = 1; i <= totalCols; i++) {
+                let total = api
+                    .column(i, { page: 'current' }) // ou 'all'
+                    .data()
+                    .reduce((a, b) => parseValor(a) + parseValor(b), 0);
+
+                $(api.column(i).footer()).html(mascaraValor(total.toFixed(2)));
+            }
+
+            // Primeira coluna: label "Total"
+            $(api.column(0).footer()).html('<strong>Total</strong>');
+        }
+    });
 }
 
 function integrarTodasConciliacoesDepositosNoSAP() {
-  let dados = [];
+    let dados = [];
 
-  msgQuestion('Certeza que Deseja Integrar todas as Conciliações de Depósitos deste período no SAP?')
-    .then(async (respQuestion) => {
-      try {
-        if (respQuestion.value == true) {
-          let tabela = $('#dt-basic-conciliarbanco').DataTable();
+    msgQuestion('Certeza que Deseja Integrar todas as Conciliações de Depósitos deste período no SAP?')
+        .then(async (respQuestion) => {
+            try {
+                if (respQuestion.value == true) {
+                    let tabela = $('#dt-basic-conciliarbanco').DataTable();
 
-          animationLoadingStart('Integrando Conciliações...', 100, false);
+                    animationLoadingStart('Integrando Conciliações...', 100, false);
 
-          tabela.rows().every(function () {
-            let linhaTabela = $(this.node())
-            let chkLine = linhaTabela.find("input[name='chkConciliacao']:checked") || false;
+                    tabela.rows().every(function () {
+                        let linhaTabela = $(this.node())
+                        let chkLine = linhaTabela.find("input[name='chkConciliacao']:checked") || false;
+                        
+                        if ($(chkLine).prop('checked')){
+                            let idDeposito = parseInt($(chkLine).attr('id'));
 
-            if ($(chkLine).prop('checked')) {
-              let idDeposito = parseInt($(chkLine).attr('id'));
+                            dados.push({
+                                "IDDEPOSITOLOJA": parseInt(idDeposito)
+                            })
+                        }
+                    });
+                   //return console.log('CONCILIACOES: ', dados)
+                    if(dados.length <= 0){
+                        return msgInfo('Nenhum registro selecionado!', 'Verifique e tente novamente!')
+                    }
 
-              dados.push({
-                "IDDEPOSITOLOJA": parseInt(idDeposito)
-              })
+                    let textdados = JSON.stringify(dados);
+                    let textoFuncao = 'FINANCEIRO/INTEGRACAO TODAS CONCILIAÇÕES DE DEPOSITOS';
+                    let dadosLog = [{
+                        "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+                        "PATHFUNCAO": textoFuncao,
+                        "DADOS": textdados,
+                        "IP": ipCliente
+                    }];
+
+                    let msgRetorno = '';
+                    let text = '';
+
+                    await ajaxPost('api/service-layer/deposito/jobs/depositos-integracao.xsjs', dados)
+                        .catch((error) => {
+
+                            if(error?.status !== 400){
+                                msgRetorno = 'Tempo de processamento em tela expirado!';
+                                text = 'As integrações continuarão em segundo plano. Para verificação de status, pesquise novamente!'
+                                return;
+                            } else{
+                                throw new Error(error);
+                            }
+                        });
+
+                    await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
+
+                    msgRetorno.length > 0 ? await msgInfo(msgRetorno, text, false) : await msgSuccess('Integrado com sucesso!');
+
+                    pesq_conciliar_banco();
+                }
+            } catch (error) {
+                console.log(error);
+                msgError('Erro ao enviar os dados');
             }
-          });
-          //return console.log('CONCILIACOES: ', dados)
-          if (dados.length <= 0) {
-            return msgInfo('Nenhum registro selecionado!', 'Verifique e tente novamente!')
-          }
-
-          let textdados = JSON.stringify(dados);
-          let textoFuncao = 'FINANCEIRO/INTEGRACAO TODAS CONCILIAÇÕES DE DEPOSITOS';
-          let dadosLog = [{
-            "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-            "PATHFUNCAO": textoFuncao,
-            "DADOS": textdados,
-            "IP": ipCliente
-          }];
-
-          let msgRetorno = '';
-          let text = '';
-
-          await ajaxPost('api/service-layer/deposito/jobs/depositos-integracao.xsjs', dados)
-            .catch((error) => {
-
-              if (error?.status !== 400) {
-                msgRetorno = 'Tempo de processamento em tela expirado!';
-                text = 'As integrações continuarão em segundo plano. Para verificação de status, pesquise novamente!'
-                return;
-              } else {
-                throw new Error(error);
-              }
-            });
-
-          await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
-
-          msgRetorno.length > 0 ? await msgInfo(msgRetorno, text, false) : await msgSuccess('Integrado com sucesso!');
-
-          pesq_conciliar_banco();
-        }
-      } catch (error) {
-        console.log(error);
-        msgError('Erro ao enviar os dados');
-      }
-    })
+        })
 }
 
 function integrarConciliacaoDepositoNoSAP(idDeposito) {
-  msgQuestion('Certeza que Deseja Integrar a Conciliação do Depósito no SAP?')
-    .then(async (respQuestion) => {
-      try {
-        if (respQuestion.value == true) {
-          animationLoadingStart('Integrando a Conciliação...', 100, false);
+    msgQuestion('Certeza que Deseja Integrar a Conciliação do Depósito no SAP?')
+        .then(async (respQuestion) => {
+            try {
+                if (respQuestion.value == true) {
+                    animationLoadingStart('Integrando a Conciliação...', 100, false);
 
-          let dados = [{
-            "IDDEPOSITOLOJA": parseInt(idDeposito)
-          }];
+                    let dados = [{
+                        "IDDEPOSITOLOJA": parseInt(idDeposito)
+                    }];
 
-          let textdados = JSON.stringify(dados);
-          let textoFuncao = 'FINANCEIRO/INTEGRACAO CONCILIAÇÃO DO DEPOSITO';
-          let dadosLog = [{
-            "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-            "PATHFUNCAO": textoFuncao,
-            "DADOS": textdados,
-            "IP": ipCliente
-          }];
+                    let textdados = JSON.stringify(dados);
+                    let textoFuncao = 'FINANCEIRO/INTEGRACAO CONCILIAÇÃO DO DEPOSITO';
+                    let dadosLog = [{
+                        "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+                        "PATHFUNCAO": textoFuncao,
+                        "DADOS": textdados,
+                        "IP": ipCliente
+                    }];
 
-          let msgRetorno = '';
-          let text = '';
+                    let msgRetorno = '';
+                    let text = '';
 
-          await ajaxPost(`api/service-layer/deposito/jobs/depositos-integracao.xsjs?`, dados)
-            .catch((error) => {
+                    await ajaxPost(`api/service-layer/deposito/jobs/depositos-integracao.xsjs?`, dados)
+                        .catch((error) => {
 
-              if (error?.status !== 400) {
-                msgRetorno = 'Tempo de processamento em tela expirado!';
-                text = 'As integrações continuarão em segundo plano. Para verificação de status, pesquise novamente!'
-                return;
-              } else {
-                throw new Error(error);
-              }
-            });
+                            if (error?.status !== 400) {
+                                msgRetorno = 'Tempo de processamento em tela expirado!';
+                                text = 'As integrações continuarão em segundo plano. Para verificação de status, pesquise novamente!'
+                                return;
+                            } else {
+                                throw new Error(error);
+                            }
+                        });
 
-          await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
+                    await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
 
-          msgRetorno.length > 0 ? await msgInfo(msgRetorno, text, false) : await msgSuccess('Integrado com sucesso!');
+                    msgRetorno.length > 0 ? await msgInfo(msgRetorno, text, false) : await msgSuccess('Integrado com sucesso!');
 
-          pesq_conciliar_banco();
-        }
-      } catch (error) {
-        console.log(error);
-        msgError('Erro ao enviar os dados');
-      }
-    })
+                    pesq_conciliar_banco();
+                }
+            } catch (error) {
+                console.log(error);
+                msgError('Erro ao enviar os dados');
+            }
+        })
 }
 
 function cancelarConciliacaoDeposito(idDeposito) {
-  msgQuestion('Certeza que Deseja Cancelar a Conciliação do Depósito?')
-    .then(async (respQuestion) => {
-      try {
-        if (respQuestion.value == true) {
-          animationLoadingStart('Cancelando a Conciliação...', 100, false);
+    msgQuestion('Certeza que Deseja Cancelar a Conciliação do Depósito?')
+        .then(async (respQuestion) => {
+            try {
+                if (respQuestion.value == true) {
+                    animationLoadingStart('Cancelando a Conciliação...', 100, false);
 
-          let dados = {
-            "IDDEPOSITOLOJA": parseInt(idDeposito)
-          };
+                    let dados = {
+                        "IDDEPOSITOLOJA": parseInt(idDeposito)
+                    };
 
-          let textdados = JSON.stringify(dados);
-          let textoFuncao = 'FINANCEIRO/CANCELADO CONCILIAÇÃO DO DEPOSITO';
-          let dadosLog = [{
-            "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-            "PATHFUNCAO": textoFuncao,
-            "DADOS": textdados,
-            "IP": ipCliente
-          }];
+                    let textdados = JSON.stringify(dados);
+                    let textoFuncao = 'FINANCEIRO/CANCELADO CONCILIAÇÃO DO DEPOSITO';
+                    let dadosLog = [{
+                        "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+                        "PATHFUNCAO": textoFuncao,
+                        "DADOS": textdados,
+                        "IP": ipCliente
+                    }];
 
-          await ajaxPut("api/financeiro/atualizar-deposito-loja.xsjs", dados).catch((error) => { throw new Error(error) });
+                    await ajaxPut("api/financeiro/atualizar-deposito-loja.xsjs", dados).catch((error) => { throw new Error(error) });
 
-          await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
+                    await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw new Error(error) });
 
-          await msgSuccess('Cancelado com sucesso!');
+                    await msgSuccess('Cancelado com sucesso!');
 
-          funcSucessUpdateConcDep();
-        }
-      } catch (error) {
-        console.log(error);
-        msgError('Erro ao enviar os dados');
+                    funcSucessUpdateConcDep();
+                }
+            } catch (error) {
+                console.log(error);
+                msgError('Erro ao enviar os dados');
+            }
+        })
+}
+
+function editarDataMovimentoConciliacaoDeposito(idDeposito, dtOriginal){
+  let dtMovimentoNovo = '';
+
+  Swal.fire({
+    type:'info',
+    title: "Insira a nova Data Movimento: ",
+    html: `
+      <div>
+        <input type="date" id="dtModal" class="form-control swal2-input w-50" value="${dtOriginal}">
+      </div>
+    `,
+    focusConfirm: false,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showCloseButton: true,
+    confirmButtonText: 'Confirmar',
+    confirmButtonColor: '#d33',
+    showCancelButton: true,
+    cancelButtonColor: '#3085d6',
+    cancelButtonText: 'Cancelar',
+    preConfirm: () => {
+      let dtModal = $('#dtModal').val();
+      let date = new Date(dtModal);
+      let now = new Date();
+
+      if (isNaN(date.getTime())) {
+        Swal.showValidationMessage(`<span class="text-danger fw-900">Nova Data Movimento vazia ou inválida!</span>`);
       }
-    })
+
+      if (dtModal == dtOriginal){
+        Swal.showValidationMessage(`<span class="text-danger fw-900">Nova Data Movimento não pode ser igual a Data Original!</span>`);
+      }
+
+      date.setHours(0, 0, 0, 0);
+      now.setHours(0, 0, 0, 0);
+
+      if(date.getTime() > now.getTime()){
+        Swal.showValidationMessage(`<span class="text-danger fw-900">Nova Data Movimento não pode ser maior que a data atual!</span>`);
+      };
+
+      dtMovimentoNovo = dtModal;
+    }
+  })
+  .then((resp)=> {
+    if(resp?.value){
+      msgQuestion('Certeza que Deseja Alterar a Data de Movimento do Depósito?')
+        .then(async (respQuestion) => {
+          try {
+            if (respQuestion.value == true) {
+              animationLoadingStart('Atualizando Data do Movimento...', 100, false);
+
+              let dados = [{
+                "IDDEPOSITOLOJA": parseInt(idDeposito),
+                "DTMOVIMENTOCAIXA": dtMovimentoNovo
+              }];
+
+              let textdados = JSON.stringify(dados);
+              let textoFuncao = 'FINANCEIRO/ALTERAÇÃO DATA DE MOVIMENTO DO DEPOSITO';
+              let dadosLog = [{
+                "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+                "PATHFUNCAO": textoFuncao,
+                "DADOS": textdados,
+                "IP": ipCliente
+              }];
+
+              await ajaxPut(`api/financeiro/deposito-alteracao-data-movimento.xsjs?`, dados);
+
+              await ajaxPost("api/log-web.xsjs", dadosLog);
+
+              await msgSuccess('Data de Movimento Alterada Com Sucesso!');
+
+              pesq_conciliar_banco();
+            }
+          } catch (error) {
+            console.log(error);
+            msgError('Erro ao tentar alterar a data de movimento');
+          }
+        })
+    }
+
+  })
 }
 
 function funcSucessUpdateConcDep() {
-  let IDConta = $("#idcontabanco").val() || '';
-  let datapesqinicio = $("#dtconsultainicio").val() || '';
-  let datapesqfim = $("#dtconsultafim").val() || '';
+    let IDConta = $("#idcontabanco").val() || '';
+    let datapesqinicio = $("#dtconsultainicio").val() || '';
+    let datapesqfim = $("#dtconsultafim").val() || '';
 
-  ajaxGetAllData(`api/financeiro/deposito-loja.xsjs?pageSize=500&page=1&idConta=${IDConta}&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}`)
-    .then(retornoListaConciliarBanco)
-    .catch(funcError);
+    ajaxGetAllData(`api/financeiro/deposito-loja.xsjs?pageSize=500&page=1&idConta=${IDConta}&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}`)
+        .then(retornoListaConciliarBanco)
+        .catch(funcError);
 
 }
 
@@ -12545,7 +12617,7 @@ function funcSucessUpdateConcDep() {
 //? ======================================================== INICIO ROTINA CONTAS DE BANCOS ===================================================== //
 // AUTOR: Hendryw Deyvison
 // E-mail: hendryw.deyvison@gmail.com
-// Data: 23/06/2025
+// Data: 07/07/2025
 
 // INICIO FUNCOES GLOBAIS DA ROTINA
 
@@ -13259,8 +13331,12 @@ async function editarContaBanco(idContaBanco) {
         STATIVO,
         IDUSERULTIMAALTERACAO
     };
+    
+    let arrayTpConta = ['BANCO', 'TRANSPORTEVALORES', 'DEVSOBRA'];
+    
+    let stContaControle = !arrayTpConta.includes(TPCONTA);
 
-    if (await validarDadosContaAntesDeInserirOuAtualizar(elementosDoModal, idsPreenchimentoObrigatorios, objConta, false)) {
+    if (STATIVO == 'False' || stContaControle || await validarDadosContaAntesDeInserirOuAtualizar(elementosDoModal, idsPreenchimentoObrigatorios, objConta, false)) {
         await msgQuestion()
         .then(async (respQuestion) => {
             if (respQuestion?.value == true){
@@ -13298,7 +13374,7 @@ async function editarContaBanco(idContaBanco) {
                         }
                     ];
 
-                    animationLoadingStart('Cadastrando Conta...', 100, false);
+                    animationLoadingStart('Atualizando Dados...', 100, false);
 
                     await ajaxPut('api/financeiro/conta-banco.xsjs', dados).catch((error) => { throw new Error(error) });
 

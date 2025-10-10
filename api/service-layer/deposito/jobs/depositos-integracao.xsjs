@@ -129,7 +129,7 @@ function fnGravarLogSucessoContasPagarSAP(idDeposito, docEntryContasPagarSAP){
         SET 
             ERRORLOGSAP = NULL,
             DT_HORA_INTEGRACAO_CONTAS_A_PAGAR = CURRENT_TIMESTAMP,
-            STATUS_BLOQUEIO_ATUALIZACAO = 'False',
+            --STATUS_BLOQUEIO_ATUALIZACAO = 'False',
             DOCENTRY_SAP_CONTAS_A_PAGAR = ?
         WHERE 
             IDDEPOSITOLOJA = ? 
@@ -154,7 +154,7 @@ function fnGravarLogSucessoContasReceber(idDeposito, docEntryContasReceberSAP){
         SET 
             ERRORLOGSAP = NULL,
             DT_HORA_INTEGRACAO_CONTAS_A_RECEBER = CURRENT_TIMESTAMP,
-            STATUS_BLOQUEIO_ATUALIZACAO = 'False',
+            --STATUS_BLOQUEIO_ATUALIZACAO = 'False',
             DOCENTRY_SAP_CONTAS_A_RECEBER = ?
         WHERE 
             IDDEPOSITOLOJA = ? 
@@ -195,23 +195,14 @@ function fnGravarLogError(idDeposito, p_Error){
 	return false;
 }
 
-function fnBloquearLinhaEnquantoAtualiza(dadosDepositos){
-    let ids = '';
-    
-    for (var i = 0; i < dadosDepositos.length; i++) {
-        let { IDDEPOSITOLOJA } = dadosDepositos[i];
-        
-        ids += IDDEPOSITOLOJA;
-        ids += i < (dadosDepositos.length - 1) ? ', ' : '';
-    }
-    
+function fnUpdateBloquearLinhaEnquantoAtualiza(idsDepositos, status = 'True'){
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."DEPOSITOLOJA" 
         SET 
-            STATUS_BLOQUEIO_ATUALIZACAO = 'True'
+            STATUS_BLOQUEIO_ATUALIZACAO = '${status}'
         WHERE 
-            IDDEPOSITOLOJA IN (${ids}) 
+            IDDEPOSITOLOJA IN (${idsDepositos}) 
     `;
     
     let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
@@ -220,6 +211,8 @@ function fnBloquearLinhaEnquantoAtualiza(dadosDepositos){
     pStmtUpdate.close();
     
     conn.commit();
+    
+    return true;
 }
 
 function fnMontarJsonContasPagar(dadosDeposito){
@@ -318,39 +311,9 @@ function fnMontarJsonContasReceber(dadosDeposito){
     };
 }
 
-function postSlContasPagar(data) {
-    let response = slApi.post('/VendorPayments', data, session);
-    
-    if (response.status !== 204) {
-        response =  JSON.parse(response.body.asString());
-        return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o Contas a Pagar'));
-    }
-
-    return fnValidarIntegracaoContasPagarSAP(Number(data.U_IS_ID_QUALITY));
-}
-
-function postSlContasReceber(data) {
-    let response = slApi.post('/IncomingPayments', data, session);
-    
-    if (response.status !== 204) {
-        response =  JSON.parse(response.body.asString());
-        return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o deposito'));
-    }
-    
-    return fnValidarIntegracaoContasReceberSAP(Number(data.U_IS_ID_QUALITY));
-}
-
-function integrarDepositosNoSAP(byId) {
-    let idDaConta;
-    let dataPesquisaInicio;
-    let dataPesquisaFim;
-    let dataCompInicio;
-    let dataCompFim;
-    let dataMovInicio;
-    let dataMovFim;
-    
+function getDadosDepositos(idsDepositos, statusBloqueio = 'False') {
     let query = ` 
-        SELECT /*TOP 10*/
+        SELECT
             TBD.IDDEPOSITOLOJA,
             TO_VARCHAR(TBD.DTMOVIMENTOCAIXA, 'YYYY-MM-DD') AS DTMOVIMENTOCAIXA,
             TO_VARCHAR(TBD.DTDEPOSITO, 'YYYY-MM-DD') AS DTDEPOSITO,
@@ -377,18 +340,101 @@ function integrarDepositosNoSAP(byId) {
             TBC.IDBANCO = TBB.IDBANCO
         WHERE
             1 = ?
-            --AND TO_DATE(TBD.DTDEPOSITO) >= '2025-08-01'
+            AND TO_DATE(TBD.DTDEPOSITO) >= '2025-08-01'
             AND TBD.STATIVO = 'True'
             AND TBD.STCANCELADO = 'False'
             AND TBD.STCONFERIDO = 'True'
-            AND TBD.STATUS_BLOQUEIO_ATUALIZACAO = 'False'
-            AND (TBC.TPCONTA = 'BANCO' OR TBC.TPCONTA = 'TRANSPORTEVALORES' OR TBC.TPCONTA = 'DEVSOBRA')
+            AND TBD.STATUS_BLOQUEIO_ATUALIZACAO = '${statusBloqueio}'
+            AND (TBC.TPCONTA = 'BANCO' OR TBC.TPCONTA = 'TRANSPORTEVALORES' OR TBC.TPCONTA = 'DEVSOBRA' OR TBC.TPCONTA = 'TESOURARIA')
             --AND IFNULL(TO_VARCHAR(TBD.ERRORLOGSAP), '') = ''
             AND TBD.DTCOMPENSACAO IS NOT NULL 
             AND (IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) = 0 OR IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_RECEBER, 0) = 0)
+            AND TBD.IDDEPOSITOLOJA IN (${idsDepositos})
     `;
 	
-	var bodyJson = JSON.parse($.request.body.asString()); 
+    let dadosDepositos = idsDepositos.length > 0 ? api.sqlQuery(query, 1) : '';
+    
+    if(dadosDepositos.length > 0){
+        return dadosDepositos;
+    }
+    
+    return [];
+}
+
+function postSlContasPagar(data) {
+    let response = slApi.post('/VendorPayments', data, session);
+    
+    if (response.status !== 204) {
+        response =  JSON.parse(response.body.asString());
+        return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o Contas a Pagar'));
+    }
+
+    return fnValidarIntegracaoContasPagarSAP(Number(data.U_IS_ID_QUALITY));
+}
+
+function postSlContasReceber(data) {
+    let response = slApi.post('/IncomingPayments', data, session);
+    
+    if (response.status !== 204) {
+        response =  JSON.parse(response.body.asString());
+        return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o Contas a Receber'));
+    }
+    
+    return fnValidarIntegracaoContasReceberSAP(Number(data.U_IS_ID_QUALITY));
+}
+
+function fnIntegrarContasPagar(dadosDeposito, ids){
+    for (let i = 0; i < dadosDeposito.length; i++) {
+        let registro = dadosDeposito[i];
+        let {
+            IDDEPOSITOLOJA,
+            DOCENTRY_SAP_CONTAS_A_PAGAR,
+            TPCONTA
+        } = registro || '';
+        
+        if(DOCENTRY_SAP_CONTAS_A_PAGAR == 0){
+            
+            if(!fnValidarIntegracaoContasPagarSAP(IDDEPOSITOLOJA, false)){
+                let dadosJsonContasPagar = fnMontarJsonContasPagar(registro);
+                
+                postSlContasPagar(dadosJsonContasPagar);
+            }
+        }
+        
+        TPCONTA == 'DEVSOBRA' && fnUpdateBloquearLinhaEnquantoAtualiza(ids, 'False');
+    }
+    
+    fnIntegrarContasReceber(ids);
+}
+
+function fnIntegrarContasReceber(idsDepositos){
+    let dadosDepositos = getDadosDepositos(idsDepositos, 'True');
+    
+    for (let i = 0; i < dadosDepositos.length; i++) {
+        let registro = dadosDepositos[i];
+        let {
+            IDDEPOSITOLOJA,
+            DOCENTRY_SAP_CONTAS_A_PAGAR,
+            DOCENTRY_SAP_CONTAS_A_RECEBER,
+            TPCONTA
+        } = registro || '';
+        
+        if(TPCONTA != 'DEVSOBRA'  && DOCENTRY_SAP_CONTAS_A_PAGAR > 0 && DOCENTRY_SAP_CONTAS_A_RECEBER == 0){
+            
+            if(!fnValidarIntegracaoContasReceberSAP(IDDEPOSITOLOJA, false)){
+                let dadosJsonContasReceber = fnMontarJsonContasReceber(registro);
+                
+                postSlContasReceber(dadosJsonContasReceber);
+            }
+        }
+        
+    }
+    
+    fnUpdateBloquearLinhaEnquantoAtualiza(idsDepositos, 'False');
+}
+
+function integrarDepositosNoSAP(byId) {
+	let bodyJson = JSON.parse($.request.body.asString()); 
 
     if(bodyJson.length > 0){
         let ids = '';
@@ -399,58 +445,19 @@ function integrarDepositosNoSAP(byId) {
             ids += i < (bodyJson.length - 1) ? ', ' : '';
         }
         
-        query += `AND TBD.IDDEPOSITOLOJA IN (${ids})`;
+        let dadosDepositos = getDadosDepositos(ids);
         
-        //return {query}
-        
-        let dadosDeposito = ids.length > 0 ? api.sqlQuery(query, 1) : '';
-        
-        if(dadosDeposito.length === 0){
+        if(dadosDepositos.length === 0){
             return { msg: "DEPOSITO JÁ INTEGRADO OU CANCELADO OU NÃO EXISTE!" };
         }
         
         conn = $.db.getConnection();
-        
-        fnBloquearLinhaEnquantoAtualiza(dadosDeposito);
-        
         session = slApi.loginServiceLayer(true);
         slApi.loginServiceLayer(true);
         
-        for (let i = 0; i < dadosDeposito.length; i++) {
-            let registro = dadosDeposito[i];
-            let {
-                IDDEPOSITOLOJA,
-                TPCONTA,
-                DTDEPOSITO,
-                DTCOMPENSACAO,
-                DOCENTRY_SAP_CONTAS_A_PAGAR,
-                DOCENTRY_SAP_CONTAS_A_RECEBER
-            } = registro || '';
-            
-            let stIntegrarNaTransitoria = DOCENTRY_SAP_CONTAS_A_PAGAR == 0;
-            let respIntegracaoNaTransitoria = null;
-            
-            if(stIntegrarNaTransitoria){
-                let stIntegrar = !fnValidarIntegracaoContasPagarSAP(IDDEPOSITOLOJA, false);
-                
-                if(stIntegrar){
-                    let dadosJsonContasPagar = fnMontarJsonContasPagar(registro);
-                   // return {dadosJsonContasPagar}
-                    respIntegracaoNaTransitoria = postSlContasPagar(dadosJsonContasPagar);
-                }
-            }
-            
-            if(TPCONTA !== 'DEVSOBRA' && DOCENTRY_SAP_CONTAS_A_RECEBER == 0 && respIntegracaoNaTransitoria == true){
-                let stIntegrarNaContaBanco = !fnValidarIntegracaoContasReceberSAP(IDDEPOSITOLOJA, false);
-                
-                if(stIntegrarNaContaBanco){
-                    let dadosJsonContasReceber = fnMontarJsonContasReceber(registro);
-                    //return {dadosJsonContasReceber}
-                    postSlContasReceber(dadosJsonContasReceber);
-                }
-            }
-        }
+        fnUpdateBloquearLinhaEnquantoAtualiza(ids);
         
+        fnIntegrarContasPagar(dadosDepositos, ids);
     }
 	
 	return 'Migração depositos realizada com sucesso!';
