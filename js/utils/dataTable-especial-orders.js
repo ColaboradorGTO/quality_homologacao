@@ -74,3 +74,21 @@ $.extend($.fn.dataTable.ext.type.order, {
         return b - a;
     }
 });
+
+$.extend($.fn.dataTable.ext.order['input-checkbox'] = function (settings, col) {
+  return this.api()
+    .column(col, { order: 'index' })
+    .nodes()
+    .map(function (td) {
+      return $('input[type="checkbox"]', td).prop('checked') ? 0 : 1;
+    });
+})
+
+$.extend($.fn.dataTable.ext.order['input-number'] = function (settings, col) {
+  return this.api()
+    .column(col, { order: 'index' })
+    .nodes()
+    .map(function (td) {
+      return Number($('input[type="number"]', td).val() || 0);
+    });
+})

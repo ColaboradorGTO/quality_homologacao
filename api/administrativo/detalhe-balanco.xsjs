@@ -68,7 +68,8 @@ function fnHandlePut() {
 	conn.commit();
 	
 	return {
-	    msg : "Atualização realizada com sucesso!"
+	    msg : "Atualização realizada com sucesso!",
+	    data: bodyJson
 	};
 }
 

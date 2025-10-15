@@ -1,27 +1,33 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function fnHandleGet(byId) {
-
-    var Codbarras = $.request.parameters.get("codbarras");
-
-    var query = ' SELECT ' + 
-    '   PRODUTO.IDPRODUTO,' +
-    '   PRODUTO.NUCODBARRAS' +
-    ' FROM ' + 
-    '   "VAR_DB_NAME".PRODUTO' +
-    ' WHERE ' +
-        '	1 = ?' + 
-        'AND PRODUTO.STATIVO=\'True\'';
+    let Codbarras = $.request.parameters.get("codbarras");
+    let excludeSemGtin = $.request.parameters.get("excludeSemGtin");
+    
+    let query = `
+        SELECT
+            IDPRODUTO,
+            NUCODBARRAS
+        FROM
+            "VAR_DB_NAME".PRODUTO
+        WHERE
+            1 = ? 
+            AND STATIVO= 'True' 
+    `;
     
     if ( byId ) {
-        query = query + ' And  PRODUTO.IDPRODUTO = \'' + byId + '\' ';
+        query += ` AND IDPRODUTO = '${byId}'`;
     }
 
     if ( Codbarras ) {
-        query = query + ' And  PRODUTO.NUCODBARRAS = \'' + Codbarras + '\' ';
+        query += ` AND NUCODBARRAS = '${Codbarras}'`;
     }
     
-    var request = { 
+    if ( excludeSemGtin == 'True' ) {
+        query += ` AND UPPER(NUCODBARRAS) <> 'SEM GTIN' `;
+    }
+    
+    let request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")
     };
@@ -37,7 +43,7 @@ try {
     switch ( $.request.method ) {
         //Handle your GET calls here
         case $.net.http.GET:
-            var id = $.request.parameters.get("id");
+            let id = $.request.parameters.get("id");
             fnHandleGet(id);
             break;
             

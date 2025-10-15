@@ -340,7 +340,7 @@ function getDadosDepositos(idsDepositos, statusBloqueio = 'False') {
             TBC.IDBANCO = TBB.IDBANCO
         WHERE
             1 = ?
-            AND TO_DATE(TBD.DTDEPOSITO) >= '2025-08-01'
+            AND TO_DATE(TBD.DTDEPOSITO) >= '2025-01-01'
             AND TBD.STATIVO = 'True'
             AND TBD.STCANCELADO = 'False'
             AND TBD.STCONFERIDO = 'True'

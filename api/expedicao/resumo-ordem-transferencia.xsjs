@@ -158,39 +158,25 @@ function fnDetalheOT(pIdResumoOT, aDetalheOT){
         		' ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ';
 	var pStmt = conndet.prepareStatement(api.replaceDbName(query));
 
-	for (var i = 0; i < aDetalheOT.length; i++) {
-        let {
-            IDPRODUTO,
-            QTDEXPEDICAO,
-            QTDRECEPCAO,
-            QTDDIFERENCA,
-            QTDAJUSTE,
-            VLRUNITVENDA,
-            VLRUNITCUSTO,
-            STCONFERIDO,
-            IDUSRAJUSTE,
-            STATIVO,
-            STFALTA,
-            STSOBRA
-        } = aDetalheOT[i];
-        
-        pStmt.setString(1, IDPRODUTO);
-        pStmt.setInt(2, pIdResumoOT);
-        pStmt.setInt(3, QTDEXPEDICAO);
-        pStmt.setInt(4, QTDRECEPCAO);
-        pStmt.setInt(5, QTDDIFERENCA);
-        pStmt.setInt(6, QTDAJUSTE);
-        pStmt.setFloat(7, VLRUNITVENDA);
-        pStmt.setFloat(8, VLRUNITCUSTO);
-        pStmt.setString(9, STCONFERIDO);
-        pStmt.setInt(10, IDUSRAJUSTE);
-        pStmt.setString(11, STATIVO);
-        pStmt.setString(12, STFALTA);
-        pStmt.setString(13, STSOBRA);
-        
+		for (var i = 0; i < aDetalheOT.length; i++) {
+
+	    pStmt.setString(1, aDetalheOT[i].IDPRODUTO);
+	    pStmt.setInt(2, pIdResumoOT);
+        pStmt.setInt(3, aDetalheOT[i].QTDEXPEDICAO);
+        pStmt.setInt(4, aDetalheOT[i].QTDRECEPCAO);
+        pStmt.setInt(5, aDetalheOT[i].QTDDIFERENCA);
+        pStmt.setInt(6, aDetalheOT[i].QTDAJUSTE);
+        pStmt.setFloat(7, aDetalheOT[i].VLRUNITVENDA);
+        pStmt.setFloat(8, aDetalheOT[i].VLRUNITCUSTO);
+        pStmt.setString(9, aDetalheOT[i].STCONFERIDO);
+        pStmt.setInt(10, aDetalheOT[i].IDUSRAJUSTE);
+        pStmt.setString(11, aDetalheOT[i].STATIVO);
+        pStmt.setString(12, aDetalheOT[i].STFALTA);
+        pStmt.setString(13, aDetalheOT[i].STSOBRA);
+
         pStmt.execute();
-        
 	}
+	
 	
 	pStmt.close();
 	
@@ -217,45 +203,43 @@ function fnHandlePost() {
 
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());
-
+    
     pStmt.setInt(1, pIdResumoOT);
-    pStmt.setInt(2, bodyJson[0].IDEMPRESAORIGEM);
-    pStmt.setInt(3, bodyJson[0].IDEMPRESADESTINO);
-    pStmt.setInt(4, bodyJson[0].IDOPERADOREXPEDICAO);
-    pStmt.setInt(5, bodyJson[0].NUTOTALITENS);
-    pStmt.setInt(6, bodyJson[0].QTDTOTALITENS);
-    pStmt.setInt(7, bodyJson[0].QTDTOTALITENSRECEPCIONADO);
-    pStmt.setInt(8, bodyJson[0].QTDTOTALITENSDIVERGENCIA);
-    pStmt.setInt(9, bodyJson[0].NUTOTALVOLUMES);
-    pStmt.setString(10, bodyJson[0].TPVOLUME);
-    pStmt.setFloat(11, bodyJson[0].VRTOTALCUSTO);
-    pStmt.setFloat(12, bodyJson[0].VRTOTALVENDA);
-    setDateOrNull(pStmt, 13, bodyJson[0].DTRECEPCAO);
-    setIntOrNull(pStmt, 14, bodyJson[0].IDOPERADORRECEPTOR);
-    pStmt.setString(15, bodyJson[0].DSOBSERVACAO);
-    setIntOrNull(pStmt, 16, bodyJson[0].IDUSRCANCELAMENTO);
-    setIntOrNull(pStmt, 17, bodyJson[0].IDSTDIVERGENCIA);
-    pStmt.setString(18, bodyJson[0].OBSDIVERGENCIA);
-    pStmt.setString(19, bodyJson[0].STEMISSAONFE);
-    pStmt.setString(20, bodyJson[0].NUMERONFE);
-    pStmt.setString(21, bodyJson[0].STENTRADAINVENTARIO);
-    pStmt.setInt(22, bodyJson[0].QTDCONFERENCIA);
-    pStmt.setInt(23, bodyJson[0].IDSTATUSOT);
-    setIntOrNull(pStmt, 24, bodyJson[0].IDUSRAJUSTE);
-    setDateOrNull(pStmt, 25, bodyJson[0].DTAJUSTE);
-    pStmt.setInt(26, bodyJson[0].QTDTOTALITENSAJUSTE);
-    pStmt.setString(27, bodyJson[0].CONFEREITENS);
-    pStmt.setInt(28, bodyJson[0].IDROTINA);
-    setDateOrNull(pStmt, 29, bodyJson[0].DATAENTREGA);
+    pStmt.setInt(2, bodyJson.IDEMPRESAORIGEM);
+    pStmt.setInt(3, bodyJson.IDEMPRESADESTINO);
+    pStmt.setInt(4, bodyJson.IDOPERADOREXPEDICAO);
+    pStmt.setInt(5, bodyJson.NUTOTALITENS);
+    pStmt.setInt(6, bodyJson.QTDTOTALITENS);
+    pStmt.setInt(7, bodyJson.QTDTOTALITENSRECEPCIONADO);
+    pStmt.setInt(8, bodyJson.QTDTOTALITENSDIVERGENCIA);
+    pStmt.setInt(9, bodyJson.NUTOTALVOLUMES);
+    pStmt.setString(10, bodyJson.TPVOLUME);
+    pStmt.setFloat(11, bodyJson.VRTOTALCUSTO);
+    pStmt.setFloat(12, bodyJson.VRTOTALVENDA);
+    setDateOrNull(pStmt, 13, bodyJson.DTRECEPCAO);
+    setIntOrNull(pStmt, 14, bodyJson.IDOPERADORRECEPTOR);
+    pStmt.setString(15, bodyJson.DSOBSERVACAO);
+    setIntOrNull(pStmt, 16, bodyJson.IDUSRCANCELAMENTO);
+    setIntOrNull(pStmt, 17, bodyJson.IDSTDIVERGENCIA);
+    pStmt.setString(18, bodyJson.OBSDIVERGENCIA);
+    pStmt.setString(19, bodyJson.STEMISSAONFE);
+    pStmt.setString(20, bodyJson.NUMERONFE);
+    pStmt.setString(21, bodyJson.STENTRADAINVENTARIO);
+    pStmt.setInt(22, bodyJson.QTDCONFERENCIA);
+    pStmt.setInt(23, bodyJson.IDSTATUSOT);
+    setIntOrNull(pStmt, 24, bodyJson.IDUSRAJUSTE);
+    setDateOrNull(pStmt, 25, bodyJson.DTAJUSTE);
+    pStmt.setInt(26, bodyJson.QTDTOTALITENSAJUSTE);
     pStmt.execute();
     pStmt.close();
 
-    fnDetalheOT(pIdResumoOT, bodyJson[0].dadosdetalheot);
+    fnDetalheOT(pIdResumoOT, bodyJson.dadosdetalheot);
 
 	conn.commit();
 	
 	return {
-	    "msg": "Inclusão realizada com sucesso!"
+	    "msg": "Inclusão realizada com sucesso!",
+	    "data": bodyJson
 	};
 }
 

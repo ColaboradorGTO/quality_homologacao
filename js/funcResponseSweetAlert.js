@@ -167,7 +167,7 @@ function msgQuestionInputMotivo(msgTitle = 'Digite o motivo!', lengthMotivo = 10
         title: `${msgTitle}`,
         html: `<div>
                     <div class=" input-group pt-0" >
-                        <input type="text" id="idMotivoModal" class="swal2-input m-0 " placeholder="Digite o motivo" style="text-transform: uppercase" />
+                        <input type="text" id="idMotivoModal" class="swal2-input m-0 " placeholder="Digite o motivo" style="text-transform: uppercase" autocomplete="off" />
                     </div>
                 </div>`,
         width: '25rem',
@@ -185,28 +185,19 @@ function msgQuestionInputMotivo(msgTitle = 'Digite o motivo!', lengthMotivo = 10
             
             $('#idMotivoModal').val(reason);
 
-            if (!reason) {
-                Swal.showValidationMessage(`Digite o motivo!`);
-                $('#idMotivoModal').focus();
-                return false;
-
-            } else if (reason?.length < lengthMotivo) {
-                Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo ${lengthMotivo} Caracteres!`)
-                $('#idMotivoModal').focus();
-                return false;
-            }
+          if (!reason || reason?.length < lengthMotivo) {
+            Swal.showValidationMessage(`Digite o motivo!, O Motivo Deve Conter no Minímo ${lengthMotivo} Caracteres!`);
+            $('#idMotivoModal').focus();
+            return false;
+          }
         }
     }).then(async (resp) => {
-        if (resp?.value) {
-            return {
-                status_response: resp?.value,                    
-                reason
-            };
-        }
+      let value = resp?.value == true;                  
 
-        return {
-            status_response: false
-        };
+      return {
+        value,
+        reason
+      };
     })
 
 }

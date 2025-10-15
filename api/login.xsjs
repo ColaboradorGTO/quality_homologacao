@@ -130,18 +130,18 @@ function obterCodigoDeRetorno(modulo, user) {
             
             break;
             
-        case 'ETIQUETAGEM' :
+        case 'CONFERENCIACEGA' :
             
-            if(user['DSFUNCAO'].substring(0,2)  == 'TI' || arrayIdsEtiquetagem.includes(user.id))
+            if(true || user['DSFUNCAO'].substring(0,2)  == 'TI' || user['IDEMPRESA'] == '101')
             {
                 return 1200;
             }
             
             break;
-        
-        case 'CONFERENCIACEGA' :
             
-            if(true || user['DSFUNCAO'].substring(0,2)  == 'TI' || user['IDEMPRESA'] == '101')
+        case 'ETIQUETAGEM' :
+            
+            if(user['DSFUNCAO'].substring(0,2)  == 'TI' || arrayIdsEtiquetagem.includes(user.id))
             {
                 return 1300;
             }

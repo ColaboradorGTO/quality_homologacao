@@ -1,59 +1,79 @@
-var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var securityStorage = new $.security.Store("localStore.xssecurestore");
-var slApi = $.import("quality.concentrador_homologacao.api.service-layer.api", "slApi");
+let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let slApi = $.import("quality.concentrador_homologacao.api.service-layer.api", "slApi");
 
 let dbNameSAP = 'SBO_GTO_TESTE4';
+let conn;
 
-function postSl(docEntry,data,session) {
+function updateLogErrorMigracao(idResumoPedido, msgError){
+    conn = $.db.getConnection();
     
-    var response = slApi.post('/PurchaseOrders('+docEntry+')/Cancel',data,session);
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME".RESUMOPEDIDO 
+        SET
+            LOGSAP = ?
+        WHERE 
+            IDRESUMOPEDIDO = ?
+    `;
+	
+	let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setString(1, msgError);
+	pStmt.setInt(2, Number(idResumoPedido));
+	
+	pStmt.execute();
+	pStmt.close();
+
+	conn.commit();
+}
+
+function postSl(docEntry, idResumoPedido, session) {
+    let response = slApi.post('/PurchaseOrders('+docEntry+')/Cancel', {}, session);
+    let retorno = true;
+    
     if (response.status !== 204) {
-        return JSON.parse(response.body.asString());
-    }else{
-        return 'True';
+        let responseJson = JSON.parse(response.body.asString());
+        let msgReturnError = responseJson.error.message.value || responseJson.message['Store.store'] || 'Erro ao tentar integrar o Pedido';
+        
+        updateLogErrorMigracao(idResumoPedido, msgReturnError);
+        
+        retorno = false;
     }
+    
+    return retorno;
+}
+
+function getDadosPedido(idResumoPedido){
+    let query = `
+        SELECT 
+            TBR."IDRESUMOPEDIDO",
+            IFNULL(DOCENTRY_PEDIDO_SAP, TBO."DocEntry") AS DOCENTRY 
+        FROM
+            "VAR_DB_NAME"."RESUMOPEDIDO" TBR
+        LEFT JOIN ${dbNameSAP}.OPOR TBO ON 
+            TO_VARCHAR(TBR.IDRESUMOPEDIDO) = TBO.U_ID_VENDA_PDV AND TO_DATE(TBR.DTCADASTRO) = TO_DATE(TBO."CreateDate") AND TBO.CANCELED = 'N'
+        WHERE  
+            TBR."STMIGRADOSAP" = 'True'
+            AND TBR."IDRESUMOPEDIDO" = ?
+    `;
+	
+	return api.sqlQuery(query, idResumoPedido);
 }
 
 function executeCancelamentoPedidoCompra(codPedido){
-    var query = 'SELECT T1."IDRESUMOPEDIDO", '+
-            	' T1."STCANCELADO", '+
-            	' T1."STMIGRADOSAP", '+
-            	' TO_VARCHAR(T1.DTPREVENTREGA,\'YYYY-mm-DD\') AS DTPREVENTREGA ' +
-                'FROM "VAR_DB_NAME"."RESUMOPEDIDO" T1 '+
-                'WHERE  1=? AND ' +
-               	 'T1.STMIGRADOSAP = \'True\'  '+
-        		' and T1."IDRESUMOPEDIDO" = '+parseInt(codPedido);
-	
-	var linhas = api.sqlQuery(query, 1);
-	var lines = [];
-	var session = '';
-	if(linhas.length > 0){
-        for (var i = 0; i < linhas.length; i++) {
-            var det = linhas[i];
-            var resultDocEntry = api.sqlQuery(`select "DocEntry" from ${dbNameSAP}.OPOR where 1=? AND "U_ID_VENDA_PDV" = '${det.IDRESUMOPEDIDO}'`, 1);
-            
-            if(resultDocEntry.length > 0)
-            {
-                if(i === 0){
-                    session = slApi.loginServiceLayer(true);
-                    slApi.loginServiceLayer(true);
-                } 
-                
-                var NumDocEntry = resultDocEntry[0].DocEntry;
-                var rsSl = postSl(NumDocEntry, {}, session);
-                //return rsSl
-                if(rsSl !== 'True'){
-                    return 'False';
-                }
-                
-            }
-        }
-        return 'True';
-	    //return postSl(lines,'true');
-	}else{
-	   return 'False'; 
+    let dadosPedido = getDadosPedido(codPedido);
+    
+	if(dadosPedido.length > 0){
+        let session = slApi.loginServiceLayer(true);
+        
+        slApi.loginServiceLayer(true);
+        
+        let { IDRESUMOPEDIDO, DOCENTRY } = dadosPedido[0];
+        
+        return postSl(DOCENTRY, IDRESUMOPEDIDO, session);
 	}
 	
+	return true;
 }
 
 

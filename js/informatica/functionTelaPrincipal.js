@@ -6508,7 +6508,6 @@ function ListaPromocao() {
 ///////////////////////////////////////////////////////////// Gabriel Figueredo - 27/08/2023 /////////////////////////////////////////////////////////////
 
 async function listarEmpresas() {
-
       animationLoadingStart();
 
       try {
@@ -6728,10 +6727,10 @@ function retornoDadosEmpresa(respAtualizarEmpresa) {
     $("#bairro").val(registro.EBAIRRO);
     $("#cidade").val(registro.ECIDADE);
     $("#estado").val(registro.SGUF);
-    $("#cep").val(mascaraCep(registro.NUCEP).slice(0, 10));
+    $("#cep").val(mascaraCep(registro.NUCEP));
     $("#ibge").val(registro.NUIBGE);
     $("#email").val(registro.EEMAILPRINCIPAL);
-    $("#telefone").val(mascaraTelefone(registro.NUTELGERENCIA).slice(0, 16));
+    $("#telefone").val(mascaraTelefone(registro.NUTELGERENCIA));
     $("#dataCriacao").val((registro.DTULTATUALIZACAO).slice(0, 10));
     $("#status").val(registro.STATIVO);
     $("#pis").val(registro.ALIQPIS);

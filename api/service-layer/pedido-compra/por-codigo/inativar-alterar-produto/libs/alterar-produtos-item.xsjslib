@@ -1,5 +1,4 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var securityStorage = new $.security.Store("localStore.xssecurestore");
 var slApi = $.import("quality.concentrador_homologacao.api.service-layer.api", "slApi");
 
 function patchSl(ItemCode,data, session) {

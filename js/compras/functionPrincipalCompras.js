@@ -748,44 +748,46 @@ function retornoSelectFornecedor(respostaListaFornecedor) {
 
 //////////////// FIM ROTINAS PARA RETORNAR SELECT'S BOX ////////////
 
-//////////////// Pão¡gina Inicial //////////////////
-//* ================================= INICIO ROTINA CADASTRO/EDIÇÃO PEDIDOS DE COMPRA ================================= //
+//? Pagina Inicial ?//
+
+//? ================================= INICIO ROTINA CADASTRO/EDIÇÃO PEDIDOS DE COMPRA ================================= ?//
 /*
-  DATA_ATUALIZAÇÃO: 25/11/2024
+  DATA_ATUALIZAÇÃO: 28/09/2025
   AUTOR_ATUALIZAÇÃO: Hendryw Deyvison
 */
 
-//! INICIO FUNÇÕES PARA SUBIR PARA PRODUÇÃO //
+let arrayListaPedidos = [];
+
 async function montarSelectBuscaDinamicaFornecedores(idElement = 'idforn', idForn = 0, stStatusForn = true) {
-    try {
-        let preLoading = (await ajaxGet(`api/compras/fornecedor.xsjs?pageSize=250`).catch((error) => { throw error }))?.data || [];
-        let optionSelected;
-        let data;
+  try {
+    let preLoading = (await ajaxGet(`api/compras/fornecedor.xsjs?pageSize=250`).catch((error) => { throw error }))?.data || [];
+    let optionSelected;
+    let data;
 
-        if (idForn > 0) {
-            let { data } = await ajaxGet(`api/compras/fornecedor.xsjs?id=${idForn}`).catch((error) => { throw error });
+    if (idForn > 0) {
+      let { data } = await ajaxGet(`api/compras/fornecedor.xsjs?id=${idForn}`).catch((error) => { throw error });
 
-            if (data?.length > 0) {
-                preLoading = [...data, ...preLoading];
-            }
-        }
+      if (data?.length > 0) {
+        preLoading = [...data, ...preLoading];
+      }
+    }
 
-        idElement = (!idElement ? 'idforn' : idElement).replace(/\s+/g, "");
-        idElement = '#' + (idElement.includes(',') ? idElement.split(',').join(', #') : idElement);
+    idElement = (!idElement ? 'idforn' : idElement).replace(/\s+/g, "");
+    idElement = '#' + (idElement.includes(',') ? idElement.split(',').join(', #') : idElement);
 
-        $(idElement).append(`
+    $(idElement).append(`
             <option value="0"> Selecione ... </option>
         `);
 
 
-        for (let item of preLoading) {
-            
-          let titleOption = stStatusForn && (item?.STATIVOSAP == 'Y' ? 'Fornecedor Ativo' : 'Fornecedor Inativo No SAP');
-          let stVinculo = stStatusForn && (!item?.VINCFABRICANTE ? 'Fornecedor Sem Fabricante Vinculado' : 'True');
-            
-            titleOption = (item?.STATIVOSAP == 'Y' && !item.VINCFABRICANTE) ? stVinculo : titleOption;
-            
-            $(idElement).append(`
+    for (let item of preLoading) {
+
+      let titleOption = stStatusForn && (item?.STATIVOSAP == 'Y' ? 'Fornecedor Ativo' : 'Fornecedor Inativo No SAP');
+      let stVinculo = stStatusForn && (!item?.VINCFABRICANTE ? 'Fornecedor Sem Fabricante Vinculado' : 'True');
+
+      titleOption = (item?.STATIVOSAP == 'Y' && !item.VINCFABRICANTE) ? stVinculo : titleOption;
+
+      $(idElement).append(`
                 <option 
                     value="${item.IDFORNECEDOR}"
                     noRazao="${item.NORAZAOSOCIAL}"
@@ -799,444 +801,432 @@ async function montarSelectBuscaDinamicaFornecedores(idElement = 'idforn', idFor
                 ${item.NOFANTASIA + ' / / ' + item.NUCNPJ + ' / / ' + item.NORAZAOSOCIAL} 
                 </option>
             `);
-        };
+    };
 
-        $(idElement).on('select2:select', (e) => {
-            optionSelected = e.params.data;
-        })
+    $(idElement).on('select2:select', (e) => {
+      optionSelected = e.params.data;
+    })
 
-        $(idElement).select2({
-            dropdownAutoWidth: false,
-            language: {
-                errorLoading: function (error) {
-                    return "Erro ao carregar a lista de fornecedores, Recarregue e tente novamente!";
-                }
-            },
-            ajax: {
-                dataType: 'json',
-                delay: 350,
-                transport: async function (params, success, failure) {
-                    try {
-                        let termoDigitado = params.data.term;
-                        data = preLoading;
-
-                        if (termoDigitado?.length > 1) {
-                            data = (
-                                await ajaxGetAllData('api/compras/fornecedor.xsjs?pageSize=500&descFornOrCnpj=' + termoDigitado)
-                                    .catch((error) => {
-                                        throw error;
-
-                                    })
-                            )?.data;
-
-                        }
-
-                        if (data?.length) {
-
-                            let results = data.map(function (item) {
-                              let titleOption = stStatusForn && (item?.STATIVOSAP == 'Y' ? 'Fornecedor Ativo' : 'Fornecedor Inativo No SAP');
-                              let stVinculo = stStatusForn && (!item?.VINCFABRICANTE ? 'Fornecedor Sem Fabricante Vinculado' : 'True');
-
-                                titleOption = (item?.STATIVOSAP == 'Y' && stVinculo !== 'True') ? stVinculo : titleOption;
-
-                                return {
-                                    id: item.IDFORNECEDOR,
-                                    text: `${item.NOFANTASIA + ' / / ' + item.NUCNPJ + ' / / ' + item.NORAZAOSOCIAL}`,
-                                    noRazao: item.NORAZAOSOCIAL,
-                                    noFantasia: item.NOFANTASIA,
-                                    cnpj: item.NUCNPJ,
-                                    stAtivo: item.STATIVO,
-                                    title: `${titleOption}`,
-                                    stVinculo: `${stVinculo !== 'True' ? 'False' : stVinculo}`,
-                                    stAtivoSap: item?.STATIVOSAP || ''
-                                };
-                            });
-                            success({ results });
-                        }
-                    } catch (error) {
-                        console.log(error);
-                        failure();
-                    }
-                },
-                cache: true,
-                processResults: function (data) {
-                    let { results } = data;
-
-                    if (optionSelected?.id) {
-                        let indexExists = results.findIndex(item => item.id == optionSelected.id);
-
-                        if (indexExists !== -1) {
-                            results.splice(indexExists, 1);
-                        }
-
-                        results.unshift(optionSelected);
-
-                    }
-
-                    if (!results.some(item => item.id == '0')) {
-                        results.unshift(
-                            {
-                                id: '0',
-                                text: 'Selecione ...'
-                            }
-                        );
-                    }
-
-                    return { results };
-                }
-            }
-        });
-
-        if (idForn) {
-            $(idElement).val(idForn).trigger('change');
-        } else {
-            $(idElement).val('0').trigger('change');
+    $(idElement).select2({
+      dropdownAutoWidth: false,
+      language: {
+        errorLoading: function (error) {
+          return "Erro ao carregar a lista de fornecedores, Recarregue e tente novamente!";
         }
+      },
+      ajax: {
+        dataType: 'json',
+        delay: 350,
+        transport: async function (params, success, failure) {
+          try {
+            let termoDigitado = params.data.term;
+            data = preLoading;
 
-    } catch (error) {
-        console.log(error);
-        msgError('Erro a lista de Fornecedores, Recarregue e tente novamente!');
+            if (termoDigitado?.length > 1) {
+              data = (
+                await ajaxGetAllData('api/compras/fornecedor.xsjs?pageSize=500&descFornOrCnpj=' + termoDigitado)
+                  .catch((error) => {
+                    throw error;
+
+                  })
+              )?.data;
+
+            }
+
+            if (data?.length) {
+
+              let results = data.map(function (item) {
+                let titleOption = stStatusForn && (item?.STATIVOSAP == 'Y' ? 'Fornecedor Ativo' : 'Fornecedor Inativo No SAP');
+                let stVinculo = stStatusForn && (!item?.VINCFABRICANTE ? 'Fornecedor Sem Fabricante Vinculado' : 'True');
+
+                titleOption = (item?.STATIVOSAP == 'Y' && stVinculo !== 'True') ? stVinculo : titleOption;
+
+                return {
+                  id: item.IDFORNECEDOR,
+                  text: `${item.NOFANTASIA + ' / / ' + item.NUCNPJ + ' / / ' + item.NORAZAOSOCIAL}`,
+                  noRazao: item.NORAZAOSOCIAL,
+                  noFantasia: item.NOFANTASIA,
+                  cnpj: item.NUCNPJ,
+                  stAtivo: item.STATIVO,
+                  title: `${titleOption}`,
+                  stVinculo: `${stVinculo !== 'True' ? 'False' : stVinculo}`,
+                  stAtivoSap: item?.STATIVOSAP || ''
+                };
+              });
+              success({ results });
+            }
+          } catch (error) {
+            console.log(error);
+            failure();
+          }
+        },
+        cache: true,
+        processResults: function (data) {
+          let { results } = data;
+
+          if (optionSelected?.id) {
+            let indexExists = results.findIndex(item => item.id == optionSelected.id);
+
+            if (indexExists !== -1) {
+              results.splice(indexExists, 1);
+            }
+
+            results.unshift(optionSelected);
+
+          }
+
+          if (!results.some(item => item.id == '0')) {
+            results.unshift(
+              {
+                id: '0',
+                text: 'Selecione ...'
+              }
+            );
+          }
+
+          return { results };
+        }
+      }
+    });
+
+    if (idForn) {
+      $(idElement).val(idForn).trigger('change');
+    } else {
+      $(idElement).val('0').trigger('change');
     }
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro a lista de Fornecedores, Recarregue e tente novamente!');
+  }
 }
 
 async function montarSelectBuscaDinamicaFabricantes(idElement = 'fabprod', idFab) {
-    try {
-        let preLoading = (await ajaxGet(`api/compras/fabricante.xsjs?pageSize=250`).catch((error) => { throw error }))?.data;
-        let optionSelected;
-        let data;
-        
-        if (idFab > 0) {
-            let { data } = await ajaxGet(`api/compras/fabricante.xsjs?id=${idFab}`).catch((error) => { throw error });
+  try {
+    let preLoading = (await ajaxGet(`api/compras/fabricante.xsjs?pageSize=250`).catch((error) => { throw error }))?.data;
+    let optionSelected;
+    let data;
 
-            if (data?.length > 0) {
-                preLoading = [...data, ...preLoading];
-            }
-        }
-        
-        idElement = (!idElement ? 'fabprod' : idElement).replace(/\s+/g, "");
-        idElement = '#' + (idElement.includes(',') ? idElement.split(',').join(', #') : idElement);
+    if (idFab > 0) {
+      let { data } = await ajaxGet(`api/compras/fabricante.xsjs?id=${idFab}`).catch((error) => { throw error });
 
-        $(idElement).append(`
+      if (data?.length > 0) {
+        preLoading = [...data, ...preLoading];
+      }
+    }
+
+    idElement = (!idElement ? 'fabprod' : idElement).replace(/\s+/g, "");
+    idElement = '#' + (idElement.includes(',') ? idElement.split(',').join(', #') : idElement);
+
+    $(idElement).append(`
         <option value="0"> Selecione ... </option>
       `);
 
 
-        preLoading.map(function (item) {
-            $(idElement).append(`
+    preLoading.map(function (item) {
+      $(idElement).append(`
               <option value="${item.IDFABRICANTE}"> ${item.IDFABRICANTE + ' - ' + item.DSFABRICANTE} </option>
           `);
-        });
+    });
 
-        $(idElement).on('select2:select', (e) => {
-            optionSelected = e.params.data;
-        })
+    $(idElement).on('select2:select', (e) => {
+      optionSelected = e.params.data;
+    })
 
-        $(idElement).select2({
-            dropdownAutoWidth: false,
-            language: {
-                errorLoading: function (error) {
-                    return "Erro ao carregar a lista de marcas, Recarregue e tente novamente!";
-                }
-            },
-            ajax: {
-                dataType: 'json',
-                delay: 350,
-                transport: async function (params, success, failure) {
-                    try {
-                        if (!data?.length) {
-                            data = preLoading;
-                        }
-                        let termoDigitado = params.data.term;
-
-                        if (termoDigitado?.length > 1) {
-                            await ajaxGetAllData('api/compras/fabricante.xsjs?pageSize=250&page=1&descFab=' + termoDigitado)
-                                .then((resp) => {
-                                    data = resp.data
-                                })
-                                .catch((error) => {
-                                    console.log(error);
-                                    throw error;
-                                });
-                        }
-
-                        if (data?.length) {
-                            let results = data.map(function (item) {
-
-                                return {
-                                    id: item.IDFABRICANTE,
-                                    text: `${item.IDFABRICANTE + ' - ' + item.DSFABRICANTE}`
-                                };
-                            });
-
-                            success({ results });
-                        }
-
-                    } catch (error) {
-                        failure(error);
-                        throw error;
-                    }
-                },
-                cache: true,
-                processResults: function (data) {
-                    let { results } = data;
-
-                    if (optionSelected?.id) {
-                        let indexExists = results.findIndex(item => item.id == optionSelected.id);
-
-                        if (indexExists !== -1) {
-                            results.splice(indexExists, 1);
-                        }
-
-                        results.unshift(optionSelected);
-
-                    }
-
-                    if (!results.some(item => item.id == '0')) {
-                        results.unshift(
-                            {
-                                id: '0',
-                                text: 'Selecione ...'
-                            }
-                        );
-                    }
-
-                    return { results };
-                }
-            }
-        });
-
-        if (idFab) {
-            $(idElement).val(idFab).trigger('change');
-        } else {
-            $(idElement).val('0').trigger('change');
+    $(idElement).select2({
+      dropdownAutoWidth: false,
+      language: {
+        errorLoading: function (error) {
+          return "Erro ao carregar a lista de marcas, Recarregue e tente novamente!";
         }
+      },
+      ajax: {
+        dataType: 'json',
+        delay: 350,
+        transport: async function (params, success, failure) {
+          try {
+            if (!data?.length) {
+              data = preLoading;
+            }
+            let termoDigitado = params.data.term;
 
-    } catch (error) {
-        console.log(error);
-        msgError('Erro a lista de Marcas, Recarregue e tente novamente!');
+            if (termoDigitado?.length > 1) {
+              await ajaxGetAllData('api/compras/fabricante.xsjs?pageSize=250&page=1&descFab=' + termoDigitado)
+                .then((resp) => {
+                  data = resp.data
+                })
+                .catch((error) => {
+                  console.log(error);
+                  throw error;
+                });
+            }
+
+            if (data?.length) {
+              let results = data.map(function (item) {
+
+                return {
+                  id: item.IDFABRICANTE,
+                  text: `${item.IDFABRICANTE + ' - ' + item.DSFABRICANTE}`
+                };
+              });
+
+              success({ results });
+            }
+
+          } catch (error) {
+            failure(error);
+            throw error;
+          }
+        },
+        cache: true,
+        processResults: function (data) {
+          let { results } = data;
+
+          if (optionSelected?.id) {
+            let indexExists = results.findIndex(item => item.id == optionSelected.id);
+
+            if (indexExists !== -1) {
+              results.splice(indexExists, 1);
+            }
+
+            results.unshift(optionSelected);
+
+          }
+
+          if (!results.some(item => item.id == '0')) {
+            results.unshift(
+              {
+                id: '0',
+                text: 'Selecione ...'
+              }
+            );
+          }
+
+          return { results };
+        }
+      }
+    });
+
+    if (idFab) {
+      $(idElement).val(idFab).trigger('change');
+    } else {
+      $(idElement).val('0').trigger('change');
     }
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro a lista de Marcas, Recarregue e tente novamente!');
+  }
 }
 
 async function carregarTelaPrincipal() {
-    try {
+  try {
 
-        await $.get('compras_action_lista_pedidos_principal.html', async (respHtml) => {
-            $('#js-page-content').html(respHtml);
+    await $.get('compras_action_lista_pedidos_principal.html', async (respHtml) => {
+      $('#js-page-content').html(respHtml);
 
-            $('#parametro_dia_inicio').val(dataAtualCampo2Meses);
-            $('#parametro_dia_fim').val(dataAtualCampo);
-            $('.dataAtual, .liDataAtual').text(dataAtual);
-            $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
-            $('.NoEmpresaTitulo').text(NOEmpresaLogin);
-            $('.NoFuncaoTitulo').text(NOFuncaoLogin);
-        })
-            .fail((error) => { throw error });
+      $('#parametro_dia_inicio').val(dataAtualCampo2Meses);
+      $('#parametro_dia_fim').val(dataAtualCampo);
+      $('.dataAtual, .liDataAtual').text(dataAtual);
+      $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
+      $('.NoEmpresaTitulo').text(NOEmpresaLogin);
+      $('.NoFuncaoTitulo').text(NOFuncaoLogin);
+    })
+      .fail((error) => { throw error });
 
-        $("#idmarcaselect, #idfornselect, #idfabselect, #idCompradorselect").select2();
+    $("#idmarcaselect, #idfornselect, #idfabselect, #idCompradorselect").select2();
 
-        $('#npedio, #parametro_dia_inicio, #parametro_dia_fim').on('keypress', (e) => { if (e.keyCode == 13) pesq_pedidos() });
+    $('#npedio, #parametro_dia_inicio, #parametro_dia_fim').on('keypress', (e) => { if (e.keyCode == 13) pesq_pedidos() });
 
-        await montarSelectBuscaDinamicaFornecedores('idfornselect', 0, false);
-        await montarSelectBuscaDinamicaFabricantes('idfabselect');
+    await montarSelectBuscaDinamicaFornecedores('idfornselect', 0, false);
+    await montarSelectBuscaDinamicaFabricantes('idfabselect');
 
-        await ajaxGetAllData('api/informatica/marca.xsjs', false)
-            .then(retornoListaMarcaSelect)
-            .catch((error) => { throw error });
+    await ajaxGetAllData('api/informatica/marca.xsjs', false)
+      .then(retornoListaMarcaSelect)
+      .catch((error) => { throw error });
 
-        await ajaxGetAllData('api/compras/comprador.xsjs', false)
-            .then(retornoListaCompradorSelect)
-            .catch((error) => { throw error });
+    await ajaxGetAllData('api/compras/comprador.xsjs', false)
+      .then(retornoListaCompradorSelect)
+      .catch((error) => { throw error });
 
-    } catch (error) {
-        console.error(error);
-        msgError();
-    }
+  } catch (error) {
+    console.error(error);
+    msgError();
+  }
 }
 
 async function exibirModalProdutoPedido(marcaPedido, idResumoPedido, tipoPedido, FornPedido) {
-    try {
-        await $.get('compras_action_incluirprodutopedido_modal.html', async function (res) {
+  try {
+    await $.get('compras_action_incluirprodutopedido_modal.html', async function (res) {
 
-            $('#resulmodaladdprodpedido').html(res);
+      $('#resulmodaladdprodpedido').html(res);
 
-            $('#nomemarcapedido').val(marcaPedido);
-            $('#IDResPedido, #IDResPedidoAtual').val(idResumoPedido);
-            $("#pesqrefprodpedido").focus().select();
+      $('#nomemarcapedido').val(marcaPedido);
+      $('#IDResPedido, #IDResPedidoAtual').val(idResumoPedido);
+      
+      $("#addprodutospedido").draggable({
+        handle: ".modal-header"
+      });
+      
+      $("#unidprod, #categoriaprod, #prodcategorias, #estruturaprod, #estiloprod, #corprod, #tptecidoprod, #listprodpesqped, #fabprod, #localexp, #stecommerce, #stredesocial").select2({
+        dropdownParent: $("#addprodutospedido"),
+      });
+      
+      $("#addprodutospedido").modal('show');
+      $("#pesqrefprodpedido").focus().select();
+    });
 
-            $("#addprodutospedido").draggable({
-                handle: ".modal-header"
-            });
+    await ajaxGet('api/compras/unidademedida.xsjs')
+      .then(retornoListaUnidadeMedida)
 
-            $("#unidprod, #categoriaprod, #prodcategorias, #estruturaprod, #estiloprod, #corprod, #tptecidoprod, #listprodpesqped, #fabprod, #localexp").select2({
-                dropdownParent: $("#addprodutospedido"),
+    await ajaxGet('api/compras/cores.xsjs')
+      .then(retornoListaCores)
 
-            });
+    await ajaxGet('api/compras/tipo-tecido.xsjs')
+      .then(retornoListaTecidos)
 
-            $("#addprodutospedido").modal('show');
-        }).fail((error) => { throw error });
+    await ajaxGet('api/compras/categoriapedido.xsjs?idtipopedido=' + tipoPedido)
+      .then(retornoListaCategoriaPedido)
 
-        await ajaxGet('api/compras/unidademedida.xsjs')
-            .then(retornoListaUnidadeMedida)
-            .catch((error) => { throw error });
+    await ajaxGet('api/cadastro/categorias.xsjs?idtipopedido=' + tipoPedido)
+      .then(retornoListaCategoriasProd)
 
-        await ajaxGet('api/compras/cores.xsjs')
-            .then(retornoListaCores)
-            .catch((error) => { throw error });
+    await ajaxGet('api/comercial/subgrupo-produto.xsjs')
+      .then(retornoListaSubGrupoPedido)
 
-        await ajaxGet('api/compras/tipo-tecido.xsjs')
-            .then(retornoListaTecidos)
-            .catch((error) => { throw error });
+    await ajaxGet('api/compras/vincfabforn.xsjs?idfornpedido=' + FornPedido)
+      .then(retornoListaFabricantePedido)
 
-        await ajaxGet('api/compras/categoriapedido.xsjs?idtipopedido=' + tipoPedido)
-            .then(retornoListaCategoriaPedido)
-            .catch((error) => { throw error });
+    await ajaxGet('api/compras/localexposicao.xsjs')
+      .then(retornoListaLocalExp)
 
-        await ajaxGet('api/cadastro/categorias.xsjs?idtipopedido=' + tipoPedido)
-            .then(retornoListaCategoriasProd)
-            .catch((error) => { throw error });
-
-        await ajaxGet('api/comercial/subgrupo-produto.xsjs')
-            .then(retornoListaSubGrupoPedido)
-            .catch((error) => { throw error });
-
-        await ajaxGet('api/compras/vincfabforn.xsjs?idfornpedido=' + FornPedido)
-            .then(retornoListaFabricantePedido)
-            .catch((error) => { throw error });
-
-        await ajaxGet('api/compras/localexposicao.xsjs')
-            .then(retornoListaLocalExp)
-            .catch((error) => { throw error });
-
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 }
 
 $(document).ready(async function () {
-    try{
-        animationLoadingStart('Carregando dados, aguarde...', 300);
+  try {
+    animationLoadingStart('Carregando dados, aguarde...');
 
-        await carregarTelaPrincipal();
+    await carregarTelaPrincipal();
 
-        await ajaxGetAllData(`api/compras/lista_pedidos.xsjs?pageSize=1000&page=1&dataPesquisaInicio=${dataAtualCampo2Meses}&dataPesquisaFim=${dataAtualCampo}`, false)
-            .then(retornoListaPedidos)
-            .catch((error)=>{ throw error});
-        
-        await $.get('http://ipwho.is/')
-            .then(retornoIp)
-            .catch((error) => { throw error });
+    await ajaxGetAllData(`api/compras/lista_pedidos.xsjs?pageSize=1000&page=1&dataPesquisaInicio=${dataAtualCampo2Meses}&dataPesquisaFim=${dataAtualCampo}&stPedidoPrimario='True'`, false)
+      .then(retornoListaPedidos)
 
-        animationLoadingStop();
-    } catch (error){
-        console.log(error);
-        msgError();
-    }
+    await $.get('http://ipwho.is/')
+      .then(retornoIp)
+      .catch((error)=>{console.log(error)})
+
+    animationLoadingStop();
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
 });
 
 /////////////////////////////LISTA DE PEDIDOS////////////////////////////////////
 
-let arrayListaPedidos = [];
-
 function retornoListaCategoriaPedido(respostaListaCatPedido) {
-    let { data } = respostaListaCatPedido || [];
+  let { data } = respostaListaCatPedido || [];
 
-    $('#categoriaprod').html( `<option value="">Selecione...</option>`);
+  $('#categoriaprod').html(`<option value="">Selecione...</option>`);
 
-    for (let { IDCATEGORIAPEDIDO, TIPOPEDIDO, DSCATEGORIAPEDIDO } of data) {
+  for (let { IDCATEGORIAPEDIDO, TIPOPEDIDO, DSCATEGORIAPEDIDO } of data) {
 
-        $('#categoriaprod').append(
-            `<option value="${IDCATEGORIAPEDIDO}"> ${TIPOPEDIDO} - ${DSCATEGORIAPEDIDO}</option>`
-        );
-    }
+    $('#categoriaprod').append(
+      `<option value="${IDCATEGORIAPEDIDO}"> ${TIPOPEDIDO} - ${DSCATEGORIAPEDIDO}</option>`
+    );
+  }
 
 }
 
 function retornoListaCategoriasProd(respostaListaCategoriasProd) {
-    let { data } = respostaListaCategoriasProd || [];
+  let { data } = respostaListaCategoriasProd || [];
 
-    $('#prodcategorias').html(`<option value="">Selecione...</option>`);
+  $('#prodcategorias').html(`<option value="">Selecione...</option>`);
 
-    for (let { IDCATEGORIAS, DSCATEGORIAS, TPCATEGORIAS } of data) {
+  for (let { IDCATEGORIAS, DSCATEGORIAS, TPCATEGORIAS } of data) {
 
-        $('#prodcategorias').append( `<option value="${IDCATEGORIAS}"> ${IDCATEGORIAS} - ${DSCATEGORIAS} - ${TPCATEGORIAS}</option>`);
-    }
+    $('#prodcategorias').append(`<option value="${IDCATEGORIAS}"> ${IDCATEGORIAS} - ${DSCATEGORIAS} - ${TPCATEGORIAS}</option>`);
+  }
 
 }
 
 function retornoListaUnidadeMedida(respostaListaUnidMed) {
-    let { data } = respostaListaUnidMed || [];
-    
-    $('#unidprod').html(`<option value="">Selecione...</option>`)
+  let { data } = respostaListaUnidMed || [];
 
-    for (let { IDUNIDADEMEDIDA, DSSIGLA } of data) {
-        $('#unidprod').append( `<option value="${IDUNIDADEMEDIDA}"> ${DSSIGLA}</option>`);
-    }
+  $('#unidprod').html(`<option value="">Selecione...</option>`)
+
+  for (let { IDUNIDADEMEDIDA, DSSIGLA } of data) {
+    $('#unidprod').append(`<option value="${IDUNIDADEMEDIDA}"> ${DSSIGLA}</option>`);
+  }
 
 }
 
 function retornoListaTecidos(respostaListaTipoTecido) {
-    let { data } = respostaListaTipoTecido || [];
+  let { data } = respostaListaTipoTecido || [];
 
-    $('#tptecidoprod').html(`<option value="">Selecione...</option>`);
+  $('#tptecidoprod').html(`<option value="">Selecione...</option>`);
 
-    for (let { IDTPTECIDO, DSTIPOTECIDO } of data) {
-        $('#tptecidoprod').append(`<option value="${IDTPTECIDO}"> ${DSTIPOTECIDO}</option>`);
-    }
+  for (let { IDTPTECIDO, DSTIPOTECIDO } of data) {
+    $('#tptecidoprod').append(`<option value="${IDTPTECIDO}"> ${DSTIPOTECIDO}</option>`);
+  }
 
 }
 
 function retornoListaFabricantePedido(respostaListaFabricante) {
-    let { data } = respostaListaFabricante || [];
+  let { data } = respostaListaFabricante || [];
 
-    $('#fabprod').html( `<option value="">Selecione...</option>`);
+  $('#fabprod').html(`<option value="">Selecione...</option>`);
 
-    for (let { IDFABRICANTE, DSFABRICANTE } of data) {
-        $('#fabprod').append(`<option value="${IDFABRICANTE}"> ${IDFABRICANTE} - ${DSFABRICANTE}</option>`);
-    }
+  for (let { IDFABRICANTE, DSFABRICANTE } of data) {
+    $('#fabprod').append(`<option value="${IDFABRICANTE}"> ${IDFABRICANTE} - ${DSFABRICANTE}</option>`);
+  }
 
 }
 
 function retornoListaLocalExp(respostaListaLocalExp) {
-    let { data } = respostaListaLocalExp || [];
+  let { data } = respostaListaLocalExp || [];
 
-    $('#localexp').html(`<option value="">Selecione...</option>`);
+  $('#localexp').html(`<option value="">Selecione...</option>`);
 
-    for (let {IDLOCALEXPOSICAO,  DSLOCALEXPOSICAO} of data) {
-        $('#localexp').append(`<option value="` + IDLOCALEXPOSICAO + `"> ` + DSLOCALEXPOSICAO + `</option>`);
-    }
+  for (let { IDLOCALEXPOSICAO, DSLOCALEXPOSICAO } of data) {
+    $('#localexp').append(`<option value="` + IDLOCALEXPOSICAO + `"> ` + DSLOCALEXPOSICAO + `</option>`);
+  }
 
 }
 
 function retornoListaProdutoPedido(respostaListaProdPedGrupo) {
-    let { data } = respostaListaProdPedGrupo || [];
+  let { data } = respostaListaProdPedGrupo || [];
 
-    $('#listprodpesqped').html(`<option value="" disabled selected>Selecione...</option>`);
+  $('#listprodpesqped').html(`<option value="" disabled selected>Selecione...</option>`);
 
-    $('#listprodpesqped').on('select2:select', () => selecaoreposicao());
+  $('#listprodpesqped').on('select2:select', () => selecaoreposicao());
 
-    for (let produto of data) {
+  for (let produto of data) {
 
-        let IDProdList = produto?.IDPRODUTO;
-        let DSProdList = produto?.DSNOME;
-        let NUCodBarrasProdList = produto?.NUCODBARRAS;
-        let CustoProdList = produto?.PRECOCUSTO;
-        let VendaProdList = produto?.PRECOVENDA;
-        let nuRef = produto?.NUREFERENCIA || '';
-        let idFab = produto?.IDFABRICANTE || '';
-        let idUnd = produto?.UND || '';
-        let idCor = produto?.IDCOR || '';
-        let idTpTecido = produto?.IDTIPOTECIDO || '';
-        let idCategoriaPedido = produto?.IDCATEGORIAPEDIDO || '';
-        let idGrpEstruturaESubgrpEstrutura = produto?.IDSUBGRUPOESTRUTURA || '';
-        let idEstilo = produto?.IDESTILO || '';
-        let idCategorias = produto?.IDCATEGORIAS || '';
-        let idLocalExp = produto?.IDLOCALEXPOSICAO || '';
-        let idTamanho = produto?.IDTAMANHO || '';
+    let IDProdList = produto?.IDPRODUTO;
+    let DSProdList = produto?.DSNOME;
+    let NUCodBarrasProdList = produto?.NUCODBARRAS;
+    let CustoProdList = produto?.PRECOCUSTO;
+    let VendaProdList = produto?.PRECOVENDA;
+    let nuRef = produto?.NUREFERENCIA || '';
+    let idFab = produto?.IDFABRICANTE || '';
+    let idUnd = produto?.UND || '';
+    let idCor = produto?.IDCOR || '';
+    let idTpTecido = produto?.IDTIPOTECIDO || '';
+    let idCategoriaPedido = produto?.IDCATEGORIAPEDIDO || '';
+    let idGrpEstruturaESubgrpEstrutura = produto?.IDSUBGRUPOESTRUTURA || '';
+    let idEstilo = produto?.IDESTILO || '';
+    let idCategorias = produto?.IDCATEGORIAS || '';
+    let idLocalExp = produto?.IDLOCALEXPOSICAO || '';
+    let idTamanho = produto?.IDTAMANHO || '';
 
-        // var DSProdListValor = DSProdList;// + '-' + CustoProdList + '-' + VendaProdList;
+    // var DSProdListValor = DSProdList;// + '-' + CustoProdList + '-' + VendaProdList;
 
-        $('#listprodpesqped').append(`
+    $('#listprodpesqped').append(`
             <option 
                 title="${CustoProdList}" 
                 value="${VendaProdList}"
@@ -1258,233 +1248,251 @@ function retornoListaProdutoPedido(respostaListaProdPedGrupo) {
                 ${NUCodBarrasProdList ? (NUCodBarrasProdList + ' - ' + DSProdList) : DSProdList}
             </option>
         `);
-    }
+  }
 }
 
 async function retornoListaEstiloGrupo(respostaListaEstiloGrupo) {
-    let { data } = respostaListaEstiloGrupo || [];
+  let { data } = respostaListaEstiloGrupo || [];
 
-    $('#estiloprod').html(`<option value="">Selecione...</option>`);
+  $('#estiloprod').html(`<option value="">Selecione...</option>`);
 
-    for (let { IDESTILO, DSESTILO } of data ) {
-        $('#estiloprod').append(`<option value="${IDESTILO}"> ${IDESTILO} - ${DSESTILO}</option>`);
-    }
+  for (let { IDESTILO, DSESTILO } of data) {
+    $('#estiloprod').append(`<option value="${IDESTILO}"> ${IDESTILO} - ${DSESTILO}</option>`);
+  }
 
-    return true;
+  return true;
 }
 
 function retornoListaTransportadora(respostaListaTransportadora) {
-    let { data } = respostaListaTransportadora || [];
+  let { data } = respostaListaTransportadora || [];
 
-    $('#idtransportadora').html(`<option value="">Selecione ...</option>`);
+  $('#idtransportadora').html(`<option value="">Selecione ...</option>`);
 
-    for (let { IDTRANSPORTADORA, NUCNPJ, NOFANTASIA  } of data) {
-        $('#idtransportadora').append(`<option value="` + IDTRANSPORTADORA + `"> ` + NUCNPJ + ` - ` + NOFANTASIA + `</option>`);
-    }
+  for (let { IDTRANSPORTADORA, NUCNPJ, NOFANTASIA } of data) {
+    $('#idtransportadora').append(`<option value="` + IDTRANSPORTADORA + `"> ` + NUCNPJ + ` - ` + NOFANTASIA + `</option>`);
+  }
 
 }
 
 function retornoListaFornecedorPedido(respostaListaFornecedoresPedio) {
-    let { data } = respostaListaFornecedoresPedio || [];
+  let { data } = respostaListaFornecedoresPedio || [];
 
-    $('#idforn').html(`<option value="">Selecione ...</option>`);
+  $('#idforn').html(`<option value="">Selecione ...</option>`);
 
-    for (let fornecedor of data) {
+  for (let fornecedor of data) {
 
-        let IDFornecedor = fornecedor?.IDFORNECEDOR;
-        let DSFornecedor = fornecedor?.NORAZAOSOCIAL;
-        let DSFantFornecedor = fornecedor?.NOFANTASIA;
-        let NrCpfCnpj = fornecedor?.NUCNPJ;
-        let idSAP = fornecedor?.IDSAP || '';
-        let stSAP = fornecedor?.STATIVOSAP;
-        let stAtivo = false;
+    let IDFornecedor = fornecedor?.IDFORNECEDOR;
+    let DSFornecedor = fornecedor?.NORAZAOSOCIAL;
+    let DSFantFornecedor = fornecedor?.NOFANTASIA;
+    let NrCpfCnpj = fornecedor?.NUCNPJ;
+    let idSAP = fornecedor?.IDSAP || '';
+    let stSAP = fornecedor?.STATIVOSAP;
+    let stAtivo = false;
 
-        if (stSAP == 'Y') {
-            stAtivo = true;
-        }
+    if (stSAP == 'Y') {
+      stAtivo = true;
+    }
 
-        $('#idforn').append(`
+    $('#idforn').append(`
             <option value="${IDFornecedor}" idSap="${idSAP}" title="${stAtivo ? 'Fornecedor Ativo' : 'Fornecedor Inativo No SAP'}">
                 ${DSFantFornecedor} /  / ${NrCpfCnpj} / / ${DSFornecedor}
             </option>
         `);
-    }
+  }
 
 }
 
 function retornoListaCondicaoPagSelect(respostaListaCondicaoPag) {
-    let { data } = respostaListaCondicaoPag || [];
+  let { data } = respostaListaCondicaoPag || [];
 
-    $('#idcondicaopagamento').html(`<option value="">Selecione ...</option>`);
+  $('#idcondicaopagamento').html(`<option value="">Selecione ...</option>`);
 
-    for (let { IDCONDICAOPAGAMENTO, DSCONDICAOPAG } of data ) {
-        $('#idcondicaopagamento').append(`<option value="${IDCONDICAOPAGAMENTO}"> ${DSCONDICAOPAG}</option>`);
-    }
+  for (let { IDCONDICAOPAGAMENTO, DSCONDICAOPAG } of data) {
+    $('#idcondicaopagamento').append(`<option value="${IDCONDICAOPAGAMENTO}"> ${DSCONDICAOPAG}</option>`);
+  }
 }
 
 function retornoListaCompradorSelect(respostaListaComprador) {
-    let { data } = respostaListaComprador || [];
+  let { data } = respostaListaComprador || [];
 
-    $("#IdCompradorPedido, #idCompradorselect").html(`<option value="">Selecione ...</option>`);
+  $("#IdCompradorPedido, #idCompradorselect").html(`<option value="">Selecione ...</option>`);
 
-    for (let { IDFUNCIONARIO, NOFUNCIONARIO } of data) {
-        $('#IdCompradorPedido, #idCompradorselect').append(`<option value="${IDFUNCIONARIO}"> ${NOFUNCIONARIO}</option>`);
-    }
+  for (let { IDFUNCIONARIO, NOFUNCIONARIO } of data) {
+    $('#IdCompradorPedido, #idCompradorselect').append(`<option value="${IDFUNCIONARIO}"> ${NOFUNCIONARIO}</option>`);
+  }
 }
 
 function retornoListaMarcaSelect(respostaListaMarcas) {
-    let { data } = respostaListaMarcas || [];
+  let { data } = respostaListaMarcas || [];
 
-    $('#idmarca, #idmarcaselect').html(`<option value="">Selecione ...</option>`);
+  $('#idmarca, #idmarcaselect').html(`<option value="">Selecione ...</option>`);
 
-    for (let { IDGRUPOEMPRESARIAL, DSGRUPOEMPRESARIAL } of data) {
-        $('#idmarca, #idmarcaselect').append(`<option value="${IDGRUPOEMPRESARIAL}"> ${DSGRUPOEMPRESARIAL}</option>`);
-    }
+  for (let { IDGRUPOEMPRESARIAL, DSGRUPOEMPRESARIAL } of data) {
+    $('#idmarca, #idmarcaselect').append(`<option value="${IDGRUPOEMPRESARIAL}"> ${DSGRUPOEMPRESARIAL}</option>`);
+  }
 }
 
 async function pesq_pedidos(numPage = 1) {
-    try{
-        let dataPesqInicio = $("#parametro_dia_inicio").val();
-        let dataPesqFim = $("#parametro_dia_fim").val();
-        let idFornPesq = Number($("#idfornselect").val()) || '';
-        let idMarcaPesq = $("#idmarcaselect").val();
-        let idFabPesq = Number($("#idfabselect").val()) || '';
-        let idCompradorPesq = $("#idCompradorselect").val();
-        let NuPedidoPesq = $("#npedio").val() || '';
+  try {
+    let dataPesqInicio = $("#parametro_dia_inicio").val();
+    let dataPesqFim = $("#parametro_dia_fim").val();
+    let idFornPesq = Number($("#idfornselect").val()) || '';
+    let idMarcaPesq = $("#idmarcaselect").val();
+    let idFabPesq = Number($("#idfabselect").val()) || '';
+    let idCompradorPesq = $("#idCompradorselect").val();
+    let NuPedidoPesq = $("#npedio").val() || '';
+    let idPedidoPrimario = NuPedidoPesq;
 
-        await ajaxGetAllData(`api/compras/lista_pedidos.xsjs?pageSize=500&page=${numPage}&dataPesquisaInicio=${dataPesqInicio}&dataPesquisaFim=${dataPesqFim}&idFornPesquisa=${idFornPesq}&idMarcaPesquisa=${idMarcaPesq}&idpedido=${NuPedidoPesq}&idFabPesquisa=${idFabPesq}&idCompradorPesquisa=${idCompradorPesq}`)
-            .then(retornoListaPedidos)
-            .catch((error)=>{ throw error });
+    await ajaxGetAllData(`api/compras/lista_pedidos.xsjs?pageSize=500&page=${numPage}&dataPesquisaInicio=${dataPesqInicio}&dataPesquisaFim=${dataPesqFim}&idFornPesquisa=${idFornPesq}&idMarcaPesquisa=${idMarcaPesq}&idpedido=${NuPedidoPesq}&idFabPesquisa=${idFabPesq}&idCompradorPesquisa=${idCompradorPesq}&stPedidoPrimario='True'&idPedidoPrimario=${idPedidoPrimario}`)
+      .then(retornoListaPedidos)
+      .catch((error) => { throw error });
 
-    } catch(error){
-        console.log(error);
-        msgError('Erro ao carregar os pedidos, recarregue e tente novamente!');
-    }
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao carregar os pedidos, recarregue e tente novamente!');
+  }
 }
 
 async function retornoListaPedidos(respostaListaPedidos) {
-    let { data } = respostaListaPedidos;
-    let dataRetornoListaPedido = [];
-    let totalVrPedidos = 0;
-    let contador = 0;
+  let { data } = respostaListaPedidos;
+  let dataRetornoListaPedido = [];
+  let totalVrPedidos = 0;
+  let contador = 0;
 
-    arrayListaPedidos = respostaListaPedidos;
+  arrayListaPedidos = respostaListaPedidos;
 
-    if (data.length > 0) {
-        
-        for (let dados of data) {
+  if (data.length > 0) {
 
-            let idPedido = dados?.IDPEDIDO;
-            let dataPedido = dados?.DTPEDIDOFORMATADABR;
-            let valorPedido = maskValorEmBRL((dados?.VRTOTALLIQUIDO || 0));
-            let statusPedido = dados?.STCANCELADO;
-            let compradorPedido = dados?.NOMECOMPRADOR;
-            let noFantasiaPedido = dados?.NOFANTASIA;
-            let noFornecedorPedido = dados?.NOFORNECEDOR;
-            let noFabricantePedido = dados?.FABRICANTE;
-            let stPedido = dados?.DSANDAMENTO;
-            let stPedidoSetor = dados?.DSSETOR;
-            let stRascunho = dados?.STRASCUNHO || 'False';
-            let btnVisualizarPedido = ` <button type="button" class="btn btn-success btn-xs" title="Visualizar o Pedido" id="${idPedido}" onclick="NovoPedido(this.id)" ><i class="fal fa-eye"></i></button>`;
-            let btnEditarPedido = `<button type="button" class="btn btn-info btn-xs" title="Editar Pedido" id="${idPedido}" onclick="NovoPedido(this.id)" ><i class="fal fa-pen"></i></button>`;
-            let btnCancelarPedido = `<button type="button" class="btn btn-danger btn-xs" title="Cancelar Pedido" id="${idPedido}" onclick="modal_CancelarAtivar_Pedido(this.id, 'True')" ><i class="fal fa-trash-alt"></i></button>`;
-            let btnAtivarPedido = `<button type="button" class="btn btn-danger btn-xs" title="Ativar Pedido" id="${idPedido}" onclick="modal_CancelarAtivar_Pedido(this.id, 'False')" ><i class="fal fa-check"></i></button>`;
-            let btnImprimirComPrecoVenda = `<button type="button" class="btn btn-warning btn-xs" title="Imprimir Pedido Com Preço de Venda" id="${idPedido}" onclick="Imprimir_Pedido(this.id)" ><i class="fal fa-print"></i></button>`;
-            let btnImprimirSemPrecoVenda = `<button type="button" class="btn btn-dark btn-xs" title="Imprimir Pedido Sem Preço de Venda" id="${idPedido}" onclick="Imprimir_Pedido_SemPreco(this.id)" ><i class="fal fa-print"></i></button>`;
-            let labelsetor =  '';
-            let labelstpedido = '';
-            let containerButtons ='';
-            let btnsLinha = '';
+    for (let dados of data) {
 
-            totalVrPedidos += parseFloat(dados?.VRTOTALLIQUIDO || 0);
+      let idPedido = dados?.IDPEDIDO;
+      let dataPedido = dados?.DTPEDIDOFORMATADABR;
+      let valorPedido = maskValorEmBRL((dados?.VRTOTALLIQUIDO || 0));
+      let statusPedido = dados?.STCANCELADO;
+      let compradorPedido = dados?.NOMECOMPRADOR;
+      let noFantasiaPedido = dados?.NOFANTASIA;
+      let noFornecedorPedido = dados?.NOFORNECEDOR;
+      let noFabricantePedido = dados?.FABRICANTE;
+      let stPedido = dados?.DSANDAMENTO;
+      let stPedidoSetor = dados?.DSSETOR;
+      let stRascunho = dados?.STRASCUNHO || 'False';
+      let idPedidoPrimario = dados?.IDPEDIDOPRIMARIO || 0;
+      let stPedidoPrimario = dados?.STPEDIDOPRIMARIO == 'True';
+      let idPedidoSecundario = Number(dados?.IDPEDIDOSECUNDARIO || 0);
 
-            contador++;
+      let btnVisualizarPedido = ` <button type="button" class="btn btn-success btn-xs" title="Visualizar o Pedido" id="${idPedido}" onclick="NovoPedido(this.id)" ><i class="fal fa-eye"></i></button>`;
+      let btnEditarPedido = `<button type="button" class="btn btn-info btn-xs" title="Editar Pedido" id="${idPedido}" onclick="NovoPedido(this.id)" ><i class="fal fa-pen"></i></button>`;
+      let btnCancelarPedido = `<button type="button" class="btn btn-danger btn-xs" title="Cancelar Pedido" id="${idPedido}" onclick="modal_CancelarAtivar_Pedido(this.id, 'True')" ><i class="fal fa-trash-alt"></i></button>`;
+      let btnAtivarPedido = `<button type="button" class="btn btn-danger btn-xs" title="Ativar Pedido" id="${idPedido}" onclick="modal_CancelarAtivar_Pedido(this.id, 'False')" ><i class="fal fa-check"></i></button>`;
+      let btnImprimirComPrecoVenda = `<button type="button" class="btn btn-warning btn-xs" title="Imprimir Pedido Com Preço de Venda" id="${idPedido}" onclick="Imprimir_Pedido(this.id)" ><i class="fal fa-print"></i></button>`;
+      let btnImprimirSemPrecoVenda = `<button type="button" class="btn btn-dark btn-xs" title="Imprimir Pedido Sem Preço de Venda" id="${idPedido}" onclick="Imprimir_Pedido_SemPreco(this.id)" ><i class="fal fa-print"></i></button>`;
+      let labelsetor = '';
+      let labelstpedido = '';
+      let containerButtons = '';
+      let btnsLinha = '';
 
-            if (stPedidoSetor == 'COMPRAS') {
-                labelsetor = `<label style="color: blue; font-size: 11px;">COMPRAS</label>`;
-                if (stPedido == 'PEDIDO INICIADO') {
-                    labelstpedido = `<label title="${stRascunho == 'True' ? 'Há pendências neste pedido' : ''}" style="color: blue; font-size: 11px;">${stPedido} ${stRascunho == 'True' ? '/<label style="color: red; font-size: 11px;">SALVO COMO RASCUNHO </label>' : ''}</label>`;
+      totalVrPedidos += parseFloat(dados?.VRTOTALLIQUIDO || 0);
 
-                    btnsLinha = `
+      contador++;
+
+      if (stPedidoSetor == 'COMPRAS') {
+        labelsetor = `<label style="color: blue; font-size: 11px;">COMPRAS</label>`;
+        if (stPedido == 'PEDIDO INICIADO') {
+          labelstpedido = `<label title="${stRascunho == 'True' ? 'Há pendências neste pedido' : ''}" style="color: blue; font-size: 11px;">${stPedido} ${stRascunho == 'True' ? '/<label style="color: red; font-size: 11px;">SALVO COMO RASCUNHO </label>' : ''}</label>`;
+
+          btnsLinha = `
                         ${btnEditarPedido}
                         ${btnCancelarPedido}
                         ${btnImprimirComPrecoVenda}
                         ${btnImprimirSemPrecoVenda}
                     `;
 
-                } else if (stPedido == 'PEDIDO PARA SER AJUSTADO') {
-                    labelstpedido = `<label style="color: blue; font-size: 11px;">${stPedido}</label>`;
+        } else if (stPedido == 'PEDIDO PARA SER AJUSTADO') {
+          labelstpedido = `<label style="color: blue; font-size: 11px;">${stPedido}</label>`;
 
-                    btnsLinha = `
+          btnsLinha = `
                         ${btnEditarPedido}
                         ${btnImprimirComPrecoVenda}
                         ${btnImprimirSemPrecoVenda}
                     `;
 
-                } else if (stPedido == 'PEDIDO FINALIZADO') {
-                    labelstpedido = `<label style="color: tomato; font-size: 11px;">${stPedido}</label>`;
+        } else if (stPedido == 'PEDIDO FINALIZADO') {
+          labelstpedido = `<label style="color: tomato; font-size: 11px;">${stPedido}</label>`;
 
-                    btnsLinha = `
+          btnsLinha = `
                         ${btnVisualizarPedido}
                         ${btnCancelarPedido}
                         ${btnImprimirComPrecoVenda}
                         ${btnImprimirSemPrecoVenda}
                     `;
 
-                } else if (stPedido == 'PEDIDO CANCELADO') {
-                    labelstpedido = `<label style="color: red; font-size: 11px;">${stPedido}</label>`;
+        } else if (stPedido == 'PEDIDO CANCELADO') {
+          labelstpedido = `<label style="color: red; font-size: 11px;">${stPedido}</label>`;
 
-                    btnsLinha = `
+          btnsLinha = `
                         ${btnVisualizarPedido}
                         ${btnAtivarPedido}
                         ${btnImprimirComPrecoVenda}
                         ${btnImprimirSemPrecoVenda}
                     `;
-                }
+        }
 
-            } else if (stPedidoSetor == 'CADASTRO' || stPedidoSetor == 'COMPRASADM') {
-                if (stPedido == 'PRODUTOS/INCLUSÃO FINALIZADA') {
-                    labelstpedido = `<label style="color: black; font-size: 11px;">${stPedido}</label>`;
-                } else {
-                    labelstpedido = `<label style="color: blue; font-size: 11px;">${stPedido}</label>`;
-                }
+      } else if (stPedidoSetor == 'CADASTRO' || stPedidoSetor == 'COMPRASADM') {
+        if (stPedido == 'PRODUTOS/INCLUSÃO FINALIZADA') {
+          labelstpedido = `<label style="color: black; font-size: 11px;">${stPedido}</label>`;
+        } else {
+          labelstpedido = `<label style="color: blue; font-size: 11px;">${stPedido}</label>`;
+        }
 
-                labelsetor = `<label style="color: green; font-size: 11px;">CADASTRO </label>`;
+        labelsetor = `<label style="color: green; font-size: 11px;">CADASTRO </label>`;
 
-                if (stPedidoSetor == 'COMPRASADM') {
-                    labelstpedido = `<label style="color: green; font-size: 11px;">${stPedido}</label>`;
-                    labelsetor = `<label style="color: gray; font-size: 11px;">COMPRAS ADM </label>`;
-                }
+        if (stPedidoSetor == 'COMPRASADM') {
+          labelstpedido = `<label style="color: ${stPedido == 'PEDIDO CANCELADO' ? 'red' : 'green'}; font-size: 11px;">${stPedido}</label>`;
+          labelsetor = `<label style="color: gray; font-size: 11px;">COMPRAS ADM </label>`;
+        }
 
-                btnsLinha = `
+        btnsLinha = `
                     ${btnVisualizarPedido}
                     ${btnImprimirComPrecoVenda}
                     ${btnImprimirSemPrecoVenda}
                 `;
 
-            }
-            
-            containerButtons = `<div class="btn-group btn-group-xs">${btnsLinha}`;
+      }
 
-            dataRetornoListaPedido.push([
-                contador,
-                dataPedido,
-                idPedido,
-                noFantasiaPedido,
-                compradorPedido,
-                noFornecedorPedido,
-                noFabricantePedido,
-                valorPedido,
-                labelsetor,
-                labelstpedido,
-                containerButtons
-            ]);
-        }
+      if (stPedidoPrimario || idPedidoPrimario > 0) {
+        btnsLinha = idPedidoPrimario ? `
+                ${btnVisualizarPedido}
+                ${btnImprimirComPrecoVenda}
+                ${btnImprimirSemPrecoVenda}
+            ` : btnsLinha;
 
+
+        let situacao = idPedidoPrimario ? `-> PEDIDO PRIMARIO -> ${idPedidoPrimario}` : `-> PEDIDO SECUNDARIO -> ${idPedidoSecundario}`;
+
+        labelstpedido += `<label class="pl-1" style="color: red; font-size: 11px;">${situacao}</label>`;
+      }
+
+      containerButtons = `<div class="btn-group btn-group-xs">${btnsLinha}`;
+
+      dataRetornoListaPedido.push([
+        contador,
+        dataPedido,
+        idPedido,
+        noFantasiaPedido,
+        compradorPedido,
+        noFornecedorPedido,
+        noFabricantePedido,
+        valorPedido,
+        labelsetor,
+        labelstpedido,
+        containerButtons
+      ]);
     }
-    
-    $('#resultadoListaPedido').html(
-        `<table id="dt-basic-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+
+  }
+
+  $('#resultadoListaPedido').html(
+    `<table id="dt-basic-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
               <thead class="bg-primary-600">
                   <tr>
                       <th>#</th>
@@ -1505,522 +1513,522 @@ async function retornoListaPedidos(respostaListaPedidos) {
               <tfoot id="totalListaPedidos" class="thead-themed">
               </tfoot>
           </table>`
-    );
+  );
 
-    $('#dt-basic-lista-pedidos').DataTable({
-        data: dataRetornoListaPedido,
-        deferRender: true,
-        responsive: true,
-        columnDefs: [
-            {
-                targets: [1],
-                type: 'date-time-br'
-            },
-            {
-                targets: [7],
-                type: 'currency-brl'
-            },
-            
+  $('#dt-basic-lista-pedidos').DataTable({
+    data: dataRetornoListaPedido,
+    deferRender: true,
+    responsive: true,
+    columnDefs: [
+      {
+        targets: [0],
+        type: 'number'
+      },
+      {
+        targets: [1],
+        type: 'date-time-br'
+      },
+      {
+        targets: [7],
+        type: 'currency-brl'
+      },
 
-        ],
-        dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        buttons: [
-            {
-                extend: 'pdfHtml5',
-                text: 'PDF',
-                titleAttr: 'Generate PDF',
-                className: 'btn-outline-danger btn-sm mr-1'
-            },
-            {
-                extend: 'excelHtml5',
-                text: 'Excel',
-                titleAttr: 'Generate Excel',
-                className: 'btn-outline-success btn-sm mr-1'
-            },
-            {
-                extend: 'print',
-                text: 'Print',
-                titleAttr: 'Print Table',
-                className: 'btn-outline-primary btn-sm'
-            }
-        ],
-        initComplete: function (settings) {
-            let idTable = `#${settings.nTable.id}`;
-            let qtdLinesTable = $(`${idTable} tbody tr td`)?.length || 0;
 
-            if (qtdLinesTable > 1){
-                $(idTable).focus();
+    ],
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Generate Excel',
+        className: 'btn-outline-success btn-sm mr-1'
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ],
+    initComplete: function (settings) {
+      let idTable = `#${settings.nTable.id}`;
+      let qtdLinesTable = $(`${idTable} tbody tr td`)?.length || 0;
 
-                $('html, body').animate({
-                    scrollTop: $(idTable).offset().top
-                }, 1000);
-            }
-        }
-    });
+      if (qtdLinesTable > 1) {
+        $(idTable).focus();
 
-    $('#totalListaPedidos').html(
-        `<tr>
+        $('html, body').animate({
+          scrollTop: $(idTable).offset().top
+        }, 1000);
+      }
+    }
+  });
+
+  $('#totalListaPedidos').html(
+    `<tr>
               <th colspan="6" style="text-align: center;">Total</th>
               <th>${maskValorEmBRL(totalVrPedidos)}</th>
               <th colspan="4"></th>
           </tr>`
-    );
+  );
 
 }
 
 async function retornaParaTelaPrincipal() {
-    msgQuestion('Deseja realmente voltar para tela principal')
-        .then(async (resp) => {
-            try {
-                if (resp?.value) {
-                    animationLoadingStart();
+  msgQuestion('Deseja realmente voltar para tela principal')
+    .then(async (resp) => {
+      try {
+        if (resp?.value) {
+          animationLoadingStart();
 
-                    await carregarTelaPrincipal();
+          await carregarTelaPrincipal();
 
-                    await retornoListaPedidos(arrayListaPedidos);
+          await retornoListaPedidos(arrayListaPedidos);
 
-                    animationLoadingStop();
-                }
-            } catch (error) {
-                console.error(error);
-                msgError();
-            }
-        })
+          animationLoadingStop();
+        }
+      } catch (error) {
+        console.error(error);
+        msgError();
+      }
+    })
 }
 
 function retornoListaSubGrupoPedido(respostaListaSubGruposPedidos) {
-    let { data } = respostaListaSubGruposPedidos || [];
-    let IDGrupoAnterior = '';
-    let codHtml = `<option value="">Selecione...</option>`
+  let { data } = respostaListaSubGruposPedidos || [];
+  let IDGrupoAnterior = '';
+  let codHtml = `<option value="">Selecione...</option>`
 
-    for (let { ID_ESTRUTURA, ESTRUTURA, ID_GRUPO, DS_GRUPO } of data) {
+  for (let { ID_ESTRUTURA, ESTRUTURA, ID_GRUPO, DS_GRUPO } of data) {
 
-        if (ID_GRUPO === IDGrupoAnterior) {
+    if (ID_GRUPO === IDGrupoAnterior) {
 
-            codHtml += `<option value="${ID_GRUPO}:${ID_ESTRUTURA}">${ESTRUTURA}</option>`;
-        } else {
-            if (IDGrupoAnterior !== '') {
-                codHtml += `</optgroup>`;
-            }
+      codHtml += `<option value="${ID_GRUPO}:${ID_ESTRUTURA}">${ESTRUTURA}</option>`;
+    } else {
+      if (IDGrupoAnterior !== '') {
+        codHtml += `</optgroup>`;
+      }
 
-            codHtml += `
+      codHtml += `
                 <optgroup label="${DS_GRUPO?.toUpperCase()}">
                     <option value="${ID_GRUPO}:${ID_ESTRUTURA}">${ESTRUTURA}</option>
             `;
-        }
-
-        IDGrupoAnterior = ID_GRUPO;
     }
 
-    $('#estruturaprod').html(codHtml);
+    IDGrupoAnterior = ID_GRUPO;
+  }
+
+  $('#estruturaprod').html(codHtml);
 }
 
 function retornoListaCores(respostaListaCoresPedidos) {
-    let { data } = respostaListaCoresPedidos || [];
-    let IDGrupoCorAnterior = '';
-    let codHtmlCor = `<option value="">Selecione...</option>`;
+  let { data } = respostaListaCoresPedidos || [];
+  let IDGrupoCorAnterior = '';
+  let codHtmlCor = `<option value="">Selecione...</option>`;
 
-    for (let { ID_COR, DS_COR, ID_GRUPOCOR, DS_GRUPOCOR } of data) {
-        if (ID_GRUPOCOR === IDGrupoCorAnterior) {
+  for (let { ID_COR, DS_COR, ID_GRUPOCOR, DS_GRUPOCOR } of data) {
+    if (ID_GRUPOCOR === IDGrupoCorAnterior) {
 
-            codHtmlCor += `<option value="${ID_COR}"> ${DS_COR}</option>`;
-        } else {
-            if (IDGrupoCorAnterior !== '') {
-                codHtmlCor += `</optgroup>`;
-            }
-            codHtmlCor += `
+      codHtmlCor += `<option value="${ID_COR}"> ${DS_COR}</option>`;
+    } else {
+      if (IDGrupoCorAnterior !== '') {
+        codHtmlCor += `</optgroup>`;
+      }
+      codHtmlCor += `
                 <optgroup label="${DS_GRUPOCOR.toUpperCase()}">
                     <option value="${ID_COR}"> ${DS_COR}</option>
             `;
-        }
-
-        IDGrupoCorAnterior = ID_GRUPOCOR;
     }
 
-    $('#corprod').html(codHtmlCor);
+    IDGrupoCorAnterior = ID_GRUPOCOR;
+  }
+
+  $('#corprod').html(codHtmlCor);
 }
 
-function modal_CancelarAtivar_Pedido(id, status) {
-    let msgtitulo = 'Ativar';
+async function modal_CancelarAtivar_Pedido(id, stCancelado) {
+  try{
+    let txtAcao = 'Ativar';
     let textoCancelaPedido = 'ATIVADO PELO COMPRADOR';
     let idAndamento = 1;
     let msgRetorno = 'Ativado';
     let textoFuncao = 'COMPRAS/ATIVAR PEDIDO';
-    
-    if (status == 'True') {
-        msgtitulo = 'Cancelar';
-        textoCancelaPedido = 'CANCELADO PELO COMPRADOR';
-        idAndamento = 3;
-        msgRetorno = 'Cancelado';
-        textoFuncao = 'COMPRAS/CANCELAR PEDIDO';
+
+    if (stCancelado == 'True') {
+      txtAcao = 'Cancelar';
+      textoCancelaPedido = 'CANCELADO PELO COMPRADOR';
+      idAndamento = 3;
+      msgRetorno = 'Cancelado';
+      textoFuncao = 'COMPRAS/CANCELAR PEDIDO';
     };
+
+    let confirmacao = await msgQuestion(`Deseja Realmente ${txtAcao} o Pedido?`, "Você não poderá reverter esta ação!");
+
+    if (!confirmacao?.value) {
+      return;
+    }
 
     let dados = {
-        "IDRESUMOPEDIDO": parseInt(id),
-        "IDANDAMENTO": parseInt(idAndamento),
-        "IDRESPCANCELAMENTO": parseInt(IDFuncionarioLogin),
-        "DSMOTIVOCANCELAMENTO": textoCancelaPedido,
-        "DTCANCELAMENTO": dataAtualCampo,
-        "STCANCELADO": status
+      "IDRESUMOPEDIDO": parseInt(id),
+      "IDANDAMENTO": parseInt(idAndamento),
+      "IDRESPCANCELAMENTO": parseInt(IDFuncionarioLogin),
+      "DSMOTIVOCANCELAMENTO": textoCancelaPedido,
+      "DTCANCELAMENTO": dataAtualCampo,
+      "STCANCELADO": stCancelado
     };
 
-    let textdados = JSON.stringify(dados);
+    animationLoadingStart('Atualizando dados, aguarde', 300, false);
 
-    let dadosLog = [{
-        "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-        "PATHFUNCAO": textoFuncao,
-        "DADOS": textdados,
-        "IP": ipCliente
-    }];
+    await ajaxPut("api/compras/atualizacao-status-pedido.xsjs", dados)
 
-    msgQuestion(`Deseja Realmente ${msgtitulo} o Pedido?`, "Você não poderá reverter esta ação!")
-    .then(async (resp)=>{
-        try{
-            if(resp?.value){
-                animationLoadingStart('Atualizando dados, aguarde', 300, false);
+    await gerarLog(dados, textoFuncao);
 
-                await ajaxPut("api/compras/atualizacao-status-pedido.xsjs", dados)
-                    .catch((error)=>{ throw error });
+    await msgSuccess(`Pedido ${msgRetorno} Com Sucesso!`);
 
-                await ajaxPost("api/log-web.xsjs", dadosLog)
-                    .catch((error)=>{ throw error });
-
-                await msgSuccess(`Pedido ${msgRetorno} Com Sucesso!`, undefined, false);
-
-                pesq_pedidos();
-            }
-        } catch (error) {
-            console.log(error);
-            msgError('Erro ao tentar alterar o status do pedido, recarregue e tente nvovamente!');
-        }
-    })
+    pesq_pedidos();
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar alterar o status do pedido, recarregue e tente nvovamente!');
+  }
 }
 
-function fechar_pedido() {
+async function validarSeExistemItensCadastrados(idResumoPedido) {
+  let errors = [];
+
+  let { data } = await ajaxGetAllData('api/compras/lista_detalhepedidos.xsjs?idpedido=' + idResumoPedido, false)
+    .catch((error) => {
+      console.log('Erro ao tentar validar os Itens do pedido');
+      console.log(error);
+
+      errors.push('Erro ao tentar validar os Itens do pedido, recarregue e tente novamente!');
+    }) || [];
+
+
+  if (data?.length == 0) {
+    errors.push("Não Existem Itens cadastrados neste Pedido: " + idResumoPedido + ", Inclua os itens e tente novamente!");
+  }
+
+  if(errors.length > 0){
+    await msgWarning(errors.join(' \n'));
+
+    return false;
+  }
+
+  return true;
+}
+
+function montarPayloadoFecharPedido(){
+  let id = $("#IDResPedidoAtual").val();
+  let DtPedido = $("#dtpedido").val();
+  let DtPedidoEntrega = $("#dtentrega").val();
+  let tipoPedido = $("#idtipopedido").val();
+  let MarcaPedido = $('#idmarca').select2('data');
+  let CondPag = $("#idcondicaopagamento").val();
+  let IDFornc = $("#idforn").val();
+  let IdCompradorPedido = $("#IdCompradorPedido").val();
+  let IdMarcaPedido = $("#idmarca").val();
+  let ObsFornPedido = $("#obsforn").val();
+  let ObsIntPedido = $("#obsint").val();
+  let TpFiscalPedido = $("#idfiscal").val();
+  let IdEnviarPedido = $("#idenviar").val();
+  let NoVendedorPedido = $("#novendedor").val();
+  let EmailVendedorPedido = $("#emailvendedor").val();
+  let VrDescIPedido = $("#VrDescontoPedidoI").val().replace(".", "").replace(",", ".");
+  let VrDescIIPedido = $("#VrDescontoPedidoII").val().replace(".", "").replace(",", ".");
+  let VrDescIIIPedido = $("#VrDescontoPedidoIII").val().replace(".", "").replace(",", ".");
+  let vrComissaoPedido = $("#VrComissaoPedido").val().replace(".", "").replace(",", ".");
+  let VrLiqPedido = $("#vrliquidopedido").val().replace(".", "").replace(",", ".");
+  let IdTranspPedido = $("#idtransportadora").val();
+  let TpFretePedido = $("#tpfrete").val();
+  let stagrupado = 'False';
+  let stcancelado = 'False';
+  let stdistribuido = 'False';
+  let idAndamento = 6;
+  let stRascunho = $('#stRascunho').val() || 'False';
+
+  return {
+    "IDRESUMOPEDIDO": parseInt(id),
+    "IDGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
+    "IDSUBGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
+    "IDCOMPRADOR": parseInt(IdCompradorPedido),
+    "IDCONDICAOPAGAMENTO": parseInt(CondPag),
+    "IDFORNECEDOR": (IDFornc),
+    "IDTRANSPORTADORA": parseInt(IdTranspPedido),
+    "IDANDAMENTO": parseInt(idAndamento),
+    "MODPEDIDO": tipoPedido,
+    "NOVENDEDOR": NoVendedorPedido,
+    "EEMAILVENDEDOR": EmailVendedorPedido,
+    "DTPEDIDO": DtPedido,
+    "DTPREVENTREGA": DtPedidoEntrega,
+    "TPFRETE": TpFretePedido,
+    "DESCPERC01": parseFloat(VrDescIPedido),
+    "DESCPERC02": parseFloat(VrDescIIPedido),
+    "DESCPERC03": parseFloat(VrDescIIIPedido),
+    "PERCCOMISSAO": parseFloat(vrComissaoPedido),
+    "VRTOTALLIQUIDO": parseFloat(VrLiqPedido),
+    "OBSPEDIDO": ObsFornPedido,
+    "OBSPEDIDO2": ObsIntPedido,
+    "DTFECHAMENTOPEDIDO": dataAtualCampo,
+    "DTCADASTRO": dataAtualCampo,
+    "TPARQUIVO": IdEnviarPedido,
+    "STDISTRIBUIDO": stdistribuido,
+    "STAGRUPAPRODUTO": stagrupado,
+    "STCANCELADO": stcancelado,
+    "TPFISCAL": TpFiscalPedido,
+    "STRASCUNHO": stRascunho
+  };
+}
+
+async function fechar_pedido() {
+  try {
     let id = $("#IDResPedidoAtual").val();
-    let DtPedido = $("#dtpedido").val();
-    let DtPedidoEntrega = $("#dtentrega").val();
-    let tipoPedido = $("#idtipopedido").val();
-    let MarcaPedido = $('#idmarca').select2('data');
-    let CondPag = $("#idcondicaopagamento").val();
-    let IDFornc = $("#idforn").val();
-    //let NoCompradorPedido = $("#nomecomprador").val();
-    let IdCompradorPedido = $("#IdCompradorPedido").val();
-    let IdMarcaPedido = $("#idmarca").val();
-    let ObsFornPedido = $("#obsforn").val();
-    let ObsIntPedido = $("#obsint").val();
-    let TpFiscalPedido = $("#idfiscal").val();
-    let IdEnviarPedido = $("#idenviar").val();
-    let IdtipoPedido = $("#idtipopedido").val();
-    let NoVendedorPedido = $("#novendedor").val();
-    let EmailVendedorPedido = $("#emailvendedor").val();
-    let VrDescIPedido = $("#VrDescontoPedidoI").val().replace(".", "").replace(",", ".");
-    let VrDescIIPedido = $("#VrDescontoPedidoII").val().replace(".", "").replace(",", ".");
-    let VrDescIIIPedido = $("#VrDescontoPedidoIII").val().replace(".", "").replace(",", ".");
-    let vrComissaoPedido = $("#VrComissaoPedido").val().replace(".", "").replace(",", ".");
-    let VrLiqPedido = $("#vrliquidopedido").val().replace(".", "").replace(",", ".");
-    let IdTranspPedido = $("#idtransportadora").val();
-    let TpFretePedido = $("#tpfrete").val();
-    let stagrupado = 'False';
-    let stcancelado = 'False';
-    let stdistribuido = 'False';
-    let idAndamento = 6;
     let stRascunho = $('#stRascunho').val() || 'False';
 
-    if (IDFornc == '') {
-        alerta_selectVazioOuCampoEmBranco('Selecione um Fornecedor da Lista', '#idforn');
-    } else if (!IdCompradorPedido) {
-        alerta_selectVazioOuCampoEmBranco('Selecione o Comprador do Pedido', '#IdCompradorPedido');
-    } else if (MarcaPedido[0].text == 'Selecione ...') {
-        alerta_selectVazioOuCampoEmBranco('Selecione uma Marca', '#idmarca');
-    } else if (!TpFiscalPedido) {
-        alerta_selectVazioOuCampoEmBranco('Selecione o Tipo Fiscal do Fornecedor', '#idfiscal');
-    } else if (!IdEnviarPedido) {
-        alerta_selectVazioOuCampoEmBranco('Selecione uma Opção no Campo Enviar', '#idenviar');
-    } else if (!CondPag) {
-        alerta_selectVazioOuCampoEmBranco('Selecione um Tipo de Pagamento', '#idcondicaopagamento');
-    } else if (!tipoPedido) {
-        alerta_selectVazioOuCampoEmBranco('Selecione o Tipo do Pedido', '#idtipopedido');
-    } else if (!NoVendedorPedido) {
-        alerta_selectVazioOuCampoEmBranco('Adicione o Nome do Vendedor', '#novendedor');
-    } else if (!IdTranspPedido) {
-        alerta_selectVazioOuCampoEmBranco('Selecione a Transportadora', '#idtransportadora');
-    } else if (!TpFretePedido) {
-        alerta_selectVazioOuCampoEmBranco('Selecione o Tipo do Frete', '#tpfrete');
-    } else {
+    animationLoadingStart('Validando Dados do Pedido, aguarde...');
 
-        if (id == 0 || stRascunho != 'False') {
-            let text = id == 0 ? 'Não existe Pedido Iniciado' : 'Não é possivel finalizar este pedido! Solucione as pendências e tente novamente!';
-
-            return msgWarning('Pedido não pode ser Fechado', text, false);
-        } else {
-
-            let dados = {
-                "IDRESUMOPEDIDO": parseInt(id),
-                "IDGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-                "IDSUBGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-                "IDCOMPRADOR": parseInt(IdCompradorPedido),
-                "IDCONDICAOPAGAMENTO": parseInt(CondPag),
-                "IDFORNECEDOR": (IDFornc),
-                "IDTRANSPORTADORA": parseInt(IdTranspPedido),
-                "IDANDAMENTO": parseInt(idAndamento),
-                "MODPEDIDO": tipoPedido,
-                "NOVENDEDOR": NoVendedorPedido,
-                "EEMAILVENDEDOR": EmailVendedorPedido,
-                "DTPEDIDO": DtPedido,
-                "DTPREVENTREGA": DtPedidoEntrega,
-                "TPFRETE": TpFretePedido,
-                "DESCPERC01": parseFloat(VrDescIPedido),
-                "DESCPERC02": parseFloat(VrDescIIPedido),
-                "DESCPERC03": parseFloat(VrDescIIIPedido),
-                "PERCCOMISSAO": parseFloat(vrComissaoPedido),
-                "VRTOTALLIQUIDO": parseFloat(VrLiqPedido),
-                "OBSPEDIDO": ObsFornPedido,
-                "OBSPEDIDO2": ObsIntPedido,
-                "DTFECHAMENTOPEDIDO": dataAtualCampo,
-                "DTCADASTRO": dataAtualCampo,
-                "TPARQUIVO": IdEnviarPedido,
-                "STDISTRIBUIDO": stdistribuido,
-                "STAGRUPAPRODUTO": stagrupado,
-                "STCANCELADO": stcancelado,
-                "TPFISCAL": TpFiscalPedido,
-                "STRASCUNHO": stRascunho
-            };
-
-            let textdados = JSON.stringify(dados);
-            let textoFuncao = 'COMPRAS/PEDIDO FINALIZADO';
-
-            let dadosLog = [{
-                "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-                "PATHFUNCAO": textoFuncao,
-                "DADOS": textdados,
-                "IP": ipCliente
-            }];
-
-            msgQuestion('Certeza que Deseja Finalizar o Pedido?', "Você não poderá reverter esta ação!")
-                .then(async (resp) => {
-                    try{
-                        if(resp?.value){
-                            animationLoadingStart('Atualizando dados, aguarde...', 300, false);
-
-                            await ajaxPut("api/compras/finalizar-pedido.xsjs", dados).catch((error)=>{ throw error });
-                            
-                            await ajaxPost("api/log-web.xsjs", dadosLog).catch((error)=>{ throw error });
-
-                            await msgSuccess(`Pedido Fechado Com Sucesso!`, undefined, false);
-
-                            window.location.replace("dashboardcompras.html");
-
-                        }
-                    } catch(error){
-                        console.log(error);
-                        msgError('Erro ao tentar fechar o pedido, recerregue e tente novamente!');
-                    }
-                })
-
-        }
+    let camposValidos = await validarCamposCabecalhoPedido();
+    
+    if (!camposValidos) {
+      return
     }
+
+    let stItensCadastrados = await validarSeExistemItensCadastrados(id);
+
+    if (!stItensCadastrados) {
+      return
+    }
+
+    if (id == 0 || stRascunho != 'False') {
+      let text = id == 0 ? 'Não existe Pedido Iniciado' : 'Não é possivel finalizar este pedido! Solucione as pendências e tente novamente!';
+
+      return msgWarning('Pedido não pode ser Fechado', text, false);
+    }
+    
+    let confirmacao = await msgQuestion('Certeza que Deseja Finalizar o Pedido?', "Você não poderá reverter esta ação!");
+    
+    if (!confirmacao?.value) {
+      return;
+    }
+    
+    let dados = montarPayloadoFecharPedido();
+
+    let textoFuncao = 'COMPRAS/PEDIDO FINALIZADO';
+
+    animationLoadingStart('Atualizando dados, aguarde...', 300, false);
+
+    await ajaxPut("api/compras/finalizar-pedido.xsjs", dados);
+
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess(`Pedido Fechado Com Sucesso!`, undefined, false);
+
+    window.location.replace("dashboardcompras.html");
+
+  } catch (error) {
+    console.log(error);
+    msgError('Error ao tentar Finalizar o pedido, recarregue e tente novamente!')
+  }
 }
 
 function funcSucessLog(resposta) {
-    Swal.fire({
-        type: "error",
-        title: "Log com sucesso",
-        showConfirmButton: false,
-        timer: 15000
-    });
+  Swal.fire({
+    type: "error",
+    title: "Log com sucesso",
+    showConfirmButton: false,
+    timer: 15000
+  });
 
 }
 
-function modal_Cancelar_Produto_Pedido(id, status, idResumo) {
+async function modal_Cancelar_Produto_Pedido(id, stCancelado, idResumo) {
+  try{
     let msgtitulo = 'Ativar';
     let textoCancelaPedido = 'PRODUTO ATIVADO PELO COMPRADOR';
     let textoFuncao = 'COMPRAS/ATIVAR PRODUTO DO PEDIDO';
+    let txtSuccess = stCancelado == 'True' ? 'Cancelado' : 'Ativado';
 
-    if (status == 'True') {
-        msgtitulo = 'Cancelar';
-        textoCancelaPedido = 'PRODUTO CANCELADO PELO COMPRADOR';
-        textoFuncao = 'COMPRAS/CANCELAR PRODUTO DO PEDIDO';
+    if (stCancelado == 'True') {
+      msgtitulo = 'Cancelar';
+      textoCancelaPedido = 'PRODUTO CANCELADO PELO COMPRADOR';
+      textoFuncao = 'COMPRAS/CANCELAR PRODUTO DO PEDIDO';
+    }
+    
+    let confirmacao = await msgQuestion(`Certeza que Deseja ${msgtitulo} esse Produto do Pedido?`, "Você não poderá reverter esta ação!");
+
+    if(!confirmacao?.value){
+      return;
     }
 
-    msgQuestion(`Certeza que Deseja ${msgtitulo} esse Produto do Pedido?`, "Você não poderá reverter esta ação!")
-    .then(async (resp)=>{
-        try{
-            if(resp?.value){
-                animationLoadingStart('Atualizando dados, aguarde...', 300, false);
+    animationLoadingStart('Atualizando dados, aguarde...', 100, false);
 
-                let dados = {
-                    "IDDETALHEPEDIDO": parseInt(id),
-                    "STCANCELADO": status,
-                    "IDRESPCANCELAMENTO": parseInt(IDFuncionarioLogin),
-                    "TXTOBSCANCELAMENTO": (textoCancelaPedido),
-                    "IDRESUMOPEDIDO": parseInt(idResumo)
-                };
+    let dados = {
+      "IDDETALHEPEDIDO": parseInt(id),
+      "STCANCELADO": stCancelado,
+      "IDRESPCANCELAMENTO": parseInt(IDFuncionarioLogin),
+      "TXTOBSCANCELAMENTO": (textoCancelaPedido),
+      "IDRESUMOPEDIDO": parseInt(idResumo)
+    };
 
-                let textdados = JSON.stringify(dados);
+    await ajaxPut("api/compras/atualizacao-status-produto-pedido.xsjs", dados);
 
-                let dadosLog = [{
-                    "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-                    "PATHFUNCAO": textoFuncao,
-                    "DADOS": textdados,
-                    "IP": ipCliente
-                }];
+    await gerarLog(dados, textoFuncao);
 
+    await msgSuccess(`Produto ${txtSuccess} do Pedido: ${idResumo} com Sucesso!`);
 
-                await ajaxPut("api/compras/atualizacao-status-produto-pedido.xsjs", dados).catch((error) => { throw error });
+    NovoPedido(idResumo);
 
-                await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw error });
-
-                await msgSuccess(`Produto Excluído do Pedido: ${idResumo} com Sucesso!`, undefined, false);
-
-                NovoPedido(idResumo);
-                
-            }
-        } catch (error){
-            console.log(error);
-            msgError('Erro ao tentar excluir o produto, recarregue e tente novamente!')
-        }
-    })
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar excluir o produto, recarregue e tente novamente!')
+  }
 }
 
 function funcError(msg = 'Erro ao Carregar os Dados') {
-    Swal.fire({
-        type: "error",
-        title: msg,
-        showConfirmButton: false,
-        timer: 15000
-    });
+  Swal.fire({
+    type: "error",
+    title: msg,
+    showConfirmButton: false,
+    timer: 15000
+  });
 }
 
-function clonarCabecalhoPedido(){
-    msgQuestion('Deseja realmente clonar o cabeçalho e iniciar outro pedido?', 'Esta ação não poderá ser revertida!')
-    .then(async (resp)=>{
-        if(resp?.value){
-          $('#dtpedido').val(dataAtualCampo);
+async function clonarCabecalhoPedido() {
 
-            $('.subheader-title').html( `<i class="subheader-icon fal fa-chart-area"></i> Novo Pedido`);
-            $("#buttonFehcarProdPedido, #buttonClonarProdPedido, #buttonNovoProdPedido").attr("hidden", true);
-            $("#buttonIncluirProdPedido, #buttonSalvarPedido").attr("hidden", false);
+  let confirmacao = await msgQuestion('Deseja realmente clonar o cabeçalho e iniciar outro pedido?', 'Esta ação não poderá ser revertida!')
+  
+  if (!confirmacao?.value) {
+    return
+  }
 
-            $('#IDResPedidoAtual, #vrBrutoPed, #vrliquidopedido, #totalItens, #prodqtd').val(0);
+  $('#dtpedido').val(dataAtualCampo);
 
-            $('.totalbrutopedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${maskValorEmBRL(0, 6)}<small class="m-0 l-h-n">Valor Bruto Pedido</small></h3>`);
-            $('.totalliqpedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${maskValorEmBRL(0, 6)}<small class="m-0 l-h-n">Valor Líquido Pedido</small></h3>`);
-            $('.qtdprodutopedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${0}<small class="m-0 l-h-n">QTD Produtos</small></h3>`);
+  $('.subheader-title').html(`<i class="subheader-icon fal fa-chart-area"></i> Novo Pedido`);
+  $("#buttonFehcarProdPedido, #buttonClonarProdPedido, #buttonNovoProdPedido").attr("hidden", true);
+  $("#buttonIncluirProdPedido, #buttonSalvarPedido").attr("hidden", false);
 
-            $("#IDResPedidoAtual, #totalItens, #prodqtd, #vrBrutoPed").val("0");
-            $("#SetorAndamento").val("COMPRAS");
-            $("#IdAndamentoPed").val("1");
+  $('#IDResPedidoAtual, #vrBrutoPed, #vrliquidopedido, #totalItens, #prodqtd').val(0);
 
-            $("#vrliquidopedido, #vrliquidopedidofixo").val(maskValorEmDecimal(0, 6));
+  $('.totalbrutopedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${maskValorEmBRL(0, 6)}<small class="m-0 l-h-n">Valor Bruto Pedido</small></h3>`);
+  $('.totalliqpedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${maskValorEmBRL(0, 6)}<small class="m-0 l-h-n">Valor Líquido Pedido</small></h3>`);
+  $('.qtdprodutopedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${0}<small class="m-0 l-h-n">QTD Produtos</small></h3>`);
 
-            $('.texttablistpedidos').html(`<h2> LISTA DOS ITENS DO <span class="fw-300"><i>PEDIDO</i></span> </h2>`);
+  $("#IDResPedidoAtual, #totalItens, #prodqtd, #vrBrutoPed").val("0");
+  $("#SetorAndamento").val("COMPRAS");
+  $("#IdAndamentoPed").val("1");
 
-            $('#resultadoresumopedidolista').html(
-                `<table id="dt-resumo-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
-                    <thead class="bg-primary-600">
-                        <tr>
-                            <th>#</th>
-                            <th>Categoria</th>
-                            <th>Qtd</th>
-                            <th>Unid</th>
-                            <th>Ref.</th>
-                            <th>Descrição</th>
-                            <th>Estrut</th>
-                            <th>Cor</th>
-                            <th>Desc I</th>
-                            <th>Desc II</th>
-                            <th>Desc III</th>
-                            <th>Vr Unit</th>
-                            <th>Vr Venda</th>
-                            <th>Total</th>
-                            <th>Opções</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultadoPedidosLista">
-                    </tbody>
-                    <tfoot id="totalResumoPedidoLista"class="thead-themed">
-                    </tfoot>
-                </table>`
-            );
+  $("#vrliquidopedido, #vrliquidopedidofixo").val(maskValorEmDecimal(0, 6));
 
-            $('#cabecalhoPedido input, #cabecalhoPedido select').prop('disabled', false);
+  $('.texttablistpedidos').html(`<h2> LISTA DOS ITENS DO <span class="fw-300"><i>PEDIDO</i></span> </h2>`);
 
-            await msgInfo('Novo pedido iniciado!');
+  $('#resultadoresumopedidolista').html(
+    `<table id="dt-resumo-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+      <thead class="bg-primary-600">
+        <tr>
+          <th>#</th>
+          <th>Categoria</th>
+          <th>Qtd</th>
+          <th>Unid</th>
+          <th>Ref.</th>
+          <th>Descrição</th>
+          <th>Estrut</th>
+          <th>Cor</th>
+          <th>Desc I</th>
+          <th>Desc II</th>
+          <th>Desc III</th>
+          <th>Vr Unit</th>
+          <th>Vr Venda</th>
+          <th>Total</th>
+          <th>Opções</th>
+        </tr>
+      </thead>
+      <tbody id="resultadoPedidosLista"></tbody>
+      <tfoot id="totalResumoPedidoLista"class="thead-themed"></tfoot>
+    </table>`
+  );
 
-            verificaDadosDoFornecedorSelecionado(false);
-        }
-    })
+  $('#cabecalhoPedido input, #cabecalhoPedido select').prop('disabled', false);
+  
+  $("#chkStPedidoPorIntermediario").prop({
+    'checked': true,
+    'disabled': false,
+    'readonly': false
+  })
+
+  await msgInfo('Novo pedido iniciado!');
+
+  verificaDadosDoFornecedorSelecionado(false);
 }
 
 async function NovoPedido(id = '', stRecarregar = true) {
-    try {
-        animationLoadingStart(id ? 'Carregando dados do Pedido, aguarde...' : 'Carregando dados, aguarde...');
+  try {
+    animationLoadingStart(id ? 'Carregando dados do Pedido, aguarde...' : 'Carregando dados, aguarde...');
 
-        if (stRecarregar) {
+    if (stRecarregar) {
 
-            let idResmPedidoNovo = 0;
+      let idResmPedidoNovo = 0;
 
-            await $.get("compras_action_novopedido.html", (htmlPage) => {
-                $("#js-page-content").html(htmlPage);
+      await $.get("compras_action_novopedido.html", (htmlPage) => {
+        $("#js-page-content").html(htmlPage);
 
-                $('.dataAtual').text(dataAtual);
-                $('#dtpedido, #dtentrega').val(dataAtualCampo);
-                $('#IDResPedidoAtual').val(idResmPedidoNovo);
+        $('.dataAtual').text(dataAtual);
+        $('#dtpedido, #dtentrega').val(dataAtualCampo);
+        $('#IDResPedidoAtual').val(idResmPedidoNovo);
 
-                $("#buttonIncluirProdPedido, #buttonFehcarProdPedido").attr("hidden", false);
-                $("#buttonClonarProdPedido, #buttonSalvarPedido").attr("hidden", true);
-            })
-                .fail((error) => { throw error });
+        $("#buttonIncluirProdPedido, #buttonFehcarProdPedido").attr("hidden", false);
+        $("#buttonClonarProdPedido, #buttonSalvarPedido").attr("hidden", true);
+      })
+        .fail((error) => { throw error });
 
-            $('#idforn').removeAttr('onchange');
+      $('#idforn').removeAttr('onchange');
 
-            $("#IdCompradorPedido, #idmarca, #idcondicaopagamento, #idtransportadora, #idtipopedido, #idfiscal, #idenviar, #tpfrete").select2();
+      $("#IdCompradorPedido, #idmarca, #idcondicaopagamento, #idtransportadora, #idtipopedido, #idfiscal, #idenviar, #tpfrete").select2();
 
-            /*await ajaxGetAllData('api/compras/fornecedor-produto.xsjs', false)
-            .then(retornoListaFornecedorPedido)
-            .catch((error)=>{ throw error });*/
+      await ajaxGetAllData('api/compras/comprador.xsjs', false)
+        .then(retornoListaCompradorSelect)
+        .catch((error) => { throw error });
 
-            await ajaxGetAllData('api/compras/comprador.xsjs', false)
-                .then(retornoListaCompradorSelect)
-                .catch((error) => { throw error });
+      await ajaxGetAllData('api/informatica/marca.xsjs', false)
+        .then(retornoListaMarcaSelect)
+        .catch((error) => { throw error });
 
-            await ajaxGetAllData('api/informatica/marca.xsjs', false)
-                .then(retornoListaMarcaSelect)
-                .catch((error) => { throw error });
+      await ajaxGetAllData('api/compras/condicaopagamento.xsjs', false)
+        .then(retornoListaCondicaoPagSelect)
+        .catch((error) => { throw error });
 
-            await ajaxGetAllData('api/compras/condicaopagamento.xsjs', false)
-                .then(retornoListaCondicaoPagSelect)
-                .catch((error) => { throw error });
+      await ajaxGetAllData('api/compras/transportadora.xsjs', false)
+        .then(retornoListaTransportadora)
+        .catch((error) => { throw error });
 
-            await ajaxGetAllData('api/compras/transportadora.xsjs', false)
-                .then(retornoListaTransportadora)
-                .catch((error) => { throw error });
-
-        }
-
-        if (id) {
-            await ajaxGet('api/compras/lista_pedidos.xsjs?idpedido=' + id)
-                .then(retornoVisualizarPedido)
-                .catch((error) => { throw error });
-
-        } else {
-            if (stRecarregar) {
-                await montarSelectBuscaDinamicaFornecedores('idforn');
-
-                $('#idforn').attr('onchange', 'verificaDadosDoFornecedorSelecionado()');
-            }
-        }
-
-        animationLoadingStop();
-    } catch (error) {
-
-        msgError('Erro ao Carregar os dados, recarregue e tente novamente!');
-
-        console.log(error)
     }
+
+    if (id) {
+      await ajaxGet('api/compras/lista_pedidos.xsjs?idpedido=' + id)
+        .then(retornoVisualizarPedido)
+        .catch((error) => { throw error });
+
+    } else {
+      if (stRecarregar) {
+        await montarSelectBuscaDinamicaFornecedores('idforn');
+
+        $('#idforn').attr('onchange', 'verificaDadosDoFornecedorSelecionado()');
+      }
+    }
+
+    animationLoadingStop();
+  } catch (error) {
+
+    msgError('Erro ao Carregar os dados, recarregue e tente novamente!');
+
+    console.log(error)
+  }
 }
 
 async function retornoVisualizarPedido(respostaVisualizarPedido) {
@@ -2063,6 +2071,8 @@ async function retornoVisualizarPedido(respostaVisualizarPedido) {
     let VrComisPedido;
     let TpFiscalPedido;
     let StCancelaPedido;
+    let stPedidoPorIntermediario;
+    let idPedidoPrimario;
 
     if (data.length > 0) {
       for (let dados of data) {
@@ -2106,23 +2116,38 @@ async function retornoVisualizarPedido(respostaVisualizarPedido) {
         VrComisPedido = dados?.PERCCOMISSAO ? mascaraValor(parseFloat(dados?.PERCCOMISSAO).toFixed(2)) : '';
         TpFiscalPedido = dados?.TPFISCAL || '';
         StCancelaPedido = dados?.STCANCELADO || '';
+        stMigradoSap = dados?.STMIGRADOSAP == 'True';
+        stPedidoPorIntermediario = dados?.STPEDIDOPRIMARIO == 'True';
+        idPedidoPrimario = Number(dados?.IDPEDIDOPRIMARIO || 0);
       }
+
+      $("#buttonIncluirProdPedido, #buttonFehcarProdPedido, #buttonSalvarPedido").attr("hidden", idPedidoPrimario > 0);
+      $('#cabecalhoPedido input, #cabecalhoPedido select').prop('disabled', idPedidoPrimario > 0);
 
       if (StCancelaPedido == 'True' || (IdAndamentoPedido >= 2 && IdAndamentoPedido < 15)) {
         $("#buttonIncluirProdPedido, #buttonFehcarProdPedido, #buttonSalvarPedido").attr("hidden", true);
-        $("#buttonClonarProdPedido").attr("hidden", false);
+        $("#buttonClonarProdPedido").attr("hidden", StCancelaPedido == 'True');
         $('#cabecalhoPedido input, #cabecalhoPedido select').prop('disabled', true);
 
         (IdAndamentoPedido >= 2 && IdAndamentoPedido < 15) && $('.subheader-title').html(`<i class="subheader-icon fal fa-chart-area"></i> Pedido Nº: ${(IDPEDIDORESUMO)} `);
 
       } else if (IdAndamentoPedido == 1 || IdAndamentoPedido == 15) {
         $("#buttonSalvarPedido").attr("hidden", false);
-          $('#cabecalhoPedido input, #cabecalhoPedido select').prop('disabled', false);
+        $('#cabecalhoPedido input, #cabecalhoPedido select').prop('disabled', false);
 
         $('.subheader-title').html(`<i class="subheader-icon fal fa-chart-area"></i> ${IdAndamentoPedido == 1 ? 'Inclusão' : 'Alteração'} - Pedido Nº: ${(IDPEDIDORESUMO)}`);
       }
 
-        $('.texttablistpedidos').html(`<h2> LISTA DOS ITENS DO PEDIDO Nº: <span class="fw-900 pl-1">${IDPEDIDORESUMO}</span></h2>`);
+      $('#cabecalhoPedido input, #cabecalhoPedido select').prop('disabled', (stMigradoSap == 'True'));
+
+      $('#idResumoPedidoPrimario').val(idPedidoPrimario);
+
+      $("#chkStPedidoPorIntermediario").prop({
+        'disabled': (idPedidoPrimario > 0 || stPedidoPorIntermediario || stMigradoSap),
+        'checked': (idPedidoPrimario > 0 || stPedidoPorIntermediario || stMigradoSap)
+      });
+
+      $('.texttablistpedidos').html(`<h2> LISTA DOS ITENS DO PEDIDO Nº: <span class="fw-900 pl-1">${IDPEDIDORESUMO}</span></h2>`);
 
       const inputsSelects = [
         { id: '#vrliquidopedido', value: VrTotalLiqPedido },
@@ -2178,19 +2203,19 @@ async function retornoVisualizarPedido(respostaVisualizarPedido) {
 }
 
 async function retornoDetalhesPedido(respostaResumoPedidoLista) {
-    let { data } = respostaResumoPedidoLista || [];
-    let contadorDetPedido = 0;
-    let totalVrBrutoPedidos = 0;
-    let totalVrLiqPedidos = 0;
-    let totalQtdPedidos = 0;
-    let totalVrPedidosLista = 0;
-    let idPedidoDetalhe;
+  let { data } = respostaResumoPedidoLista || [];
+  let contadorDetPedido = 0;
+  let totalVrBrutoPedidos = 0;
+  let totalVrLiqPedidos = 0;
+  let totalQtdPedidos = 0;
+  let totalVrPedidosLista = 0;
+  let idPedidoDetalhe;
 
-    let tpSetorAndamento = $("#SetorAndamento").val();
-    let IdResumoPedidoLista = $("#IDResPedidoAtual").val();
+  let tpSetorAndamento = $("#SetorAndamento").val();
+  let IdResumoPedidoLista = $("#IDResPedidoAtual").val();
 
-    $('#resultadoresumopedidolista').html(
-        `<table id="dt-resumo-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+  $('#resultadoresumopedidolista').html(
+    `<table id="dt-resumo-lista-pedidos" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
               <thead class="bg-primary-600">
                   <tr>
                       <th>#</th>
@@ -2215,255 +2240,347 @@ async function retornoDetalhesPedido(respostaResumoPedidoLista) {
               <tfoot id="totalResumoPedidoLista"class="thead-themed">
               </tfoot>
           </table>`
-    );
-       
-    let tableResumoPedidoLista = $('#dt-resumo-lista-pedidos').DataTable({
-        deferRender: true,
-        responsive: true,
-        dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        buttons: [
-            {
-                extend: 'pdfHtml5',
-                text: 'PDF',
-                titleAttr: 'Generate PDF',
-                className: 'btn-outline-danger btn-sm mr-1'
-            },
-            {
-                extend: 'excelHtml5',
-                text: 'Excel',
-                titleAttr: 'Gerar Excel',
-                className: 'btn-outline-success btn-sm mr-1',
-                exportOptions: {
-                    columns: ':visible',
-                    format: {
-                        body: function (data, row, column, node) {
-                            data = $('<p>' + data + '</p>').text();
-                            return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
-                        }
-                    }
-                }
-            },
-            {
-                extend: 'print',
-                text: 'Print',
-                titleAttr: 'Print Table',
-                className: 'btn-outline-primary btn-sm'
+  );
+
+  let tableResumoPedidoLista = $('#dt-resumo-lista-pedidos').DataTable({
+    deferRender: true,
+    responsive: true,
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
             }
-        ]
-    });
+          }
+        }
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ]
+  });
 
-    tableResumoPedidoLista.rows().remove().draw();
-    $('#totalResumoPedidoLista').html('');
+  tableResumoPedidoLista.rows().remove().draw();
+  $('#totalResumoPedidoLista').html('');
 
-    if (data?.length > 0) {
-        for (let dados of data) {
-            let idDetalhePedido = dados?.IDDETPEDIDO;
-            let catDetPedido = dados?.DSCATEGORIAPEDIDO;
-            let qtdDetPedido = dados?.QTDTOTAL;
-            let unidadeDetPedido = dados?.DSSIGLA;
-            let refDetPedido = dados?.NUREF;
-            let dsDetPedido = dados?.DSPRODUTO;
-            let desc01DetPedido = parseFloat(dados?.DESC01);
-            let desc02DetPedido = parseFloat(dados?.DESC02);
-            let desc03DetPedido = parseFloat(dados?.DESC03);
-            let vrUnitBrutoDetPedido = parseFloat(dados?.VRUNITLIQDETALHEPEDIDO || 0);
-            let vrUnitLiqDetPedido = parseFloat(dados?.VRUNITLIQDETALHEPEDIDO || 0);
-            let vrVendaDetPedido = parseFloat(dados?.VRVENDADETALHEPEDIDO || 0);
-            let vrTotalDetPedido = parseFloat(dados?.VRTOTALDETALHEPEDIDO || 0);
-            let stTransformadoDetPedido = dados?.STTRANSFORMADO;
-            let dsSubEstDetPedido = dados?.DSSUBGRUPOESTRUTURA;
-            let dsCorDetPedido = dados?.DSCOR;
-            let IDAndamentoDetPedido = dados?.IDANDAMENTO;
+  let idResumoPedidoPrimario = Number($('#idResumoPedidoPrimario').val() || 0);
 
-            idPedidoDetalhe = dados?.IDPEDIDO;
+  if (data?.length > 0) {
+    for (let dados of data) {
+      let idDetalhePedido = dados?.IDDETPEDIDO;
+      let catDetPedido = dados?.DSCATEGORIAPEDIDO;
+      let qtdDetPedido = dados?.QTDTOTAL;
+      let unidadeDetPedido = dados?.DSSIGLA;
+      let refDetPedido = dados?.NUREF;
+      let dsDetPedido = dados?.DSPRODUTO;
+      let desc01DetPedido = parseFloat(dados?.DESC01);
+      let desc02DetPedido = parseFloat(dados?.DESC02);
+      let desc03DetPedido = parseFloat(dados?.DESC03);
+      let vrUnitBrutoDetPedido = parseFloat(dados?.VRUNITLIQDETALHEPEDIDO || 0);
+      let vrUnitLiqDetPedido = parseFloat(dados?.VRUNITLIQDETALHEPEDIDO || 0);
+      let vrVendaDetPedido = parseFloat(dados?.VRVENDADETALHEPEDIDO || 0);
+      let vrTotalDetPedido = parseFloat(dados?.VRTOTALDETALHEPEDIDO || 0);
+      let stTransformadoDetPedido = dados?.STTRANSFORMADO;
+      let dsSubEstDetPedido = dados?.DSSUBGRUPOESTRUTURA;
+      let dsCorDetPedido = dados?.DSCOR;
+      let IDAndamentoDetPedido = dados?.IDANDAMENTO;
+      let idDetalhePedidoPrimario = Number(dados?.IDDETALHEPEDIDOPRIMARIO || 0);
 
-            totalVrBrutoPedidos = (totalVrBrutoPedidos) + (vrTotalDetPedido);
-            totalVrLiqPedidos = (totalVrLiqPedidos) + (vrTotalDetPedido);
-            totalQtdPedidos = (totalQtdPedidos) + (qtdDetPedido);
+      idPedidoDetalhe = dados?.IDPEDIDO;
 
-            contadorDetPedido++;
+      totalVrBrutoPedidos = (totalVrBrutoPedidos) + (vrTotalDetPedido);
+      totalVrLiqPedidos = (totalVrLiqPedidos) + (vrTotalDetPedido);
+      totalQtdPedidos = (totalQtdPedidos) + (qtdDetPedido);
 
-            if (tpSetorAndamento == 'COMPRAS' && stTransformadoDetPedido == 'False') {
-                btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
+      contadorDetPedido++;
+
+      if (tpSetorAndamento == 'COMPRAS' && stTransformadoDetPedido == 'False') {
+        btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
                             <button type="button" class="btn btn-warning btn-xs" title="Editar Item do Pedido" id="${idDetalhePedido}" onclick="modal_Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
                             <button type="button" class="btn btn-danger btn-xs" title="Cancelar Item do Pedido" id="${idDetalhePedido}" value="${idPedidoDetalhe}" onclick="modal_Cancelar_Produto_Pedido(this.id,\'True\', this.value)" ><span class="fal fa-trash mr-1"></span></button>
                               </div>`;
-            } else if (tpSetorAndamento == 'COMPRAS' && stTransformadoDetPedido == 'True') {
-                btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
+      } else if (tpSetorAndamento == 'COMPRAS' && stTransformadoDetPedido == 'True') {
+        btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
                                 <button type="button" class="btn btn-warning btn-xs" title="Editar Item do Pedido" id="${idDetalhePedido}" onclick="modal_Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
                             </div>`;
-            } else {
-                if (stTransformadoDetPedido == 'True' && tpSetorAndamento == 'CADASTRO') {
-                    btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
+      } else {
+        if (stTransformadoDetPedido == 'True' && tpSetorAndamento == 'CADASTRO') {
+          btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
                                   <button type="button" class="btn btn-success btn-xs" title="Item Não Pode Ser Alterado ou Cancelado, Produtos Criados!" id="${idDetalhePedido}" disabled>
                                     <span class="fal fa-lock-alt mr-1"></span>
                                   </button>
                               </div>`
-                } else {
-                    btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
+        } else {
+          btnOpcaoCancProd = `<div class="btn-group btn-group-xs">
                                   <button type="button" class="btn btn-danger btn-xs" title="Item Não Pode Ser Alterado ou Cancelado" id="${idDetalhePedido}" disabled>
                                     <span class="fal fa-lock-alt mr-1"></span>
                                   </button>
                                 </div>`;
-                }
-
-            }
-
-            tableResumoPedidoLista.row.add([
-                contadorDetPedido,
-                catDetPedido,
-                qtdDetPedido,
-                unidadeDetPedido,
-                refDetPedido,
-                dsDetPedido,
-                dsSubEstDetPedido,
-                dsCorDetPedido,
-                mascaraValor(parseFloat(desc01DetPedido).toFixed(2)),
-                mascaraValor(parseFloat(desc02DetPedido).toFixed(2)),
-                mascaraValor(parseFloat(desc03DetPedido).toFixed(2)),
-                mascaraValor(parseFloat(vrUnitLiqDetPedido).toFixed(2)),
-                mascaraValor(parseFloat(vrVendaDetPedido).toFixed(2)),
-                mascaraValor(parseFloat(vrTotalDetPedido).toFixed(2)),
-                btnOpcaoCancProd,
-            ]).draw(false);
-
         }
+
+      }
+
+      btnOpcaoCancProd =
+        idDetalhePedidoPrimario > 0 ?
+          `<div class="btn-group btn-group-xs">
+            <button type="button" class="btn btn-danger btn-xs"  title="Item só pode ser manipulado através do Pedido Primario: ${idResumoPedidoPrimario}" style="animation: blink 1.5s infinite ease-in-out;" id="${idDetalhePedido}" onclick="msgInfo(this.title)">
+              <span class="fal fa-lock-alt mr-1"></span>
+            </button>
+          </div>` :
+          btnOpcaoCancProd;
+
+      tableResumoPedidoLista.row.add([
+        contadorDetPedido,
+        catDetPedido,
+        qtdDetPedido,
+        unidadeDetPedido,
+        refDetPedido,
+        dsDetPedido,
+        dsSubEstDetPedido,
+        dsCorDetPedido,
+        mascaraValor(parseFloat(desc01DetPedido).toFixed(2)),
+        mascaraValor(parseFloat(desc02DetPedido).toFixed(2)),
+        mascaraValor(parseFloat(desc03DetPedido).toFixed(2)),
+        mascaraValor(parseFloat(vrUnitLiqDetPedido).toFixed(2)),
+        mascaraValor(parseFloat(vrVendaDetPedido).toFixed(2)),
+        mascaraValor(parseFloat(vrTotalDetPedido).toFixed(2)),
+        btnOpcaoCancProd,
+      ]).draw(false);
+
     }
+  }
 
-    //<button type="button" class="btn btn-info btn-xs" title="Editar Produto" id="` +idDetalhePedido +`" onclick="Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
+  //<button type="button" class="btn btn-info btn-xs" title="Editar Produto" id="` +idDetalhePedido +`" onclick="Editar_Produto_Pedido(this.id)" ><span class="fal fa-pen-alt mr-1"></span></button>
 
-    $('.totalbrutopedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${mascaraValor(parseFloat(totalVrBrutoPedidos || 0).toFixed(2))}<small class="m-0 l-h-n">Valor Bruto Pedido</small></h3>`);
-    $('.totalliqpedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${mascaraValor(parseFloat(totalVrLiqPedidos || 0).toFixed(2))}<small class="m-0 l-h-n">Valor Líquido Pedido</small></h3>`);
-    $('.qtdprodutopedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${(totalQtdPedidos || 0)}<small class="m-0 l-h-n">QTD Produtos</small></h3>`);
-    $("#vrliquidopedido").val(totalVrLiqPedidos.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
-    $("#VrDescontoPedidoI, #VrDescontoPedidoII, #VrDescontoPedidoIII, #VrComissaoPedido").val(0);
-    $("#vrliquidopedidofixo").val(totalVrLiqPedidos.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  $('.totalbrutopedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${mascaraValor(parseFloat(totalVrBrutoPedidos || 0).toFixed(2))}<small class="m-0 l-h-n">Valor Bruto Pedido</small></h3>`);
+  $('.totalliqpedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${mascaraValor(parseFloat(totalVrLiqPedidos || 0).toFixed(2))}<small class="m-0 l-h-n">Valor Líquido Pedido</small></h3>`);
+  $('.qtdprodutopedido').html(`<h3 class="display-4 d-block l-h-n m-0 fw-500">${(totalQtdPedidos || 0)}<small class="m-0 l-h-n">QTD Produtos</small></h3>`);
+  $("#vrliquidopedido").val(totalVrLiqPedidos.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  $("#VrDescontoPedidoI, #VrDescontoPedidoII, #VrDescontoPedidoIII, #VrComissaoPedido").val(0);
+  $("#vrliquidopedidofixo").val(totalVrLiqPedidos.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
 
 }
 
 function atualiza_valor_QtdUnit() {
 
-    if (!$("#descprodI").val().length > 0) {
-        $("#descprodI").val(0);
-    }
-    if (!$("#descprodII").val().length > 0) {
-        $("#descprodII").val(0);
-    }
-    if (!$("#descprodIII").val().length > 0) {
-        $("#descprodIII").val(0);
-    }
-    if (!$("#vrunitbruto").val().length > 0) {
-        $("#vrunitbruto").val(0);
-    }
-    if (!$("#qtdprodpedido").val().length > 0) {
-        $("#qtdprodpedido").val(0);
-    }
-    if (!$("#vrunitsug").val().length > 0) {
-        $("#vrunitsug").val(0);
-    }
-    if (!$("#vrunitsugfixo").val().length > 0) {
-        $("#vrunitsugfixo").val(0);
-    }
+  if (!$("#descprodI").val().length > 0) {
+    $("#descprodI").val(0);
+  }
+  if (!$("#descprodII").val().length > 0) {
+    $("#descprodII").val(0);
+  }
+  if (!$("#descprodIII").val().length > 0) {
+    $("#descprodIII").val(0);
+  }
+  if (!$("#vrunitbruto").val().length > 0) {
+    $("#vrunitbruto").val(0);
+  }
+  if (!$("#qtdprodpedido").val().length > 0) {
+    $("#qtdprodpedido").val(0);
+  }
+  if (!$("#vrunitsug").val().length > 0) {
+    $("#vrunitsug").val(0);
+  }
+  if (!$("#vrunitsugfixo").val().length > 0) {
+    $("#vrunitsugfixo").val(0);
+  }
 
-    var QtdProdPedido = $("#qtdprodpedido").val();
-    var VrUnitLiq = $("#vrunitliq").val();
+  var QtdProdPedido = $("#qtdprodpedido").val();
+  var VrUnitLiq = $("#vrunitliq").val();
 
-    var TOTAL1 = (parseFloat(VrUnitLiq) * parseFloat(QtdProdPedido));
+  var TOTAL1 = (parseFloat(VrUnitLiq) * parseFloat(QtdProdPedido));
 
-    $("#vrunittotal").val(TOTAL1.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
+  $("#vrunittotal").val(TOTAL1.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
 
-    // valor líquido
+  // valor líquido
 
-    var VrUnitBruto = $("#vrunitbruto").val().replace(',', '.');
-    $("#vrunitliq").val(VrUnitBruto.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
+  var VrUnitBruto = $("#vrunitbruto").val().replace(',', '.');
+  $("#vrunitliq").val(VrUnitBruto.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
 
-    var VrSug = $("#vrunitsug").val();
-    var VrSugfixo = $("#vrunitsugfixo").val();
+  var VrSug = $("#vrunitsug").val();
+  var VrSugfixo = $("#vrunitsugfixo").val();
 
-    // desconto em porcentagem
-    var Desc01 = $("#descprodI").val().replace(',', '.');
-    var Desc02 = $("#descprodII").val().replace(',', '.');
-    var Desc03 = $("#descprodIII").val().replace(',', '.');
+  // desconto em porcentagem
+  var Desc01 = $("#descprodI").val().replace(',', '.');
+  var Desc02 = $("#descprodII").val().replace(',', '.');
+  var Desc03 = $("#descprodIII").val().replace(',', '.');
 
-    if (isNaN(Desc01)) {
-        Desc01 = 0;
-    }
-    var DESCONTO1 = parseFloat(VrUnitBruto - (VrUnitBruto * (Desc01 / 100)));
+  if (isNaN(Desc01)) {
+    Desc01 = 0;
+  }
+  var DESCONTO1 = parseFloat(VrUnitBruto - (VrUnitBruto * (Desc01 / 100)));
 
-    if (isNaN(Desc02)) {
-        Desc02 = 0;
-    }
-    var DESCONTO2 = parseFloat(DESCONTO1 - (DESCONTO1 * (Desc02 / 100)));
+  if (isNaN(Desc02)) {
+    Desc02 = 0;
+  }
+  var DESCONTO2 = parseFloat(DESCONTO1 - (DESCONTO1 * (Desc02 / 100)));
 
-    if (isNaN(Desc03)) {
-        Desc03 = 0;
-    }
-    var DESCONTO3 = parseFloat(DESCONTO2 - (DESCONTO2 * (Desc03 / 100)));
+  if (isNaN(Desc03)) {
+    Desc03 = 0;
+  }
+  var DESCONTO3 = parseFloat(DESCONTO2 - (DESCONTO2 * (Desc03 / 100)));
 
-    $("#vrunitliq").val(DESCONTO3.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
+  $("#vrunitliq").val(DESCONTO3.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
 
-    var TOTAL = (parseFloat(DESCONTO3) * parseFloat(QtdProdPedido));
+  var TOTAL = (parseFloat(DESCONTO3) * parseFloat(QtdProdPedido));
 
-    if (parseFloat(VrSugfixo) == 0) {
-        var VrVendaSugerida = (parseFloat(DESCONTO3) * 2.5);
+  if (parseFloat(VrSugfixo) == 0) {
+    var VrVendaSugerida = (parseFloat(DESCONTO3) * 2.5);
 
-        $("#vrunitsug").val(VrVendaSugerida.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
+    $("#vrunitsug").val(VrVendaSugerida.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
 
-    } else {
-        $("#vrunitsug").val(VrSugfixo.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
-    }
+  } else {
+    $("#vrunitsug").val(VrSugfixo.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
+  }
 
-    $("#vrunittotal").val(TOTAL.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  $("#vrunittotal").val(TOTAL.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
 
 }
 
 function atualiza_valor_LiqResumo() {
 
-    if (!$("#VrDescontoPedidoI").val().length > 0) {
-        $("#VrDescontoPedidoI").val(0);
-    }
-    if (!$("#VrDescontoPedidoII").val().length > 0) {
-        $("#VrDescontoPedidoII").val(0);
-    }
-    if (!$("#VrDescontoPedidoIII").val().length > 0) {
-        $("#VrDescontoPedidoIII").val(0);
-    }
+  if (!$("#VrDescontoPedidoI").val().length > 0) {
+    $("#VrDescontoPedidoI").val(0);
+  }
+  if (!$("#VrDescontoPedidoII").val().length > 0) {
+    $("#VrDescontoPedidoII").val(0);
+  }
+  if (!$("#VrDescontoPedidoIII").val().length > 0) {
+    $("#VrDescontoPedidoIII").val(0);
+  }
 
-    // desconto em porcentagem
-    var DescResumo01 = $("#VrDescontoPedidoI").val().replace(',', '.');
-    var DescResumo02 = $("#VrDescontoPedidoII").val().replace(',', '.');
-    var DesResumoc03 = $("#VrDescontoPedidoIII").val().replace(',', '.');
+  // desconto em porcentagem
+  var DescResumo01 = $("#VrDescontoPedidoI").val().replace(',', '.');
+  var DescResumo02 = $("#VrDescontoPedidoII").val().replace(',', '.');
+  var DesResumoc03 = $("#VrDescontoPedidoIII").val().replace(',', '.');
 
-    var VRLIQRESUMO = $("#vrliquidopedido").val().replace(".", "").replace(",", ".");
+  var VRLIQRESUMO = $("#vrliquidopedido").val().replace(".", "").replace(",", ".");
 
-    if (isNaN(DescResumo01)) {
-        DescResumo01 = 0;
-    }
+  if (isNaN(DescResumo01)) {
+    DescResumo01 = 0;
+  }
 
-    var DESCONTORESUMO1 = parseFloat(VRLIQRESUMO - (VRLIQRESUMO * (DescResumo01 / 100)));
+  var DESCONTORESUMO1 = parseFloat(VRLIQRESUMO - (VRLIQRESUMO * (DescResumo01 / 100)));
 
-    if (isNaN(DescResumo02)) {
-        DescResumo02 = 0;
-    }
-    var DESCONTORESUMO2 = parseFloat(DESCONTORESUMO1 - (DESCONTORESUMO1 * (DescResumo02 / 100)));
+  if (isNaN(DescResumo02)) {
+    DescResumo02 = 0;
+  }
+  var DESCONTORESUMO2 = parseFloat(DESCONTORESUMO1 - (DESCONTORESUMO1 * (DescResumo02 / 100)));
 
 
-    if (isNaN(DesResumoc03)) {
-        DesResumoc03 = 0;
-    }
-    var DESCONTORESUMO3 = parseFloat(DESCONTORESUMO2 - (DESCONTORESUMO2 * (DesResumoc03 / 100)));
+  if (isNaN(DesResumoc03)) {
+    DesResumoc03 = 0;
+  }
+  var DESCONTORESUMO3 = parseFloat(DESCONTORESUMO2 - (DESCONTORESUMO2 * (DesResumoc03 / 100)));
 
-    $("#vrliquidopedido").val(DESCONTORESUMO3.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  $("#vrliquidopedido").val(DESCONTORESUMO3.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
 
-    $('.totalliqpedido').html(
-        `<h3 class="display-4 d-block l-h-n m-0 fw-500">${DESCONTORESUMO3.toLocaleString('pt-br', { minimumFractionDigits: 2 })}<small class="m-0 l-h-n">Valor Líquido Pedido</small></h3>`);
+  $('.totalliqpedido').html(
+    `<h3 class="display-4 d-block l-h-n m-0 fw-500">${DESCONTORESUMO3.toLocaleString('pt-br', { minimumFractionDigits: 2 })}<small class="m-0 l-h-n">Valor Líquido Pedido</small></h3>`);
 
 
 }
 
-async function salvar_pedido() {
+async function gerarLog(dados, textoFuncao) {
+  let textdados = JSON.stringify(dados);
+
+  let dadosLog = [{
+    "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+    "PATHFUNCAO": textoFuncao,
+    "DADOS": textdados,
+    "IP": ipCliente
+  }];
+
+  await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { console.log('Error ao gerar o LOG: ' + error) });
+}
+
+async function validarCamposGenerico($camposValidar, $camposIgnorar = $()) {
+  let errors = [];
+  let elemento;
+
+  let campos = $camposValidar.not($camposIgnorar);
+
+  for (let el of campos) {
+    let campo = $(el);
+    let div = campo.parent();
+    let id = campo.attr('id');
+    let val = campo?.val()?.trim();
+    let name = campo.attr("name");
+    let tipo = campo.attr('type')
+    let label = campo.closest('label').text() || $(`label[for=${id}]`).text() || div.find('label').text() || div.parent().find('label').text();
+    let textCampoError = label || id || name;
+
+    let invalido = false;
+
+    if (!val || val?.length === 0) {
+      invalido = true;
+    } else{
+
+      if (tipo == 'date' || tipo == 'datetime') {
+        invalido = new Date(val) == 'Invalid Date';
+      } else {
+        val = val.replace(/[A-Za-z]/g, "").replace(',', '.').trim() || '';
+
+        if(val.length > 0){
+          invalido = Number(val) <= 0;
+        }
+
+      }
+    }
+
+    if (invalido) {
+      if (!elemento) {
+        elemento = campo;
+      }
+      errors.push(textCampoError);
+    }
+  }
+
+  return {
+    errors,
+    elemento
+  };
+}
+
+async function validarCamposCabecalhoPedido(){
+  let camposValidar = $('#cabecalhoPedido input, #cabecalhoPedido select').not('input[type="hidden"]');
+  let camposIgnorar = $('#obsforn, #obsint, #VrDescontoPedidoI, #VrDescontoPedidoII, #VrDescontoPedidoIII, #vrliquidopedido, #VrComissaoPedido');
+  let { errors, elemento } = await validarCamposGenerico(camposValidar, camposIgnorar);
+
+  if(errors.length){
+    await msgWarning('Preencha os campos:', errors.join(', '))
+    .then(()=>{
+      $(elemento).is('select') && $(elemento).select2('open');
+
+      setTimeout(()=>$(elemento).focus(), 300);
+    });
+
+    return false;
+  }
+
+  return true
+}
+
+function montarPayloadCabecalhoPedido(){
   let IdResumoPedidoAtual = $("#IDResPedidoAtual").val() || 0;
 
   let tipoPedido = $("#idtipopedido").val();
@@ -2491,218 +2608,292 @@ async function salvar_pedido() {
   let stagrupado = 'False';
   let stcancelado = 'False';
   let stdistribuido = 'False';
-  let IdAndamento = 1;
+  let IdAndamento = $("#IdAndamentoPed").val() || 1;
   let stRascunho = $('#stRascunho').val() || 'False';
+  let stPedidoPorIntermediario = $("#chkStPedidoPorIntermediario").prop('checked') ? 'True' : 'False';
 
-  if (IDFornc == '') {
-    return alerta_selectVazioOuCampoEmBranco('Selecione um Fornecedor da Lista', '#idforn');
-  } else if (!IdCompradorPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione o Comprador do Pedido', '#IdCompradorPedido');
-  } else if (MarcaPedido[0].text == 'Selecione ...') {
-    return alerta_selectVazioOuCampoEmBranco('Selecione uma Marca', '#idmarca');
-  } else if (!TpFiscalPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione o Tipo Fiscal do Fornecedor', '#idfiscal');
-  } else if (!IdEnviarPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione uma Opção no Campo Enviar', '#idenviar');
-  } else if (!CondPag) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione um Tipo de Pagamento', '#idcondicaopagamento');
-  } else if (!tipoPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione o Tipo do Pedido', '#idtipopedido');
-  } else if (!NoVendedorPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Adicione o Nome do Vendedor', '#novendedor');
-  } else if (!IdTranspPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione a Transportadora', '#idtransportadora');
-  } else if (!TpFretePedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione o Tipo do Frete', '#tpfrete');
-  } else {
+  return {
+    "IDRESUMOPEDIDO": parseInt(IdResumoPedidoAtual || 0),
+    "IDGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
+    "IDSUBGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
+    "IDCOMPRADOR": parseInt(IdCompradorPedido),
+    "IDCONDICAOPAGAMENTO": parseInt(CondPag),
+    "IDFORNECEDOR": (IDFornc),
+    "IDTRANSPORTADORA": parseInt(IdTranspPedido),
+    "IDANDAMENTO": parseInt(IdAndamento),
+    "MODPEDIDO": tipoPedido,
+    "NOVENDEDOR": NoVendedorPedido,
+    "EEMAILVENDEDOR": EmailVendedorPedido,
+    "DTPEDIDO": DtPedido,
+    "DTPREVENTREGA": DtPedidoEntrega,
+    "TPFRETE": TpFretePedido,
+    "DESCPERC01": parseFloat(VrDescIPedido),
+    "DESCPERC02": parseFloat(VrDescIIPedido),
+    "DESCPERC03": parseFloat(VrDescIIIPedido),
+    "PERCCOMISSAO": parseFloat(VrComissaoPedido),
+    "VRTOTALLIQUIDO": parseFloat(VrLiqPedido),
+    "OBSPEDIDO": ObsFornPedido,
+    "OBSPEDIDO2": ObsIntPedido,
+    "DTFECHAMENTOPEDIDO": dataAtualCampo,
+    "DTCADASTRO": dataAtualCampo,
+    "TPARQUIVO": IdEnviarPedido,
+    "STDISTRIBUIDO": stdistribuido,
+    "STAGRUPAPRODUTO": stagrupado,
+    "STCANCELADO": stcancelado,
+    "TPFISCAL": TpFiscalPedido,
+    "STRASCUNHO": stRascunho,
+    "STPEDIDOPORINTEMEDIARIO": stPedidoPorIntermediario
+  };
+}
 
-    let dados = {
-      "IDRESUMOPEDIDO": parseInt(IdResumoPedidoAtual || 0),
-      "IDGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-      "IDSUBGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-      "IDCOMPRADOR": parseInt(IdCompradorPedido),
-      "IDCONDICAOPAGAMENTO": parseInt(CondPag),
-      "IDFORNECEDOR": (IDFornc),
-      "IDTRANSPORTADORA": parseInt(IdTranspPedido),
-      "IDANDAMENTO": parseInt(IdAndamento),
-      "MODPEDIDO": tipoPedido,
-      "NOVENDEDOR": NoVendedorPedido,
-      "EEMAILVENDEDOR": EmailVendedorPedido,
-      "DTPEDIDO": DtPedido,
-      "DTPREVENTREGA": DtPedidoEntrega,
-      "TPFRETE": TpFretePedido,
-      "DESCPERC01": parseFloat(VrDescIPedido),
-      "DESCPERC02": parseFloat(VrDescIIPedido),
-      "DESCPERC03": parseFloat(VrDescIIIPedido),
-      "PERCCOMISSAO": parseFloat(VrComissaoPedido),
-      "VRTOTALLIQUIDO": parseFloat(VrLiqPedido),
-      "OBSPEDIDO": ObsFornPedido,
-      "OBSPEDIDO2": ObsIntPedido,
-      "DTFECHAMENTOPEDIDO": dataAtualCampo,
-      "DTCADASTRO": dataAtualCampo,
-      "TPARQUIVO": IdEnviarPedido,
-      "STDISTRIBUIDO": stdistribuido,
-      "STAGRUPAPRODUTO": stagrupado,
-      "STCANCELADO": stcancelado,
-      "TPFISCAL": TpFiscalPedido,
-      "STRASCUNHO": stRascunho
-    };
+async function salvar_pedido() {
+  try {
+    let IdResumoPedidoAtual = $("#IDResPedidoAtual").val() || 0;
+    let camposValidos = await validarCamposCabecalhoPedido();
 
-    msgQuestion('Deseja realmente salvar?')
-      .then(async (respQuestion) => {
-        try {
-          if (respQuestion?.value) {
-            animationLoadingStart('Enviando dados, aguarde...', 300, false);
+    if(!camposValidos){
+      return
+    }
 
-            if (IdResumoPedidoAtual == 0) {
-              respPost = await ajaxPost("api/compras/lista_pedidos.xsjs", [dados]).catch((error) => { throw error });
+    let confirmacao = await msgQuestion('Deseja realmente salvar?');
 
-              IdResumoPedidoAtual = respPost?.IDRESUMOPEDIDO;
+    if(!confirmacao?.value){
+      return
+    }
 
-            } else {
-              await ajaxPut("api/compras/atualizar-pedido.xsjs", dados).catch((error) => { throw error });
-            }
+    let dados = montarPayloadCabecalhoPedido();
 
-            await msgSuccess("Cabeçalho do Pedido Salvo com Sucesso.");
+    animationLoadingStart('Enviando dados, aguarde...', 300, false);
+    
+    let textoFuncao = 'COMPRAS/SALVAR CABECALHO PEDIDO';
+    
+    if (IdResumoPedidoAtual == 0) {
+      let respPost = await ajaxPost("api/compras/lista_pedidos.xsjs", [dados]);
 
-            NovoPedido(IdResumoPedidoAtual, false);
-          }
-        } catch (error) {
-          msgError('Erro ao tentar salvar o cabeçalho do pedido!');
-          console.log(error);
-        }
-      })
+      IdResumoPedidoAtual = respPost?.IDRESUMOPEDIDO;
 
+    } else {
+      await ajaxPut("api/compras/atualizar-pedido.xsjs", dados);
+    }
+
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess("Cabeçalho do Pedido Salvo com Sucesso.");
+
+    NovoPedido(IdResumoPedidoAtual);
+    
+  } catch (error) {
+    msgError('Erro ao tentar salvar o cabeçalho do pedido!');
+    console.log(error);
   }
 }
 
 async function modal_incluir_produto_pedido() {
-    try {
-        let IdResumoPedidoAtual = $("#IDResPedidoAtual").val() || 0;
+  try {
+    let IdResumoPedidoAtual = Number($("#IDResPedidoAtual").val() || 0);
+    let IdCompradorPedido = $('#IdCompradorPedido').val();
+    let stPedidoPorIntermediario = $("#chkStPedidoPorIntermediario").prop('checked') ? 'True' : 'False';
 
-        let tipoPedido = $("#idtipopedido").val();
-        let MarcaPedido = $('#idmarca').select2('data');
-        let CondPag = $("#idcondicaopagamento").val();
-        let IDFornc = $("#idforn").val();
+    animationLoadingStart('Validando dados, aguarde...', 1, false);
 
-        let DtPedido = $("#dtpedido").val();
-        let DtPedidoEntrega = $("#dtentrega").val();
-        let IdCompradorPedido = $('#IdCompradorPedido').val();
-        let IdMarcaPedido = $("#idmarca").val();
-        let ObsFornPedido = $("#obsforn").val();
-        let ObsIntPedido = $("#obsint").val();
-        let IdEnviarPedido = $("#idenviar").val();
-        let NoVendedorPedido = $("#novendedor").val().trim();
-        let EmailVendedorPedido = $("#emailvendedor").val();
-        let VrDescIPedido = $("#VrDescontoPedidoI").val().replace(".", "").replace(",", ".");
-        let VrDescIIPedido = $("#VrDescontoPedidoII").val().replace(".", "").replace(",", ".");
-        let VrDescIIIPedido = $("#VrDescontoPedidoIII").val().replace(".", "").replace(",", ".");
-        let VrComissaoPedido = $("#VrComissaoPedido").val().replace(".", "").replace(",", ".");
-        let VrLiqPedido = $("#vrliquidopedido").val().replace(".", "").replace(",", ".");
-        let IdTranspPedido = $("#idtransportadora").val();
-        let TpFretePedido = $("#tpfrete").val();
-        let TpFiscalPedido = $("#idfiscal").val();
-        let stagrupado = 'False';
-        let stcancelado = 'False';
-        let stdistribuido = 'False';
-        let IdAndamento = $("#IdAndamentoPed").val();
-        let stRascunho = $('#stRascunho').val() || 'False';
+    let camposValidos = await validarCamposCabecalhoPedido();
 
-        if (IDFornc == '') {
-            alerta_selectVazioOuCampoEmBranco('Selecione um Fornecedor da Lista', '#idforn');
-        } else if (!IdCompradorPedido) {
-            alerta_selectVazioOuCampoEmBranco('Selecione o Comprador do Pedido', '#IdCompradorPedido');
-        } else if (MarcaPedido[0].text == 'Selecione ...') {
-            alerta_selectVazioOuCampoEmBranco('Selecione uma Marca', '#idmarca');
-        } else if (!TpFiscalPedido) {
-            alerta_selectVazioOuCampoEmBranco('Selecione o Tipo Fiscal do Fornecedor', '#idfiscal');
-        } else if (!IdEnviarPedido) {
-            alerta_selectVazioOuCampoEmBranco('Selecione uma Opção no Campo Enviar', '#idenviar');
-        } else if (!CondPag) {
-            alerta_selectVazioOuCampoEmBranco('Selecione um Tipo de Pagamento', '#idcondicaopagamento');
-        } else if (!tipoPedido) {
-            alerta_selectVazioOuCampoEmBranco('Selecione o Tipo do Pedido', '#idtipopedido');
-        } else if (!NoVendedorPedido) {
-            alerta_selectVazioOuCampoEmBranco('Adicione o Nome do Vendedor', '#novendedor');
-        } else if (!IdTranspPedido) {
-            alerta_selectVazioOuCampoEmBranco('Selecione a Transportadora', '#idtransportadora');
-        } else if (!TpFretePedido) {
-            alerta_selectVazioOuCampoEmBranco('Selecione o Tipo do Frete', '#tpfrete');
-        } else {
-            animationLoadingStart('Carregando dados, aguarde...', 300, false);
-
-            let dados = {
-                "IDRESUMOPEDIDO": parseInt(IdResumoPedidoAtual),
-                "IDGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-                "IDSUBGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-                "IDCOMPRADOR": parseInt(IdCompradorPedido),
-                "IDCONDICAOPAGAMENTO": parseInt(CondPag),
-                "IDFORNECEDOR": (IDFornc),
-                "IDTRANSPORTADORA": parseInt(IdTranspPedido),
-                "IDANDAMENTO": parseInt(IdAndamento),
-                "MODPEDIDO": tipoPedido,
-                "NOVENDEDOR": NoVendedorPedido,
-                "EEMAILVENDEDOR": EmailVendedorPedido,
-                "DTPEDIDO": DtPedido,
-                "DTPREVENTREGA": DtPedidoEntrega,
-                "TPFRETE": TpFretePedido,
-                "DESCPERC01": parseFloat(VrDescIPedido),
-                "DESCPERC02": parseFloat(VrDescIIPedido),
-                "DESCPERC03": parseFloat(VrDescIIIPedido),
-                "PERCCOMISSAO": parseFloat(VrComissaoPedido),
-                "VRTOTALLIQUIDO": parseFloat(VrLiqPedido),
-                "OBSPEDIDO": ObsFornPedido,
-                "OBSPEDIDO2": ObsIntPedido,
-                "DTFECHAMENTOPEDIDO": dataAtualCampo,
-                "DTCADASTRO": dataAtualCampo,
-                "TPARQUIVO": IdEnviarPedido,
-                "STDISTRIBUIDO": stdistribuido,
-                "STAGRUPAPRODUTO": stagrupado,
-                "STCANCELADO": stcancelado,
-                "TPFISCAL": TpFiscalPedido,
-                "STRASCUNHO": stRascunho
-            };
-
-            if (IdResumoPedidoAtual == 0) {
-                let respInclusaoProduto = await ajaxPost("api/compras/lista_pedidos.xsjs", [dados]).catch((error) => { throw error });
-
-                IdResumoPedidoAtual = respInclusaoProduto?.IDRESUMOPEDIDO;
-
-            } else {
-                await ajaxPut("api/compras/atualizar-pedido.xsjs", dados).catch((error) => { throw error });
-            }
-
-            //await msgSuccess('Produto incluido com sucesso!');
-
-            await ajaxGetAllData(`api/compras/ultimo_pedidos.xsjs?idcomprador=${IdCompradorPedido}&idPedido=${IdResumoPedidoAtual}`, false)
-                .then(exibirModalAdicionarProduto)
-                .catch((error) => { throw error })
-
-            animationLoadingStop();
-        }
-
-    } catch (error) {
-        msgError('Erro ao tentar incluir o produto, recarregue e tente novamente!');
-        console.log(error);
+    if (!camposValidos) {
+      return
     }
+
+    if (IdResumoPedidoAtual == 0) {
+      let confirmacao = await msgQuestion('Deseja efetuar este pedido pelo Atacadista RN?', 'Esta ação não poderá ser desfeita!');
+        
+      if(confirmacao?.dismiss == 'close') {
+        return;
+      }
+        
+      if (confirmacao?.value) {
+        $("#chkStPedidoPorIntermediario").prop('checked', true);
+      }
+    }
+    
+    animationLoadingStart('Carregando dados, aguarde...', 1, false);
+
+    $("#chkStPedidoPorIntermediario").prop('disabled', stPedidoPorIntermediario == 'True');
+ 
+    let dados = montarPayloadCabecalhoPedido();
+
+    if (IdResumoPedidoAtual == 0) {
+      let respPost = await ajaxPost("api/compras/lista_pedidos.xsjs", [dados]);
+
+      IdResumoPedidoAtual = respPost?.IDRESUMOPEDIDO;
+
+      $('#idforn').attr('onchange', '');
+
+      await ajaxGetAllData('api/compras/lista_pedidos.xsjs?idpedido=' + IdResumoPedidoAtual, false)
+        .then(retornoVisualizarPedido)
+
+    } else {
+      await ajaxPut("api/compras/atualizar-pedido.xsjs", dados);
+    }
+
+    await ajaxGetAllData(`api/compras/ultimo_pedidos.xsjs?idcomprador=${IdCompradorPedido}&idPedido=${IdResumoPedidoAtual}`, false)
+      .then(exibirModalAdicionarProduto)
+
+    animationLoadingStop();
+
+  } catch (error) {
+    msgError('Erro ao tentar incluir o produto, recarregue e tente novamente!');
+    console.log(error);
+  }
+}
+
+async function montarPayloadProdutoInclusao() {
+  let dadosProdSelecionado = $('#listprodpesqped').select2('data')[0].element || '';
+  let dsProdSelecionado = $(dadosProdSelecionado).attr('dsprod') ? $(dadosProdSelecionado).attr('dsprod').toUpperCase().trim() : $(dadosProdSelecionado).attr('dsprod');
+
+  let IdResumoPedidoProduto = $("#IDResPedidoAtual").val();
+  let stPedidoPorIntermediario = $("#chkStPedidoPorIntermediario").prop('checked') ? 'True' : 'False';
+
+  let qtdprodpedido = $("#qtdprodpedido").val();
+  let qtdcaixa = $("#qtdcaixa").val();
+  let refproduto = $("#refproduto").val() || '';
+
+  let dsprodpedido = $("#dsprodpedido").val();
+  let unidprod = $("#unidprod").val();
+  let corprod = $("#corprod").val();
+  let tptecidoprod = $("#tptecidoprod").val();
+  let tpestiloprod = $("#estiloprod").val();
+  let categoriaprod = $("#categoriaprod").val();
+  let estruturaprod = $("#estruturaprod").val();
+  let fabprod = $("#fabprod").val();
+  let localexpprod = $("#localexp").val();
+  let vrunitbruto = $("#vrunitbruto").val().replace(/\./g, '').replace(",", ".");
+  let descprodI = $("#descprodI").val().replace(/\./g, '').replace(",", ".");
+  let descprodII = $("#descprodII").val().replace(/\./g, '').replace(",", ".");
+  let descprodIII = $("#descprodIII").val().replace(/\./g, '').replace(",", ".");
+  let vrunitliq = $("#vrunitliq").val().replace(/\./g, '').replace(",", ".");
+  let vrunitsug = $("#vrunitsug").val().replace(/\./g, '').replace(",", ".");
+  let vrunittotal = $("#vrunittotal").val().replace(/\./g, '').replace(",", ".");
+  let vrcustoprodatual = $("#vrcustohoje").val();
+  let vrvendaprodatual = $("#vrvendahoje").val();
+  let strecebido = 'False';
+  let stecom = $("#stecommerce").val();
+  let stredesocial = $("#stredesocial").val();
+  let stcancelado = 'False';
+  let obsprodunit = $("#obsprodunit").val();
+  let prodcategorias = $("#prodcategorias").val();
+  let sttransformado = 'False';
+  let streposicao = $("#streposicao").val();
+  let codbarrareposicao = streposicao == 'True' ? $("#NCodBarras").val() : '';
+  let idProdutoReposicao = streposicao == 'True' ? $("#dsprodpedido").attr('idproduto') : '';
+
+  let estruturaprodlst = estruturaprod.split(':');
+  let estruturaprodIdGrupo = estruturaprodlst[0];
+  let estruturaprodIdSubGrupo = estruturaprodlst[1];
+
+  let idFuncionario = (await getCurrentUser())?.user?.id;
+  
+  let grade = await montarPayloadGradeProduto();
+  
+  return [{
+    "IDRESUMOPEDIDO": parseInt(IdResumoPedidoProduto),
+    "IDCOR": parseInt(corprod),
+    "IDSUBGRUPOESTRUTURA": parseInt(estruturaprodIdSubGrupo),
+    "IDCATEGORIAPEDIDO": parseInt(categoriaprod),
+    "IDTIPOTECIDO": parseInt(tptecidoprod),
+    "IDESTILO": parseInt(tpestiloprod),
+    "IDFABRICANTE": parseInt(fabprod),
+    "IDLOCALEXPOSICAO": parseInt(localexpprod),
+    "NUREF": (refproduto),
+    "DSPRODUTO": (dsprodpedido),
+    "QTDTOTAL": parseFloat(qtdprodpedido),
+    "NUCAIXA": parseFloat(qtdcaixa),
+    "UND": parseInt(unidprod),
+    "VRUNITBRUTO": parseFloat(vrunitbruto),
+    "DESC01": parseFloat(descprodI),
+    "DESC02": parseFloat(descprodII),
+    "DESC03": parseFloat(descprodIII),
+    "VRUNITLIQUIDO": parseFloat(vrunitliq),
+    "VRVENDA": parseFloat(vrunitsug),
+    "VRTOTAL": parseFloat(vrunittotal),
+    "STRECEBIDO": strecebido,
+    "STECOMMERCE": stecom,
+    "STREDESOCIAL": stredesocial,
+    "STCANCELADO": stcancelado,
+    "GRADE": grade,
+    "VRCUSTOPRODATUAL": parseFloat(vrcustoprodatual),
+    "VRVENDAPRODATUAL": parseFloat(vrvendaprodatual),
+    "OBSPRODUTO": obsprodunit,
+    "STTRANSFORMADO": sttransformado,
+    "IDCATEGORIAS": parseInt(prodcategorias),
+    "STREPOSICAO": streposicao,
+    "NUCODBARRAS": codbarrareposicao,
+    "IDPRODUTO": idProdutoReposicao,
+    "IDRESPCADASTRO": parseInt(idFuncionario),
+    "STPEDIDOPORINTEMEDIARIO": stPedidoPorIntermediario
+  }]
+}
+
+async function incluir_produto_pedido() {
+  try {
+    let IdResumoPedidoEdit = $("#IDResPedido").val();
+    let dadosProdSelecionado = $('#listprodpesqped').select2('data')[0].element || '';
+    let dsProdSelecionado = $(dadosProdSelecionado).attr('dsprod') ? $(dadosProdSelecionado).attr('dsprod').toUpperCase().trim() : $(dadosProdSelecionado).attr('dsprod');
+    let dsprodpedido = $("#dsprodpedido").val();
+    let streposicao = $("#streposicao").val();
+
+    let camposValidos = await validarCamposProdutoPedido();
+
+    if (!camposValidos) {
+      return;
+    }
+
+    if (streposicao == 'False' && (dsprodpedido).toUpperCase() == dsProdSelecionado) {
+      return alerta_selectVazioOuCampoEmBranco("Este produto é novo e não pode ter as mesma descrição de um produto que já existe!", '#dsprodpedido')
+    }
+
+    animationLoadingStart('Incluindo item, aguarde...', 300, false);
+
+    let dados = await montarPayloadProdutoInclusao();
+
+    if (streposicao == 'False'){
+      dados[0].IDPRODUTO = '';
+      dados[0].NUCODBARRAS = '';
+    }
+
+    let textoFuncao = 'COMPRAS/INCLUSAO ITEM PEDIDO';
+
+    await ajaxPost("api/compras/lista_detalhepedidos.xsjs?", dados);
+
+    await ajaxPut(`api/compras/lista_pedidos.xsjs?idrespedido=${IdResumoPedidoEdit}`);
+
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess(`Item Incluido no Pedido: ${IdResumoPedidoEdit} com Sucesso!`);
+
+    await ajaxGet(`api/compras/lista_detalhepedidos.xsjs?idpedido=${IdResumoPedidoEdit}`)
+      .then(retornoDetalhesPedido);
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar editar os dados!');
+  }
+
 }
 
 async function exibirModalAdicionarProduto(respostaUltimoPedido) {
-    try {
-        let tipoPedido = $("#idtipopedido").val();
-        let MarcaPedido = $('#idmarca').select2('data');
-        let FornPedido = $("#idforn").val();
-        let stReposicao = respostaUltimoPedido?.data[0]?.STREPOSICAO;
-        let IdResumoP = respostaUltimoPedido?.data[0]?.IDRESUMOPEDIDO;
+  try {
+    let tipoPedido = $("#idtipopedido").val();
+    let MarcaPedido = $('#idmarca').select2('data');
+    let FornPedido = $("#idforn").val();
+    let stReposicao = respostaUltimoPedido?.data[0]?.STREPOSICAO;
+    let IdResumoP = respostaUltimoPedido?.data[0]?.IDRESUMOPEDIDO;
 
-        await exibirModalProdutoPedido(MarcaPedido[0].text, IdResumoP, tipoPedido, FornPedido);
+    await exibirModalProdutoPedido(MarcaPedido[0].text, IdResumoP, tipoPedido, FornPedido);
 
-        $('#modaltitulopedido').html(`
+    $('#modaltitulopedido').html(`
             Pedido ${stReposicao == 'True' ? `de <label class="text-danger">REPOSIÇÃO</label>` : stReposicao == 'False' ? `de Produtos <label class="text-info">NOVOS</label>` : ''} para ${tipoPedido} Nº <b>${IdResumoP}</b>
             <small class="m-0 text-muted"> Inclusão de Itens do Pedido </small>
         `);
 
-        $('#footeraddprodpedido').html(`
+    $('#footeraddprodpedido').html(`
             <button type="button" class="btn btn-success" onclick="incluir_produto_pedido()">
                 Incluir
             </button>
@@ -2711,43 +2902,43 @@ async function exibirModalAdicionarProduto(respostaUltimoPedido) {
             </button>
       `);
 
-        $('#stTipoFormulario').val('CREATE');
+    $('#stTipoFormulario').val('CREATE');
 
-        if (stReposicao == 'True') {
-            $('#stReposicaoMemo').val('True');
+    if (stReposicao == 'True') {
+      $('#stReposicaoMemo').val('True');
 
-            $("#streposicao").val('True').prop({
-                readonly: true,
-                disabled: true
-            }).attr('title', 'Este pedido é de produtos de reposição');
+      $("#streposicao").val('True').prop({
+        readonly: true,
+        disabled: true
+      }).attr('title', 'Este pedido é de produtos de reposição');
 
-        } else if (stReposicao == 'False') {
-            $('#stReposicaoMemo').val('False');
+    } else if (stReposicao == 'False') {
+      $('#stReposicaoMemo').val('False');
 
-            $("#streposicao").val('False').prop({
-                readonly: true,
-                disabled: true
-            }).attr('title', 'Este pedido é de produtos novos');
-        }
-    } catch (error) {
-        console.log(error);
-        throw error;
+      $("#streposicao").val('False').prop({
+        readonly: true,
+        disabled: true
+      }).attr('title', 'Este pedido é de produtos novos');
     }
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 }
 
 async function retornoListaGradePedido(respostaListaGradePedido) {
-    let { data } = respostaListaGradePedido || [];
-    let GradeHtml = '';
+  let { data } = respostaListaGradePedido || [];
+  let GradeHtml = '';
 
-    $('#resultadoqtdtamanhos').html('');
+  $('#resultadoqtdtamanhos').html('');
 
-    for (let { IDTAMANHO, DSTAMANHO } of data ) {
-        let stDiversos = (DSTAMANHO?.toUpperCase() == 'DIVERSOS' || DSTAMANHO?.toUpperCase() == 'U-DIVERSOS');
-        let valueGrade = stDiversos ? 1 : 0;
-        let titleGrade = stDiversos ? 'A Grade Diversos Possuí Gradeamento Único!' : '';
-        let stDisabled = stDiversos ? 'disabled' : '';
-        
-        GradeHtml += `
+  for (let { IDTAMANHO, DSTAMANHO } of data) {
+    let stDiversos = (DSTAMANHO?.toUpperCase() == 'DIVERSOS' || DSTAMANHO?.toUpperCase() == 'U-DIVERSOS');
+    let valueGrade = stDiversos ? 1 : 0;
+    let titleGrade = stDiversos ? 'A Grade Diversos Possuí Gradeamento Único!' : '';
+    let stDisabled = stDiversos ? 'disabled' : '';
+
+    GradeHtml += `
             <div class="col-sm-1 col-xl-1">
                 <label  class="form-label" for="${IDTAMANHO}">${DSTAMANHO}</label>
                 <div class="input-group">
@@ -2755,1405 +2946,1254 @@ async function retornoListaGradePedido(respostaListaGradePedido) {
                 </div>
             </div>
         `;
-    }
+  }
 
-    $('#resultadoqtdtamanhos').html(GradeHtml);
+  $('#resultadoqtdtamanhos').html(GradeHtml);
 
-    return true;
+  return true;
 }
 
 function selecionagradepedido(gradeTamanho, stTransformado = 'False') {
 
-    idCatPedi = $('#categoriaprod').val();
+  idCatPedi = $('#categoriaprod').val();
 
-    if (idCatPedi != '') {
-        ajaxGet('api/compras/vinctamcat.xsjs?idCatPeid=' + idCatPedi)
-            .then(async (resp) => {
-                await retornoListaGradePedido(resp);
+  if (idCatPedi != '') {
+    ajaxGet('api/compras/vinctamcat.xsjs?idCatPeid=' + idCatPedi)
+      .then(async (resp) => {
+        await retornoListaGradePedido(resp);
 
-                await $('#resultadoqtdtamanhos input').each(async function (index, input) {
-                    $(input).attr('onchange', `formataValorGrade(this)`);
-                });
+        await $('#resultadoqtdtamanhos input').each(async function (index, input) {
+          $(input).attr('onchange', `formataValorGrade(this)`);
+        });
 
-                let dadosGrades = await JSON.parse(gradeTamanho);
+        let dadosGrades = gradeTamanho ? await JSON.parse(gradeTamanho) : '';
 
-                if (Array.isArray(dadosGrades)) {
-                    await dadosGrades.map(async (tamanho, indice) => {
-                        $('#resultadoqtdtamanhos input#' + tamanho?.IDTAMANHO).val(tamanho?.INDICETAMANHO || 1).attr('onchange', `formataValorGrade(this, '${stTransformado}')`);
-                    })
+        if (Array.isArray(dadosGrades)) {
+          await dadosGrades.map(async (tamanho, indice) => {
+            $('#resultadoqtdtamanhos input#' + tamanho?.IDTAMANHO).val(tamanho?.INDICETAMANHO || 1).attr('onchange', `formataValorGrade(this, '${stTransformado}')`);
+          })
 
-                    await $('#resultadoqtdtamanhos input').each(async function (index, input) {
-                        let stDisabled = false;
+          await $('#resultadoqtdtamanhos input').each(async function (index, input) {
+            let stDisabled = false;
 
-                        if (stTransformado == 'True') {
-                            stDisabled = (!$(input).val() || $(input).val() == 0);
+            if (stTransformado == 'True') {
+              stDisabled = (!$(input).val() || $(input).val() == 0);
 
-                            $(input).prop('disabled', stDisabled);
-                        } else {
-                            $(input).prop('disabled', stDisabled);
-                        }
+              $(input).prop('disabled', stDisabled);
+            } else {
+              $(input).prop('disabled', stDisabled);
+            }
 
-                    });
+          });
 
-                } else {
-                    if (gradeTamanho) {
+        } else {
+          if (gradeTamanho) {
 
-                        $('#resultadoqtdtamanhos input').val(0).prop({
-                            'readonly': true,
-                            'disabled': true
-                        });
+            $('#resultadoqtdtamanhos input').val(0).prop({
+              'readonly': true,
+              'disabled': true
+            });
 
-                        $('#resultadoqtdtamanhos input#' + gradeTamanho).val(1);
-                    }
-                }
+            $('#resultadoqtdtamanhos input#' + gradeTamanho).val(1);
+          }
+        }
 
-                $('#categoriaprod').attr('onchange', `selecionagradepedido()`);
+        $('#categoriaprod').attr('onchange', `selecionagradepedido()`);
 
 
-                $('#resultadoqtdtamanhos input').attr('style', 'width: 60px !important')
-            })
-            .catch(erro => console.log(erro));
-    } else {
-        GradeHtml = '';
-    }
+        $('#resultadoqtdtamanhos input').attr('style', 'width: 60px !important')
+      })
+      .catch(erro => console.log(erro));
+  } else {
+    GradeHtml = '';
+  }
 }
 
 function selecionaprodped() {
-    let pesqrefprodpedido = $('#pesqrefprodpedido').val();
-    let FornPedido = $("#idforn").val();
+  let pesqrefprodpedido = $('#pesqrefprodpedido').val();
+  let FornPedido = $("#idforn").val();
 
-    pesqrefprodpedido && ajaxGetAllData(`api/compras/produtospedido.xsjs?PesqProd=${pesqrefprodpedido}&IdForn=${FornPedido}`).then(retornoListaProdutoPedido)
+  pesqrefprodpedido && ajaxGetAllData(`api/compras/produtospedido.xsjs?PesqProd=${pesqrefprodpedido}&IdForn=${FornPedido}`).then(retornoListaProdutoPedido)
 }
 
 async function selecaoreposicao() {
 
-    let dataNomeProd = $("#dsprodpedido")?.attr('dsprod');
-    let dataCodBarraProd = $("#dsprodpedido")?.attr('codbarras');
-    let idProduto = $("#dsprodpedido")?.attr('idproduto') || '';
-    let nuRef = $("#dsprodpedido")?.attr('nuRef') || '';
-    let idFab = $("#dsprodpedido")?.attr('idFab') || '';
-    let idUnd = $("#dsprodpedido")?.attr('idUnd') || '';
-    let idCor = $("#dsprodpedido")?.attr('idCor') || '';
-    let idTpTecido = $("#dsprodpedido")?.attr('idTpTecido') || '';
-    let idCategoriaPedido = $("#dsprodpedido")?.attr('idcategoriapedido') || '';
-    let idGrpEstruturaESubgrpEstrutura = $("#dsprodpedido")?.attr('idGrpEstruturaESubgrpEstrutura') || '';
-    let idEstilo = $("#dsprodpedido")?.attr('idEstilo') || '';
-    let idCategorias = $("#dsprodpedido")?.attr('idCategorias') || '';
-    let idLocalExp = $("#dsprodpedido")?.attr('idLocalExp') || '';
-    let idTamanho = $("#dsprodpedido")?.attr('idTamanho') || '';
+  let dataNomeProd = $("#dsprodpedido")?.attr('dsprod');
+  let dataCodBarraProd = $("#dsprodpedido")?.attr('codbarras');
+  let idProduto = $("#dsprodpedido")?.attr('idproduto') || '';
+  let nuRef = $("#dsprodpedido")?.attr('nuRef') || '';
+  let idFab = $("#dsprodpedido")?.attr('idFab') || '';
+  let idUnd = $("#dsprodpedido")?.attr('idUnd') || '';
+  let idCor = $("#dsprodpedido")?.attr('idCor') || '';
+  let idTpTecido = $("#dsprodpedido")?.attr('idTpTecido') || '';
+  let idCategoriaPedido = $("#dsprodpedido")?.attr('idcategoriapedido') || '';
+  let idGrpEstruturaESubgrpEstrutura = $("#dsprodpedido")?.attr('idGrpEstruturaESubgrpEstrutura') || '';
+  let idEstilo = $("#dsprodpedido")?.attr('idEstilo') || '';
+  let idCategorias = $("#dsprodpedido")?.attr('idCategorias') || '';
+  let idLocalExp = $("#dsprodpedido")?.attr('idLocalExp') || '';
+  let idTamanho = $("#dsprodpedido")?.attr('idTamanho') || '';
 
-    if ($('#streposicao').val() === 'True') {
-        if (idProduto?.length || dataCodBarraProd?.length) {
-            animationLoadingStart('Preenchendo dados do Produto...', false);
+  if ($('#streposicao').val() === 'True') {
+    if (idProduto?.length || dataCodBarraProd?.length) {
+      animationLoadingStart('Preenchendo dados do Produto...', false);
 
-            $("#dsprodpedido").val(dataNomeProd).prop('readonly', true);
+      $("#dsprodpedido").val(dataNomeProd).prop('readonly', true);
 
-            if (nuRef) {
-                $('#refproduto').val(nuRef).prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#refproduto').val('').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-            if (idFab && $('#fabprod').find(`option[value="${idFab}"]`).length > 0) {
-                $('#fabprod').val(idFab).trigger('change').prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#fabprod').val('').trigger('change').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-            if (idUnd && $('#unidprod').find(`option[value="${idUnd}"]`).length > 0) {
-                $('#unidprod').val(idUnd).trigger('change').prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#unidprod').val('').trigger('change').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-            if (idCor && $('#corprod').find(`option[value="${idCor}"]`).length > 0) {
-                $('#corprod').val(idCor).trigger('change').prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#corprod').val('').trigger('change').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-            if (idTpTecido && $('#tptecidoprod').find(`option[value="${idTpTecido}"]`).length > 0) {
-                $('#tptecidoprod').val(idTpTecido).trigger('change').prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#tptecidoprod').val('').trigger('change').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-            if (idCategoriaPedido && $('#categoriaprod').find(`option[value="${idCategoriaPedido}"]`).length > 0) {
-                idTamanho && $('#categoriaprod').attr('onchange', `selecionagradepedido('${idTamanho}')`);
-
-                $('#categoriaprod').val(idCategoriaPedido).trigger('change').prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#categoriaprod').val('').trigger('change').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-            if (idGrpEstruturaESubgrpEstrutura && $('#estruturaprod').find(`option[value="${idGrpEstruturaESubgrpEstrutura}"]`).length > 0) {
-                idEstilo && $('#estruturaprod').attr('onchange', `selecionaestilogrupo('${idEstilo}');`);
-
-                $('#estruturaprod').val(idGrpEstruturaESubgrpEstrutura).trigger('change').prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#estruturaprod').val('').trigger('change').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-            if (idCategorias && $('#prodcategorias').find(`option[value="${idCategorias}"]`).length > 0) {
-
-                $('#prodcategorias').val(idCategorias).trigger('change').prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#prodcategorias').val('').trigger('change').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-
-                $('#resultadoqtdtamanhos').html('')
-
-            }
-
-            if (idLocalExp && $('#localexp').find(`option[value="${idLocalExp}"]`).length > 0) {
-                $('#localexp').val(idLocalExp).trigger('change').prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#localexp').val('').trigger('change').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-
-            if (idEstilo) {
-                $('#estiloprod').prop({
-                    'readonly': true,
-                    'disabled': true
-                });
-            } else {
-                $('#estiloprod').val('').trigger('change').prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-            if (!idTamanho) {
-                $('#categoriaprod').attr('onchange', `selecionagradepedido()`);
-
-                $('#resultadoqtdtamanhos input').val(0).prop({
-                    'readonly': false,
-                    'disabled': false
-                });
-            }
-
-            animationLoadingStop();
-
-        } else {
-            if ($('#stReposicaoMemo').val() != 'True') {
-                $('#streposicao').val('False');
-            }
-
-            $('#listprodpesqped option')?.length > 1 ? $('#listprodpesqped').focus() : $('#pesqrefprodpedido').focus();
-
-            await msgWarning('Para reposição você deve digitar a descrição de um produto já existente na pesquisa e escolher na lista de produtos cadastrados')
-
-            if ($('#listprodpesqped option')?.length > 1) {
-                $('#listprodpesqped').select2('open');
-            }
-
-        }
-
-    } else {
-        $('#prodcategorias').attr('onfocus', `selecionagradepedido()`);
-        $('#estiloprod').off('select2:opening');
-
-        $('#dsprodpedido, #refproduto, #fabprod, #unidprod, #corprod, #tptecidoprod, #categoriaprod, #estruturaprod, #prodcategorias, #estiloprod, #localexp').prop({
-            'readonly': false,
-            'disabled': false
+      if (nuRef) {
+        $('#refproduto').val(nuRef).prop({
+          'readonly': true,
+          'disabled': true
         });
+      } else {
+        $('#refproduto').val('').prop({
+          'readonly': false,
+          'disabled': false
+        });
+      }
+
+      if (idFab && $('#fabprod').find(`option[value="${idFab}"]`).length > 0) {
+        $('#fabprod').val(idFab).trigger('change').prop({
+          'readonly': true,
+          'disabled': true
+        });
+      } else {
+        $('#fabprod').val('').trigger('change').prop({
+          'readonly': false,
+          'disabled': false
+        });
+      }
+
+      if (idUnd && $('#unidprod').find(`option[value="${idUnd}"]`).length > 0) {
+        $('#unidprod').val(idUnd).trigger('change').prop({
+          'readonly': true,
+          'disabled': true
+        });
+      } else {
+        $('#unidprod').val('').trigger('change').prop({
+          'readonly': false,
+          'disabled': false
+        });
+      }
+
+      if (idCor && $('#corprod').find(`option[value="${idCor}"]`).length > 0) {
+        $('#corprod').val(idCor).trigger('change').prop({
+          'readonly': true,
+          'disabled': true
+        });
+      } else {
+        $('#corprod').val('').trigger('change').prop({
+          'readonly': false,
+          'disabled': false
+        });
+      }
+
+      if (idTpTecido && $('#tptecidoprod').find(`option[value="${idTpTecido}"]`).length > 0) {
+        $('#tptecidoprod').val(idTpTecido).trigger('change').prop({
+          'readonly': true,
+          'disabled': true
+        });
+      } else {
+        $('#tptecidoprod').val('').trigger('change').prop({
+          'readonly': false,
+          'disabled': false
+        });
+      }
+
+      if (idCategoriaPedido && $('#categoriaprod').find(`option[value="${idCategoriaPedido}"]`).length > 0) {
+        idTamanho && $('#categoriaprod').attr('onchange', `selecionagradepedido('${idTamanho}')`);
+
+        $('#categoriaprod').val(idCategoriaPedido).trigger('change').prop({
+          'readonly': true,
+          'disabled': true
+        });
+      } else {
+        $('#categoriaprod').val('').trigger('change').prop({
+          'readonly': false,
+          'disabled': false
+        });
+      }
+
+      if (idGrpEstruturaESubgrpEstrutura && $('#estruturaprod').find(`option[value="${idGrpEstruturaESubgrpEstrutura}"]`).length > 0) {
+        idEstilo && $('#estruturaprod').attr('onchange', `selecionaestilogrupo('${idEstilo}');`);
+
+        $('#estruturaprod').val(idGrpEstruturaESubgrpEstrutura).trigger('change').prop({
+          'readonly': true,
+          'disabled': true
+        });
+      } else {
+        $('#estruturaprod').val('').trigger('change').prop({
+          'readonly': false,
+          'disabled': false
+        });
+      }
+
+      if (idCategorias && $('#prodcategorias').find(`option[value="${idCategorias}"]`).length > 0) {
+
+        $('#prodcategorias').val(idCategorias).trigger('change').prop({
+          'readonly': true,
+          'disabled': true
+        });
+      } else {
+        $('#prodcategorias').val('').trigger('change').prop({
+          'readonly': false,
+          'disabled': false
+        });
+
+        $('#resultadoqtdtamanhos').html('')
+
+      }
+
+      if (idLocalExp && $('#localexp').find(`option[value="${idLocalExp}"]`).length > 0) {
+        $('#localexp').val(idLocalExp).trigger('change').prop({
+          'readonly': true,
+          'disabled': true
+        });
+      } else {
+        $('#localexp').val('').trigger('change').prop({
+          'readonly': false,
+          'disabled': false
+        });
+      }
+
+
+      if (idEstilo) {
+        $('#estiloprod').prop({
+          'readonly': true,
+          'disabled': true
+        });
+      } else {
+        $('#estiloprod').val('').trigger('change').prop({
+          'readonly': false,
+          'disabled': false
+        });
+      }
+
+      if (!idTamanho) {
+        $('#categoriaprod').attr('onchange', `selecionagradepedido()`);
 
         $('#resultadoqtdtamanhos input').val(0).prop({
-            'readonly': false,
-            'disabled': false
+          'readonly': false,
+          'disabled': false
         });
+      }
+
+      animationLoadingStop();
+
+    } else {
+      if ($('#stReposicaoMemo').val() != 'True') {
+        $('#streposicao').val('False');
+      }
+
+      $('#listprodpesqped option')?.length > 1 ? $('#listprodpesqped').focus() : $('#pesqrefprodpedido').focus();
+
+      await msgWarning('Para reposição você deve digitar a descrição de um produto já existente na pesquisa e escolher na lista de produtos cadastrados')
+
+      if ($('#listprodpesqped option')?.length > 1) {
+        $('#listprodpesqped').select2('open');
+      }
+
     }
+
+  } else {
+    $('#prodcategorias').attr('onfocus', `selecionagradepedido()`);
+    $('#estiloprod').off('select2:opening');
+
+    $('#dsprodpedido, #refproduto, #fabprod, #unidprod, #corprod, #tptecidoprod, #categoriaprod, #estruturaprod, #prodcategorias, #estiloprod, #localexp').prop({
+      'readonly': false,
+      'disabled': false
+    });
+
+    $('#resultadoqtdtamanhos input').val(0).prop({
+      'readonly': false,
+      'disabled': false
+    });
+  }
 }
 
 function incluirprodped() {
+  let dadosProdutoSelecionado = $("#listprodpesqped").select2('data')[0]?.element;
+  
+  let dsprod = $(dadosProdutoSelecionado)?.attr('dsprod');
+  let vrcustohoje = $(dadosProdutoSelecionado)?.attr('title');
+  let vrvendahoje = $("#listprodpesqped").val();
+  let codbarras = $(dadosProdutoSelecionado)?.attr('codbarras');
+  let idProduto = $(dadosProdutoSelecionado)?.attr('idproduto') || '';
+  let nuRef = $(dadosProdutoSelecionado)?.attr('nuRef') || '';
+  let idFab = $(dadosProdutoSelecionado)?.attr('idFab') || '';
+  let idUnd = $(dadosProdutoSelecionado)?.attr('idUnd') || '';
+  let idCor = $(dadosProdutoSelecionado)?.attr('idCor') || '';
+  let idTpTecido = $(dadosProdutoSelecionado)?.attr('idTpTecido') || '';
+  let idCategoriaPedido = $(dadosProdutoSelecionado)?.attr('idCategoriaPedido') || '';
+  let idGrpEstruturaESubgrpEstrutura = $(dadosProdutoSelecionado)?.attr('idGrpEstruturaESubgrpEstrutura') || '';
+  let idEstilo = $(dadosProdutoSelecionado)?.attr('idEstilo') || '';
+  let idCategorias = $(dadosProdutoSelecionado)?.attr('idCategorias') || '';
+  let idLocalExp = $(dadosProdutoSelecionado)?.attr('idLocalExp') || '';
+  let idTamanho = $(dadosProdutoSelecionado)?.attr('idTamanho') || '';
 
-    $("#qtdprodpedido").focus();
-    $("#qtdprodpedido").select();
+  $('#dsprodpedido')
+    .attr('title', dsprod)
+    .attr('idproduto', idProduto)
+    .attr('dsprod', dsprod)
+    .attr('codbarras', codbarras)
+    .attr('nuRef', nuRef)
+    .attr('idFab', idFab)
+    .attr('idUnd', idUnd)
+    .attr('idCor', idCor)
+    .attr('idTpTecido', idTpTecido)
+    .attr('idCategoriaPedido', idCategoriaPedido)
+    .attr('idGrpEstruturaESubgrpEstrutura', idGrpEstruturaESubgrpEstrutura)
+    .attr('idEstilo', idEstilo)
+    .attr('idCategorias', idCategorias)
+    .attr('idLocalExp', idLocalExp)
+    .attr('idTamanho', idTamanho)
+    .val(dsprod)
+    .focus()
+  ;
 
-    let dataListProd = $("#listprodpesqped").select2('data')[0]?.element;
-    let dataNomeProd = $(dataListProd)?.attr('dsprod');
-    let dataVrCustoProd = $(dataListProd)?.attr('title');
-    let dataVrVendaProd = $("#listprodpesqped").val();
-    let dataCodBarraProd = $(dataListProd)?.attr('codbarras');
-    let idProduto = $(dataListProd)?.attr('idproduto') || '';
-    let nuRef = $(dataListProd)?.attr('nuRef') || '';
-    let idFab = $(dataListProd)?.attr('idFab') || '';
-    let idUnd = $(dataListProd)?.attr('idUnd') || '';
-    let idCor = $(dataListProd)?.attr('idCor') || '';
-    let idTpTecido = $(dataListProd)?.attr('idTpTecido') || '';
-    let idCategoriaPedido = $(dataListProd)?.attr('idCategoriaPedido') || '';
-    let idGrpEstruturaESubgrpEstrutura = $(dataListProd)?.attr('idGrpEstruturaESubgrpEstrutura') || '';
-    let idEstilo = $(dataListProd)?.attr('idEstilo') || '';
-    let idCategorias = $(dataListProd)?.attr('idCategorias') || '';
-    let idLocalExp = $(dataListProd)?.attr('idLocalExp') || '';
-    let idTamanho = $(dataListProd)?.attr('idTamanho') || '';
+  $('#NCodBarras').val(codbarras);
+  $('#vrcustohoje').val(vrcustohoje);
+  $('#vrvendahoje').val(vrvendahoje);
 
-    //  let dataNomeProd = dataCodBarraProd ? (dataCodBarraProd + ' - ' + dataNomeProd) : dataNomeProd;
-
-    $('#dsprodpedido')
-        .val(dataNomeProd)
-        .attr('title', dataNomeProd)
-        .attr('idproduto', idProduto)
-        .attr('dsprod', dataNomeProd)
-        .attr('codbarras', dataCodBarraProd)
-        .attr('nuRef', nuRef)
-        .attr('idFab', idFab)
-        .attr('idUnd', idUnd)
-        .attr('idCor', idCor)
-        .attr('idTpTecido', idTpTecido)
-        .attr('idCategoriaPedido', idCategoriaPedido)
-        .attr('idGrpEstruturaESubgrpEstrutura', idGrpEstruturaESubgrpEstrutura)
-        .attr('idEstilo', idEstilo)
-        .attr('idCategorias', idCategorias)
-        .attr('idLocalExp', idLocalExp)
-        .attr('idTamanho', idTamanho)
-        .focus()
-        ;
-
-    $('#NCodBarras').val(dataCodBarraProd);
-    $('#vrcustohoje').val(dataVrCustoProd);
-    $('#vrvendahoje').val(dataVrVendaProd);
+  $("#qtdprodpedido").focus().select();
 }
 
 function selecionaestilogrupo(idEstilo = '') {
 
-    estruturaprod = $('#estruturaprod').val();
+  estruturaprod = $('#estruturaprod').val();
 
-    var estruturaprodlst = estruturaprod.split(':');
-    var idEstGrupo = estruturaprodlst[0];
+  var estruturaprodlst = estruturaprod.split(':');
+  var idEstGrupo = estruturaprodlst[0];
 
-    ajaxGet('api/compras/vincestilogrupo.xsjs?idEstGrupo=' + idEstGrupo)
-        .then(async (resp) => {
-            await retornoListaEstiloGrupo(resp);
-            $("#dsprodpedido")?.attr('idEstilo') && $('#estiloprod').val(idEstilo).trigger('change');
+  ajaxGet('api/compras/vincestilogrupo.xsjs?idEstGrupo=' + idEstGrupo)
+    .then(async (resp) => {
+      await retornoListaEstiloGrupo(resp);
+      $("#dsprodpedido")?.attr('idEstilo') && $('#estiloprod').val(idEstilo).trigger('change');
 
-            $('#estruturaprod').attr('onchange', 'selecionaestilogrupo()');
-        })
-        .catch(funcError);
+      $('#estruturaprod').attr('onchange', 'selecionaestilogrupo()');
+    })
+    .catch(funcError);
 }
 
 async function verificaDadosDoFornecedorSelecionado(stCarregarDados = true) {
-    try{    
-        let idForn = $("#idforn").val();
-        let titleOption = $("#idforn option:selected").attr("title");
-        let stVinculo = $("#idforn option:selected").attr("stVinculo");
-        let stForn = titleOption !== 'Fornecedor Inativo No SAP' ? true : false;
-        let idvincompforfab = stVinculo == 'True' ? true : false;
-        let msgPendencias = [];
+  try {
+    let idForn = $("#idforn").val();
+    let optionSelected = $("#idforn")?.select2('data')[0];
+    let titleOption = $(optionSelected.element).attr('title') || $("#idforn")?.select2('data')[0]?.title;
+    let stVinculo = $(optionSelected.element).attr('stVinculo') || $("#idforn")?.select2('data')[0]?.stVinculo;
+    let stForn = titleOption !== 'Fornecedor Inativo No SAP' ? true : false;
+    let idvincompforfab = stVinculo == 'True' ? true : false;
+    let msgPendencias = [];
 
-        $('#pendenciasPedido').html('');
-        $('#stRascunho').val('False');
+    $('#pendenciasPedido').html('');
+    $('#stRascunho').val('False');
 
-        if ($('.animacaoLoading').length == 0) {
-            animationLoadingStart('Verificando dados do fornecedor selecionado, aguarde...');
-        }
-
-       // let { data } = await ajaxGet(`api/compras/fornecedor-fabricante.xsjs?page=1&pageSize=1&idFor=${idForn}`).catch((error)=>{ throw error }) || '';
-
-        if (!stForn || !idvincompforfab) {
-            !stForn && msgPendencias.push(' Fornecedor selecionado está inativo ou não está cadastrado no SAP');
-            !idvincompforfab && msgPendencias.push('Fornecedor selecionado está sem vinculo com Fabricante');
-        } 
-
-        if (stCarregarDados){
-          await carregarDadosDoFornecedorOuDoUltimoPedidoDoFornecedor();
-        }
-
-        animationLoadingStop();
-
-        if (msgPendencias.length > 0){
-          await exibirPendencias(msgPendencias);
-        }
-
-    } catch(error){
-        console.log(error);
-        msgError('Erro ao tentar carregar as informações do fornecedor, recarregue e tente novamente!');
+    if ($('.animacaoLoading').length == 0) {
+      animationLoadingStart('Verificando dados do fornecedor selecionado, aguarde...');
     }
+
+    if (!stForn || !idvincompforfab) {
+      !stForn && msgPendencias.push(' Fornecedor selecionado está inativo ou não está cadastrado no SAP');
+      !idvincompforfab && msgPendencias.push('Fornecedor selecionado está sem vinculo com Fabricante');
+    }
+
+    if (stCarregarDados) {
+      await carregarDadosDoFornecedorOuDoUltimoPedidoDoFornecedor();
+    }
+
+    animationLoadingStop();
+
+    if (msgPendencias.length > 0) {
+      await exibirPendencias(msgPendencias);
+    }
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar carregar as informações do fornecedor, recarregue e tente novamente!');
+  }
 }
 
 async function carregarDadosDoFornecedorOuDoUltimoPedidoDoFornecedor(msg) {
-    try{
-        let IdFornPedido = $("#idforn").val();
-        let respQuestion = false;
+  try {
+    let IdFornPedido = $("#idforn").val();
+    let respQuestion = false;
 
-        if ($('.animacaoLoading').length != 0) {
-            animationLoadingStart('Carregando dados do fornecedor selecionado, aguarde...');
-        }
-
-
-        let dadosFornParaPreencher = await ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=10&page=1&idFornPesquisa=' + IdFornPedido).catch((error) => { throw error }) || [];
-
-        if (dadosFornParaPreencher?.data?.length > 0){
-            respQuestion = (await msgQuestion('Deseja carregar as informações de acordo com último pedido realizado para este Fornecedor?'))?.value || false;
-        }
-
-        if (dadosFornParaPreencher?.data?.length == 0 || !respQuestion){
-            dadosFornParaPreencher = await ajaxGet('api/compras/fornecedor.xsjs?idFornecedor=' + IdFornPedido).catch((error) => { throw error }) || [];
-        }
-
-        await retornoPreencheDadosFornecedorNoPedido(dadosFornParaPreencher);
-
-    } catch(error){
-        msgError('Erro ao carregar os dados do fornecedor, recarregue e tente novamente!');
-        console.error(error);
+    if ($('.animacaoLoading').length != 0) {
+      animationLoadingStart('Carregando dados do fornecedor selecionado, aguarde...');
     }
 
-    
+    let dadosFornParaPreencher = await ajaxGet('api/compras/lista_pedidos.xsjs?pageSize=1&page=1&idFornPesquisa=' + IdFornPedido).catch((error) => { throw error }) || [];
+
+    if (dadosFornParaPreencher?.data?.length > 0) {
+      respQuestion = await msgQuestion('Deseja carregar as informações de acordo com último pedido realizado para este Fornecedor?');
+    }
+
+    if (dadosFornParaPreencher?.data?.length == 0 || !respQuestion?.value) {
+      dadosFornParaPreencher = await ajaxGet('api/compras/fornecedor.xsjs?idFornecedor=' + IdFornPedido).catch((error) => { throw error }) || [];
+    }
+
+    await retornoPreencheDadosFornecedorNoPedido(dadosFornParaPreencher);
+
+  } catch (error) {
+    msgError('Erro ao carregar os dados do fornecedor, recarregue e tente novamente!');
+    console.error(error);
+  }
+
+
 }
 
 async function exibirPendencias(pendencias) {
-    let idAndamento = $('#IdAndamentoPed').val();
-    let indice = 0;
-    let msgFormatada = '';
-    let htmlListPendencias = '';
+  let idAndamento = $('#IdAndamentoPed').val();
+  let indice = 0;
+  let msgFormatada = '';
+  let htmlListPendencias = '';
 
-    $('#stRascunho').val('True');
+  $('#stRascunho').val('True');
 
-    $('#pendenciasPedido').html('');
+  $('#pendenciasPedido').html('');
 
-    for(let msg of pendencias) {
-        msgFormatada += `${msg}, `;
-        indice++;
-        htmlListPendencias += `<small class="d-block form-label text-danger font-weight-bold h4 cursor-pointer" title="${msg}">${(indice)} - ${msg};</small>`;
+  for (let msg of pendencias) {
+    msgFormatada += `${msg}, `;
+    indice++;
+    htmlListPendencias += `<small class="d-block form-label text-danger font-weight-bold h4 cursor-pointer" title="${msg}">${(indice)} - ${msg};</small>`;
 
-    }
+  }
 
-    $('#pendenciasPedido').html(`
+  $('#pendenciasPedido').html(`
         <div class="rounded p-3 cursor-pointer" title='LISTA DE PENDÊNCIAS DO PEDIDO ATUAL' style="background-color: #cfdfeb">
             <h3 class="form-label text-danger font-weight-bold fw-900"><u>PENDÊNCIAS:</u></h3>
             <div>${htmlListPendencias}</div>
         </div>
     `)
 
-    if (idAndamento == 1 || idAndamento == 15){
-        await msgWarning('Este Pedido só poderá ser salvo como rascunho devido as pendências apresentadas', `PENDÊNCIAS: ${msgFormatada}, `);
-    }
+  if (idAndamento == 1 || idAndamento == 15) {
+    await msgWarning('Este Pedido só poderá ser salvo como rascunho devido as pendências apresentadas', `PENDÊNCIAS: ${msgFormatada}, `);
+  }
 }
 
 async function retornoPreencheDadosFornecedorNoPedido(respostaCompFornPedido) {
-    let { data } = respostaCompFornPedido || [];
+  let { data } = respostaCompFornPedido || [];
 
-    for (let dados of data) {
-        let IdFornEdit = dados?.IDFORNECEDOR;
-        let EmailFornEdit = dados?.EEMAIL || dados?.EEMAILVENDEDOR || dados?.EMAILFORN || "";
-        let NoRepresFornEdit = dados?.NOREPRESENTANTE || dados?.NOVENDEDOR || "";
-        let TpFretePadrao = dados?.TPFRETEPADRAO || dados?.TPFRETE || "";
-        let TpArquivoPadrao = dados?.TPARQUIVOPADRAO || dados?.TPARQUIVO || "";
-        let TpFiscalPadrao = dados?.TPFISCALPADRAO || dados?.TPFISCAL || "";
-        let IdCondPagPadrao = dados?.IDCONDICAOPAGAMENTO || dados?.IDCONDICAOPAGAMENTO || "";
-        let DsCondPagPadrao = dados?.DSCONDICAOPAG || "";
-        let IdTranspPadrao = dados?.IDTRANSPORTADORA || dados?.IDTRANSPORTADORA || "";
-        let DsTranspPadrao = dados?.NOMETRANSPORTADORA || "";
-        let TpPedidoPadrao = dados?.TPPEDIDOPADRAO || dados?.MODPEDIDO || "";
-        let NoVendedorPadrao = dados?.NOVENDEDORPADRAO || "";
-        let compradorPedido = dados?.IDCOMPRADOR || "";
-        let descPedidoI = dados?.DESCPERC01 || "";
-        let descPedidoII = dados?.DESCPERC02 || "";
-        let descPedidoIII = dados?.DESCPERC03 || "";
-        let obsFornecedor = dados?.OBSPEDIDO || "";
-        let obsInterna = dados?.OBSPEDIDO2 || "";
+  for (let dados of data) {
+    let IdFornEdit = dados?.IDFORNECEDOR;
+    let EmailFornEdit = dados?.EEMAIL || dados?.EEMAILVENDEDOR || dados?.EMAILFORN || "";
+    let NoRepresFornEdit = dados?.NOREPRESENTANTE || dados?.NOVENDEDOR || "";
+    let TpFretePadrao = dados?.TPFRETEPADRAO || dados?.TPFRETE || "";
+    let TpArquivoPadrao = dados?.TPARQUIVOPADRAO || dados?.TPARQUIVO || "";
+    let TpFiscalPadrao = dados?.TPFISCALPADRAO || dados?.TPFISCAL || "";
+    let IdCondPagPadrao = dados?.IDCONDICAOPAGAMENTO || dados?.IDCONDICAOPAGAMENTO || "";
+    let DsCondPagPadrao = dados?.DSCONDICAOPAG || "";
+    let IdTranspPadrao = dados?.IDTRANSPORTADORA || dados?.IDTRANSPORTADORA || "";
+    let DsTranspPadrao = dados?.NOMETRANSPORTADORA || "";
+    let TpPedidoPadrao = dados?.TPPEDIDOPADRAO || dados?.MODPEDIDO || "";
+    let NoVendedorPadrao = dados?.NOVENDEDORPADRAO || "";
+    let compradorPedido = dados?.IDCOMPRADOR || "";
+    let descPedidoI = dados?.DESCPERC01 || "";
+    let descPedidoII = dados?.DESCPERC02 || "";
+    let descPedidoIII = dados?.DESCPERC03 || "";
+    let obsFornecedor = dados?.OBSPEDIDO || "";
+    let obsInterna = dados?.OBSPEDIDO2 || "";
 
-        obsFornecedor?.length > 0 && $('#obsforn').val(obsFornecedor);
-        obsInterna?.length > 0 && $('#obsint').val(obsInterna);
+    obsFornecedor?.length > 0 && $('#obsforn').val(obsFornecedor);
+    obsInterna?.length > 0 && $('#obsint').val(obsInterna);
 
-        NoRepresFornEdit?.length > 0 && $('#novendedor').val(NoRepresFornEdit);
-        EmailFornEdit?.length > 0 && $('#emailvendedor').val(EmailFornEdit);
+    NoRepresFornEdit?.length > 0 && $('#novendedor').val(NoRepresFornEdit);
+    EmailFornEdit?.length > 0 && $('#emailvendedor').val(EmailFornEdit);
 
-        (IdCondPagPadrao && IdCondPagPadrao != 0) && $('#idcondicaopagamento').val(IdCondPagPadrao).trigger('change');
+    (IdCondPagPadrao && IdCondPagPadrao != 0) && $('#idcondicaopagamento').val(IdCondPagPadrao).trigger('change');
 
-        (TpArquivoPadrao && TpArquivoPadrao != 0) && $('#idenviar').val(TpArquivoPadrao).trigger('change');
+    (TpArquivoPadrao && TpArquivoPadrao != 0) && $('#idenviar').val(TpArquivoPadrao).trigger('change');
 
-        (TpPedidoPadrao && TpPedidoPadrao != 0) && $('#idtipopedido').val(TpPedidoPadrao).trigger('change');
+    (TpPedidoPadrao && TpPedidoPadrao != 0) && $('#idtipopedido').val(TpPedidoPadrao).trigger('change');
 
-        (IdTranspPadrao && IdTranspPadrao != 0) && $('#idtransportadora').val(IdTranspPadrao).trigger('change');
+    (IdTranspPadrao && IdTranspPadrao != 0) && $('#idtransportadora').val(IdTranspPadrao).trigger('change');
 
-        (TpFretePadrao && TpFretePadrao != 0) && $('#tpfrete').val(TpFretePadrao).trigger('change');
+    (TpFretePadrao && TpFretePadrao != 0) && $('#tpfrete').val(TpFretePadrao).trigger('change');
 
-        (TpFiscalPadrao && TpFiscalPadrao != 0) && $('#idfiscal').val(TpFiscalPadrao).trigger('change');
+    (TpFiscalPadrao && TpFiscalPadrao != 0) && $('#idfiscal').val(TpFiscalPadrao).trigger('change');
 
-        (descPedidoI && descPedidoI != 0) && $('#VrDescontoPedidoI').val(Number(descPedidoI).toFixed(2));
-        (descPedidoII && descPedidoII != 0) && $('#VrDescontoPedidoII').val(Number(descPedidoII).toFixed(2));
-        (descPedidoIII && descPedidoIII != 0) && $('#VrDescontoPedidoIII').val(Number(descPedidoIII).toFixed(2));
+    (descPedidoI && descPedidoI != 0) && $('#VrDescontoPedidoI').val(Number(descPedidoI).toFixed(2));
+    (descPedidoII && descPedidoII != 0) && $('#VrDescontoPedidoII').val(Number(descPedidoII).toFixed(2));
+    (descPedidoIII && descPedidoIII != 0) && $('#VrDescontoPedidoIII').val(Number(descPedidoIII).toFixed(2));
 
-    }
+  }
+
+  setTimeout(()=>{
+      !$('#IdCompradorPedido')?.val() && $('#IdCompradorPedido').select2('open');
+  }, 500);
 }
 
 async function modal_Editar_Produto_Pedido(respostaIDDetPedido) {
-    try{
-        let IdResumoPedido = $("#IDResPedidoAtual").val();
-        let tipoPedido = $("#idtipopedido").val();
-        let MarcaPedido = $('#idmarca').select2('data');
-        let FornPedido = $("#idforn").val();
+  try {
+    let IdResumoPedido = $("#IDResPedidoAtual").val();
+    let tipoPedido = $("#idtipopedido").val();
+    let MarcaPedido = $('#idmarca').select2('data');
+    let FornPedido = $("#idforn").val();
 
-        animationLoadingStart();
+    animationLoadingStart();
 
-        await exibirModalProdutoPedido(MarcaPedido[0]?.text, IdResumoPedido, tipoPedido, FornPedido);
+    await exibirModalProdutoPedido(MarcaPedido[0]?.text, IdResumoPedido, tipoPedido, FornPedido);
 
-        await ajaxGetAllData(`api/compras/lista_detalhepedidos.xsjs?id=${respostaIDDetPedido}`, false)
-            .then(retornoEditProdutoPedidos)
-            .catch((error) => { throw error });
+    await ajaxGetAllData(`api/compras/lista_detalhepedidos.xsjs?id=${respostaIDDetPedido}`, false)
+      .then(retornoEditProdutoPedidos)
+      .catch((error) => { throw error });
 
-        animationLoadingStop();
-    } catch (error) {
-        msgError('Erro ao carregar os dados, recarregue e tente novamente!');
-        console.log(error)
-    }
+    animationLoadingStop();
+  } catch (error) {
+    msgError('Erro ao carregar os dados, recarregue e tente novamente!');
+    console.log(error)
+  }
 }
 
 function replaceSpecialChars() {
-    let novadescprod = $('#dsprodpedido').val();
-    let fraseSemCaracteresEspeciais = novadescprod.normalize("NFD").replace(/[\u0300-\u036f]/g, '');
-    let fraseminuscula = fraseSemCaracteresEspeciais.toLowerCase();
-    let fraseFinal = fraseminuscula.replace(/(^\w{1})|(\s+\w{1})/g, letra => letra.toUpperCase());
+  let novadescprod = $('#dsprodpedido').val();
+  let fraseSemCaracteresEspeciais = novadescprod.normalize("NFD").replace(/[\u0300-\u036f]/g, '');
+  let fraseminuscula = fraseSemCaracteresEspeciais.toLowerCase();
+  let fraseFinal = fraseminuscula.replace(/(^\w{1})|(\s+\w{1})/g, letra => letra.toUpperCase());
 
-    if ($('#streposicao').val() === 'True') {
-        $('#dsprodpedido').val(novadescprod);
+  if ($('#streposicao').val() === 'True') {
+    $('#dsprodpedido').val(novadescprod);
+  } else {
+    $('#dsprodpedido').val(fraseFinal);
+  }
+}
+
+async function validarGradeamentoProduto(){
+  let streposicao = $("#streposicao").val();
+  let qtdprodpedido = Number($("#qtdprodpedido").val());
+  let totalindice = 0;
+  let inputGrademento;
+  let acumuladorInputsError = '';
+
+  let errosGrademento = [];
+
+  let inputsGrade = $('#resultadoqtdtamanhos input').filter(function () {
+    return Number($(this).val() || 0) > 0;
+  });
+
+  if (inputsGrade.length){
+
+    if (streposicao != 'False' && inputsGrade.length > 1) {
+      errosGrademento.push("Este produto é de reposição e por isso não pode ser gradeado com mais de um tamanho.");
+
     } else {
-        $('#dsprodpedido').val(fraseFinal);
+
+      for (let input of inputsGrade){
+        totalindice += parseFloat(input.value);
+      }
+
+      for (let input of inputsGrade){
+        let labelInput = $(input).parent().parent().find('label').text();
+        let qtdgradetotal = (qtdprodpedido / totalindice) * parseFloat(input.value);
+    
+        if (Number.isInteger(qtdgradetotal) === false) {
+          if(!inputGrademento){
+            inputGrademento = $(input);
+          }
+
+          acumuladorInputsError += `( Tamanho: ${labelInput} , Quantidade: ${qtdgradetotal.toFixed(2)} ), `;
+
+        }
+        
+      }
     }
+
+    acumuladorInputsError && errosGrademento.push(`O Gradeamento não dá valor de quantidade o exato para os TAMANHOS: ${acumuladorInputsError}`);
+
+  } else {
+    errosGrademento.push('O Gradeamento de Tamanhos Não Pode Ser Zerado.');
+  }
+
+  return {
+    errosGrademento, inputGrademento
+  }
+}
+
+async function validarCamposProdutoPedido() {
+  let camposValidar = $('#resulmodaladdprodpedido input, #resulmodaladdprodpedido select').not('input[type="hidden"]').not('.class_grade');
+  let camposIgnorar = $('#pesqrefprodpedido, #listprodpesqped, #vrcustohoje,  #vrvendahoje, #streposicao, #descprodI, #descprodII, #descprodIII, #vrliquidopedido, #VrComissaoPedido, #obsprodunit');
+
+  let { errors, elemento } = await validarCamposGenerico(camposValidar, camposIgnorar);
+
+  if (errors.length) {
+    await msgWarning('Preencha os campos:', errors.join(', '))
+      .then(() => {
+        if ($(elemento).is('select')) {
+          setTimeout(() => $(elemento).select2('open'), 300)
+
+          $(elemento).focus();
+        } else {
+
+          setTimeout(() => $(elemento).focus(), 300);
+        }
+
+      });
+
+    return false;
+  }
+
+  let { errosGrademento, inputGrademento } = await validarGradeamentoProduto();
+
+  if (errosGrademento.length) {
+    await msgWarning('Erro no gradeamento de tamanhos!', errosGrademento.join(', \n'))
+      .then(() => {
+        $(inputGrademento).is('select') && $(inputGrademento).select2('open');
+
+        setTimeout(() => $(inputGrademento).focus(), 300);
+      });
+
+    return false;
+  }
+
+  return true
+}
+
+async function montarPayloadGradeProduto() {
+  let qtdprodpedido = Number($("#qtdprodpedido").val());
+  let grade = [];
+  let totalindice = 0;
+  let qtdgradetotal = 0;
+  let gradevlr = 0;
+
+  let inputsGrade = $('#resultadoqtdtamanhos input').filter(function () {
+    return Number($(this).val() || 0) > 0;
+  });
+
+  for (let input of inputsGrade) {
+    totalindice += parseFloat(input.value);
+  }
+
+  for (let input of inputsGrade) {
+    let qtdgradetotal = (qtdprodpedido / totalindice) * parseFloat(input.value);
+
+    grade.push({
+      "idgrade": parseInt(input.id),
+      "vlrgrade": parseInt(input.value),
+      "qtdgrade": parseFloat(qtdgradetotal)
+    });
+
+  }
+  
+  return grade;
+}
+
+async function montarPayloadProdutoEdit(){
+  let stPedidoPorIntermediario = $("#chkStPedidoPorIntermediario").prop('checked') ? 'True' : 'False';
+  let idDetResPed = $('#IDDetPedidoEdit').val();
+  let qtdprodpedido = $("#qtdprodpedido").val();
+  let qtdcaixa = $("#qtdcaixa").val();
+  let refproduto = $("#refproduto").val();
+
+  let dsprodpedido = $("#dsprodpedido").val();
+  let unidprod = $("#unidprod").val();
+  let corprod = $("#corprod").val();
+  let tptecidoprod = $("#tptecidoprod").val();
+  let tpestiloprod = $("#estiloprod").val();
+  let estruturaprod = $("#estruturaprod").val();
+  let fabprod = $("#fabprod").val();
+  let localexpprod = $("#localexp").val();
+  let vrunitbruto = $("#vrunitbruto").val().replace(/\./g, '').replace(",", ".");
+  let descprodI = $("#descprodI").val().replace(/\./g, '').replace(",", ".");
+  let descprodII = $("#descprodII").val().replace(/\./g, '').replace(",", ".");
+  let descprodIII = $("#descprodIII").val().replace(/\./g, '').replace(",", ".");
+  let vrunitliq = $("#vrunitliq").val().replace(/\./g, '').replace(",", ".");
+  let vrunitsug = $("#vrunitsug").val().replace(/\./g, '').replace(",", ".");
+  let vrunittotal = $("#vrunittotal").val().replace(/\./g, '').replace(",", ".");
+  let vrcustoprodatual = $("#vrcustohoje").val();
+  let vrvendaprodatual = $("#vrvendahoje").val();
+  let strecebido = 'False';
+  let stecom = $("#stecommerce").val();
+  let stredesocial = $("#stredesocial").val();
+  let stcancelado = 'False';
+  let obsprodunit = $("#obsprodunit").val();
+  let prodcategorias = $("#prodcategorias").val();
+  let streposicao = $("#streposicao").val();
+  let codBarrasReposicao = $('#dsprodpedido').attr('codbarras') || '';
+  let idProdutoReposicao = $('#dsprodpedido').attr('idproduto') || '';
+  let idFuncionario = (await getCurrentUser())?.user?.id;
+
+  let estruturaprodlst = estruturaprod.split(':');
+  let estruturaprodIdGrupo = estruturaprodlst[0] || "";
+  let estruturaprodIdSubGrupo = estruturaprodlst[1];
+
+  let grade = await montarPayloadGradeProduto();
+
+  return [{
+    "idDetPedido": parseInt(idDetResPed),
+    "IDCOR": parseInt(corprod),
+    "IDSUBGRUPOESTRUTURA": parseInt(estruturaprodIdSubGrupo),
+    "IDTIPOTECIDO": parseInt(tptecidoprod),
+    "IDESTILO": parseInt(tpestiloprod),
+    "IDFABRICANTE": parseInt(fabprod),
+    "IDLOCALEXPOSICAO": parseInt(localexpprod),
+    "NUREF": (refproduto),
+    "DSPRODUTO": (dsprodpedido),
+    "QTDTOTAL": parseFloat(qtdprodpedido),
+    "NUCAIXA": parseFloat(qtdcaixa),
+    "UND": parseInt(unidprod),
+    "VRUNITBRUTO": parseFloat(vrunitbruto),
+    "DESC01": parseFloat(descprodI),
+    "DESC02": parseFloat(descprodII),
+    "DESC03": parseFloat(descprodIII),
+    "VRUNITLIQUIDO": parseFloat(vrunitliq),
+    "VRVENDA": parseFloat(vrunitsug),
+    "VRTOTAL": parseFloat(vrunittotal),
+    "STECOMMERCE": stecom,
+    "STREDESOCIAL": stredesocial,
+    "VRCUSTOPRODATUAL": parseFloat(vrcustoprodatual),
+    "VRVENDAPRODATUAL": parseFloat(vrvendaprodatual),
+    "OBSPRODUTO": obsprodunit,
+    "IDCATEGORIAS": parseInt(prodcategorias),
+    "STREPOSICAO": streposicao,
+    "NUCODBARRAS": codBarrasReposicao,
+    "IDPRODUTO": idProdutoReposicao,
+    "IDRESPATUALIZACAO": parseInt(idFuncionario),
+    "GRADE": grade,
+    "STPEDIDOPORINTEMEDIARIO": stPedidoPorIntermediario
+  }];
 }
 
 async function editar_produto_pedido() {
-    try {
-        let IdResumoPedidoEdit = $("#IDResPedido").val();
-        let idDetResPed = $('#IDDetPedidoEdit').val();
-        let qtdprodpedido = $("#qtdprodpedido").val();
-        let qtdcaixa = $("#qtdcaixa").val();
-        let refproduto = $("#refproduto").val();
+  try {
+    let IdResumoPedidoEdit = $("#IDResPedido").val();
+    let camposValidos = await validarCamposProdutoPedido();
 
-        let dsprodpedido = $("#dsprodpedido").val();
-        let unidprod = $("#unidprod").val();
-        let corprod = $("#corprod").val();
-        let tptecidoprod = $("#tptecidoprod").val();
-        let tpestiloprod = $("#estiloprod").val();
-        let estruturaprod = $("#estruturaprod").val();
-        let fabprod = $("#fabprod").val();
-        let localexpprod = $("#localexp").val();
-        let vrunitbruto = $("#vrunitbruto").val().replace(/\./g, '').replace(",", ".");
-        let descprodI = $("#descprodI").val().replace(/\./g, '').replace(",", ".");
-        let descprodII = $("#descprodII").val().replace(/\./g, '').replace(",", ".");
-        let descprodIII = $("#descprodIII").val().replace(/\./g, '').replace(",", ".");
-        let vrunitliq = $("#vrunitliq").val().replace(/\./g, '').replace(",", ".");
-        let vrunitsug = $("#vrunitsug").val().replace(/\./g, '').replace(",", ".");
-        let vrunittotal = $("#vrunittotal").val().replace(/\./g, '').replace(",", ".");
-        let vrcustoprodatual = $("#vrcustohoje").val();
-        let vrvendaprodatual = $("#vrvendahoje").val();
-        let strecebido = 'False';
-        let stecom = $("#stecommerce").val();
-        let stredesocial = $("#stredesocial").val();
-        let stcancelado = 'False';
-        let obsprodunit = $("#obsprodunit").val();
-        let prodcategorias = $("#prodcategorias").val();
-        let streposicao = $("#streposicao").val();
-        let codBarrasReposicao = $('#dsprodpedido').attr('codbarras') || '';
-        let idProdutoReposicao = $('#dsprodpedido').attr('idproduto') || '';
-        let idFuncionario = (await getCurrentUser())?.user?.id;
-
-        let estruturaprodlst = estruturaprod.split(':');
-        let estruturaprodIdGrupo = estruturaprodlst[0] || "";
-        let estruturaprodIdSubGrupo = estruturaprodlst[1];
-
-        if (qtdprodpedido == '' || qtdprodpedido == 0) {
-            return alerta_qtdprod_pedido();
-        } else if (refproduto == '') {
-            return alerta_refprod();
-        } else if (dsprodpedido == '') {
-            return alerta_descprod();
-        } else if (categoriaprod == '') {
-            return alerta_select_catprod();
-        } else if (estruturaprod == '') {
-            return alerta_select_estruturaprod();
-        } else if (vrunitbruto == '') {
-            return alerta_vrunitprod();
-        } else if (fabprod == '') {
-            return alerta_select_fabprod();
-        } else if (corprod == '') {
-            return alerta_select_corprod();
-        } else if (tptecidoprod == '') {
-            return alerta_select_tptecidoprod();
-        } else if (tpestiloprod == '') {
-            return alerta_select_tpestiloprod();
-        } else if (localexpprod == '') {
-            return alerta_select_localprod();
-        } else if (prodcategorias == '') {
-            return alerta_select_prodcateg();
-        } else {
-
-            let grade = [];
-            let totalindice = 0;
-            let qtdgradetotal = 0;
-            let gradevlr = 0;
-
-            if (document.getElementsByClassName('class_grade').length == 1) {
-                dadosclassgrade = parseInt(document.getElementsByClassName('class_grade')[0].value);
-                if (dadosclassgrade == 0) {
-                    totalindice = 1;
-                    qtdgradetotal = (qtdprodpedido / totalindice) * 1;
-                    gradevlr = 1;
-
-                } else {
-                    totalindice = totalindice + parseFloat(document.getElementsByClassName('class_grade')[0].value);
-                    qtdgradetotal = (qtdprodpedido / totalindice) * parseFloat(document.getElementsByClassName('class_grade')[0].value);
-                    gradevlr = parseInt(document.getElementsByClassName('class_grade')[0].value);
-
-                }
-
-                var docLine = {
-                    "idgrade": parseInt(document.getElementsByClassName('class_grade')[0].id),
-                    "vlrgrade": parseInt(gradevlr),
-                    "qtdgrade": parseFloat(qtdgradetotal)
-
-                }
-                grade.push(docLine);
-
-            } else {
-
-                for (var i = 0; i < document.getElementsByClassName('class_grade').length; i++) {
-                    if (document.getElementsByClassName('class_grade')[i].value != 0) {
-                        totalindice = totalindice + parseFloat(document.getElementsByClassName('class_grade')[i].value);
-
-                    }
-
-                }
-
-                for (var i = 0; i < document.getElementsByClassName('class_grade').length; i++) {
-                    if (document.getElementsByClassName('class_grade')[i].value != 0) {
-                        qtdgradetotal = (qtdprodpedido / totalindice) * parseFloat(document.getElementsByClassName('class_grade')[i].value);
-
-                        var docLine = {
-                            "idgrade": parseInt(document.getElementsByClassName('class_grade')[i].id),
-                            "vlrgrade": parseInt(document.getElementsByClassName('class_grade')[i].value),
-                            "qtdgrade": parseFloat(qtdgradetotal)
-
-                        }
-                        grade.push(docLine);
-
-                    }
-
-                }
-            }
-
-            if (Number.isInteger(qtdgradetotal) === false) {
-                return alerta_grade_errada();
-            } else if (!totalindice || totalindice == 0) {
-                return alerta_selectVazioOuCampoEmBranco("A Grade não poder ser vazia!", "#categoriaprod");
-            } else {
-                animationLoadingStart('Enviando dados, aguarde...', 300, false);
-
-                let dados = [{
-                    "idDetPedido": parseInt(idDetResPed),
-                    "IDCOR": parseInt(corprod),
-                    "IDSUBGRUPOESTRUTURA": parseInt(estruturaprodIdSubGrupo),
-                    "IDTIPOTECIDO": parseInt(tptecidoprod),
-                    "IDESTILO": parseInt(tpestiloprod),
-                    "IDFABRICANTE": parseInt(fabprod),
-                    "IDLOCALEXPOSICAO": parseInt(localexpprod),
-                    "NUREF": (refproduto),
-                    "DSPRODUTO": (dsprodpedido),
-                    "QTDTOTAL": parseFloat(qtdprodpedido),
-                    "NUCAIXA": parseFloat(qtdcaixa),
-                    "UND": parseInt(unidprod),
-                    "VRUNITBRUTO": parseFloat(vrunitbruto),
-                    "DESC01": parseFloat(descprodI),
-                    "DESC02": parseFloat(descprodII),
-                    "DESC03": parseFloat(descprodIII),
-                    "VRUNITLIQUIDO": parseFloat(vrunitliq),
-                    "VRVENDA": parseFloat(vrunitsug),
-                    "VRTOTAL": parseFloat(vrunittotal),
-                    "STECOMMERCE": stecom,
-                    "STREDESOCIAL": stredesocial,
-                    "VRCUSTOPRODATUAL": parseFloat(vrcustoprodatual),
-                    "VRVENDAPRODATUAL": parseFloat(vrvendaprodatual),
-                    "OBSPRODUTO": obsprodunit,
-                    "IDCATEGORIAS": parseInt(prodcategorias),
-                    "STREPOSICAO": streposicao,
-                    "NUCODBARRAS": codBarrasReposicao,
-                    "IDPRODUTO": idProdutoReposicao,
-                    "IDRESPATUALIZACAO": parseInt(idFuncionario),
-                    "GRADE": grade
-                }];
-
-                let textdados = JSON.stringify(dados);
-                let textoFuncao = 'COMPRAS/ALTERAR PEDIDO';
-
-                let dadosLog = [{
-                    "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-                    "PATHFUNCAO": textoFuncao,
-                    "DADOS": textdados,
-                    "IP": ipCliente
-                }];
-
-                await ajaxPut("api/compras/lista_detalhepedidos.xsjs?", dados).catch((error) => { throw error });
-                await ajaxPut(`api/compras/lista_pedidos.xsjs?idrespedido=${IdResumoPedidoEdit}`).catch((error) => { throw error });
-                await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw error });
-
-                await msgSuccess(`Item Editado no Pedido: ${IdResumoPedidoEdit} com Sucesso!`);
-
-                await ajaxGet(`api/compras/lista_detalhepedidos.xsjs?idpedido=${IdResumoPedidoEdit}`)
-                    .then(retornoDetalhesPedido)
-                    .catch((error) => { throw error });
-
-                animationLoadingStop();
-            }
-        }
-
-    } catch (error) {
-        console.log(error);
-        msgError('Erro ao tentar editar os dados!');
+    if (!camposValidos){
+      return;
     }
+
+    let confirmacao = await msgQuestion('Certeza que deseja Editar os dados?');
+
+    if(!confirmacao?.value){
+      return
+    }
+
+    animationLoadingStart('Enviando dados, aguarde...', 300, false);
+
+    let dados = await montarPayloadProdutoEdit();
+    let textoFuncao = 'COMPRAS/ALTERAR PRODUTO PEDIDO';
+
+    await ajaxPut("api/compras/lista_detalhepedidos.xsjs?", dados);
+
+    await ajaxPut(`api/compras/lista_pedidos.xsjs?idrespedido=${IdResumoPedidoEdit}`);
+
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess(`Item Editado no Pedido: ${IdResumoPedidoEdit} com Sucesso!`);
+
+    await ajaxGet(`api/compras/lista_detalhepedidos.xsjs?idpedido=${IdResumoPedidoEdit}`)
+      .then(retornoDetalhesPedido);
+
+    $('#addprodutospedido').modal('hide');
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar editar os dados!');
+  }
 
 }
 
 async function retornoEditProdutoPedidos(respostaEditProdPedido) {
-    let { data } = respostaEditProdPedido || [];
-    let IDDETPEDIDOCAD;
-    let IdPedidoCad;
-    let IdCorPedidoCad;
-    let IdTpTecPedidoCad;
-    let IdCatPedidoCad;
-    let IdFabPedidoCad;
-    let IdLExpPedidoCad;
-    let IdEstiloPedidoCad;
-    let IdGrupEstPedidoCad;
-    let IdSubGrupEstPedidoCad;
-    let TPCategPedidoCad;
-    let NuRefPedidoCad;
-    let IdUndMedProdPedidoCad;
-    let DsProdPedidoCad;
-    let QtdProdPedidoCad;
-    let QtdCaixaPedidoCad;
-    let VrCustoAtualProdPedido;
-    let VrVendaAtualProdPedido;
-    let StEcomPedidoCad;
-    let StRedSocialPedidoCad;
-    let VrUnitBrutoProdPedido;
-    let VrDesc1ProdPedido;
-    let VrDesc2ProdPedido;
-    let VrDesc3ProdPedido;
-    let VrUnitLiqProdPedido;
-    let VrVendaProdPedido;
-    let VrTotalProdPedido;
-    let ObsProdPedido;
-    let IdCatsProdPedido;
-    let StRepProdPedido;
-    let StTransfProdPedido;
-    let idProdutoReposicao;
-    let codBarrasReposicao;
-    let idTamanhoProdReposicao
-    let idGrupoComIdSubgrupoEstrutura;
+  let { data } = respostaEditProdPedido || [];
+  let IDDETPEDIDOCAD;
+  let IdPedidoCad;
+  let IdCorPedidoCad;
+  let IdTpTecPedidoCad;
+  let IdCatPedidoCad;
+  let IdFabPedidoCad;
+  let IdLExpPedidoCad;
+  let IdEstiloPedidoCad;
+  let IdGrupEstPedidoCad;
+  let IdSubGrupEstPedidoCad;
+  let TPCategPedidoCad;
+  let NuRefPedidoCad;
+  let IdUndMedProdPedidoCad;
+  let DsProdPedidoCad;
+  let QtdProdPedidoCad;
+  let QtdCaixaPedidoCad;
+  let VrCustoAtualProdPedido;
+  let VrVendaAtualProdPedido;
+  let StEcomPedidoCad;
+  let StRedSocialPedidoCad;
+  let VrUnitBrutoProdPedido;
+  let VrDesc1ProdPedido;
+  let VrDesc2ProdPedido;
+  let VrDesc3ProdPedido;
+  let VrUnitLiqProdPedido;
+  let VrVendaProdPedido;
+  let VrTotalProdPedido;
+  let ObsProdPedido;
+  let IdCatsProdPedido;
+  let StRepProdPedido;
+  let StTransfProdPedido;
+  let idProdutoReposicao;
+  let codBarrasReposicao;
+  let idTamanhoProdReposicao
+  let idGrupoComIdSubgrupoEstrutura;
 
-    for (let dados of data) {
+  for (let dados of data) {
 
-        IDDETPEDIDOCAD = dados?.IDDETPEDIDO;
-        IdPedidoCad = dados?.IDPEDIDO;
-        IdCorPedidoCad = dados?.IDCOR;
-        DsCorPedidoCad = dados?.DSCOR;
-        IdTpTecPedidoCad = dados?.IDTIPOTECIDO;
-        IdCatPedidoCad = dados?.IDCATEGORIAPEDIDO;
-        IdFornPedidoCad = dados?.IDFORNECEDOR;
-        IdFabPedidoCad = dados?.IDFABRICANTE;
-        IdLExpPedidoCad = dados?.IDLOCALEXPOSICAO;
-        IdEstiloPedidoCad = dados?.IDESTILO;
-        IdGrupEstPedidoCad = dados?.IDGRUPOESTRUTURA;
-        IdSubGrupEstPedidoCad = dados?.IDSUBGRUPOESTRUTURA;
-        DsCategPedidoCad = dados?.DSCATEGORIAPEDIDO;
-        TPCategPedidoCad = dados?.TIPOPEDIDO;
-        DsSubGrupoEstPedidoCad = dados?.DSSUBGRUPOESTRUTURA;
-        DsFornPedidoCad = dados?.NORAZAOSOCIAL;
-        DsFabPedidoCad = dados?.DSFABRICANTE;
-        DsTipoTecPedidoCad = dados?.DSTIPOTECIDO;
-        DsEstiloPedidoCad = dados?.DSESTILO;
-        DsLocalExpPedidoCad = dados?.DSLOCALEXPOSICAO;
-        NuRefPedidoCad = dados?.NUREF;
-        DsUndMedProdPedidoCad = dados?.DSSIGLA;
-        IdUndMedProdPedidoCad = dados?.IDUNIDADEMEDIDA;
-        DsProdPedidoCad = dados?.DSPRODUTO;
-        QtdProdPedidoCad = dados?.QTDTOTAL;
-        QtdCaixaPedidoCad = dados?.NUCAIXA;
-        VrCustoAtualProdPedido = dados?.VRCUSTOPRODATUAL;
-        VrVendaAtualProdPedido = dados?.VRVENDAPRODATUAL;
-        StEcomPedidoCad = dados?.STECOMMERCE;
-        StRedSocialPedidoCad = dados?.STREDESOCIAL;
-        VrUnitBrutoProdPedido = mascaraValor(parseFloat(dados?.VRUNITBRUTODETALHEPEDIDO).toFixed(2));
-        VrDesc1ProdPedido = mascaraValor(parseFloat(dados?.DESC01).toFixed(2));
-        VrDesc2ProdPedido = mascaraValor(parseFloat(dados?.DESC02).toFixed(2));
-        VrDesc3ProdPedido = mascaraValor(parseFloat(dados?.DESC03).toFixed(2));
-        VrUnitLiqProdPedido = mascaraValor(parseFloat(dados?.VRUNITLIQDETALHEPEDIDO).toFixed(2));
-        VrVendaProdPedido = mascaraValor(parseFloat(dados?.VRVENDADETALHEPEDIDO).toFixed(2));
-        VrTotalProdPedido = mascaraValor(parseFloat(dados?.VRTOTALDETALHEPEDIDO).toFixed(2));
-        ObsProdPedido = dados?.OBSPRODUTO;
-        IdCatsProdPedido = dados?.CATEGORIAPROD;
-        DsCatsProdPedido = dados?.DSCATEGORIAPROD;
-        TpCatsProdPedido = dados?.TPCATEGORIAPROD;
-        StRepProdPedido = dados?.STREPOSICAO || 'False';
-        StTransfProdPedido = dados?.STTRANSFORMADO || 'False';
-        idProdutoReposicao = dados?.IDPRODUTO || '';
-        codBarrasReposicao = dados?.NUCODBARRAS || '';
+    IDDETPEDIDOCAD = dados?.IDDETPEDIDO;
+    IdPedidoCad = dados?.IDPEDIDO;
+    IdCorPedidoCad = dados?.IDCOR;
+    DsCorPedidoCad = dados?.DSCOR;
+    IdTpTecPedidoCad = dados?.IDTIPOTECIDO;
+    IdCatPedidoCad = dados?.IDCATEGORIAPEDIDO;
+    IdFornPedidoCad = dados?.IDFORNECEDOR;
+    IdFabPedidoCad = dados?.IDFABRICANTE;
+    IdLExpPedidoCad = dados?.IDLOCALEXPOSICAO;
+    IdEstiloPedidoCad = dados?.IDESTILO;
+    IdGrupEstPedidoCad = dados?.IDGRUPOESTRUTURA;
+    IdSubGrupEstPedidoCad = dados?.IDSUBGRUPOESTRUTURA;
+    DsCategPedidoCad = dados?.DSCATEGORIAPEDIDO;
+    TPCategPedidoCad = dados?.TIPOPEDIDO;
+    DsSubGrupoEstPedidoCad = dados?.DSSUBGRUPOESTRUTURA;
+    DsFornPedidoCad = dados?.NORAZAOSOCIAL;
+    DsFabPedidoCad = dados?.DSFABRICANTE;
+    DsTipoTecPedidoCad = dados?.DSTIPOTECIDO;
+    DsEstiloPedidoCad = dados?.DSESTILO;
+    DsLocalExpPedidoCad = dados?.DSLOCALEXPOSICAO;
+    NuRefPedidoCad = dados?.NUREF;
+    DsUndMedProdPedidoCad = dados?.DSSIGLA;
+    IdUndMedProdPedidoCad = dados?.IDUNIDADEMEDIDA;
+    DsProdPedidoCad = dados?.DSPRODUTO;
+    QtdProdPedidoCad = dados?.QTDTOTAL;
+    QtdCaixaPedidoCad = dados?.NUCAIXA;
+    VrCustoAtualProdPedido = dados?.VRCUSTOPRODATUAL;
+    VrVendaAtualProdPedido = dados?.VRVENDAPRODATUAL;
+    StEcomPedidoCad = dados?.STECOMMERCE;
+    StRedSocialPedidoCad = dados?.STREDESOCIAL;
+    VrUnitBrutoProdPedido = mascaraValor(parseFloat(dados?.VRUNITBRUTODETALHEPEDIDO).toFixed(2));
+    VrDesc1ProdPedido = mascaraValor(parseFloat(dados?.DESC01).toFixed(2));
+    VrDesc2ProdPedido = mascaraValor(parseFloat(dados?.DESC02).toFixed(2));
+    VrDesc3ProdPedido = mascaraValor(parseFloat(dados?.DESC03).toFixed(2));
+    VrUnitLiqProdPedido = mascaraValor(parseFloat(dados?.VRUNITLIQDETALHEPEDIDO).toFixed(2));
+    VrVendaProdPedido = mascaraValor(parseFloat(dados?.VRVENDADETALHEPEDIDO).toFixed(2));
+    VrTotalProdPedido = mascaraValor(parseFloat(dados?.VRTOTALDETALHEPEDIDO).toFixed(2));
+    ObsProdPedido = dados?.OBSPRODUTO;
+    IdCatsProdPedido = dados?.CATEGORIAPROD;
+    DsCatsProdPedido = dados?.DSCATEGORIAPROD;
+    TpCatsProdPedido = dados?.TPCATEGORIAPROD;
+    StRepProdPedido = dados?.STREPOSICAO || 'False';
+    StTransfProdPedido = dados?.STTRANSFORMADO || 'False';
+    idProdutoReposicao = dados?.IDPRODUTO || '';
+    codBarrasReposicao = dados?.NUCODBARRAS || '';
+  }
+
+  idGrupoComIdSubgrupoEstrutura = (IdGrupEstPedidoCad + `:` + IdSubGrupEstPedidoCad);
+
+  $('#IDDetPedidoEdit').val(IDDETPEDIDOCAD);
+  $('#IDResPedido').val(IdPedidoCad);
+
+  $('#stTipoFormulario').val('EDIT');
+  $('#dsprodpedido').val(DsProdPedidoCad);
+
+  if (StRepProdPedido == 'True') {
+    await ajaxGetAllData(`api/compras/lista_detalhepedidogradeedit.xsjs?idDetPedido=${IDDETPEDIDOCAD}`, false)
+      .then((resp) => { idTamanhoProdReposicao = resp?.data[0]?.IDTAMANHO })
+      .catch((error) => { throw error });
+
+    $('#resultadoqtdtamanhos input').prop({
+      readonly: true,
+      disabled: true
+    })
+
+    $('#dsprodpedido').attr('idproduto', idProdutoReposicao);
+    $('#dsprodpedido').attr('dsproduto', DsProdPedidoCad);
+    $('#dsprodpedido').attr('codbarras', codBarrasReposicao);
+
+  } else {
+    $("#qtdprodpedido").prop("readonly", false);
+    $("#categoriaprod, #estruturaprod").prop('disabled', false);
+  }
+
+  $('#dsprodpedido')
+    .val(DsProdPedidoCad)
+    .attr('title', DsProdPedidoCad)
+    .attr('idproduto', idProdutoReposicao)
+    .attr('codbarras', codBarrasReposicao)
+    .attr('dsprod', DsProdPedidoCad)
+    .attr('nuRef', NuRefPedidoCad)
+    .attr('idFab', IdFabPedidoCad)
+    .attr('idUnd', IdUndMedProdPedidoCad)
+    .attr('idCor', IdCorPedidoCad)
+    .attr('idTpTecido', IdTpTecPedidoCad)
+    .attr('idCategoriaPedido', IdCatPedidoCad)
+    .attr('idGrpEstruturaESubgrpEstrutura', idGrupoComIdSubgrupoEstrutura)
+    .attr('idEstilo', IdEstiloPedidoCad)
+    .attr('idCategorias', IdCatsProdPedido)
+    .attr('idLocalExp', IdLExpPedidoCad)
+    .attr('idTamanho', idTamanhoProdReposicao)
+    ;
+
+  if (StRepProdPedido == 'False') {
+    if (NuRefPedidoCad) {
+      $('#refproduto').val(NuRefPedidoCad).prop({
+        'readonly': false,
+        'disabled': false
+      });
     }
 
-    idGrupoComIdSubgrupoEstrutura = (IdGrupEstPedidoCad + `:` + IdSubGrupEstPedidoCad);
-
-    $('#IDDetPedidoEdit').val(IDDETPEDIDOCAD);
-    $('#IDResPedido').val(IdPedidoCad);
-
-    $('#stTipoFormulario').val('EDIT');
-    $('#dsprodpedido').val(DsProdPedidoCad);
-
-    if (StRepProdPedido == 'True') {
-        await ajaxGetAllData(`api/compras/lista_detalhepedidogradeedit.xsjs?idDetPedido=${IDDETPEDIDOCAD}`, false)
-            .then((resp) => { idTamanhoProdReposicao = resp?.data[0]?.IDTAMANHO })
-            .catch((error)=>{ throw error });
-
-        $('#resultadoqtdtamanhos input').prop({
-            readonly: true,
-            disabled: true
-        })
-
-        $('#dsprodpedido').attr('idproduto', idProdutoReposicao);
-        $('#dsprodpedido').attr('dsproduto', DsProdPedidoCad);
-        $('#dsprodpedido').attr('codbarras', codBarrasReposicao);
-
-    } else {
-        $("#qtdprodpedido").prop("readonly", false);
-        $("#categoriaprod, #estruturaprod").prop('disabled', false);
+    if (IdFabPedidoCad && $('#fabprod').find(`option[value="${IdFabPedidoCad}"]`).length > 0) {
+      $('#fabprod').val(IdFabPedidoCad).trigger('change').prop({
+        'readonly': false,
+        'disabled': false
+      });
     }
 
-    $('#dsprodpedido')
-        .val(DsProdPedidoCad)
-        .attr('title', DsProdPedidoCad)
-        .attr('idproduto', idProdutoReposicao)
-        .attr('codbarras', codBarrasReposicao)
-        .attr('dsprod', DsProdPedidoCad)
-        .attr('nuRef', NuRefPedidoCad)
-        .attr('idFab', IdFabPedidoCad)
-        .attr('idUnd', IdUndMedProdPedidoCad)
-        .attr('idCor', IdCorPedidoCad)
-        .attr('idTpTecido', IdTpTecPedidoCad)
-        .attr('idCategoriaPedido', IdCatPedidoCad)
-        .attr('idGrpEstruturaESubgrpEstrutura', idGrupoComIdSubgrupoEstrutura)
-        .attr('idEstilo', IdEstiloPedidoCad)
-        .attr('idCategorias', IdCatsProdPedido)
-        .attr('idLocalExp', IdLExpPedidoCad)
-        .attr('idTamanho', idTamanhoProdReposicao)
-        ;
-
-    if (StRepProdPedido == 'False') {
-        if (NuRefPedidoCad) {
-            $('#refproduto').val(NuRefPedidoCad).prop({
-                'readonly': false,
-                'disabled': false
-            });
-        }
-
-        if (IdFabPedidoCad && $('#fabprod').find(`option[value="${IdFabPedidoCad}"]`).length > 0) {
-            $('#fabprod').val(IdFabPedidoCad).trigger('change').prop({
-                'readonly': false,
-                'disabled': false
-            });
-        }
-
-        if (IdUndMedProdPedidoCad && $('#unidprod').find(`option[value="${IdUndMedProdPedidoCad}"]`).length > 0) {
-            $('#unidprod').val(IdUndMedProdPedidoCad).trigger('change').prop({
-                'readonly': false,
-                'disabled': false
-            });
-        }
-
-        if (IdCorPedidoCad && $('#corprod').find(`option[value="${IdCorPedidoCad}"]`).length > 0) {
-            $('#corprod').val(IdCorPedidoCad).trigger('change').prop({
-                'readonly': false,
-                'disabled': false
-            });
-        }
-
-        if (IdTpTecPedidoCad && $('#tptecidoprod').find(`option[value="${IdTpTecPedidoCad}"]`).length > 0) {
-            $('#tptecidoprod').val(IdTpTecPedidoCad).trigger('change').prop({
-                'readonly': false,
-                'disabled': false
-            });
-        }
-
-        await ajaxGetAllData(`api/compras/lista_detalhepedidogradeedit.xsjs?idDetPedido=${IDDETPEDIDOCAD}`, false)
-            .then((resp) => {
-                idTamanhoProdReposicao = JSON.stringify(resp?.data);
-            })
-            .catch((error)=>{ throw error });
-
-        if (IdCatPedidoCad && $('#categoriaprod').find(`option[value="${IdCatPedidoCad}"]`).length > 0) {
-            idTamanhoProdReposicao && $('#categoriaprod').attr('onchange', `selecionagradepedido('${idTamanhoProdReposicao}', '${StTransfProdPedido}')`);
-
-            $('#categoriaprod').val(IdCatPedidoCad).trigger('change').prop({
-                'readonly': false,
-                'disabled': false
-            });
-        }
-
-        if (idGrupoComIdSubgrupoEstrutura && $('#estruturaprod').find(`option[value="${idGrupoComIdSubgrupoEstrutura}"]`).length > 0) {
-            IdEstiloPedidoCad && $('#estruturaprod').attr('onchange', `selecionaestilogrupo('${IdEstiloPedidoCad}')`);
-
-            $('#estruturaprod').val(idGrupoComIdSubgrupoEstrutura).trigger('change').prop({
-                'readonly': false,
-                'disabled': false
-            });
-        }
-
-        if (IdCatsProdPedido && $('#prodcategorias').find(`option[value="${IdCatsProdPedido}"]`).length > 0) {
-
-            $('#prodcategorias').val(IdCatsProdPedido).trigger('change').prop({
-                'readonly': false,
-                'disabled': false
-            });
-
-            $('#resultadoqtdtamanhos').html('')
-
-        }
-
-        if (IdLExpPedidoCad && $('#localexp').find(`option[value="${IdLExpPedidoCad}"]`).length > 0) {
-            $('#localexp').val(IdLExpPedidoCad).trigger('change').prop({
-                'readonly': false,
-                'disabled': false
-            });
-        }
-
-
-        if (IdEstiloPedidoCad) {
-            $('#estiloprod').on('select2:open', () => {
-                if (IdEstiloPedidoCad && $('#estiloprod').find(`option[value="${IdEstiloPedidoCad}"]`).length > 0) {
-                    $('#estiloprod').prop({
-                        'readonly': false,
-                        'disabled': false
-                    });
-                }
-            });
-        }
-
-        if (StTransfProdPedido == 'True') {
-            $("#qtdprodpedido").prop("readonly", false);
-            $("#categoriaprod, #estruturaprod").prop('disabled', true);
-        }
+    if (IdUndMedProdPedidoCad && $('#unidprod').find(`option[value="${IdUndMedProdPedidoCad}"]`).length > 0) {
+      $('#unidprod').val(IdUndMedProdPedidoCad).trigger('change').prop({
+        'readonly': false,
+        'disabled': false
+      });
     }
 
-    $('#stReposicaoMemo').val(StRepProdPedido);
+    if (IdCorPedidoCad && $('#corprod').find(`option[value="${IdCorPedidoCad}"]`).length > 0) {
+      $('#corprod').val(IdCorPedidoCad).trigger('change').prop({
+        'readonly': false,
+        'disabled': false
+      });
+    }
 
-    $("#streposicao").val(StRepProdPedido).trigger('change').prop({
-        "readonly": true,
-        'disabled': true
-    });
+    if (IdTpTecPedidoCad && $('#tptecidoprod').find(`option[value="${IdTpTecPedidoCad}"]`).length > 0) {
+      $('#tptecidoprod').val(IdTpTecPedidoCad).trigger('change').prop({
+        'readonly': false,
+        'disabled': false
+      });
+    }
 
-    $('#qtdprodpedido').val(QtdProdPedidoCad);
-    $('#qtdcaixa').val(QtdCaixaPedidoCad);
-    $('#vrunitbruto').val(VrUnitBrutoProdPedido);
-    $('#descprodI').val(VrDesc1ProdPedido);
-    $('#descprodII').val(VrDesc2ProdPedido);
-    $('#descprodIII').val(VrDesc3ProdPedido);
-    $('#vrunitliq').val(VrUnitLiqProdPedido);
-    $('#vrunitsug').val(VrVendaProdPedido);
-    $('#vrunitsugfixo').val(VrVendaProdPedido);
-    $('#vrunittotal').val(VrTotalProdPedido);
-    $('#vrcustohoje').val(VrCustoAtualProdPedido);
-    $('#vrvendahoje').val(VrVendaAtualProdPedido);
-    $('#obsprodunit').val(ObsProdPedido);
+    await ajaxGetAllData(`api/compras/lista_detalhepedidogradeedit.xsjs?idDetPedido=${IDDETPEDIDOCAD}`, false)
+      .then((resp) => {
+        idTamanhoProdReposicao = JSON.stringify(resp?.data);
+      })
+      .catch((error) => { throw error });
 
-    $('#stecommerce').val(StEcomPedidoCad).trigger('change');
-    $('#stredesocial').val(StRedSocialPedidoCad).trigger('change');
+    if (IdCatPedidoCad && $('#categoriaprod').find(`option[value="${IdCatPedidoCad}"]`).length > 0) {
+      idTamanhoProdReposicao && $('#categoriaprod').attr('onchange', `selecionagradepedido('${idTamanhoProdReposicao}', '${StTransfProdPedido}')`);
 
-    $('#modaltitulopedido').html(`Pedido de Produtos ${StRepProdPedido == 'True' ? `de <label class="text-danger">REPOSIÇÃO</label>` : `<label label class= "text-info" >NOVOS</label>`} para ${TPCategPedidoCad} Nº <b> ${IdPedidoCad} </b><small class="m-0 text-muted">Edição de Itens do Pedido</small>`);
+      $('#categoriaprod').val(IdCatPedidoCad).trigger('change').prop({
+        'readonly': false,
+        'disabled': false
+      });
+    }
 
-    $('#footeraddprodpedido').html(`<button type="button" class="btn btn-success" onclick="editar_produto_pedido()">Editar</button><button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`);
+    if (idGrupoComIdSubgrupoEstrutura && $('#estruturaprod').find(`option[value="${idGrupoComIdSubgrupoEstrutura}"]`).length > 0) {
+      IdEstiloPedidoCad && $('#estruturaprod').attr('onchange', `selecionaestilogrupo('${IdEstiloPedidoCad}')`);
 
-    $('#IDDetPedidoEdit').val();
+      $('#estruturaprod').val(idGrupoComIdSubgrupoEstrutura).trigger('change').prop({
+        'readonly': false,
+        'disabled': false
+      });
+    }
+
+    if (IdCatsProdPedido && $('#prodcategorias').find(`option[value="${IdCatsProdPedido}"]`).length > 0) {
+
+      $('#prodcategorias').val(IdCatsProdPedido).trigger('change').prop({
+        'readonly': false,
+        'disabled': false
+      });
+
+      $('#resultadoqtdtamanhos').html('')
+
+    }
+
+    if (IdLExpPedidoCad && $('#localexp').find(`option[value="${IdLExpPedidoCad}"]`).length > 0) {
+      $('#localexp').val(IdLExpPedidoCad).trigger('change').prop({
+        'readonly': false,
+        'disabled': false
+      });
+    }
+
+
+    if (IdEstiloPedidoCad) {
+      $('#estiloprod').on('select2:open', () => {
+        if (IdEstiloPedidoCad && $('#estiloprod').find(`option[value="${IdEstiloPedidoCad}"]`).length > 0) {
+          $('#estiloprod').prop({
+            'readonly': false,
+            'disabled': false
+          });
+        }
+      });
+    }
 
     if (StTransfProdPedido == 'True') {
-        $("#qtdprodpedido").prop("readonly", false);
-        $("#pesqrefprodpedido, #dsprodpedido, #categoriaprod, #estruturaprod").prop('disabled', true);
+      $("#qtdprodpedido").prop("readonly", false);
+      $("#categoriaprod, #estruturaprod").prop('disabled', true);
     }
+  }
+
+  $('#stReposicaoMemo').val(StRepProdPedido);
+
+  $("#streposicao").val(StRepProdPedido).trigger('change').prop({
+    "readonly": true,
+    'disabled': true
+  });
+
+  $('#qtdprodpedido').val(QtdProdPedidoCad);
+  $('#qtdcaixa').val(QtdCaixaPedidoCad);
+  $('#vrunitbruto').val(VrUnitBrutoProdPedido);
+  $('#descprodI').val(VrDesc1ProdPedido);
+  $('#descprodII').val(VrDesc2ProdPedido);
+  $('#descprodIII').val(VrDesc3ProdPedido);
+  $('#vrunitliq').val(VrUnitLiqProdPedido);
+  $('#vrunitsug').val(VrVendaProdPedido);
+  $('#vrunitsugfixo').val(VrVendaProdPedido);
+  $('#vrunittotal').val(VrTotalProdPedido);
+  $('#vrcustohoje').val(VrCustoAtualProdPedido);
+  $('#vrvendahoje').val(VrVendaAtualProdPedido);
+  $('#obsprodunit').val(ObsProdPedido);
+
+  $('#stecommerce').val(StEcomPedidoCad).trigger('change');
+  $('#stredesocial').val(StRedSocialPedidoCad).trigger('change');
+
+  $('#modaltitulopedido').html(`Pedido de Produtos ${StRepProdPedido == 'True' ? `de <label class="text-danger">REPOSIÇÃO</label>` : `<label label class= "text-info" >NOVOS</label>`} para ${TPCategPedidoCad} Nº <b> ${IdPedidoCad} </b><small class="m-0 text-muted">Edição de Itens do Pedido</small>`);
+
+  $('#footeraddprodpedido').html(`<button type="button" class="btn btn-success" onclick="editar_produto_pedido()">Editar</button><button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`);
+
+  $('#IDDetPedidoEdit').val();
+
+  if (StTransfProdPedido == 'True') {
+    $("#qtdprodpedido").prop("readonly", false);
+    $("#pesqrefprodpedido, #dsprodpedido, #categoriaprod, #estruturaprod").prop('disabled', true);
+  }
 }
 
 function formataValorGrade(element, condicao = 'False') {
-    let vrInput = Number($(element).val()?.replace(/[^0-9]/g, '') || (condicao == 'True' ? 1 : 0));
+  let vrInput = Number($(element).val()?.replace(/[^0-9]/g, '') || (condicao == 'True' ? 1 : 0));
 
-    $(element).val(vrInput);
-}
-
-async function incluir_produto_pedido() {
-    let dadosProdSelecionado = $('#listprodpesqped').select2('data')[0].element || '';
-    let dsProdSelecionado = $(dadosProdSelecionado).attr('dsprod') ? $(dadosProdSelecionado).attr('dsprod').toUpperCase().trim() : $(dadosProdSelecionado).attr('dsprod');
-
-    let IdResumoPedidoProduto = $("#IDResPedidoAtual").val();
-
-    let qtdprodpedido = $("#qtdprodpedido").val();
-    let qtdcaixa = $("#qtdcaixa").val();
-    let refproduto = $("#refproduto").val();
-
-    let dsprodpedido = $("#dsprodpedido").val();
-    let unidprod = $("#unidprod").val();
-    let corprod = $("#corprod").val();
-    let tptecidoprod = $("#tptecidoprod").val();
-    let tpestiloprod = $("#estiloprod").val();
-    let categoriaprod = $("#categoriaprod").val();
-    let estruturaprod = $("#estruturaprod").val();
-    let fabprod = $("#fabprod").val();
-    let localexpprod = $("#localexp").val();
-    let vrunitbruto = $("#vrunitbruto").val().replace(/\./g, '').replace(",", ".");
-    let descprodI = $("#descprodI").val().replace(/\./g, '').replace(",", ".");
-    let descprodII = $("#descprodII").val().replace(/\./g, '').replace(",", ".");
-    let descprodIII = $("#descprodIII").val().replace(/\./g, '').replace(",", ".");
-    let vrunitliq = $("#vrunitliq").val().replace(/\./g, '').replace(",", ".");
-    let vrunitsug = $("#vrunitsug").val().replace(/\./g, '').replace(",", ".");
-    let vrunittotal = $("#vrunittotal").val().replace(/\./g, '').replace(",", ".");
-    let vrcustoprodatual = $("#vrcustohoje").val();
-    let vrvendaprodatual = $("#vrvendahoje").val();
-    let strecebido = 'False';
-    let stecom = $("#stecommerce").val();
-    let stredesocial = $("#stredesocial").val();
-    let stcancelado = 'False';
-    let obsprodunit = $("#obsprodunit").val();
-    let prodcategorias = $("#prodcategorias").val();
-    let sttransformado = 'False';
-    let streposicao = $("#streposicao").val();
-    let codbarrareposicao = streposicao == 'True' ? $("#NCodBarras").val() : '';
-    let idProdutoReposicao = streposicao == 'True' ? $("#dsprodpedido").attr('idproduto') : '';
-
-    let estruturaprodlst = estruturaprod.split(':');
-    let estruturaprodIdGrupo = estruturaprodlst[0];
-    let estruturaprodIdSubGrupo = estruturaprodlst[1];
-
-    let idFuncionario = (await getCurrentUser())?.user?.id;
-
-    if (!dsprodpedido) {
-        return alerta_selectVazioOuCampoEmBranco("Preencha a Descrição do Produto!", "#dsprodpedido");
-    } else if (streposicao == 'False' && (dsprodpedido).toUpperCase() == dsProdSelecionado) {
-        return alerta_selectVazioOuCampoEmBranco("Este produto é novo e não pode ter as mesma descrição de um produto que já existe!", '#dsprodpedido')
-    } else if (!qtdprodpedido || qtdprodpedido == 0) {
-        return alerta_selectVazioOuCampoEmBranco("Preencha o Campo Quantidade do Produto!", "#qtdprodpedido");
-    } else if (!refproduto) {
-        return alerta_selectVazioOuCampoEmBranco("Preencha o Campo de Referência do Produto", "#refproduto")
-    } else if (!fabprod) {
-        return alerta_selectVazioOuCampoEmBranco("Selecione o Fabricante do Produto!", "#fabprod");
-    } else if (!unidprod) {
-        return alerta_selectVazioOuCampoEmBranco("Selecione o Tipo de Unidade do Produto!", "#unidprod");
-    } else if (!corprod) {
-        return alerta_selectVazioOuCampoEmBranco("Selecione a Cor do Produto!", "#corprod");
-    } else if (!tptecidoprod) {
-        return alerta_selectVazioOuCampoEmBranco("Selecione o Tipo de Tecido do Produto!", "#tptecidoprod");
-    } else if (!categoriaprod) {
-        return alerta_selectVazioOuCampoEmBranco("Selecione a Categoria da Grade do Produto!", "#categoriaprod");
-    } else if (!estruturaprod) {
-        return alerta_selectVazioOuCampoEmBranco("Selecione a Estrutura do Produto!", "#estruturaprod");
-    } else if (!tpestiloprod) {
-        return alerta_selectVazioOuCampoEmBranco("Selecione o Estilo do Produto!", "#estiloprod");
-    } else if (!prodcategorias) {
-        return alerta_selectVazioOuCampoEmBranco("Selecione a Categoria do Produto!", "#prodcategorias");
-    } else if (!localexpprod) {
-        return alerta_selectVazioOuCampoEmBranco("Selecione o Local de Exposição do Produto!", "#localexp");
-    } else if (!vrunitbruto || vrunitbruto == 0) {
-        return alerta_selectVazioOuCampoEmBranco("Preencha o Campo de Valor Bruto do Produto!", "#vrunitbruto");
-    } else {
-
-        var grade = [];
-        var totalindice = 0;
-        var qtdgradetotal = 0;
-        var gradevlr = 0;
-
-        if (document.getElementsByClassName('class_grade').length == 1) {
-            dadosclassgrade = parseInt(document.getElementsByClassName('class_grade')[0].value);
-            if (dadosclassgrade == 0) {
-                totalindice = 1;
-                qtdgradetotal = (qtdprodpedido / totalindice) * 1;
-                gradevlr = 1;
-
-            } else {
-                totalindice = totalindice + parseFloat(document.getElementsByClassName('class_grade')[0].value);
-                qtdgradetotal = (qtdprodpedido / totalindice) * parseFloat(document.getElementsByClassName('class_grade')[0].value);
-                gradevlr = parseInt(document.getElementsByClassName('class_grade')[0].value);
-
-            }
-
-            var docLine = {
-                "idgrade": parseInt(document.getElementsByClassName('class_grade')[0].id),
-                "vlrgrade": parseInt(gradevlr),
-                "qtdgrade": parseFloat(qtdgradetotal)
-
-            }
-            grade.push(docLine);
-
-        } else {
-
-            for (var i = 0; i < document.getElementsByClassName('class_grade').length; i++) {
-                if (document.getElementsByClassName('class_grade')[i].value != 0) {
-                    //alert(document.getElementsByClassName('class_grade')[i].id +'::'+document.getElementsByClassName('class_grade')[i].value);
-                    totalindice = totalindice + parseFloat(document.getElementsByClassName('class_grade')[i].value);
-
-                }
-
-            }
-
-            for (var i = 0; i < document.getElementsByClassName('class_grade').length; i++) {
-                if (document.getElementsByClassName('class_grade')[i].value != 0) {
-                    //alert(document.getElementsByClassName('class_grade')[i].id +'::'+document.getElementsByClassName('class_grade')[i].value);
-                    qtdgradetotal = (qtdprodpedido / totalindice) * parseFloat(document.getElementsByClassName('class_grade')[i].value);
-
-                    var docLine = {
-                        "idgrade": parseInt(document.getElementsByClassName('class_grade')[i].id),
-                        "vlrgrade": parseInt(document.getElementsByClassName('class_grade')[i].value),
-                        "qtdgrade": parseFloat(qtdgradetotal)
-
-                    }
-                    grade.push(docLine);
-
-                }
-
-            }
-        }
-
-        if (Number.isInteger(qtdgradetotal) === false) {
-            return alerta_grade_errada();
-        } else if (streposicao != 'False' && grade.length > 1) {
-            return alerta_selectVazioOuCampoEmBranco("Este produto é de reposição e por isso não pode ser gradeado, ajuste, coloque somente um tamanho e tente novamente!", '#resultadoqtdtamanhos')
-        } else if (!totalindice || totalindice == 0) {
-            return alerta_selectVazioOuCampoEmBranco("A Grade não poder ser vazia!", "#categoriaprod");
-        } else {
-
-            animationLoadingStart('Incluindo item, aguarde...', 300, false);
-
-            let dados = [{
-                "IDRESUMOPEDIDO": parseInt(IdResumoPedidoProduto),
-                "IDCOR": parseInt(corprod),
-                "IDSUBGRUPOESTRUTURA": parseInt(estruturaprodIdSubGrupo),
-                "IDCATEGORIAPEDIDO": parseInt(categoriaprod),
-                "IDTIPOTECIDO": parseInt(tptecidoprod),
-                "IDESTILO": parseInt(tpestiloprod),
-                "IDFABRICANTE": parseInt(fabprod),
-                "IDLOCALEXPOSICAO": parseInt(localexpprod),
-                "NUREF": (refproduto),
-                "DSPRODUTO": (dsprodpedido),
-                "QTDTOTAL": parseFloat(qtdprodpedido),
-                "NUCAIXA": parseFloat(qtdcaixa),
-                "UND": parseInt(unidprod),
-                "VRUNITBRUTO": parseFloat(vrunitbruto),
-                "DESC01": parseFloat(descprodI),
-                "DESC02": parseFloat(descprodII),
-                "DESC03": parseFloat(descprodIII),
-                "VRUNITLIQUIDO": parseFloat(vrunitliq),
-                "VRVENDA": parseFloat(vrunitsug),
-                "VRTOTAL": parseFloat(vrunittotal),
-                "STRECEBIDO": strecebido,
-                "STECOMMERCE": stecom,
-                "STREDESOCIAL": stredesocial,
-                "STCANCELADO": stcancelado,
-                "GRADE": grade,
-                "VRCUSTOPRODATUAL": parseFloat(vrcustoprodatual),
-                "VRVENDAPRODATUAL": parseFloat(vrvendaprodatual),
-                "OBSPRODUTO": obsprodunit,
-                "STTRANSFORMADO": sttransformado,
-                "IDCATEGORIAS": parseInt(prodcategorias),
-                "STREPOSICAO": streposicao,
-                "NUCODBARRAS": codbarrareposicao,
-                "IDPRODUTO": idProdutoReposicao,
-                "IDRESPCADASTRO": parseInt(idFuncionario),
-            }];
-
-            await ajaxPost("api/compras/lista_detalhepedidos.xsjs", dados).catch((error)=>{ throw error });
-            await ajaxPut(`api/compras/lista_pedidos.xsjs?idrespedido=${IdResumoPedidoProduto}`).catch((error)=>{ throw error });
-
-            await msgSuccess(`Item Incluído no Pedido: ${IdResumoPedidoProduto} com Sucesso`);
-
-            await ajaxGet(`api/compras/lista_detalhepedidos.xsjs?idpedido=${IdResumoPedidoProduto}`)
-                .then(retornoDetalhesPedido)
-                .catch((error)=>{ throw error });
-
-            animationLoadingStop()
-        }
-    }
+  $(element).val(vrInput);
 }
 
 function sleep(milliseconds) {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
 function Imprimir_Pedido(id) {
-    msgQuestion('Este pedido é para o Outlet Família?')
-    .then(async (respQuestion) => { 
-        try{
-            respQuestion = respQuestion?.value || respQuestion?.dismiss;
+  msgQuestion('Este pedido é para o Outlet Família?')
+    .then(async (respQuestion) => {
+      try {
+        respQuestion = respQuestion?.value || respQuestion?.dismiss;
 
-            if (respQuestion == true || respQuestion == 'cancel'){
-                let stOutlet = respQuestion == true;
+        if (respQuestion == true || respQuestion == 'cancel') {
+          let stOutlet = respQuestion == true;
 
-                animationLoadingStart();
+          animationLoadingStart();
 
-                await $.get("compras_action_pdfpedido.html", async(respHtml)=>{
-                    $('#resultadoImpressaoPedidos').html(respHtml);
+          await $.get("compras_action_pdfpedido.html", async (respHtml) => {
+            $('#resultadoImpressaoPedidos').html(respHtml);
 
-                    $('.npedido').html(`<div class="text-dark fw-700 h1 mb-g keep-print-font npedido"> Nº ${id}</div>`);
-                })
-                .fail((error)=>{ throw error });
+            $('.npedido').html(`<div class="text-dark fw-700 h1 mb-g keep-print-font npedido"> Nº ${id}</div>`);
+          })
+            .fail((error) => { throw error });
 
-                await ajaxGetAllData(`api/compras/lista_pedidos.xsjs?idpedido=${id}`, false)
-                    .then((resp) => retornoCabecalhoPedidoParaImprimir(resp, stOutlet))
-                    .catch((error)=>{ throw error });
+          await ajaxGetAllData(`api/compras/lista_pedidos.xsjs?idpedido=${id}`, false)
+            .then((resp) => retornoCabecalhoPedidoParaImprimir(resp, stOutlet))
+            .catch((error) => { throw error });
 
-                await ajaxGet(`api/compras/lista_detalhepedidosgrade.xsjs?idpedido=${id}`)
-                    .then(retornoItensDoPedidoParaImprimir)
-                    .catch((error) => { throw error });
+          await ajaxGet(`api/compras/lista_detalhepedidosgrade.xsjs?idpedido=${id}`)
+            .then(retornoItensDoPedidoParaImprimir)
+            .catch((error) => { throw error });
 
-              $('#modalImpressaoPedido').modal('show');
+          $('#modalImpressaoPedido').modal('show');
 
-              animationLoadingStop();
-            }
-
-        } catch(error){
-            console.error(error)
-            msgError();
+          animationLoadingStop();
         }
+
+      } catch (error) {
+        console.error(error)
+        msgError();
+      }
 
     })
 }
 
 async function retornoCabecalhoPedidoParaImprimir(respostaImprimirPedido, stOutlet) {
-    let { data } = respostaImprimirPedido || [];
-    let logoPedido;
+  let { data } = respostaImprimirPedido || [];
+  let logoPedido;
 
-    for (let dados of data) {
-        let IDPEDIDORESUMO = dados?.IDPEDIDO;
-        let IdSubGrupoPedido = dados?.IDSUBGRUPOPEDIDO;
-        let DsCompradorPedido = dados?.NOMECOMPRADOR;
-        let DsCondiPagPedido = dados?.DSCONDICAOPAG;
-        let DsFornPedido = dados?.NOFORNECEDOR;
-        let contatoFaturamento = dados?.EEMAILFATURAMENTO + " - " + dados?.NUTELFATURAMENTO;
-        let contatoCobranca = dados?.EEMAILCOBRANCA + " - " + dados?.NUTELCOBRANCA;
-        let contatoFinanceiro = dados?.EEMAILFINANCEIRO + " - " + dados?.NUTELFINANCEIRO;
-        let contatoCompras = dados?.EEMAILCOMPRAS + " - " + dados?.NUTELCOMPRAS;
-        let contatoCadastro = dados?.EEMAILCADASTRO + " - " + dados?.NUTELCADASTRO;
-        let CnpjFornPedido = dados?.CNPJFORN;
-        let InscEstFornPedido = dados?.INSCESTFORN;
-        let EmailFornPedido = dados?.EMAILFORN;
-        let FoneFornPedido = dados?.FONEFORN;
-        let EndFornPedido = dados?.ENDFORN;
-        let NumeroFornPedido = dados?.NUMEROFORN;
-        let ComplFornPedido = dados?.COMPFORN;
-        let BairroFornPedido = dados?.BAIRROFORN;
-        let CidadeFornPedido = dados?.CIDADEFORN;
-        let UfFornPedido = dados?.UFFORN;
-        let CepFornPedido = dados?.CEPFORN;
-        let DsTranspPedido = dados?.NOMETRANSPORTADORA;
-        let TipoModPedido = dados?.MODPEDIDO;
-        let NoVendedorPedido = dados?.NOVENDEDOR;
-        let DtPedidoFormatada = dados?.DTPEDIDO;
-        let DtEntregaPedidoFormatada = dados?.DTENTREGAFORMATADA2;
-        let TpFretePedido = dados?.TPFRETE;
-        let ObsPedido1 = dados?.OBSPEDIDO;
-        let ObsPedido2 = dados?.OBSPEDIDO2;
-        let TpArquivoPedido = dados?.TPARQUIVO;
-        let VrDesc01Pedido = mascaraValor(parseFloat(dados?.DESCPERC01).toFixed(2));
-        let VrDesc02Pedido = mascaraValor(parseFloat(dados?.DESCPERC02).toFixed(2));
-        let VrDesc03Pedido = mascaraValor(parseFloat(dados?.DESCPERC03).toFixed(2));
-        let VrComisPedido = mascaraValor(parseFloat(dados?.PERCCOMISSAO).toFixed(2));
-        let TpFiscalPedido = dados?.TPFISCAL;
-        let TpEnviar = dados?.TPARQUIVO;
-        let DsFabricantePedido = dados?.FABRICANTE;
+  for (let dados of data) {
+    let IDPEDIDORESUMO = dados?.IDPEDIDO;
+    let IdSubGrupoPedido = dados?.IDSUBGRUPOPEDIDO;
+    let DsCompradorPedido = dados?.NOMECOMPRADOR;
+    let DsCondiPagPedido = dados?.DSCONDICAOPAG;
+    let DsFornPedido = dados?.NOFORNECEDOR;
+    let contatoFaturamento = dados?.EEMAILFATURAMENTO + " - " + dados?.NUTELFATURAMENTO;
+    let contatoCobranca = dados?.EEMAILCOBRANCA + " - " + dados?.NUTELCOBRANCA;
+    let contatoFinanceiro = dados?.EEMAILFINANCEIRO + " - " + dados?.NUTELFINANCEIRO;
+    let contatoCompras = dados?.EEMAILCOMPRAS + " - " + dados?.NUTELCOMPRAS;
+    let contatoCadastro = dados?.EEMAILCADASTRO + " - " + dados?.NUTELCADASTRO;
+    let CnpjFornPedido = dados?.CNPJFORN;
+    let InscEstFornPedido = dados?.INSCESTFORN;
+    let EmailFornPedido = dados?.EMAILFORN;
+    let FoneFornPedido = dados?.FONEFORN;
+    let EndFornPedido = dados?.ENDFORN;
+    let NumeroFornPedido = dados?.NUMEROFORN;
+    let ComplFornPedido = dados?.COMPFORN;
+    let BairroFornPedido = dados?.BAIRROFORN;
+    let CidadeFornPedido = dados?.CIDADEFORN;
+    let UfFornPedido = dados?.UFFORN;
+    let CepFornPedido = dados?.CEPFORN;
+    let DsTranspPedido = dados?.NOMETRANSPORTADORA;
+    let TipoModPedido = dados?.MODPEDIDO;
+    let NoVendedorPedido = dados?.NOVENDEDOR;
+    let DtPedidoFormatada = dados?.DTPEDIDO;
+    let DtEntregaPedidoFormatada = dados?.DTENTREGAFORMATADA2;
+    let TpFretePedido = dados?.TPFRETE;
+    let ObsPedido1 = dados?.OBSPEDIDO;
+    let ObsPedido2 = dados?.OBSPEDIDO2;
+    let TpArquivoPedido = dados?.TPARQUIVO;
+    let VrDesc01Pedido = mascaraValor(parseFloat(dados?.DESCPERC01).toFixed(2));
+    let VrDesc02Pedido = mascaraValor(parseFloat(dados?.DESCPERC02).toFixed(2));
+    let VrDesc03Pedido = mascaraValor(parseFloat(dados?.DESCPERC03).toFixed(2));
+    let VrComisPedido = mascaraValor(parseFloat(dados?.PERCCOMISSAO).toFixed(2));
+    let TpFiscalPedido = dados?.TPFISCAL;
+    let TpEnviar = dados?.TPARQUIVO;
+    let DsFabricantePedido = dados?.FABRICANTE;
+    let contatos = dados?.CONTATOS || '';
 
-        $('#tipodopedido').val(TipoModPedido);
+    contatos.map((contato) => $('#infoContatoImprimir').append(`${contato} </br>`))
 
-        if (stOutlet) {
-            logoPedido = logoOutlet;
-        } else {
-            if (IdSubGrupoPedido == 1) {
-                logoPedido = logoTesoura;
-            } else if (IdSubGrupoPedido == 2) {
-                logoPedido = logoMagazine;
-            } else if (IdSubGrupoPedido == 4) {
-                logoPedido = logoFreeCenter;
-            } else {
-                logoPedido = logoYorus;
-            }
-        }
+    $('#tipodopedido').val(TipoModPedido);
 
-        if (TpArquivoPedido == 'NE') {
-            DsTipoArquivoPedido = 'NÃO ENVIAR';
-        } else if (TpArquivoPedido == 'ET') {
-            DsTipoArquivoPedido = 'ETIQUETA';
-        } else if (TpArquivoPedido == 'AR') {
-            DsTipoArquivoPedido = 'ARQUIVO';
-        }
+    if (stOutlet) {
+      logoPedido = logoOutlet;
+    } else {
+      if (IdSubGrupoPedido == 1) {
+        logoPedido = logoTesoura;
+      } else if (IdSubGrupoPedido == 2) {
+        logoPedido = logoMagazine;
+      } else if (IdSubGrupoPedido == 4) {
+        logoPedido = logoFreeCenter;
+      } else {
+        logoPedido = logoYorus;
+      }
+    }
 
-        if (TpFretePedido == 'PAGO') {
-            DsTpFretePedido = 'PAGO - CIF';
-        } else if (TpFretePedido == 'APAGAR') {
-            DsTpFretePedido = 'A PAGAR - FOB';
-        }
+    if (TpArquivoPedido == 'NE') {
+      DsTipoArquivoPedido = 'NÃO ENVIAR';
+    } else if (TpArquivoPedido == 'ET') {
+      DsTipoArquivoPedido = 'ETIQUETA';
+    } else if (TpArquivoPedido == 'AR') {
+      DsTipoArquivoPedido = 'ARQUIVO';
+    }
 
-        if (TpFiscalPedido == 'N') {
-            DsTpFiscalPedido = 'Lucro Presumido';
-        } else if (TpFiscalPedido == 'S') {
-            DsTpFiscalPedido = 'Simples Nacional';
-        } else {
-            DsTpFiscalPedido = 'Lucro Real';
-        }
+    if (TpFretePedido == 'PAGO') {
+      DsTpFretePedido = 'PAGO - CIF';
+    } else if (TpFretePedido == 'APAGAR') {
+      DsTpFretePedido = 'A PAGAR - FOB';
+    }
 
-        if (TpEnviar == 'NE') {
-            DsTpEnviar = 'NÃO ENVIAR';
-        } else if (TpEnviar == 'ET') {
-            DsTpEnviar = 'ETIQUETA';
-        } else {
-            DsTpEnviar = 'ARQUIVO';
-        }
+    if (TpFiscalPedido == 'N') {
+      DsTpFiscalPedido = 'Lucro Presumido';
+    } else if (TpFiscalPedido == 'S') {
+      DsTpFiscalPedido = 'Simples Nacional';
+    } else {
+      DsTpFiscalPedido = 'Lucro Real';
+    }
 
-        $('#marcapedido').html(`
+    if (TpEnviar == 'NE') {
+      DsTpEnviar = 'NÃO ENVIAR';
+    } else if (TpEnviar == 'ET') {
+      DsTpEnviar = 'ETIQUETA';
+    } else {
+      DsTpEnviar = 'ARQUIVO';
+    }
+
+    $('#marcapedido').html(`
       <img src=${(logoPedido)} style="width: 200px; height: 100px">
     `);
 
-        $('#tipopedido').html(`
+    $('#tipopedido').html(`
             <p style="font-size:16px;"> PEDIDO DE COMPRAS<br>${(TipoModPedido)}</p><br>
             <p style="font-size:16px;">Nº: <b>${(IDPEDIDORESUMO)}</b></p>
         `);
 
-        $('#fornecedorpedidoImprimir').html(
-            `Fabricante: <br><b><p style="font-size:13px;">${(DsFabricantePedido)}</p></b>`);
+    $('#fornecedorpedidoImprimir').html(
+      `Fabricante: <br><b><p style="font-size:13px;">${(DsFabricantePedido)}</p></b>`);
 
-        $('#razaofornecedorpedidoImprimir').html(
-            `Razão Social Fornecedor: <br><p style="font-size:13px;">${(DsFornPedido)}</p>`);
+    $('#razaofornecedorpedidoImprimir').html(
+      `Razão Social Fornecedor: <br><p style="font-size:13px;">${(DsFornPedido)}</p>`);
 
-        $('#infoContatoImprimir').html(`
-        Calçados: andre.compras@grupotesouradeouro.com.br - (61) 99697-2844 <br>Faturamento: ${contatoFaturamento}  <br>Cobrança: ${contatoCobranca}  <br>Financeiro: ${contatoFinanceiro}  <br>Compras: ${contatoCompras}  <br>Cadastro: ${contatoCadastro}
-    `);
+    $('#cnpjpedidoImprimir').html(
+      `CNPJ: <br><p style="font-size:13px;">${(CnpjFornPedido)}</p> `);
 
-        $('#cnpjpedidoImprimir').html(
-            `CNPJ: <br><p style="font-size:13px;">${(CnpjFornPedido)}</p> `);
+    $('#emailforncpedidoImprimir').html(
+      `Email: <br><p style="font-size:13px;">${(EmailFornPedido)}</p> `);
 
-        $('#emailforncpedidoImprimir').html(
-            `Email: <br><p style="font-size:13px;">${(EmailFornPedido)}</p> `);
+    $('#foneforncpedidoImprimir').html(
+      `Tel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
 
-        $('#foneforncpedidoImprimir').html(
-            `Tel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
+    $('#iepedidoImprimir').html(
+      `INSC EST: <br><p style="font-size:13px;">${(InscEstFornPedido)}</p> `);
 
-        $('#iepedidoImprimir').html(
-            `INSC EST: <br><p style="font-size:13px;">${(InscEstFornPedido)}</p> `);
+    $('#fonecelularforncpedidoImprimir').html(
+      `Cel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
 
-        $('#fonecelularforncpedidoImprimir').html(
-            `Cel: <br><p style="font-size:13px;">${(FoneFornPedido)}</p> `);
+    $('#datapedidoImprimir').html(
+      `Data do Pedido: <br><p style="font-size:13px;">${(DtPedidoFormatada)}</p> `);
 
-        $('#datapedidoImprimir').html(
-            `Data do Pedido: <br><p style="font-size:13px;">${(DtPedidoFormatada)}</p> `);
+    $('#dataentregapedidoImprimir').html(
+      `Data da Entrega: <br><p style="font-size:13px;">${(DtEntregaPedidoFormatada)}</p> `);
 
-        $('#dataentregapedidoImprimir').html(
-            `Data da Entrega: <br><p style="font-size:13px;">${(DtEntregaPedidoFormatada)}</p> `);
+    $('#endforncpedidoImprimir').html(
+      `Endereço: <br><p style="font-size:13px;">${(EndFornPedido)}</p> `);
 
-        $('#endforncpedidoImprimir').html(
-            `Endereço: <br><p style="font-size:13px;">${(EndFornPedido)}</p> `);
+    $('#complforncpedidoImprimir').html(
+      `Complemento: <br><p style="font-size:13px;">${(ComplFornPedido)}</p> <strong></strong> `);
 
-        $('#complforncpedidoImprimir').html(
-            `Complemento: <br><p style="font-size:13px;">${(ComplFornPedido)}</p> <strong></strong> `);
+    $('#compradorpedidoImprimir').html(
+      `Comprador: <br><p style="font-size:13px;">${(DsCompradorPedido)}</p> `);
 
-        $('#compradorpedidoImprimir').html(
-            `Comprador: <br><p style="font-size:13px;">${(DsCompradorPedido)}</p> `);
+    $('#numeroforncpedidoImprimir').html(
+      `N°: <br><p style="font-size:13px;">${(NumeroFornPedido)}</p> `);
 
-        $('#numeroforncpedidoImprimir').html(
-            `N°: <br><p style="font-size:13px;">${(NumeroFornPedido)}</p> `);
+    $('#bairroforncpedidoImprimir').html(
+      `Bairro: <br><p style="font-size:13px;">${(BairroFornPedido)}</p> `);
 
-        $('#bairroforncpedidoImprimir').html(
-            `Bairro: <br><p style="font-size:13px;">${(BairroFornPedido)}</p> `);
+    $('#transpforncpedidoImprimir').html(
+      `Transportadora/Telefone: <br><p style="font-size:13px;">${(DsTranspPedido)} - </p> `);
 
-        $('#transpforncpedidoImprimir').html(
-            `Transportadora/Telefone: <br><p style="font-size:13px;">${(DsTranspPedido)} - </p> `);
+    $('#vendedorpedidoImprimir').html(
+      `Vendedor: <br><p style="font-size:13px;">${(NoVendedorPedido)}</p> `);
 
-        $('#vendedorpedidoImprimir').html(
-            `Vendedor: <br><p style="font-size:13px;">${(NoVendedorPedido)}</p> `);
+    $('#cidadeforncpedidoImprimir').html(
+      `Cidade: <br><p style="font-size:13px;">${(CidadeFornPedido)}</p> `);
 
-        $('#cidadeforncpedidoImprimir').html(
-            `Cidade: <br><p style="font-size:13px;">${(CidadeFornPedido)}</p> `);
+    $('#desc1pedidoImprimir').html(
+      `Desc. I (%): <br><p style="font-size:13px;">${(VrDesc01Pedido)}</p> `);
 
-        $('#desc1pedidoImprimir').html(
-            `Desc. I (%): <br><p style="font-size:13px;">${(VrDesc01Pedido)}</p> `);
+    $('#desc2pedidoImprimir').html(
+      `Desc. II(%): <br><p style="font-size:13px;">${(VrDesc02Pedido)}</p> `);
 
-        $('#desc2pedidoImprimir').html(
-            `Desc. II(%): <br><p style="font-size:13px;">${(VrDesc02Pedido)}</p> `);
+    $('#desc3pedidoImprimir').html(
+      `Desc. III(%): <br><p style="font-size:13px;">${(VrDesc03Pedido)}</p> `);
 
-        $('#desc3pedidoImprimir').html(
-            `Desc. III(%): <br><p style="font-size:13px;">${(VrDesc03Pedido)}</p> `);
+    $('#condpagpedidoImprimir').html(
+      `Cond. Pagamento: <br><p style="font-size:13px;">${(DsCondiPagPedido)}</p> `);
 
-        $('#condpagpedidoImprimir').html(
-            `Cond. Pagamento: <br><p style="font-size:13px;">${(DsCondiPagPedido)}</p> `);
+    $('#cepforncpedidoImprimir').html(
+      `CEP: <br><p style="font-size:13px;">${(CepFornPedido)}</p> `);
 
-        $('#cepforncpedidoImprimir').html(
-            `CEP: <br><p style="font-size:13px;">${(CepFornPedido)}</p> `);
+    $('#ufforncpedidoImprimir').html(
+      `UF: <br><p style="font-size:13px;">${(UfFornPedido)}</p> `);
 
-        $('#ufforncpedidoImprimir').html(
-            `UF: <br><p style="font-size:13px;">${(UfFornPedido)}</p> `);
+    $('#freteforncpedidoImprimir').html(
+      `Frete: <br><p style="font-size:13px;">${(DsTpFretePedido)}</p> `);
 
-        $('#freteforncpedidoImprimir').html(
-            `Frete: <br><p style="font-size:13px;">${(DsTpFretePedido)}</p> `);
+    $('#obs1pedidoImprimir').html(
+      `Observações: <br><p style="font-size:9px;">${(ObsPedido1)} - ${(ObsPedido2)}</p> `);
 
-        $('#obs1pedidoImprimir').html(
-            `Observações: <br><p style="font-size:9px;">${(ObsPedido1)} - ${(ObsPedido2)}</p> `);
+    $('#comissaopedidoImprimir').html(
+      `Comissão: <br><p style="font-size:13px;">${(VrComisPedido)} </p> `);
 
-        $('#comissaopedidoImprimir').html(
-            `Comissão: <br><p style="font-size:13px;">${(VrComisPedido)} </p> `);
+    $('#fiscalpedidoImprimir').html(
+      `Fiscal: <br><p style="font-size:13px;">${(DsTpFiscalPedido)} </p> `);
 
-        $('#fiscalpedidoImprimir').html(
-            `Fiscal: <br><p style="font-size:13px;">${(DsTpFiscalPedido)} </p> `);
+    $('#enviarpedidoImprimir').html(
+      `Enviar: <br><p style="font-size:13px;">${(DsTpEnviar)} </p> `);
 
-        $('#enviarpedidoImprimir').html(
-            `Enviar: <br><p style="font-size:13px;">${(DsTpEnviar)} </p> `);
+    $('#tipopedidoImprimir').html(
+      `Tipo: <br><p style="font-size:13px;">${(TipoModPedido)} </p> `);
 
-        $('#tipopedidoImprimir').html(
-            `Tipo: <br><p style="font-size:13px;">${(TipoModPedido)} </p> `);
-
-    }
+  }
 }
 
 async function retornoItensDoPedidoParaImprimir(respostaImprimirResumoPedidoLista) {
@@ -4519,7 +4559,7 @@ async function Imprimir_Pedido_SemPreco(id) {
       }
 
     })
-  
+
 }
 
 async function retornoCabecalhoPedidoSemPrecoParaImprimir(respostaImprimirPedidoSemPreco, stOutlet) {
@@ -4564,6 +4604,9 @@ async function retornoCabecalhoPedidoSemPrecoParaImprimir(respostaImprimirPedido
     let TpFiscalPedido = dados?.TPFISCAL;
     let TpEnviar = dados?.TPARQUIVO;
     let DsFabricantePedido = dados?.FABRICANTE;
+    let contatos = dados?.CONTATOS || '';
+
+    contatos.map((contato) => $('#infoContatoImprimir').append(`${contato} </br>`))
 
     $('#tipodopedido').val(TipoModPedido);
 
@@ -4623,10 +4666,6 @@ async function retornoCabecalhoPedidoSemPrecoParaImprimir(respostaImprimirPedido
 
     $('#razaofornecedorpedidoImprimir').html(
       `Razão Social Fornecedor: <br><p style="font-size:13px;">${(DsFornPedido)}</p>`);
-
-    $('#infoContatoImprimir').html(`
-        Calçados: andre.compras@grupotesouradeouro.com.br - (61) 99697-2844 <br>Faturamento: ${contatoFaturamento}  <br>Cobrança: ${contatoCobranca}  <br>Financeiro: ${contatoFinanceiro}  <br>Compras: ${contatoCompras}  <br>Cadastro: ${contatoCadastro}
-    `);
 
     $('#cnpjpedidoImprimir').html(`CNPJ: <br><p style="font-size:13px;">${(CnpjFornPedido)}</p>`);
 
@@ -4860,7 +4899,7 @@ async function retornoItensDoPedidoSemPrecoParaImprimir(respostaImprimirResumoPe
 }
 
 async function pesq_pedidos_resumido() {
-  try{
+  try {
     let dataPesqInic = $("#parametro_dia_inicio").val();
     let dataPesqFim = $("#parametro_dia_fim").val();
     let idFornPesq = Number($("#idfornselect").val()) || '';
@@ -4870,17 +4909,17 @@ async function pesq_pedidos_resumido() {
 
     animationLoadingStart('Gerando Relatório...', 0);
 
-    await $.get("compras_action_pdfpedidoresumido.html", (respHtml)=>{
+    await $.get("compras_action_pdfpedidoresumido.html", (respHtml) => {
       $('#js-page-content').html(respHtml);
     })
-    .fail((error)=>{ throw error });
+      .fail((error) => { throw error });
 
     await ajaxGetAllData(`api/compras/lista_pedidos.xsjs?pageSize=500&page=1&dataPesquisaInicio=${dataPesqInic}&dataPesquisaFim=${dataPesqFim}&idFornPesquisa=${idFornPesq}&idFabPesquisa=${idFabPesq}&idMarcaPesquisa=${idMarcaPesq}&idpedido=${NuPedidoPesq}`, false)
-        .then(retornoImprimirPedidoResumido)
-        .catch((error) => { throw error });
+      .then(retornoImprimirPedidoResumido)
+      .catch((error) => { throw error });
 
     msgSuccess('Relatório gerado com sucesso!');
-  } catch(error){
+  } catch (error) {
     console.log(error);
     msgError();
   }
@@ -5198,11 +5237,11 @@ async function retornoImprimirPedidoDetalhado(respostaImprimirPedidoDetalhado) {
 	  <table class="semborda">
 		  <tr>
 				  <th style="text-align: left; font-size: 14px;">Quantidade de Pedidos: </th>
-				  <th style="text-align: right; font-size: 14px;"><b> ${maskValorEmInteiro(contadorpeddetalhado)}</b></th>
+				  <th style="text-align: right; font-size: 14px;"><b> ${parseFloat(contadorpeddetalhado)}</b></th>
 			  </tr>
 		  <tr>
 				  <th style="text-align: left; font-size: 14px;">QTD Produtos : </th>
-				  <th style="text-align: right; font-size: 14px;"><b> ${(maskValorEmInteiro(totalQtdPedidosDet))}</b></th>
+				  <th style="text-align: right; font-size: 14px;"><b> ${(parseFloat(totalQtdPedidosDet))}</b></th>
 			  </tr>
 		  <tr>
 				  <th style="text-align: left; font-size: 14px;">Valor Total Compra : </th>
@@ -5224,7 +5263,11 @@ async function retornoImprimirPedidoDetalhado(respostaImprimirPedidoDetalhado) {
   );
 }
 
-async function Clonar_Pedido() {
+function returnSuccessClonarPedido() {
+
+}
+
+function montarPayloadCabecalhoPedidoClonar() {
   let IdResumoPedidoClonar = $("#IDResPedidoAtual").val();
 
   let tipoPedido = $("#idtipopedido").val();
@@ -5258,105 +5301,79 @@ async function Clonar_Pedido() {
   let IdAndamento = 1;
   let stRascunho = $('#stRascunho').val() || 'False';
 
-  if (IDFornc == '') {
-    return alerta_selectVazioOuCampoEmBranco('Selecione um Fornecedor da Lista', '#idforn');
-  } else if (!IdCompradorPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione o Comprador do Pedido', '#IdCompradorPedido');
-  } else if (MarcaPedido[0].text == 'Selecione ...') {
-    return alerta_selectVazioOuCampoEmBranco('Selecione uma Marca', '#idmarca');
-  } else if (!TpFiscalPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione o Tipo Fiscal do Fornecedor', '#idfiscal');
-  } else if (!IdEnviarPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione uma Opção no Campo Enviar', '#idenviar');
-  } else if (!CondPag) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione um Tipo de Pagamento', '#idcondicaopagamento');
-  } else if (!tipoPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione o Tipo do Pedido', '#idtipopedido');
-  } else if (!NoVendedorPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Adicione o Nome do Vendedor', '#novendedor');
-  } else if (!IdTranspPedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione a Transportadora', '#idtransportadora');
-  } else if (!TpFretePedido) {
-    return alerta_selectVazioOuCampoEmBranco('Selecione o Tipo do Frete', '#tpfrete');
-  } else {
+  return [{
+    "IDGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
+    "IDSUBGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
+    "IDCOMPRADOR": parseInt(IdCompradorPedido),
+    "IDCONDICAOPAGAMENTO": parseInt(CondPag),
+    "IDFORNECEDOR": (IDFornc),
+    "IDTRANSPORTADORA": parseInt(IdTranspPedido),
+    "IDANDAMENTO": parseInt(IdAndamento),
+    "MODPEDIDO": tipoPedido,
+    "NOVENDEDOR": NoVendedorPedido,
+    "EEMAILVENDEDOR": EmailVendedorPedido,
+    "DTPEDIDO": DtPedido,
+    "DTPREVENTREGA": DtPedidoEntrega,
+    "TPFRETE": TpFretePedido,
+    "NUTOTALITENS": parseInt(QtdTotalItens),
+    "QTDTOTPRODUTOS": parseFloat(QtdTotalProd),
+    "VRTOTALBRUTO": parseFloat(VrBrutoPedido),
+    "DESCPERC01": parseFloat(VrDescIPedido),
+    "DESCPERC02": parseFloat(VrDescIIPedido),
+    "DESCPERC03": parseFloat(VrDescIIIPedido),
+    "PERCCOMISSAO": parseFloat(VrComissaoPedido),
+    "VRTOTALLIQUIDO": parseFloat(VrLiqPedido),
+    "OBSPEDIDO": ObsFornPedido,
+    "OBSPEDIDO2": ObsIntPedido,
+    "DTFECHAMENTOPEDIDO": dataAtualCampo,
+    "DTCADASTRO": dataAtualCampo,
+    "TPARQUIVO": IdEnviarPedido,
+    "STDISTRIBUIDO": stdistribuido,
+    "STAGRUPAPRODUTO": stagrupado,
+    "STCANCELADO": stcancelado,
+    "TPFISCAL": TpFiscalPedido,
+    "STRASCUNHO": stRascunho,
+    "IdResumoPedidoClonar": parseInt(IdResumoPedidoClonar),
+  }];
+}
 
-    await msgQuestion('Deseja Realmente Clonar Este Pedido?', 'Você não poderá reverter esta ação!')
-      .then(async (respQuestion) => {
-        try {
+async function Clonar_Pedido() {
+  try {
+    animationLoadingStart('Validando dados, aguarde...', 100, false);
 
-          if (respQuestion?.value == true) {
-            animationLoadingStart('Clonando Pedido, aguarde...', 300, false);
+    let camposValidos = await validarCamposCabecalhoPedido();
 
-            let dados = [{
-              "IDGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-              "IDSUBGRUPOEMPRESARIAL": parseInt(IdMarcaPedido),
-              "IDCOMPRADOR": parseInt(IdCompradorPedido),
-              "IDCONDICAOPAGAMENTO": parseInt(CondPag),
-              "IDFORNECEDOR": (IDFornc),
-              "IDTRANSPORTADORA": parseInt(IdTranspPedido),
-              "IDANDAMENTO": parseInt(IdAndamento),
-              "MODPEDIDO": tipoPedido,
-              "NOVENDEDOR": NoVendedorPedido,
-              "EEMAILVENDEDOR": EmailVendedorPedido,
-              "DTPEDIDO": DtPedido,
-              "DTPREVENTREGA": DtPedidoEntrega,
-              "TPFRETE": TpFretePedido,
-              "NUTOTALITENS": parseInt(QtdTotalItens),
-              "QTDTOTPRODUTOS": parseFloat(QtdTotalProd),
-              "VRTOTALBRUTO": parseFloat(VrBrutoPedido),
-              "DESCPERC01": parseFloat(VrDescIPedido),
-              "DESCPERC02": parseFloat(VrDescIIPedido),
-              "DESCPERC03": parseFloat(VrDescIIIPedido),
-              "PERCCOMISSAO": parseFloat(VrComissaoPedido),
-              "VRTOTALLIQUIDO": parseFloat(VrLiqPedido),
-              "OBSPEDIDO": ObsFornPedido,
-              "OBSPEDIDO2": ObsIntPedido,
-              "DTFECHAMENTOPEDIDO": dataAtualCampo,
-              "DTCADASTRO": dataAtualCampo,
-              "TPARQUIVO": IdEnviarPedido,
-              "STDISTRIBUIDO": stdistribuido,
-              "STAGRUPAPRODUTO": stagrupado,
-              "STCANCELADO": stcancelado,
-              "TPFISCAL": TpFiscalPedido,
-              "STRASCUNHO": stRascunho,
-              "IdResumoPedidoClonar": parseInt(IdResumoPedidoClonar),
-            }];
+    if (!camposValidos) {
+      return
+    }
 
-            let textdados = JSON.stringify(dados);
-            let textoFuncao = 'COMPRAS/CLONAR PEDIDO';
+    let confirmacao = await msgQuestion('Deseja Realmente Clonar Este Pedido?', 'Você não poderá reverter esta ação!');
 
-            let dadosLog = [{
-              "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-              "PATHFUNCAO": textoFuncao,
-              "DADOS": textdados,
-              "IP": ipCliente
-            }];
+    if(!confirmacao?.value){
+      return
+    }
 
-            await ajaxPost("api/compras/clonar_pedidos.xsjs", dados).catch((error) => { throw error });
-            await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { throw error });
+    animationLoadingStart('Clonando Pedido, aguarde...', 100, false);
 
-            await msgSuccess('Pedido Clonado Com Sucesso!');
+    let dados = montarPayloadCabecalhoPedidoClonar()
 
-            animationLoadingStart('Carregando dados, aguarde...', 300);
+    let textoFuncao = 'COMPRAS/CLONAR PEDIDO';
 
-            await carregarTelaPrincipal();
+    await ajaxPost("api/compras/clonar_pedidos.xsjs", dados);
 
-            await ajaxGetAllData(`api/compras/lista_pedidos.xsjs?pageSize=1000&page=1&dataPesquisaInicio=${dataAtualCampo2Meses}&dataPesquisaFim=${dataAtualCampo}`, false)
-              .then(retornoListaPedidos)
-              .catch((error) => { throw error });
-            
-            animationLoadingStop();
-          }
+    await gerarLog(dados, textoFuncao);
 
-        } catch (error) {
-          console.log(error);
-          msgError('Erro ao clonar o pedido, recarregue e tente novamente!');
-        }
-      })
+    await msgSuccess('Pedido Clonado Com Sucesso!');
+
+    window.location.replace("dashboardcompras.html");
+
+  } catch (error) {
+    msgError('Erro ao tentar Clonar o pedido, recarregue e tente novamente!');
+    console.log(error);
   }
 }
 
-//* ================================= FIM ROTINA CADASTRO/EDIÇÃO PEDIDOS DE COMPRA ================================= //
+//? ================================= FIM ROTINA CADASTRO/EDIÇÃO PEDIDOS DE COMPRA ================================= ?//
 
 //================ FORNECEDORES ==============================================
 
@@ -14402,7 +14419,8 @@ function ListaPromocao() {
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
       document.getElementById("js-page-content").innerHTML = `
-        <iframe src="https://quality-web.vercel.app/" style="width:100%;height:200vh;border:none;"></iframe>
+        <iframe src="https://promocoes-ativas-homologacao.vercel.app/" 
+        style="width:100%;height:200vh;border:none;"></iframe>
       `;
     }
   };
@@ -14411,21 +14429,31 @@ function ListaPromocao() {
   xmlhttp.send();
 }
 
-function ListaPromocaoAtivas() {
-  if (window.XMLHttpRequest) {
-    xmlhttp = new XMLHttpRequest();
-  } else {
-    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-  }
-
-  xmlhttp.onreadystatechange = function () {
-    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-      document.getElementById("js-page-content").innerHTML = `
-        <iframe src="https://promocao-tklz.vercel.app/" style="width:100%;height:200vh;border:none;"></iframe>
-      `;
+async function ListaPromocaoAtivas() {
+  try {
+    const usuario = getCurrentUser().user;
+    if (!usuario) {
+      console.warn("⚠️ Usuário não autenticado!");
+      return;
     }
-  };
 
-  xmlhttp.open("GET", "compras_action_promocao_ativas.html", true);
-  xmlhttp.send();
+    // Codifica o usuário para a URL
+    const usuarioParam = encodeURIComponent(JSON.stringify(usuario));
+
+    // Cria o iframe com o parâmetro
+    document.getElementById("js-page-content").innerHTML = `
+      <iframe 
+        id="iframe-promocao" 
+        src="https://promocoes-ativas-homologacao.vercel.app/?usuario=${usuarioParam}" 
+        style="width:100%;height:200vh;border:none;">
+      </iframe>
+    `;
+
+    console.log("📤 Iframe criado com query string:", usuarioParam);
+
+  } catch (error) {
+    console.error("Erro em ListaPromocaoAtivas:", error);
+    msgError();
+  }
 }
+

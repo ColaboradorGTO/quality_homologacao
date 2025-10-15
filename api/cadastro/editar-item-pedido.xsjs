@@ -4,7 +4,7 @@ var libEditProdutoDoItemPedido = $.import("quality.concentrador_homologacao.api.
 function setTimestampOrNull(stmt, fieldId, value) {
 	if (!value) {
 		stmt.setNull(fieldId);
-		return;
+		return; 
 	}
 	stmt.setTimestamp(fieldId, value);
 }
@@ -25,104 +25,135 @@ function setIntOrNull(stmt, fieldId, value) {
 	stmt.setInt(fieldId, value);
 }
 
-function fnHandleGet(byId) {
+function getDadosPedidoSecundario(idDetalhePedido){
+    let query = `
+        SELECT
+            IDRESUMOPEDIDO,
+            IDDETALHEPEDIDO
+        FROM
+            "VAR_DB_NAME".DETALHEPEDIDO
+        WHERE
+            STCANCELADO = 'False'
+            AND IDDETALHEPEDIDOPRIMARIO = ?
+    `;
     
-    var idPedido = $.request.parameters.get("idpedido");
-    var idDetPedido = $.request.parameters.get("iddetPedido");
-    var dataPesquisaInicio = $.request.parameters.get("dataPesquisaInicio");
-    var dataPesquisaFim = $.request.parameters.get("dataPesquisaFim");
-    var sttransformado = $.request.parameters.get("sttransformado");
+    return api.sqlQuery(query,idDetalhePedido);
+}
 
-    var query =  ' SELECT ' +
-        '   tbrp.IDGRUPOEMPRESARIAL, ' +
-        '   tbrp.IDSUBGRUPOEMPRESARIAL, ' +
-        '   tbrp.IDANDAMENTO, ' +
-        '   tband.DSSETOR, ' +
-        '   tbdp.IDDETALHEPEDIDO AS IDDETPEDIDO, ' +
-        '   tbdp.IDRESUMOPEDIDO AS IDPEDIDO, ' +
-        '   tbdp.IDCOR, ' +
-        '   tbdp.IDTIPOTECIDO, ' +
-        '   SE.IDGRUPOESTRUTURA, ' +
-        '   tbdp.IDSUBGRUPOESTRUTURA, ' +
-        '   SE.DSSUBGRUPOESTRUTURA, ' +
-        '   tbdp.IDCATEGORIAPEDIDO, ' +
-        '   CP.DSCATEGORIAPEDIDO, ' +
-        '   CP.TIPOPEDIDO, ' +
-        '   CR.DSCOR, ' +
-        '   FR.IDFORNECEDOR, ' +
-        '   FR.NORAZAOSOCIAL, ' +
-        '   FR.NOFANTASIA, ' +
-        '   FR.NUCNPJ, ' +
-        '   FB.IDFABRICANTE, ' + 
-        '   FB.DSFABRICANTE, ' + 
-        '   TBT.DSTIPOTECIDO, ' + 
-        '   LE.IDLOCALEXPOSICAO, ' + 
-        '   LE.DSLOCALEXPOSICAO, ' + 
-        '   ES.IDESTILO, ' + 
-        '   ES.DSESTILO, ' + 
-        '   tbdp.NUREF, ' +
-        '   tbdp.DSPRODUTO, ' +
-        '   tbdp.QTDTOTAL, ' +
-        '   tbdp.NUCAIXA, ' +
-        '   UN.DSSIGLA, ' +
-        '   UN.IDUNIDADEMEDIDA, ' +
-        '   ( tbdp.VRUNITBRUTO) AS VRUNITBRUTODETALHEPEDIDO, ' +
-        '   IFNULL( tbdp.DESC01,0) AS DESC01, ' +
-        '   IFNULL( tbdp.DESC02,0) AS DESC02, ' +
-        '   IFNULL( tbdp.DESC03,0) AS DESC03, ' +
-        '   ( tbdp.VRUNITLIQUIDO) AS VRUNITLIQDETALHEPEDIDO, ' + 
-        '   ( tbdp.VRVENDA) AS VRVENDADETALHEPEDIDO, ' +
-        '   ( tbdp.VRTOTAL) AS VRTOTALDETALHEPEDIDO, ' +
-        '   tbdp.STRECEBIDO, ' +
-        '   tbdp.STECOMMERCE, ' +
-        '   tbdp.STREDESOCIAL, ' +
-        '   tbdp.STCANCELADO, ' +
-        '   tbdp.STTRANSFORMADO, ' +
-        '   IFNULL( tbdp.VRCUSTOPRODATUAL,0) AS VRCUSTOPRODATUAL, ' +
-        '   IFNULL( tbdp.VRVENDAPRODATUAL,0) AS VRVENDAPRODATUAL, ' +
-        '   tbdp.OBSPRODUTO, ' +
-        '   tbdp.IDCATEGORIAS AS CATEGORIAPROD, ' +
-        '   CPS.DSCATEGORIAS AS DSCATEGORIAPROD, ' +
-        '   CPS.TPCATEGORIAS AS TPCATEGORIAPROD, ' +
-        '   CPS.TPCATEGORIAPEDIDO AS TPCATEGORIAPRODPEDIDO, ' +
-        '   TO_VARCHAR( tbrp.DTPEDIDO, \'DD-MM-YYYY HH24:MI:SS\') AS DTPEDIDO ' +
-        ' FROM ' +
-        '	"VAR_DB_NAME".DETALHEPEDIDO tbdp ' +
-        '   INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO tbrp ON tbdp.IDRESUMOPEDIDO = tbrp.IDRESUMOPEDIDO  ' +
-		'   INNER JOIN "VAR_DB_NAME".ANDAMENTOS tband ON tbrp.IDANDAMENTO = tband.IDANDAMENTO  ' +
-        '   INNER JOIN "VAR_DB_NAME".COR CR ON tbdp.IDCOR = CR.IDCOR  ' +
-        '   INNER JOIN "VAR_DB_NAME".TIPOTECIDOS TBT ON tbdp.IDTIPOTECIDO = TBT.IDTPTECIDO  ' +
-        '   INNER JOIN "VAR_DB_NAME".CATEGORIAPEDIDO CP ON tbdp.IDCATEGORIAPEDIDO = CP.IDCATEGORIAPEDIDO  ' +
-        '   INNER JOIN "VAR_DB_NAME".UNIDADEMEDIDA UN ON tbdp.UND = UN.IDUNIDADEMEDIDA  ' +
-        '   INNER JOIN "VAR_DB_NAME".ESTILOS ES ON tbdp.IDESTILO = ES.IDESTILO  ' +
-        '   INNER JOIN "VAR_DB_NAME".LOCALEXPOSICAO LE ON tbdp.IDLOCALEXPOSICAO = LE.IDLOCALEXPOSICAO  ' +
-        '   INNER JOIN "VAR_DB_NAME".SUBGRUPOESTRUTURA SE ON tbdp.IDSUBGRUPOESTRUTURA = SE.IDSUBGRUPOESTRUTURA  ' +
-        '   INNER JOIN "VAR_DB_NAME".GRUPOESTRUTURA GE ON SE.IDGRUPOESTRUTURA = GE.IDGRUPOESTRUTURA  ' +
-        '   INNER JOIN "VAR_DB_NAME".FORNECEDOR FR ON tbrp.IDFORNECEDOR = FR.IDFORNECEDOR  ' +
-        '   INNER JOIN "VAR_DB_NAME".FABRICANTE FB ON tbdp.IDFABRICANTE = FB.IDFABRICANTE  ' +
-        '   INNER JOIN "VAR_DB_NAME".CATEGORIAS CPS ON tbdp.IDCATEGORIAS = CPS.IDCATEGORIAS  ' +
-        ' WHERE ' +
-        '	1 = ?'+
-        '   AND tbrp.STCANCELADO = \'False\' AND tbdp.STCANCELADO = \'False\' ';
+function fnHandleGet(byId) {
+    let idPedido = $.request.parameters.get("idpedido");
+    let idDetPedido = $.request.parameters.get("iddetPedido");
+    let dataPesquisaInicio = $.request.parameters.get("dataPesquisaInicio");
+    let dataPesquisaFim = $.request.parameters.get("dataPesquisaFim");
+    let sttransformado = $.request.parameters.get("sttransformado");
+
+    let query = `
+        SELECT 
+            TBRP.IDGRUPOEMPRESARIAL, 
+            TBRP.IDSUBGRUPOEMPRESARIAL, 
+            TBRP.IDANDAMENTO, 
+            TBA.DSSETOR, 
+            TBDP.IDDETALHEPEDIDO AS IDDETPEDIDO, 
+            TBDP.IDRESUMOPEDIDO AS IDPEDIDO, 
+            TBDP.IDCOR, 
+            TBDP.IDTIPOTECIDO, 
+            TBSE.IDGRUPOESTRUTURA, 
+            TBDP.IDSUBGRUPOESTRUTURA, 
+            TBSE.DSSUBGRUPOESTRUTURA, 
+            TBDP.IDCATEGORIAPEDIDO, 
+            TBCP.DSCATEGORIAPEDIDO, 
+            TBCP.TIPOPEDIDO, 
+            TBCOR.DSCOR, 
+            TBFORN.IDFORNECEDOR, 
+            TBFORN.NORAZAOSOCIAL, 
+            TBFORN.NOFANTASIA, 
+            TBFORN.NUCNPJ, 
+            TBFAB.IDFABRICANTE,  
+            TBFAB.DSFABRICANTE,  
+            TBT.DSTIPOTECIDO,  
+            TBLE.IDLOCALEXPOSICAO,  
+            TBLE.DSLOCALEXPOSICAO,  
+            TBE.IDESTILO,  
+            TBE.DSESTILO,  
+            TBDP.NUREF, 
+            TBDP.DSPRODUTO, 
+            TBDP.QTDTOTAL, 
+            TBDP.NUCAIXA, 
+            TBUM.DSSIGLA, 
+            TBUM.IDUNIDADEMEDIDA, 
+            ( TBDP.VRUNITBRUTO) AS VRUNITBRUTODETALHEPEDIDO, 
+            IFNULL( TBDP.DESC01,0) AS DESC01, 
+            IFNULL( TBDP.DESC02,0) AS DESC02, 
+            IFNULL( TBDP.DESC03,0) AS DESC03, 
+            ( TBDP.VRUNITLIQUIDO) AS VRUNITLIQDETALHEPEDIDO,  
+            ( TBDP.VRVENDA) AS VRVENDADETALHEPEDIDO, 
+            ( TBDP.VRTOTAL) AS VRTOTALDETALHEPEDIDO, 
+            TBDP.STRECEBIDO, 
+            TBDP.STECOMMERCE, 
+            TBDP.STREDESOCIAL, 
+            TBDP.STCANCELADO, 
+            TBDP.STTRANSFORMADO, 
+            IFNULL( TBDP.VRCUSTOPRODATUAL,0) AS VRCUSTOPRODATUAL, 
+            IFNULL( TBDP.VRVENDAPRODATUAL,0) AS VRVENDAPRODATUAL, 
+            TBDP.OBSPRODUTO, 
+            TBDP.IDCATEGORIAS AS CATEGORIAPROD, 
+            TBC.DSCATEGORIAS AS DSCATEGORIAPROD, 
+            TBC.TPCATEGORIAS AS TPCATEGORIAPROD, 
+            TBC.TPCATEGORIAPEDIDO AS TPCATEGORIAPRODPEDIDO, 
+            TO_VARCHAR( TBRP.DTPEDIDO, 'DD-MM-YYYY HH24:MI:SS') AS DTPEDIDO 
+        FROM 
+            "VAR_DB_NAME".DETALHEPEDIDO TBDP 
+        INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO TBRP ON
+            TBDP.IDRESUMOPEDIDO = TBRP.IDRESUMOPEDIDO  
+        INNER JOIN "VAR_DB_NAME".ANDAMENTOS TBA ON
+            TBRP.IDANDAMENTO = TBA.IDANDAMENTO  
+        INNER JOIN "VAR_DB_NAME".COR TBCOR ON
+            TBDP.IDCOR = TBCOR.IDCOR  
+        INNER JOIN "VAR_DB_NAME".TIPOTECIDOS TBT ON
+            TBDP.IDTIPOTECIDO = TBT.IDTPTECIDO  
+        INNER JOIN "VAR_DB_NAME".CATEGORIAPEDIDO TBCP ON
+            TBDP.IDCATEGORIAPEDIDO = TBCP.IDCATEGORIAPEDIDO  
+        INNER JOIN "VAR_DB_NAME".UNIDADEMEDIDA TBUM ON
+            TBDP.UND = TBUM.IDUNIDADEMEDIDA  
+        INNER JOIN "VAR_DB_NAME".ESTILOS TBE ON
+            TBDP.IDESTILO = TBE.IDESTILO  
+        INNER JOIN "VAR_DB_NAME".LOCALEXPOSICAO TBLE ON
+            TBDP.IDLOCALEXPOSICAO = TBLE.IDLOCALEXPOSICAO  
+        INNER JOIN "VAR_DB_NAME".SUBGRUPOESTRUTURA TBSE ON
+            TBDP.IDSUBGRUPOESTRUTURA = TBSE.IDSUBGRUPOESTRUTURA  
+        INNER JOIN "VAR_DB_NAME".GRUPOESTRUTURA TBGE ON
+            TBSE.IDGRUPOESTRUTURA = TBGE.IDGRUPOESTRUTURA  
+        INNER JOIN "VAR_DB_NAME".FORNECEDOR TBFORN ON
+            TBRP.IDFORNECEDOR = TBFORN.IDFORNECEDOR  
+        INNER JOIN "VAR_DB_NAME".FABRICANTE TBFAB ON
+            TBDP.IDFABRICANTE = TBFAB.IDFABRICANTE  
+        INNER JOIN "VAR_DB_NAME".CATEGORIAS TBC ON
+            TBDP.IDCATEGORIAS = TBC.IDCATEGORIAS
+        WHERE
+            1 = ?
+            AND TBRP.STCANCELADO = 'False' 
+            AND TBDP.STCANCELADO = 'False' 
+    `;
+    
     if ( byId ) {
-        query = query + ' And  tbdp.IDDETALHEPEDIDO = \'' + byId + '\' ';
+        query += ` AND TBDP.IDDETALHEPEDIDO = '${byId}' `;
     }
     if ( idDetPedido ) {
-        query = query + ' And  tbdp.IDDETALHEPEDIDO = \'' + idDetPedido + '\' ';
+        query += ` AND TBDP.IDDETALHEPEDIDO = '${idDetPedido}' `;
     }
     if ( idPedido ) {
-        query = query + ' And  tbdp.IDRESUMOPEDIDO = \'' + idPedido + '\' ';
+        query += ` AND TBDP.IDRESUMOPEDIDO = '${idPedido}' `;
     }
     if ( sttransformado ) {
-        query = query + ' And  tbdp.STTRANSFORMADO = \'' + sttransformado + '\'  ';
+        query += ` AND TBDP.STTRANSFORMADO = '${sttransformado}' `;
     }
-    if(dataPesquisaInicio && dataPesquisaFim) {
-            query = query + '  AND (tbrp.DTPEDIDO BETWEEN \'' + dataPesquisaInicio + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\') ';
+    if( dataPesquisaInicio && dataPesquisaFim ) {
+        query += ` AND (TO_DATE(TBRP.DTPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}') `;
     }
     
-    query = query + ' ORDER BY tbdp.NUREF, tbdp.DSPRODUTO';
+    query += ' ORDER BY TBDP.NUREF, TBDP.DSPRODUTO ';
     
-    var request = { 
+    let request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")
     };
@@ -130,109 +161,112 @@ function fnHandleGet(byId) {
     api.responseWithQuery(query, request, 1);
 }
 
-function fnUpdatProdPedido(conn, IDDETALHEPEDIDO) {
-    
-    var steditcomp = 'True';
-    var queryProdutosPed =  'SELECT \
-                        	d.IDDETALHEPEDIDO AS ID, \
-                        	TRIM(d.NUREF) AS NUREFPROD, \
-                        	d.IDCATEGORIAPEDIDO, \
-                        	d.IDTIPOTECIDO, \
-                        	d.IDCOR, \
-                        	d.IDLOCALEXPOSICAO, \
-                        	d.IDESTILO, \
-                        	d.IDFABRICANTE, \
-                        	d.IDCATEGORIAS, \
-                        	FORNECEDOR.IDFORNECEDOR, \
-                        	TAMANHO.IDTAMANHO AS IDTAMANHO, \
-                        	UNIDADEMEDIDA.DSSIGLA AS UN, \
-                        	d.VRUNITLIQUIDO AS VRUNIT, \
-                        	d.VRVENDA AS VRVENDA, \
-                        	IFNULL(d.STREPOSICAO, \'False\') AS STREPOSICAO, \
-                        	IFNULL(d.STECOMMERCE, \'False\') AS STECOMMERCE, \
-                        	IFNULL(d.STREDESOCIAL, \'False\') AS STREDESOCIAL, \
-                        	DETALHEPEDIDOGRADE.QTD AS QTDPRODUTO, \
-                        	(DETALHEPEDIDOGRADE.QTD * d.VRUNITLIQUIDO) AS TOTALCUSTO, \
-                        	(DETALHEPEDIDOGRADE.QTD * d.VRVENDA) AS TOTALVENDA, \
-            	            IFNULL(RESUMOPEDIDO.DTMOVPEDIDO, now()) AS DTMOVPEDIDO \
-                            FROM "VAR_DB_NAME".DETALHEPEDIDO AS d \
-                        	INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO ON d.IDRESUMOPEDIDO = RESUMOPEDIDO.IDRESUMOPEDIDO \
-                        	INNER JOIN "VAR_DB_NAME".FORNECEDOR ON RESUMOPEDIDO.IDFORNECEDOR = FORNECEDOR.IDFORNECEDOR \
-                        	INNER JOIN "VAR_DB_NAME".UNIDADEMEDIDA ON d.UND = UNIDADEMEDIDA.IDUNIDADEMEDIDA \
-                        	INNER JOIN "VAR_DB_NAME".DETALHEPEDIDOGRADE ON d.IDDETALHEPEDIDO = DETALHEPEDIDOGRADE.IDDETALHEPEDIDO AND DETALHEPEDIDOGRADE.STATIVO = \'True\' \
-                        	INNER JOIN "VAR_DB_NAME".TAMANHO ON DETALHEPEDIDOGRADE.IDTAMANHO = TAMANHO.IDTAMANHO  \
-                            WHERE d.IDDETALHEPEDIDO = ?  \
-                        	And d.STCANCELADO =  \'False\' ';
+function getDetalhesProdutoPedido(idDetalhePedido){
+    let queryProdutosPed = `
+        SELECT
+            TBD.IDDETALHEPEDIDO AS ID,
+            TRIM(TBD.NUREF) AS NUREFPROD,
+            TBD.IDCATEGORIAPEDIDO,
+            TBD.IDTIPOTECIDO,
+            TBD.IDCOR,
+            TBD.IDLOCALEXPOSICAO,
+            TBD.IDESTILO,
+            TBD.IDFABRICANTE,
+            TBD.IDCATEGORIAS,
+            TBFORN.IDFORNECEDOR,
+            TBT.IDTAMANHO AS IDTAMANHO,
+            TBUM.DSSIGLA AS UN,
+            TBD.VRUNITLIQUIDO AS VRUNIT,
+            TBD.VRVENDA AS VRVENDA,
+            IFNULL(TBD.STREPOSICAO,'False') AS STREPOSICAO,
+            IFNULL(TBD.STECOMMERCE,'False') AS STECOMMERCE,
+            IFNULL(TBD.STREDESOCIAL,'False') AS STREDESOCIAL,
+            TBDPG.QTD AS QTDPRODUTO,
+            (TBDPG.QTD * TBD.VRUNITLIQUIDO) AS TOTALCUSTO,
+            (TBDPG.QTD * TBD.VRVENDA) AS TOTALVENDA,
+            IFNULL(TBR.DTMOVPEDIDO, now()) AS DTMOVPEDIDO
+        FROM 
+            "VAR_DB_NAME".DETALHEPEDIDO AS TBD
+        INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO AS TBR ON 
+            TBD.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+        INNER JOIN "VAR_DB_NAME".FORNECEDOR AS TBFORN ON 
+            TBR.IDFORNECEDOR = TBFORN.IDFORNECEDOR
+        INNER JOIN "VAR_DB_NAME".UNIDADEMEDIDA AS TBUM ON 
+            TBD.UND = TBUM.IDUNIDADEMEDIDA
+        INNER JOIN "VAR_DB_NAME".DETALHEPEDIDOGRADE AS TBDPG ON 
+            TBD.IDDETALHEPEDIDO = TBDPG.IDDETALHEPEDIDO AND TBDPG.STATIVO = 'True'
+        INNER JOIN "VAR_DB_NAME".TAMANHO AS TBT ON 
+            TBDPG.IDTAMANHO = TBT.IDTAMANHO 
+        WHERE 
+            TBD.IDDETALHEPEDIDO = ? 
+            AND TBD.STCANCELADO = 'False' 
+    `;
 
-        	var lstDeProdutosPed = api.sqlQuery(queryProdutosPed,IDDETALHEPEDIDO);
-        	
-        	for (var i = 0; i < lstDeProdutosPed.length; i++) {
-        	    var registroProd = lstDeProdutosPed[i];
-        	    
-                        var query = 'UPDATE "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" SET ' +
-                            ' "IDCOR" = ?, ' +
-                            ' "IDCATEGORIAPEDIDO" = ?, ' +
-                            ' "IDTIPOTECIDO" = ?, ' +
-                            ' "IDESTILO" = ?, ' +
-                            ' "IDFABRICANTE" = ?, ' +
-                            ' "IDLOCALEXPOSICAO" = ?, ' +
-                            ' "IDCATEGORIAS" = ?, ' +
-                            ' "NUREF" = ?, ' +
-                            ' "QTDPRODUTO" = ?, ' +
-                            ' "UND" = ?, ' +
-                            ' "VRCUSTO" = ?, ' +
-                            ' "VRVENDA" = ?, ' +
-                            ' "VRTOTALCUSTO" = ?, ' +
-                            ' "VRTOTALVENDA" = ?, ' +
-                            ' "DTULTATUALIZACAO" = CURRENT_TIMESTAMP, ' +
-                            ' "STECOMMERCE" = ?, ' +
-                            ' "STREDESOCIAL" = ?,' +
-                            ' "IDFORNECEDOR" = ?, ' +
-                            ' "STREPOSICAO" = ?, ' +
-                            ' "STEDITADOCOMPRAS" = ? ' +
-                            ' WHERE "IDDETALHEPEDIDO" =  ? AND "IDTAMANHO" =  ?';
-                    		
-                        var pStmt = conn.prepareStatement(api.replaceDbName(query));
+	return api.sqlQuery(queryProdutosPed, idDetalhePedido);
+}
+
+function fnUpdateDetalheProdutoPedido(idDetalhePedido, conn) {
+    let steditcomp = 'True';
+    let lstDeProdutosPed = getDetalhesProdutoPedido(idDetalhePedido);
     
-                        pStmt.setInt(1, parseInt(registroProd.IDCOR));
-                        pStmt.setInt(2, parseInt(registroProd.IDCATEGORIAPEDIDO));
-                        pStmt.setInt(3, parseInt(registroProd.IDTIPOTECIDO));
-                        pStmt.setInt(4, parseInt(registroProd.IDESTILO));
-                        pStmt.setInt(5, parseInt(registroProd.IDFABRICANTE));
-                        pStmt.setInt(6, parseInt(registroProd.IDLOCALEXPOSICAO));
-                        pStmt.setInt(7, parseInt(registroProd.IDCATEGORIAS));
-                        pStmt.setString(8, registroProd.NUREFPROD);
-                        pStmt.setFloat(9, parseFloat(registroProd.QTDPRODUTO) || 0);
-                        pStmt.setString(10, registroProd.UN);
-                        pStmt.setFloat(11, parseFloat(registroProd.VRUNIT) || 0);
-                        pStmt.setFloat(12, parseFloat(registroProd.VRVENDA) || 0);
-                        pStmt.setFloat(13, parseFloat(registroProd.TOTALCUSTO)||0);
-                        pStmt.setFloat(14, parseFloat(registroProd.TOTALVENDA) || 0);
-                       // setTimestampOrNull(pStmt,15, registroProd.DTMOVPEDIDO);
-                        pStmt.setString(15, registroProd.STECOMMERCE);
-                        pStmt.setString(16, registroProd.STREDESOCIAL);
-                        pStmt.setInt(17, parseInt(registroProd.IDFORNECEDOR));
-                        pStmt.setString(18, registroProd.STREPOSICAO);
-                        pStmt.setString(19, steditcomp);
-                        pStmt.setInt(20, parseInt(registroProd.ID));
-                        pStmt.setInt(21, parseInt(registroProd.IDTAMANHO));
-                    
-                        pStmt.execute();
-                        pStmt.close();
-        	}
-        	
-            //var retIntegracaoEditProdutoItemPedido = libEditProdutoDoItemPedido.executeProdutosItem(IDDETALHEPEDIDO);
-            //if(retIntegracaoEditProdutoItemPedido === 'True'){
-            //  return {
-        	//        "msg": "Edição realizado com sucesso!"
-        	//    };
-            //}else{
-            //    return {
-        	//        "msg": "Error Edição!"
-        	 //   };
-            //}
-            
-	    conn.commit();
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" 
+        SET
+            "IDCOR" = ?,
+            "IDTIPOTECIDO" = ?,
+            "IDESTILO" = ?,
+            "IDFABRICANTE" = ?,
+            "IDLOCALEXPOSICAO" = ?,
+            "IDCATEGORIAS" = ?,
+            "NUREF" = ?,
+            "QTDPRODUTO" = ?,
+            "UND" = ?,
+            "VRCUSTO" = ?,
+            "VRVENDA" = ?,
+            "VRTOTALCUSTO" = ?,
+            "VRTOTALVENDA" = ?,
+            "STECOMMERCE" = ?,
+            "STREDESOCIAL" = ?,
+            "IDFORNECEDOR" = ?,
+            "STREPOSICAO" = ?,
+            "STEDITADOCOMPRAS" = ?,
+            "DTULTATUALIZACAO" = CURRENT_TIMESTAMP
+        WHERE 
+            "IDDETALHEPEDIDO" =  ? 
+            AND "IDTAMANHO" =  ?
+    `;
+    		
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+	
+	for (let i = 0; i < lstDeProdutosPed.length; i++) {
+        let registroProd = lstDeProdutosPed[i];
+        
+        pStmt.setInt(1, parseInt(registroProd.IDCOR));
+        pStmt.setInt(2, parseInt(registroProd.IDTIPOTECIDO));
+        pStmt.setInt(3, parseInt(registroProd.IDESTILO));
+        pStmt.setInt(4, parseInt(registroProd.IDFABRICANTE));
+        pStmt.setInt(5, parseInt(registroProd.IDLOCALEXPOSICAO));
+        pStmt.setInt(6, parseInt(registroProd.IDCATEGORIAS));
+        pStmt.setString(7, registroProd.NUREFPROD);
+        pStmt.setFloat(8, parseFloat(registroProd.QTDPRODUTO) || 0);
+        pStmt.setString(9, registroProd.UN);
+        pStmt.setFloat(10, parseFloat(registroProd.VRUNIT) || 0);
+        pStmt.setFloat(11, parseFloat(registroProd.VRVENDA) || 0);
+        pStmt.setFloat(12, parseFloat(registroProd.TOTALCUSTO)||0);
+        pStmt.setFloat(13, parseFloat(registroProd.TOTALVENDA) || 0);
+        pStmt.setString(14, registroProd.STECOMMERCE);
+        pStmt.setString(15, registroProd.STREDESOCIAL);
+        pStmt.setInt(16, parseInt(registroProd.IDFORNECEDOR));
+        pStmt.setString(17, registroProd.STREPOSICAO);
+        pStmt.setString(18, steditcomp);
+        pStmt.setInt(19, parseInt(registroProd.ID));
+        pStmt.setInt(20, parseInt(registroProd.IDTAMANHO));
+        
+        pStmt.execute();
+	}
+    
+    pStmt.close();
 	    
 	return {
         "msg": "Edição realizado com sucesso!"
@@ -240,63 +274,179 @@ function fnUpdatProdPedido(conn, IDDETALHEPEDIDO) {
 
 }
 
-function fnHandlePut() {
-    var conn = $.db.getConnection();
-    var query = 'UPDATE "VAR_DB_NAME"."DETALHEPEDIDO" SET ' + 
-                ' "IDCOR" =  ?, ' + 
-                ' "IDCATEGORIAPEDIDO" =  ?, ' +
-                ' "IDTIPOTECIDO" =  ?, ' + 
-                ' "IDLOCALEXPOSICAO" = ?, ' + 
-                ' "NUREF" = ?, ' + 
-                ' "DSPRODUTO" = ?, ' + 
-                ' "QTDTOTAL" = ?, ' + 
-                ' "NUCAIXA" = ?, ' + 
-                ' "UND" = ?, ' + 
-                ' "VRUNITBRUTO" = ?, ' + 
-                ' "VRUNITLIQUIDO" = ?, ' + 
-                ' "VRVENDA" = ?, ' + 
-                ' "VRTOTAL" = ?, ' + 
-                ' "STECOMMERCE" = ?, ' + 
-                ' "STREDESOCIAL" = ?, ' +  
-                ' "IDCATEGORIAS" = ? ' + 
-        ' WHERE "IDDETALHEPEDIDO" =  ? ';
+function fnUpdateValoresResumoPedido(idResumoPedido, conn){
+    let querydetpedido = `
+        SELECT 
+            IFNULL(COUNT(IDDETALHEPEDIDO), 0) TOTALITENS, 
+            IFNULL(SUM(QTDTOTAL), 0) QTDTOTAL, 
+            IFNULL(SUM(VRTOTAL), 0) VRTOTAL
+        FROM
+            "VAR_DB_NAME".DETALHEPEDIDO
+        WHERE
+            "STCANCELADO"= 'False' 
+            AND IDRESUMOPEDIDO = ?
+    `;
+
+	let regDetalhe = api.sqlQuery(querydetpedido, idResumoPedido);
+	let dados = regDetalhe[0];
+
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."RESUMOPEDIDO" 
+        SET 
+            "NUTOTALITENS" = ?, 
+            "QTDTOTPRODUTOS" =  ?, 
+            "VRTOTALBRUTO" =  ?, 
+            "VRTOTALLIQUIDO" =  ?, 
+            "DTMOVPEDIDO" = now()
+        WHERE 
+            "IDRESUMOPEDIDO" =  ? 
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setInt(1, parseInt(dados.TOTALITENS || 0));
+    pStmt.setFloat(2, parseFloat(dados.QTDTOTAL || 0));
+    pStmt.setFloat(3, parseFloat(dados.VRTOTAL || 0));
+    pStmt.setFloat(4, parseFloat(dados.VRTOTAL || 0));
+    pStmt.setInt(5, parseInt(idResumoPedido));
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
+function fnUpdateDetalhePedidoSecundario(dados, conn) {
+    let dadosPedido = getDadosPedidoSecundario(dados.IDDETALHEPEDIDO) || 0;
+    
+    if(dadosPedido.length > 0){
+        let idResumoPedido = Number(dadosPedido[0].IDRESUMOPEDIDO);
+        let idDetalhePedido = Number(dadosPedido[0].IDDETALHEPEDIDO);
         
-    var pStmt = conn.prepareStatement(api.replaceDbName(query));
-    var bodyJson = JSON.parse($.request.body.asString());
-
-    for (var i = 0; i < bodyJson.length; i++) {
-
-		var registro = bodyJson[i];
-             
-        pStmt.setInt(1, registro.IDCOR);
-        pStmt.setInt(2, registro.IDCATEGORIAPEDIDO);
-        pStmt.setInt(3, registro.IDTIPOTECIDO);
-        pStmt.setInt(4, registro.IDLOCALEXPOSICAO);
-        pStmt.setString(5, registro.NUREF);
-        pStmt.setString(6, registro.DSPRODUTO);
-        pStmt.setFloat(7, registro.QTDTOTAL);
-        pStmt.setInt(8, registro.NUCAIXA);
-        pStmt.setInt(9, registro.UND);
-        pStmt.setFloat(10, registro.VRUNITBRUTO);
-        pStmt.setFloat(11, registro.VRUNITLIQUIDO);
-        pStmt.setFloat(12, registro.VRVENDA);
-        pStmt.setFloat(13, registro.VRTOTAL);
-        pStmt.setString(14, registro.STECOMMERCE);
-        pStmt.setString(15, registro.STREDESOCIAL);
-        pStmt.setInt(16, registro.IDCATEGORIAS);
-        pStmt.setInt(17, registro.IDDETALHEPEDIDO);
+        let query = `
+            UPDATE 
+                "VAR_DB_NAME"."DETALHEPEDIDO" TBD
+            SET
+                TBD."IDCOR" =  ?,
+                TBD."IDTIPOTECIDO" =  ?,
+                TBD."IDLOCALEXPOSICAO" = ?,
+                TBD."NUREF" = ?,
+                TBD."DSPRODUTO" = ?,
+                TBD."QTDTOTAL" = ?,
+                TBD."NUCAIXA" = ?,
+                TBD."UND" = ?,
+                TBD."VRUNITBRUTO" = (CASE WHEN IFNULL(TBR."FATOR_ACRESCIMO_COMPRA", 0) = 0  THEN 1 ELSE TBR."FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)),
+                TBD."VRUNITLIQUIDO" = (CASE WHEN IFNULL(TBR."FATOR_ACRESCIMO_COMPRA", 0) = 0  THEN 1 ELSE TBR."FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)),
+                TBD."VRVENDA" = ?,
+                TBD."VRTOTAL" = (CASE WHEN IFNULL(TBR."FATOR_ACRESCIMO_COMPRA", 0) = 0  THEN 1 ELSE TBR."FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)),
+                TBD."STECOMMERCE" = ?,
+                TBD."STREDESOCIAL" = ?, 
+                TBD."IDCATEGORIAS" = ?
+            FROM 
+                "VAR_DB_NAME"."DETALHEPEDIDO" TBD
+            INNER JOIN "VAR_DB_NAME"."RESUMOPEDIDO" TBR ON 
+                TBD.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+            WHERE 
+                TBD."IDDETALHEPEDIDO" =  ?
+        `;
+        
+        let pStmt = conn.prepareStatement(api.replaceDbName(query));
+        
+        pStmt.setInt(1, dados.IDCOR);
+        pStmt.setInt(2, dados.IDTIPOTECIDO);
+        pStmt.setInt(3, dados.IDLOCALEXPOSICAO);
+        pStmt.setString(4, dados.NUREF);
+        pStmt.setString(5, dados.DSPRODUTO);
+        pStmt.setFloat(6, dados.QTDTOTAL);
+        pStmt.setInt(7, dados.NUCAIXA);
+        pStmt.setInt(8, dados.UND);
+        pStmt.setFloat(9, dados.VRUNITBRUTO);
+        pStmt.setFloat(10, dados.VRUNITLIQUIDO);
+        pStmt.setFloat(11, dados.VRVENDA);
+        pStmt.setFloat(12, dados.VRTOTAL);
+        pStmt.setString(13, dados.STECOMMERCE);
+        pStmt.setString(14, dados.STREDESOCIAL);
+        pStmt.setInt(15, dados.IDCATEGORIAS);
+        pStmt.setInt(16, idDetalhePedido);
         
         pStmt.execute();
+        pStmt.close();
+        
+        conn.commit();
+        
+        fnUpdateDetalheProdutoPedido(idDetalhePedido, conn);
+        fnUpdateValoresResumoPedido(idResumoPedido, conn);
+    }
+}
+
+function fnHandlePut() {
+    let conn = $.db.getConnection();
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."DETALHEPEDIDO" 
+        SET
+            "IDCOR" =  ?,
+            "IDTIPOTECIDO" =  ?,
+            "IDLOCALEXPOSICAO" = ?,
+            "NUREF" = ?,
+            "DSPRODUTO" = ?,
+            "QTDTOTAL" = ?,
+            "NUCAIXA" = ?,
+            "UND" = ?,
+            "VRUNITBRUTO" = ?,
+            "VRUNITLIQUIDO" = ?,
+            "VRVENDA" = ?,
+            "VRTOTAL" = ?,
+            "STECOMMERCE" = ?,
+            "STREDESOCIAL" = ?, 
+            "IDCATEGORIAS" = ?
+        WHERE 
+            "IDDETALHEPEDIDO" =  ? 
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    let bodyJson = JSON.parse($.request.body.asString());
+
+    for (let i = 0; i < bodyJson.length; i++) {
+		let registro = bodyJson[i];
+		let stPedidoPrimario = registro.STPEDIDOPRIMARIO == 'True';
+        
+        pStmt.setInt(1, registro.IDCOR);
+        pStmt.setInt(2, registro.IDTIPOTECIDO);
+        pStmt.setInt(3, registro.IDLOCALEXPOSICAO);
+        pStmt.setString(4, registro.NUREF);
+        pStmt.setString(5, registro.DSPRODUTO);
+        pStmt.setFloat(6, registro.QTDTOTAL);
+        pStmt.setInt(7, registro.NUCAIXA);
+        pStmt.setInt(8, registro.UND);
+        pStmt.setFloat(9, registro.VRUNITBRUTO);
+        pStmt.setFloat(10, registro.VRUNITLIQUIDO);
+        pStmt.setFloat(11, registro.VRVENDA);
+        pStmt.setFloat(12, registro.VRTOTAL);
+        pStmt.setString(13, registro.STECOMMERCE);
+        pStmt.setString(14, registro.STREDESOCIAL);
+        pStmt.setInt(15, registro.IDCATEGORIAS);
+        pStmt.setInt(16, registro.IDDETALHEPEDIDO);
+        
+        pStmt.execute();
+        
+        conn.commit();
+        
+        fnUpdateDetalheProdutoPedido(registro.IDDETALHEPEDIDO, conn);
+        
+        fnUpdateValoresResumoPedido(registro.IDRESUMOPEDIDO, conn);
+        
+        if(stPedidoPrimario){
+            fnUpdateDetalhePedidoSecundario(registro, conn);
+        }
     }
 
 	pStmt.close();
-
+	
 	conn.commit();
 	
-    return fnUpdatProdPedido(conn,registro.IDDETALHEPEDIDO);
-    	
-
-	//return fnAtualizarItemPedidoSAP(registro.IDDETALHEPEDIDO);
+    return {
+        "msg": "Edição realizado com sucesso!"
+    };
 }
 
 $.response.contentType = 'application/json';
@@ -325,8 +475,19 @@ try {
             break;
     }
     
-} catch(e) {
+} catch (e) {
+    let detalheError = e.stack.split('\n');
+    
+    detalheError = detalheError.length > 3 ? detalheError[1].trim() : detalheError[ detalheError.length - 3].trim()
+    
+    if(detalheError){
+        detalheError = `Linha: ${detalheError.split(':')[1]} da Funcao ${detalheError.split('@').shift()}()`;
+    }
+    
     $.response.contentType = 'application/json';
-    $.response.setBody(JSON.stringify({ message : e.message }));
+    $.response.setBody(JSON.stringify({
+        message: e.message,
+        detalheError
+    }));
     $.response.status = 400;
-}
+}   

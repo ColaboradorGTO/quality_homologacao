@@ -1,0 +1,84 @@
+
+                            <div id="resultadoeditafatura"></div>
+                            
+                            <div class="form-group">
+                            <input type="hidden" name="IDFaturaEditar" id="IDFaturaEditar" value="">
+                            <input type="hidden" name="IDMovimentoEditar" id="IDMovimentoEditar" value="">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="empresamovcaixa">Empresa</label>
+                                        <div class="input-group">
+                                            <input type="text" id="EmpFat" name="EmpFat" class="form-control input" value="" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="desccaixafat">Caixa - Cód. Autorização da Fatura</label>
+                                        <div class="input-group">
+                                            <input type="text" id="DadosFat" name="DadosFat" class="form-control input" value="" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="codautofat">Código Autorização</label>
+                                        <div class="input-group">
+                                            <input type="text" id="CodAutorizacaoFat" name="CodAutorizacaoFat" class="form-control input" maxlength="100">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="codpix">Código PIX</label>
+                                        <div class="input-group">
+                                            <input type="text" id="CodPixFat" name="CodPixFat" class="form-control input">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="stpix">PIX</label>
+                                        <div class="input-group">
+                                            <select class="select form-control" name="stPixFat" id="stPixFat">
+                                               <option value="False">NÃO</option>
+                                               <option value="True">SIM</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="ststat">Status</label>
+                                        <div class="input-group">
+                                            <select class="select form-control" name="stStatusFat" id="stStatusFat">
+                                               <option value="True">CANCELADO</option>
+                                               <option value="False">ATIVO</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!--
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="codautofat">Valor Antido da Fatura</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrFaturaAtingo" name="VrFaturaAtingo" class="form-control input" value="0" readonly>
+                                        </div>
+                                    </div>
+                                    -->
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="vrfat">Valor da Fatura</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrFatura" name="VrFatura" class="form-control input" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-12">                                        
+                                        <div id="tudo"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+    <script>
+        $("#VrFaturaAtingo,#VrFaturaAtual").mask('#.##0,00', {reverse: true});
+    </script>

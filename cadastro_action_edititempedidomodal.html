@@ -1,161 +1,160 @@
+<div id="resultadoitempedido"></div>
 
-                            <div id="resultadoitempedido"></div>
-                            
-                            <div class="form-group">
-                                <input type="hidden" name="idDetItemPedido" id="idDetItemPedido" value="">
-                                <input type="hidden" name="idResItemPedido" id="idResItemPedido" value="">
-                                <div class="row">
-                                    <div class="col-sm-6 col-xl-2"> 
-                                        <label class="form-label" for="qtdpedidoprod">Quantidade</label>
-                                        <div class="input-group">
-                                            <input type="text" id="qtditempedido" name="qtditempedido" class="form-control" value="0">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2"> 
-                                        <label class="form-label" for="qtdpedidoprod">QTD Caixas</label>
-                                        <div class="input-group">
-                                            <input type="text" id="qtdcxitempedido" name="qtdcxitempedido" class="form-control" value="0">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="txtrefer">Referência</label>
-                                        <div class="input-group">
-                                            <input type="text" id="refitem" name="refitem" class="form-control" value="">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-4">
-                                        <label class="form-label" for="noprod">Descrição Produto</label>
-                                        <div class="input-group">
-                                            <input type="text" id="dsitempedido" name="dsitempedido" class="form-control" value="">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="tppedido">Categoria Produto</label>
-                                        <div class="input-group">
-                                            <select class="select form-control" name="idtipopedidoitem" id="idtipopedidoitem" readonly>
-                                                <option value="">Selecione...</option>
-                                                <option value="VESTUARIO">VESTUARIO</option>
-                                                <option value="CALCADOS">CALÇADOS</option>
-                                                <option value="ARTIGOS">ARTIGOS</option>
-                                                <option value="ACESSORIOS">ACESSÓRIOS</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-sm-6 col-xl-6">
-                                        <label class="form-label" for="nofab">Fornecedor</label>
-                                        <div class="input-group">
-                                            <input type="text" id="dsfornitem" name="dsfornitem" class="form-control" value="" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-4">
-                                        <label class="form-label" for="nofab">Fabricante</label>
-                                        <div class="input-group">
-                                            <input type="text" id="dsfabitem" name="dsfabitem" class="form-control" value="" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="tpunid">Unidade</label>
-                                        <div class="input-group">
-                                            <select class="select form-control" name="uniditem" id="uniditem">
-                                            <option value=""> </option>
-                                                
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="tpcor">Cor</label>
-                                        <div class="input-group">
-                                            <select class="select form-control" name="coritemcad" id="coritemcad">
-                                            <option value=""> </option>
-                                                
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="tptecidoav">Tipo de Tecido</label>
-                                        <div class="input-group">
-                                            <select class="select form-control" name="tptecidoitemcad" id="tptecidoitemcad">
-                                            <option value=""> </option>
-                                                
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-3">
-                                        <label class="form-label" for="tpestrut">Estrutura</label>
-                                        <div class="input-group">
-                                            <input type="text" id="dsestritemedit" name="dsestritemedit" class="form-control" value="" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="tpestilo">Estilos</label>
-                                        <div class="input-group">
-                                            <input type="text" id="dsestiitemedit" name="dsestiitemedit" class="form-control" value="" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-3">
-                                        <label class="form-label" for="tpcats">Categorias</label>
-                                        <div class="input-group">
-                                            <select class="select form-control" name="categoriasitem" id="categoriasitem">
-                                            <option value=""> </option>
-                                                
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-sm-6 col-xl-4">
-                                        <label class="form-label" for="locexp">Local Exposição</label>
-                                        <div class="input-group">
-                                            <select class="select form-control" name="localexpitem" id="localexpitem">
-                                            <option value=""> </option>
-                                                
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="ecommercest">E-commerce</label>
-                                        <div class="input-group">
-                                            <select class="select form-control" name="stecommerceitem" id="stecommerceitem">
-                                                <option value="True">SIM</option>
-                                                <option value="False">NÃO</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="redesocialst">Rede Social</label>
-                                        <div class="input-group">
-                                            <select class="select form-control" name="stredesocialitem" id="stredesocialitem" >
-                                                <option value="True">SIM</option>
-                                                <option value="False">NÃO</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="vrcustounit">Vr Custo</label>
-                                        <div class="input-group"> 
-                                            <input type="text" id="vrunitcustoitem" name="vrunitcustoitem" class="form-control" value="0">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6 col-xl-2">
-                                        <label class="form-label" for="vrvendunit">Vr Venda</label>
-                                        <div class="input-group"> 
-                                            <input type="text" id="vrunitvendaitem" name="vrunitvendaitem" class="form-control" value="0">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+<div class="form-group">
+  <input type="hidden" name="idDetItemPedido" id="idDetItemPedido" value="">
+  <input type="hidden" name="idResItemPedido" id="idResItemPedido" value="">
+  <div class="row">
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="qtditempedido">Quantidade</label>
+      <div class="input-group">
+        <input type="text" id="qtditempedido" name="qtditempedido" class="form-control" value="0">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="qtdcxitempedido">QTD Caixas</label>
+      <div class="input-group">
+        <input type="text" id="qtdcxitempedido" name="qtdcxitempedido" class="form-control" value="0">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="refitem">Referência</label>
+      <div class="input-group">
+        <input type="text" id="refitem" name="refitem" class="form-control" value="">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+      <label class="form-label" for="dsitempedido">Descrição Produto</label>
+      <div class="input-group">
+        <input type="text" id="dsitempedido" name="dsitempedido" class="form-control" value="">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="idtipopedidoitem">Categoria Produto</label>
+      <div class="input-group">
+        <select class="select form-control" name="idtipopedidoitem" id="idtipopedidoitem" readonly>
+          <option value="">Selecione...</option>
+          <option value="VESTUARIO">VESTUARIO</option>
+          <option value="CALCADOS">CALÇADOS</option>
+          <option value="ARTIGOS">ARTIGOS</option>
+          <option value="ACESSORIOS">ACESSÓRIOS</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="dsfornitem">Fornecedor</label>
+      <div class="input-group">
+        <input type="text" id="dsfornitem" name="dsfornitem" class="form-control" value="" readonly>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+      <label class="form-label" for="dsfabitem">Fabricante</label>
+      <div class="input-group">
+        <input type="text" id="dsfabitem" name="dsfabitem" class="form-control" value="" readonly>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="uniditem">Unidade</label>
+      <div class="input-group">
+        <select class="select form-control" name="uniditem" id="uniditem">
+          <option value=""> </option>
 
-    <script>
-        $("#vrunitcustoitem").mask('#.##0,00', {reverse: true});
-        $("#vrunitvendaitem").mask('#.##0,00', {reverse: true});
-    </script>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="coritemcad">Cor</label>
+      <div class="input-group">
+        <select class="select form-control" name="coritemcad" id="coritemcad">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="tptecidoitemcad">Tipo de Tecido</label>
+      <div class="input-group">
+        <select class="select form-control" name="tptecidoitemcad" id="tptecidoitemcad">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="dsestritemedit">Estrutura</label>
+      <div class="input-group">
+        <input type="text" id="dsestritemedit" name="dsestritemedit" class="form-control" value="" readonly>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="dsestiitemedit">Estilos</label>
+      <div class="input-group">
+        <input type="text" id="dsestiitemedit" name="dsestiitemedit" class="form-control" value="" readonly>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="categoriasitem">Categorias</label>
+      <div class="input-group">
+        <select class="select form-control" name="categoriasitem" id="categoriasitem">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-4">
+      <label class="form-label" for="localexpitem">Local Exposição</label>
+      <div class="input-group">
+        <select class="select form-control" name="localexpitem" id="localexpitem">
+          <option value=""> </option>
+
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="stecommerceitem">E-commerce</label>
+      <div class="input-group">
+        <select class="select form-control" name="stecommerceitem" id="stecommerceitem">
+          <option value="True">SIM</option>
+          <option value="False">NÃO</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="stredesocialitem">Rede Social</label>
+      <div class="input-group">
+        <select class="select form-control" name="stredesocialitem" id="stredesocialitem">
+          <option value="True">SIM</option>
+          <option value="False">NÃO</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="vrunitcustoitem">Vr Custo</label>
+      <div class="input-group">
+        <input type="text" id="vrunitcustoitem" name="vrunitcustoitem" class="form-control" value="0">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="vrunitvendaitem">Vr Venda</label>
+      <div class="input-group">
+        <input type="text" id="vrunitvendaitem" name="vrunitvendaitem" class="form-control" value="0">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $("#vrunitcustoitem").mask('#.##0,00', { reverse: true });
+  $("#vrunitvendaitem").mask('#.##0,00', { reverse: true });
+</script>

@@ -42,7 +42,10 @@ function fnHandleGet(byId) {
         '   tbdpp.DSPRODUTO, ' +
         '   tbdpp.CODBARRAS, ' +
         '   tbdpp.NUREF, ' +
-        '   tbdpp.STMIGRADOSAP, ' +
+        '   CASE '+
+        '        WHEN (TBDP_PEDIDO_SECUNDARIO.IDDETALHEPRODUTOPEDIDO IS NOT NULL AND TBDP_PEDIDO_SECUNDARIO.STMIGRADOSAP = \'False\') THEN \'False\' '+
+        '        ELSE tbdpp.STMIGRADOSAP '+
+        '   END AS STMIGRADOSAP, ' +
         '   tbdpp.STCADASTRADO, ' +
         '   tbdp.IDDETALHEPEDIDO AS IDDETPEDIDO, ' +
         '   tbdp.IDRESUMOPEDIDO AS IDPEDIDO, ' +
@@ -106,6 +109,8 @@ function fnHandleGet(byId) {
         '   INNER JOIN "VAR_DB_NAME".FORNECEDOR FR ON tbrp.IDFORNECEDOR = FR.IDFORNECEDOR  ' +
         '   INNER JOIN "VAR_DB_NAME".FABRICANTE FB ON tbdp.IDFABRICANTE = FB.IDFABRICANTE  ' +
         '   INNER JOIN "VAR_DB_NAME".CATEGORIAS CPS ON tbdp.IDCATEGORIAS = CPS.IDCATEGORIAS  ' +
+        '   LEFT JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP_PEDIDO_SECUNDARIO ON ' +
+        '       tbdpp.IDDETALHEPRODUTOPEDIDO = TBDP_PEDIDO_SECUNDARIO.IDDETALHEPRODUTOPEDIDOPRIMARIO' +
         ' WHERE ' +
         '	1 = ?'+
         '   AND tbrp.STCANCELADO = \'False\' AND tbdp.STCANCELADO = \'False\'  AND tbdpp.STCANCELADO = \'False\' ';
@@ -119,13 +124,13 @@ function fnHandleGet(byId) {
         query = query + ' And  tbdp.STTRANSFORMADO = \'' + sttransformado + '\'  ';
     }
     if ( stmigradosap ) {
-        query = query + ' And  tbdpp.STMIGRADOSAP = \'' + stmigradosap + '\'  ';
+        query = query + ' And  (tbdpp.STMIGRADOSAP = \'' + stmigradosap + '\'  OR TBDP_PEDIDO_SECUNDARIO.STMIGRADOSAP = \'' + stmigradosap + '\') ';
     }
     if ( stcadastrado ) {
         query += ` AND  tbdpp.STCADASTRADO = '${stcadastrado}' `;
     }
     if ( streposicao ) {
-        query += ` AND  (tbdpp.STREPOSICAO = '${streposicao}' OR tbdpp.IDPRODCADASTRO IS NULL )`;
+        query += ` AND  tbdpp.STREPOSICAO = '${streposicao}'`;
     }
     if(dataPesquisaInicio && dataPesquisaFim) {
             query = query + '  AND (tbrp.DTPEDIDO BETWEEN \'' + dataPesquisaInicio + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\') ';

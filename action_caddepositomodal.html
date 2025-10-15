@@ -1,0 +1,92 @@
+
+                            <div id="resultadodeposito"></div>
+                            
+                            <div class="form-group">
+                                <div class="row">
+                                    <input type="hidden" name="STAtivoDeposito" id="STAtivoDeposito" value="True">
+                                    <input type="hidden" name="STCancelaDeposito" id="STCancelaDeposito" value="False">
+                                    <input type="hidden" name="IDEmpresaDeposito" id="IDEmpresaDeposito" value="">
+                                    <input type="hidden" name="IDFuncDeposito" id="IDFuncDeposito" value="">
+                                    <input type="hidden" name="IDDeposito" id="IDDeposito" value="">
+                                    <div class="col-sm-6 col-xl-10">
+                                        <label class="form-label" for="empresa">Empresa</label>
+                                        <div class="input-group">
+                                            <input type="text" id="nomeempDeposito" name="nomeempDeposito" class="form-control input" value="" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="dtdeposito">Data Depósito</label>
+                                        <div class="input-group" id="iddtdeposito">
+                                            <input type="date" id="DTDeposito" name="DTDeposito" class="form-control" value="" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="hrdeposito">Hora Depósito</label>
+                                        <div class="input-group" id="idhrdeposito">
+                                            <input type="time" id="HRDeposito" name="HRDeposito" class="form-control" value="" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="tpconta">Conta</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="IDContaBanco" id="IDContaBanco">
+                                                <option value="0" disable> Selecione...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-8">
+                                        <label class="form-label" for="descdepos">Histórico</label>
+                                        <div class="input-group">
+                                            <input type="text" id="DsHistorio" name="DsHistorio" class="form-control input" maxlength="200">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="nnota">Nº Doc Depósito</label>
+                                        <div class="input-group">
+                                            <input type="text" id="NuDocDeposito" name="NuDocDeposito" class="form-control input" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="vrdesp">Valor Depósito</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrDeposito" name="VrDeposito" class="form-control input" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="dtmovcaixa">Data Movimento de Caixa</label>
+                                        <div class="input-group">
+                                            <input type="date" id="DTMovimentoCaixa" name="DTMovimentoCaixa" class="form-control" value="">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="hrmovcaixa">Hora Movimento de Caixa</label>
+                                        <div class="input-group">
+                                            <input type="time" id="HRMovimentoCaixa" name="HRMovimentoCaixa" class="form-control" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-12">                                        
+                                        <div id="tudo"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+    <script>
+        $("#VrDeposito").mask('#.##0,00', {reverse: true});
+    </script>
+    

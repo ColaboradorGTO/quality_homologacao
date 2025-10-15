@@ -7,6 +7,7 @@ function fnHandleGet(byId) {
     var idEmpresa = $.request.parameters.get("idEmpresa");
     var codeBars = $.request.parameters.get("codeBars");
     var dsProduto = $.request.parameters.get("dsProduto");
+    var stAtivo = $.request.parameters.get("stAtivo");
     
     if(!idEmpresa) {
         throw "O parametro IdEmpresa é um valor obrigatório.";
@@ -74,8 +75,8 @@ function fnHandleGet(byId) {
     //'   INNER JOIN "QUALITY_CONC".VW_PRODUTO_ESTRUTURA_MERCADOLOGICA TBPEM on TBPEM.IDPRODUTO = tbp.IDPRODUTO ' +
     ' WHERE ' +
         '	1 = ?'+
-        ' And  tbe.IDEMPRESA = \'' + idEmpresa + '\' And tbp.STATIVO = \'True\' ';
-    
+        //' And  tbe.IDEMPRESA = \'' + idEmpresa + '\' And tbp.STATIVO = \'True\' ';
+        ' And  tbe.IDEMPRESA = \'' + idEmpresa + '\' ';
     if ( byId ) {
         query = query + ' And  tbp.IDPRODUTO = \'' + byId + '\' ';
     }
@@ -90,6 +91,12 @@ function fnHandleGet(byId) {
     
     if ( dsProduto ) {
         query += `AND CONTAINS((tbp.IDPRODUTO, tbp.DSNOME, tbp.NUCODBARRAS), '%${dsProduto}%') `;
+    }
+    
+    if ( stAtivo ) {
+        query = query + ' And  tbp.STATIVO = \'' + stAtivo + '\' ';
+    }else{
+        query = query + ' And tbp.STATIVO = \'True\' ';  
     }
     
     query = query + ' ORDER BY  tbp.IDPRODUTO ';
