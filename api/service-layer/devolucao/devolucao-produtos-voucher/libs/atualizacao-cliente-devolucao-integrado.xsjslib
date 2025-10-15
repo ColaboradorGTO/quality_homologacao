@@ -261,8 +261,8 @@ function fnObterEnderecosCliente(objCliente, idEmpresa){
     if(NUCPFCNPJ.length == 11){
         IDINDICACAOIE = registro.SGUF == 'DF' ? 2 : 9;
     }
-    
-    let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("Name") = '${registro.ECIDADE}' AND UPPER("State") = ?`, registro.SGUF);
+   // return {teste: `SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("State") = '${registro.SGUF}' AND UPPER("Name") = '${registro.ECIDADE}' `}
+    let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("State") = '${registro.SGUF}' AND UPPER("Name") = ? `, registro.ECIDADE);
     
     if(!regAbsId.length){
         errorLogIntegracaoCliente(IDCLIENTE, 'ID da Cidade de Atualização Não Localizado, Verifique os Dados de Endereço e Tente Novamente');
@@ -352,7 +352,7 @@ function executeAtualizarCliente(idCliente, session, idEmpresa, connDB) {
         
         if(fnValidarDadosFiscaisCliente(registro) == true){
             
-            let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("Name") = ? AND "State" = '${registro.SGUF}'`, registro.ECIDADE);
+            let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("State") = '${registro.SGUF}' AND UPPER("Name") = ? `, registro.ECIDADE);
             
             if(regAbsId.length > 0){
                 let telCliente = (registro.NUTELCOMERCIAL || registro.NUTELCELULAR || '')

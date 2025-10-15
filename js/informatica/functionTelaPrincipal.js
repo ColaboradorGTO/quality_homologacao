@@ -83,6 +83,60 @@ function mascaraValor(valor) {
 	return valor;
 }
 
+function mascaraCep(valor) {
+
+	valor = String(valor).replace(/\D/g, "").slice(0, 8);
+
+    if (valor) {
+        valor = valor.replace(/^(\d{2})(\d)/, "$1.$2")
+
+        valor = valor.replace(/(\d{3})(\d)/, "$1-$2")
+    }
+
+    return valor;
+}
+
+function mascaraCepTempoReal(elemento) {
+    const valorAtual = elemento.value;
+    const valorComMascara = mascaraCep(valorAtual);
+    elemento.value = valorComMascara;
+}
+
+function mascaraTelefone(valor) {
+
+    valor = String(valor).replace(/\D/g, "").slice(0, 11);
+
+    if (valor) {
+        valor = valor.replace(/^(\d{0})(\d)/, "$1($2")
+
+        valor = valor.replace(/(\d{2})(\d)/, "$1) $2")
+
+        valor = valor.length > 9 ? valor.replace(/(\d{3})(\d)/, "$1$2-"): valor;
+
+        if (valor.length > 14) {
+            valor = valor.replace(/\D/g, '')
+            valor = valor.replace(/(\d{2})(\d)/, "($1) $2")
+            console.log(`valo1: ${valor}`)
+            valor = valor.replace(/(\d)(\d{8})$/, "$1 $2")
+            console.log(`valo2: ${valor}`)
+            valor = valor.replace(/(\d)(\d{4})$/, "$1-$2")
+            console.log(`valo3: ${valor}`)
+        }
+    }
+
+    return valor
+}
+
+function mascaraTelefoneTempoReal(elemento) {
+    let valorAtual = elemento.value;
+    const valorComMascara = mascaraTelefone(valorAtual);
+    elemento.value = valorComMascara;
+}
+
+function limparMascara(valor) {
+    return valor.replace(/\D/g, '');
+}
+
 function newDataTable(tipo) {
 
     if (tipo == 'MovCaixas') {
@@ -6449,3 +6503,317 @@ function ListaPromocao() {
   xmlhttp.send();
 }
 //////////////////// FIM ROTINA LINK RELATORIO BI ////////////////
+
+///////////////////////////////////////////////////////////// INÍCIO Rotina - Lista Empresas //////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////// Gabriel Figueredo - 27/08/2023 /////////////////////////////////////////////////////////////
+
+async function listarEmpresas() {
+      animationLoadingStart();
+
+      try {
+
+        await $.get("informatica_action_listaempresas.html", (respHtml) => {$("#js-page-content").html(respHtml)}); 
+
+        await ajaxGet('api/empresa.xsjs').then(retornoEmpresasSelect);
+        
+      } catch (error) {
+        msgError(error);
+      };
+
+      pesquisarEmpresas();
+
+      animationLoadingStop();
+};
+
+function retornoEmpresasSelect(respostaEmpresasSelect) {
+
+    const {data} = respostaEmpresasSelect;
+
+    let dadosSelectEmpresas = []
+  
+    for (let registro of data){
+  
+      let idEmpresa = registro.IDEMPRESA;
+      let dsEmpresa = registro.NOFANTASIA;
+  
+      dadosSelectEmpresas.push({
+        idEmpresa,
+        dsEmpresa
+      })
+  
+    }
+  
+    dadosSelectEmpresas.sort(function (a, b) {
+      if (a.idEmpresa > b.idEmpresa) {
+        return 1;
+      }
+  
+      if (a.idEmpresa < b.idEmpresa) {
+        return -1;
+      }
+      return 0;
+    })
+  
+    for (const elemento of dadosSelectEmpresas) {
+      $('#idloja').append( `<option value="${elemento.idEmpresa}">${elemento.dsEmpresa}</option>`);
+    }
+
+    $('#idloja').select2()
+}
+
+async function pesquisarEmpresas() {
+    let idEmpresa = $("#idloja").val();
+
+    try{
+        await $.get("informatica_action_pesqempresas.html", (respHtml) => {$("#resultado").html(respHtml)}); 
+
+        await ajaxGet(`api/empresa.xsjs?id=${idEmpresa}`).then(retornoPesquisaListaEmpresa);
+    } catch(error) {
+      msgError(error);
+    };
+
+}
+
+function retornoPesquisaListaEmpresa(respostaPesquisaListaEmpresa) {
+    const {data} = respostaPesquisaListaEmpresa;
+    let dadosRetornoEmpresas = [];
+
+    if (data.length != 0) {
+        for(let registro of data) {
+
+            let idEmpresa = registro.IDEMPRESA;
+            let dsEmpresa = registro.NOFANTASIA;
+            let email = registro.EEMAILPRINCIPAL;
+            let telefone = registro.NUTELGERENCIA;
+            let opcoes = 
+            `
+              <button type="button" title="Detalhar" class="btn btn-primary btn-sm" onclick="detalharEmpresa(${idEmpresa})"><i class="fal fa-list"></i></button>
+              <button type="button" title="Editar" class="btn btn-success btn-sm " onclick="editarEmpresa(${idEmpresa})"><i class="fal fa-edit"></i></button>
+            `;
+          
+            dadosRetornoEmpresas.push([
+                idEmpresa,
+                dsEmpresa,
+                email,
+                mascaraTelefone(telefone),
+                opcoes
+            ]);
+        }
+
+        criarDataTableEmpresas(dadosRetornoEmpresas);
+    } else {
+       msgError(error);
+    }
+}
+
+function criarDataTableEmpresas(data) {
+  $('#dt-basic-pesqempresas').DataTable({
+    data: data,
+    deferRender: true,
+    columnDefs: [
+        { width: 25, targets: 0 },
+        { width: 200, targets: 1 },
+        { width: 200, targets: 2 },
+        { width: 200, targets: 3 },
+        { width: 100, targets: 4 }
+    ],
+    responsive: true,
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Generate Excel',
+        className: 'btn-outline-success btn-sm mr-1'
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ]
+  });
+}
+
+function detalharEmpresa(idEmpresa) {
+  try{
+    $.get('informatica_action_detalharempresamodal.html', async (res) => {
+        $('#resultadoModalDetalheEmpresa').html(res);
+        $('#detalheEmpresa').modal('show');
+        $("#footerDetalheEmpresa").html(
+          `
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+          `
+        );
+
+        await ajaxGet(`api/empresa.xsjs?id=${idEmpresa}`).then(retornoDetalhePesquisaEmpresa);
+
+    });
+    
+  } catch(error) {
+      msgError(error);
+    }
+}
+
+function retornoDetalhePesquisaEmpresa(respostaDetalhePesquisaEmpresa) {
+    let registro = respostaDetalhePesquisaEmpresa.data[0];
+
+    $('#IdGrupoEmpresarial').val(registro.IDGRUPOEMPRESARIAL);
+    $('#status').val(registro.STATIVO);
+    $('#dataCriacao').val(registro.DTULTATUALIZACAO.slice(0, 10));
+    $('#nomeFantasia').val(registro.NOFANTASIA);
+    $('#cep').val(mascaraCep(registro.NUCEP));
+    $('#endereco').val(registro.EENDERECO);
+    $('#complemento').val(registro.ECOMPLEMENTO);
+    $('#bairro').val(registro.EBAIRRO);
+    $('#cidade').val(registro.ECIDADE);
+    $('#estado').val(registro.SGUF);
+    $('#email').val(registro.EEMAILPRINCIPAL);
+    $('#telefone').val(mascaraTelefone(registro.NUTELGERENCIA));
+
+}
+
+async function editarEmpresa(idEmpresa) {
+  try{
+      await $.get('informatica_action_detalharempresamodal.html', async (res) => {
+        $('#resultadoModalDetalheEmpresa').html(res);
+        $('#detalheEmpresa').modal('show');
+
+        $('#IDEmpresaAtualizar').val(idEmpresa);
+
+        if (idEmpresa > 0) {
+
+          await ajaxGet(`api/empresa.xsjs?id=${idEmpresa}`).then(retornoDadosEmpresa);
+
+          $(`
+            #div-pai #status, #div-pai #cep, #div-pai #endereco, 
+            #div-pai #complemento, #div-pai #bairro, #div-pai #cidade, 
+            #div-pai #estado, #div-pai #telefone`).prop({"disabled": false, "readonly": false});
+
+          $("#footerDetalheEmpresa").html(
+            `
+              <button type="button" class="btn btn-success" onclick="atualizarEmpresa()">Atualizar</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            `
+          );
+        };
+    });
+  } catch(error) {
+      msgError(error);
+    };
+}
+
+function retornoDadosEmpresa(respAtualizarEmpresa) {
+    let registro = respAtualizarEmpresa.data[0];
+
+    $("#IdGrupoEmpresarial").val((registro.IDGRUPOEMPRESARIAL));
+    $("#razaoSocial").val(registro.NORAZAOSOCIAL);
+    $("#nomeFantasia").val(registro.NOFANTASIA);
+    $("#cnpj").val(registro["NUCNPJ"]);
+    $("#inscricaoEstadual").val(registro.NUINSCESTADUAL);
+    $("#inscricaoMunicipal").val(registro.NUINSCMUNICIPAL);
+    $("#cnae").val(registro.NUCNAE);
+    $("#endereco").val(registro.EENDERECO);
+    $("#complemento").val(registro.ECOMPLEMENTO);
+    $("#bairro").val(registro.EBAIRRO);
+    $("#cidade").val(registro.ECIDADE);
+    $("#estado").val(registro.SGUF);
+    $("#cep").val(mascaraCep(registro.NUCEP));
+    $("#ibge").val(registro.NUIBGE);
+    $("#email").val(registro.EEMAILPRINCIPAL);
+    $("#telefone").val(mascaraTelefone(registro.NUTELGERENCIA));
+    $("#dataCriacao").val((registro.DTULTATUALIZACAO).slice(0, 10));
+    $("#status").val(registro.STATIVO);
+    $("#pis").val(registro.ALIQPIS);
+    $("#cofins").val(registro.ALIQCOFINS);
+}
+
+async function validarDadosEmpresa(){
+
+  let nuUF = $("#estado").val() === "DF" ? 53: 52;
+
+  let dados = [{
+        "STGRUPOEMPRESARIAL": Number($("#IdGrupoEmpresarial").val()),
+        "IDGRUPOEMPRESARIAL": Number($("#IdGrupoEmpresarial").val()),
+        "IDSUBGRUPOEMPRESARIAL": Number($("#IdGrupoEmpresarial").val()),
+        "NORAZAOSOCIAL": $("#razaoSocial").val(),
+        "NOFANTASIA": $("#nomeFantasia").val(),
+        "NUCNPJ": $("#cnpj").val(),
+        "NUINSCESTADUAL": $("#inscricaoEstadual").val(),
+        "NUINSCMUNICIPAL": $("#inscricaoMunicipal").val(),
+        "CNAE": $("#cnae").val(),
+        "EENDERECO": $("#endereco").val(),
+        "ECOMPLEMENTO": $("#complemento").val(),
+        "EBAIRRO": $("#bairro").val(),
+        "ECIDADE": $("#cidade").val(),
+        "SGUF": $("#estado").val(),
+        "NUUF": Number(nuUF),
+        "NUCEP": limparMascara($("#cep").val()),
+        "NUIBGE": $("#ibge").val(),
+        "EEMAILPRINCIPAL": $("#email").val(),
+        "NUTELGERENCIA": limparMascara($("#telefone").val()),
+        "NUCNAE": $("#cnae").val(),
+        "STECOMMERCE": "False",
+        "DTULTATUALIZACAO": $("#dataCriacao").val(),
+        "STATIVO": $("#status").val(),
+        "ALIQPIS": parseFloat($("#pis").val()),
+        "ALIQCOFINS": parseFloat($("#cofins").val()),
+        "IDEMPRESA": Number($("#IDEmpresaAtualizar").val())
+    }];
+
+    const resp = await msgQuestion();
+
+    if(resp.value) {
+      return dados;
+    } else { 
+      return false;
+    }
+    
+}
+
+async function atualizarEmpresa() {
+
+    let dados = await validarDadosEmpresa();
+
+    if(dados) {
+
+      let textdados = JSON.stringify(dados);
+
+      let dadosLog = [
+          {
+              "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+              "PATHFUNCAO": "INFORMATICA/EDICAO EMPRESA",
+              "DADOS": textdados,
+              "IP": ipCliente
+          }
+      ];
+
+      try {
+        await ajaxPut('api/empresa.xsjs', dados);
+        await ajaxPost("api/log-web.xsjs", dadosLog);
+        funcSuccessUpdateEmpresa();
+      } catch(error) {
+        msgError(error);
+      }
+    } else {
+      // faça nada
+    }
+
+}
+
+function funcSuccessUpdateEmpresa() {
+    alerta_atualizado_sucesso();
+    $('#detalheEmpresa').modal('hide');
+    pesquisarEmpresas();
+}
+
+///////////////////////////////////////////////////////////// FIM Rotina - Lista Empresas //////////////////////////////////////////////////////

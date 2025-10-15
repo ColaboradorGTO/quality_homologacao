@@ -6,7 +6,7 @@
  */
 
 if (!getCurrentUser()) {
-  window.location.href = 'index.html';
+    window.location.href = 'index.html';
 }
 
 var usuario = getCurrentUser().user;
@@ -73,91 +73,91 @@ var valorTotalRecebido = 0;
 //////////////// FunÃ§Ãµes Globais ///////////////////////////////////
 
 function Onlynumbers(e) {
-  var tecla = (window.event) ? event.keyCode : e.which;
-  if (tecla > 47 && tecla < 58) {
-    return true;
-  } else {
-    if (tecla === 8 || tecla === 0) {
-      return true;
+    var tecla = (window.event) ? event.keyCode : e.which;
+    if (tecla > 47 && tecla < 58) {
+        return true;
     } else {
-      return false;
+        if (tecla === 8 || tecla === 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
-  }
 }
 
 function maskValor(valor) {
-  return new Intl.NumberFormat('br-BR', { style: 'currency', currency: 'BRL' }).format(valor)
+    return new Intl.NumberFormat('br-BR', { style: 'currency', currency: 'BRL' }).format(valor)
 }
 
 function mascaraValor(valor) {
-  valor = valor.toString().replace(/\D/g, "");
-  valor = valor.toString().replace(/(\d{1})(\d{17})$/, "$1.$2");
-  valor = valor.toString().replace(/(\d{1})(\d{14})$/, "$1.$2");
-  valor = valor.toString().replace(/(\d{1})(\d{11})$/, "$1.$2");
-  valor = valor.toString().replace(/(\d{1})(\d{8})$/, "$1.$2");
-  valor = valor.toString().replace(/(\d{1})(\d{5})$/, "$1.$2");
-  valor = valor.toString().replace(/(\d{1})(\d{2})$/, "$1,$2");
-  return valor;
+    valor = valor.toString().replace(/\D/g, "");
+    valor = valor.toString().replace(/(\d{1})(\d{17})$/, "$1.$2");
+    valor = valor.toString().replace(/(\d{1})(\d{14})$/, "$1.$2");
+    valor = valor.toString().replace(/(\d{1})(\d{11})$/, "$1.$2");
+    valor = valor.toString().replace(/(\d{1})(\d{8})$/, "$1.$2");
+    valor = valor.toString().replace(/(\d{1})(\d{5})$/, "$1.$2");
+    valor = valor.toString().replace(/(\d{1})(\d{2})$/, "$1,$2");
+    return valor;
 }
 
 function mascara_num(obj) {
-  valida_num(obj)
-  if (obj.value.match("-")) {
-    mod = "-";
-  } else {
-    mod = "";
-  }
-  valor = obj.value.replace("-", "");
-  valor = valor.replace(",", "");
-  if (valor.length >= 3) {
-    valor = poe_ponto_num(valor.substring(0, valor.length - 2)) + "," + valor.substring(valor.length - 2, valor.length);
-  }
-  obj.value = mod + valor;
+    valida_num(obj)
+    if (obj.value.match("-")) {
+        mod = "-";
+    } else {
+        mod = "";
+    }
+    valor = obj.value.replace("-", "");
+    valor = valor.replace(",", "");
+    if (valor.length >= 3) {
+        valor = poe_ponto_num(valor.substring(0, valor.length - 2)) + "," + valor.substring(valor.length - 2, valor.length);
+    }
+    obj.value = mod + valor;
 }
 
 function poe_ponto_num(valor) {
-  valor = valor.replace(/\./g, "");
-  if (valor.length > 3) {
-    valores = "";
-    while (valor.length > 3) {
-      valores = "." + valor.substring(valor.length - 3, valor.length) + "" + valores;
-      valor = valor.substring(0, valor.length - 3);
+    valor = valor.replace(/\./g, "");
+    if (valor.length > 3) {
+        valores = "";
+        while (valor.length > 3) {
+            valores = "." + valor.substring(valor.length - 3, valor.length) + "" + valores;
+            valor = valor.substring(0, valor.length - 3);
+        }
+        return valor + "" + valores;
+    } else {
+        return valor;
     }
-    return valor + "" + valores;
-  } else {
-    return valor;
-  }
 }
 
 function valida_num(obj) {
-  numeros = new RegExp("[0-9]");
-  while (!obj.value.charAt(obj.value.length - 1).match(numeros)) {
-    if (obj.value.length == 1 && obj.value == "-") {
-      return true;
+    numeros = new RegExp("[0-9]");
+    while (!obj.value.charAt(obj.value.length - 1).match(numeros)) {
+        if (obj.value.length == 1 && obj.value == "-") {
+            return true;
+        }
+        if (obj.value.length >= 1) {
+            obj.value = obj.value.substring(0, obj.value.length - 1)
+        } else {
+            return false;
+        }
     }
-    if (obj.value.length >= 1) {
-      obj.value = obj.value.substring(0, obj.value.length - 1)
-    } else {
-      return false;
-    }
-  }
 }
 
 function logout() {
-  LogoffUser();
-  window.location.href = 'index.html';
+    LogoffUser();
+    window.location.href = 'index.html';
 }
 
 function retornoIp(resp) {
-  ipCliente = resp?.ip;
-  console.log(resp)
+    ipCliente = resp?.ip;
+    console.log(resp)
 }
 
-$(document).ready(function () {
-  $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
-  $('.NoEmpresaTitulo').text(NOEmpresaLogin);
-
-  ListaProdutosEtiqueta()
+$(document).ready(function() {
+    $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
+    $('.NoEmpresaTitulo').text(NOEmpresaLogin);
+    
+    ListaProdutosEtiqueta()
 })
 
 // ? ======================================================== INICIO ROTINA IMPRESSÃO ETIQUETAS CONSULTA NO SAP ========================================================
@@ -1186,12 +1186,16 @@ async function montarZplEtiquetasProdutos() {
 
   dataLabelsReadyToPrint = dataLabelsZPL.repeat(qtdCopias);
 
+  /*for (let i = 0; i < qtdCopias; i++) {
+    dataLabelsReadyToPrint += dataLabelsZPL;
+  }*/
+
   return dataLabelsReadyToPrint.replace(/^[ \t]+/gm, '').replace(/^\s*$/gm, '');
 }
 
 async function impEtiquetaProdutos() {
   try {
-    if (true) {
+    if (false) {
       let dataZPLToPrint = await montarZplEtiquetasProdutos();
 
       await enviarZPLParaImpressora(dataZPLToPrint).catch((error) => { throw error });

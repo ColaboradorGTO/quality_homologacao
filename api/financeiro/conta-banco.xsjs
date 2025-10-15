@@ -145,7 +145,7 @@ function fnHandleGet(byId) {
         query += ` AND  TBCB.NUDIGITOCONTA = ${nuDigitoConta} `;
     }
     
-    if ( idEmpresa ) {
+    /*if ( idEmpresa ) {
         query += ` 
             AND  TBCB.IDCONTABANCO IN (
                 SELECT 
@@ -155,7 +155,7 @@ function fnHandleGet(byId) {
                 WHERE 
                     IDEMPRESA = ${idEmpresa}
             )`;
-    }
+    }*/
     
     if ( dsConta ) {
         query += ` AND CONTAINS((TBCB.DSCONTABANCO, TBB.DSBANCO), '%${dsConta}%') `;
@@ -171,14 +171,14 @@ function fnHandleGet(byId) {
     let response = api.sqlQueryPage(query, request, 1);
 	let data = [];
 
-	for (var i = 0; i < response.data.length; i++) {
+	/*for (var i = 0; i < response.data.length; i++) {
 		let registro = JSON.parse(JSON.stringify(response.data[i]));
         registro.VINCULOEMPRESAS = getVinculoContaBancoEmpresa(registro.IDCONTABANCO);
         
         data.push(registro)
 	}
 
-	response.data = data;
+	response.data = data;*/
 
 	return response;
 }
@@ -205,7 +205,8 @@ function fnHandlePut() {
             "TPPESSOA" = ?,
             "STPADRAO" = ?,
             "STATIVO" = ?,
-            "NUCONTASAP" = ?
+            "NUCONTASAP" = ?,
+            "TPCONTA" = ?
         WHERE 
             "IDCONTABANCO" =  ? 
     `;
@@ -226,9 +227,10 @@ function fnHandlePut() {
         pStmt.setString(8, registro.STPADRAO);
         pStmt.setString(9, registro.STATIVO);
         pStmt.setString(10, registro.NUCONTASAP);
-        pStmt.setInt(11, registro.IDCONTABANCO);
+        pStmt.setString(11, registro.TPCONTA);
+        pStmt.setInt(12, registro.IDCONTABANCO);
         
-        fnInserirOuAtualizarVinculoContaBancoEmpresa(registro.IDCONTABANCO, registro.IDUSERULTIMAALTERACAO, registro.VINCULOEMPRESAS);
+        //fnInserirOuAtualizarVinculoContaBancoEmpresa(registro.IDCONTABANCO, registro.IDUSERULTIMAALTERACAO, registro.VINCULOEMPRESAS);
         
         pStmt.execute();
     }
@@ -288,7 +290,7 @@ function fnHandlePost() {
         pStmt.setString(9, registro.TPCONTA);
         setStringOrNull(pStmt, 10, registro.NUCONTASAP);
         
-        fnInserirOuAtualizarVinculoContaBancoEmpresa(idContaBanco, registro.IDUSERULTIMAALTERACAO, registro.VINCULOEMPRESAS);
+        //fnInserirOuAtualizarVinculoContaBancoEmpresa(idContaBanco, registro.IDUSERULTIMAALTERACAO, registro.VINCULOEMPRESAS);
         
         pStmt.execute();
     }

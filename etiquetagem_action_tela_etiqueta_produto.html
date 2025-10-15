@@ -23,33 +23,27 @@
             <div class="row">
               <div class="col-sm-3 col-xl-3">
                 <label class="form-label" for="idListaPreco">Lista de Preço</label>
-                <select class="form-control" id="idListaPreco" type="text" name="Id do Produto" value=""
-                  style="height: 39px;">
+                <select class="form-control" id="idListaPreco" type="text" name="Id do Produto" value="" style="height: 39px;">
                   <option value="">Selecione...</option>
-                  <option title="GRUPO" value="0">TODOS</option>
+                  <option   title="GRUPO" value="0">TODOS</option>
                 </select>
               </div>
               <div class="col-sm-3 col-xl-3">
                 <label class="form-label" for="idProdEtiqueta">Id. Produto</label>
-                <input class="form-control" id="idProdEtiqueta" type="text" name="Id do Produto" value=""
-                  autocomplete="off" autofill="off" placeholder="Id do Produto" style="height: 39px;">
+                <input class="form-control" id="idProdEtiqueta" type="text" name="Id do Produto" value="" autocomplete="off" autofill="off" placeholder="Id do Produto" style="height: 39px;">
               </div>
               <div class="col-sm-3 col-xl-3">
                 <label class="form-label" for="descProdEtiqueta">Descrição</label>
-                <input class="form-control" id="descProdEtiqueta" type="text" name="Id do Produto" value=""
-                  autocomplete="off" autofill="off" placeholder="Descrição do Produto" style="height: 39px;">
+                <input class="form-control" id="descProdEtiqueta" type="text" name="Id do Produto" value=""autocomplete="off" autofill="off"  placeholder="Descrição do Produto" style="height: 39px;">
               </div>
               <div class="col-sm-3 col-xl-3">
                 <label class="form-label" for="codBarrasProdEtiqueta">Cod.Barras</label>
-                <input class="form-control" id="codBarrasProdEtiqueta" type="text" name="Codigo de Barras do Produto"
-                  value="" autocomplete="off" autofill="off" placeholder="Código de Barras" style="height: 39px;">
+                <input class="form-control" id="codBarrasProdEtiqueta" type="text" name="Codigo de Barras do Produto" value="" autocomplete="off" autofill="off" placeholder="Código de Barras" style="height: 39px;">
               </div>
               <div class="col-sm-3 col-xl-3 d-none">
                 <label class="form-label" for="numPedidoEtiqueta">Nº Pedido</label>
                 <div class="input-group">
-                  <input class="form-control" id="numPedidoEtiqueta" type="text" title="Número do Pedido"
-                    name="Número do Pedido" value="" autocomplete="off" autofill="off" placeholder="Número do Pedido"
-                    style="height: 39px;">
+                    <input class="form-control" id="numPedidoEtiqueta" type="text" title="Número do Pedido" name="Número do Pedido" value="" autocomplete="off" autofill="off" placeholder="Número do Pedido" style="height: 39px;">
                   <!--<select class="form-control" title="Número do Pedido" id="numPedidoEtiqueta">
                     <option value="0">Selecione...</option>
                   </select>-->
@@ -63,8 +57,7 @@
                   <span class="fal fa-search mr-1"></span>Pesquisar
                 </button>
 
-                <button id="btnAcumuladorImpEtiqueta" class="btn btn-success d-none" type="button"
-                  onclick="acumuladorImpEtiquetas()">
+                <button id="btnAcumuladorImpEtiqueta" class="btn btn-success d-none" type="button" onclick="acumuladorImpEtiquetas()">
                   <span class="fal fa-download mr-1"></span>Guardar
                 </button>
 
@@ -72,24 +65,20 @@
                   <span class="fal fa-print mr-1"></span>Imprimir
                 </button>
 
-                <button id="btnEditarAcumuladorImpEtiqueta" class="btn btn-warning d-none" type="button"
-                  onclick="listarProdsParaImprimir()">
+                <button id="btnEditarAcumuladorImpEtiqueta" class="btn btn-warning d-none" type="button" onclick="listarProdsParaImprimir()">
                   <span class="fal fa-pen mr-1"></span>Editar
                 </button>
 
-                <button id="btnDeletarAcumuladorImpEtiquetas" class="btn btn-danger d-none" type="button"
-                  onclick="deletarAcumuladorImpEtiquetas()">
+                <button id="btnDeletarAcumuladorImpEtiquetas" class="btn btn-danger d-none" type="button" onclick="deletarAcumuladorImpEtiquetas()">
                   <span class="fal fa-trash mr-1"></span>Limpar Histórico
                 </button>
               </div>
             </div>
           </div>
           <div id="containerQtdCopias" class="row align-items-center mb-2 pl-4 d-none">
-            <label class="form-label h6 mr-1" for="qtdCopias">QTD CÓPIAS:</label>
-            <input class="form-control h5 text-center border-dark" id="qtdCopias" type="number" min="1"
-              name="Quantidade de Cópias" value="1" style="height: 25px; width: 90px" autocomplete="off"
-              autofill="off" />
-          </div>
+                <label class="form-label h6 mr-1" for="qtdCopias">QTD CÓPIAS:</label>
+                <input class="form-control h5 text-center border-dark" id="qtdCopias" type="number" min="1" name="Quantidade de Cópias" value="1" style="height: 25px; width: 90px" autocomplete="off" autofill="off" />
+            </div>
           <div id="resultado">
           </div>
         </div>

@@ -1,0 +1,67 @@
+
+                            <div id="resultadoajusteextrato"></div>
+                            
+                            <div class="form-group">
+                                <div class="row">
+                                    <input type="hidden" name="STAtivoAjuste" id="STAtivoAjuste" value="True">
+                                    <input type="hidden" name="STCancelaAjuste" id="STCancelaAjuste" value="False">
+                                    <input type="hidden" name="IDEmpresaAjuste" id="IDEmpresaAjuste" value="">
+                                    <input type="hidden" name="IDFuncAjuste" id="IDFuncAjuste" value="">
+                                    <div class="col-sm-6 col-xl-10">
+                                        <label class="form-label" for="empresaajuste">Empresa</label>
+                                        <div class="input-group">
+                                            <input type="text" id="nomeempAjuste" name="nomeempAjuste" class="form-control input" value="" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="dtajuste">Data Depósito</label>
+                                        <div class="input-group">
+                                            <input type="date" id="DTAjuste" name="DTAjuste" class="form-control" value="" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="hrajuste">Hora Depósito</label>
+                                        <div class="input-group">
+                                            <input type="time" id="HRAjuste" name="HRAjuste" class="form-control" value="" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="descajuste">Histórico</label>
+                                        <div class="input-group">
+                                            <input type="text" id="DsHistorioAjuste" name="DsHistorioAjuste" class="form-control input" maxlength="200">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="vrcred">Valor Crédito</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrCredito" name="VrCredito" class="form-control input" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="vrdeb">Valor Débito</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrDebito" name="VrDebito" class="form-control input" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-12">                                        
+                                        <div id="tudo"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+    <script>
+        $("#VrCredito, #VrDebito").mask('#.##0,00', {reverse: true});
+    </script>
+    

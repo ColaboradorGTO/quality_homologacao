@@ -1,60 +1,53 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function fnHandleGet(byId) {
-
     let idProduto = $.request.parameters.get("idprodutorep");
     let codbarrasrep = $.request.parameters.get("codbarrasrep");
 
-    let queryValidaDados = `
+    var query = `
         SELECT
-            *
-        FROM
-            "VAR_DB_NAME".DETALHEPEDIDO
+            TBD.IDDETALHEPEDIDO AS ID,
+            TRIM(TBD.NUREF) AS NUREFPROD,
+            TBP.DSNOME AS DSPRODUTO,
+            TBP.IDPRODUTO,
+            TBP.NUCODBARRAS,
+            TBT.IDTAMANHO AS IDTAMANHO,
+            TBT.DSTAMANHO AS GRADE,
+            TBU.DSSIGLA AS UN,
+            TBD.VRUNITLIQUIDO AS VRUNIT,
+            TBD.VRVENDA AS VRVENDA,
+            TBD.QTDTOTAL AS QTDTOTALPEDIDO,
+            IFNULL(TBD.STREPOSICAO, 'False') AS STREPOSICAO,
+            TBDPG.QTD AS QTDPRODUTO,
+            TBSE.NUCONTADOR AS CONTADORSUBGRUPO
+        FROM 
+        	"VAR_DB_NAME".DETALHEPEDIDO AS TBD
+        INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO AS TBR ON
+            TBD.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+        INNER JOIN "VAR_DB_NAME".UNIDADEMEDIDA AS TBU ON
+            TBD.UND = TBU.IDUNIDADEMEDIDA
+        INNER JOIN "VAR_DB_NAME".DETALHEPEDIDOGRADE AS TBDPG ON
+            TBD.IDDETALHEPEDIDO = TBDPG.IDDETALHEPEDIDO AND TBDPG.STATIVO = 'True'
+        INNER JOIN "VAR_DB_NAME".TAMANHO AS TBT ON
+            TBDPG.IDTAMANHO = TBT.IDTAMANHO 
+        INNER JOIN "VAR_DB_NAME".SUBGRUPOESTRUTURA AS TBSE ON
+            TBD.IDSUBGRUPOESTRUTURA = TBSE.IDSUBGRUPOESTRUTURA
+        INNER JOIN "VAR_DB_NAME".PRODUTO AS TBP ON 
+            TBP.STATIVO = 'True' AND (TBP.IDPRODUTO = TBD.IDPRODUTO OR (TBP.NUCODBARRAS = TBD.NUCODBARRAS AND UPPER(TBP.DSNOME) = UPPER(TBD.DSPRODUTO)))
         WHERE
-            IDDETALHEPEDIDO = ?
+            1 = ?
+            AND TBD.STCANCELADO = 'False' 
     `;
     
-    let regDetPedido =  api.sqlQuery(queryValidaDados, byId);
-    
-    let idProdutoReg = regDetPedido[0].IDPRODUTO;
-    
- var query = 'SELECT'+
-	'   d.IDDETALHEPEDIDO AS ID,'+
-	'   TRIM(d.NUREF) AS NUREFPROD,'+
-	'   PRODUTO.DSNOME AS DSPRODUTO,'+
-	'   PRODUTO.IDPRODUTO,'+
-	'   PRODUTO.NUCODBARRAS,'+
-	'   TAMANHO.IDTAMANHO AS IDTAMANHO,'+
-	'   TAMANHO.DSTAMANHO AS GRADE,'+
-	'   UNIDADEMEDIDA.DSSIGLA AS UN,'+
-	'   d.VRUNITLIQUIDO AS VRUNIT,'+
-	'   d.VRVENDA AS VRVENDA,'+
-	'   d.QTDTOTAL AS QTDTOTALPEDIDO,'+
-	'   IFNULL(d.STREPOSICAO, \'False\') AS STREPOSICAO,'+
-	'   DETALHEPEDIDOGRADE.QTD AS QTDPRODUTO,'+
-	'   SUBGRUPOESTRUTURA.NUCONTADOR AS CONTADORSUBGRUPO'+
-    '   FROM "VAR_DB_NAME".DETALHEPEDIDO AS d'+
-	'   INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO ON d.IDRESUMOPEDIDO = RESUMOPEDIDO.IDRESUMOPEDIDO'+
-	'   INNER JOIN "VAR_DB_NAME".UNIDADEMEDIDA ON d.UND = UNIDADEMEDIDA.IDUNIDADEMEDIDA'+
-	'   INNER JOIN "VAR_DB_NAME".DETALHEPEDIDOGRADE ON d.IDDETALHEPEDIDO = DETALHEPEDIDOGRADE.IDDETALHEPEDIDO AND DETALHEPEDIDOGRADE.STATIVO = \'True\' ' +
-	'   INNER JOIN "VAR_DB_NAME".TAMANHO ON DETALHEPEDIDOGRADE.IDTAMANHO = TAMANHO.IDTAMANHO '+
-	'   INNER JOIN "VAR_DB_NAME".SUBGRUPOESTRUTURA ON d.IDSUBGRUPOESTRUTURA = SUBGRUPOESTRUTURA.IDSUBGRUPOESTRUTURA'+
-	`   INNER JOIN "VAR_DB_NAME".PRODUTO ON 
-	        PRODUTO.STATIVO = 'True' 
-	        AND (PRODUTO.IDPRODUTO = d.IDPRODUTO OR (PRODUTO.NUCODBARRAS = d.NUCODBARRAS AND UPPER(PRODUTO.DSNOME) = UPPER(d.DSPRODUTO)))
-	` +
-    ' WHERE 1=? '+
-    '   AND d.STCANCELADO = \'False\' ';
-    
     if ( byId ) {
-        query = query + ' And  d.IDDETALHEPEDIDO = \'' + byId + '\' ';
+        query += ` AND  TBD.IDDETALHEPEDIDO = '${byId}' `;
     }  
     
    /* if ( codbarrasrep>0 ) {
-        query = query + ' And  d.NUCODBARRAS = \'' + codbarrasrep + '\' ';
+        query += ` AND  TBD.NUCODBARRAS = '${codbarrasrep}' `;
     }*/
     
-    query = query + ' ORDER BY d.NUREF, d.DSPRODUTO ASC';
+    query += ' ORDER BY TBD.NUREF, TBD.DSPRODUTO ASC ';
 
     var request = { 
         page:  $.request.parameters.get("page"),

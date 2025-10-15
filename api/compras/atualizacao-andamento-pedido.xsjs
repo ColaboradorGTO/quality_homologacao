@@ -1,19 +1,26 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function fnHandlePut() {
-    var conn = $.db.getConnection();
-    var query = 'UPDATE "VAR_DB_NAME"."RESUMOPEDIDO" SET ' + 
-        ' "IDANDAMENTO" = ? ,' +
-        ' "TXTOBSDEVPEDIDO" = ?, ' +
-        ' "DTMOVPEDIDO" = now() ' +
-        ' WHERE "IDRESUMOPEDIDO" =  ? ';
+    let conn = $.db.getConnection();
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."RESUMOPEDIDO" 
+        SET
+            "IDANDAMENTO" = ? ,
+            "TXTOBSDEVPEDIDO" = ?,
+            "DTMOVPEDIDO" = now()
+        WHERE 
+            "IDRESUMOPEDIDO" =  ? 
+            OR "IDPEDIDOPRIMARIO" = ?
+    `;
         
-    var pStmt = conn.prepareStatement(api.replaceDbName(query));
-    var registro = JSON.parse($.request.body.asString()); 
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    let registro = JSON.parse($.request.body.asString()); 
 
     pStmt.setInt(1, registro.IDANDAMENTO);
     pStmt.setString(2, registro.TXTOBSDEVPEDIDO);
     pStmt.setInt(3, registro.IDRESUMOPEDIDO);
+    pStmt.setInt(4, registro.IDRESUMOPEDIDO);
     
 	pStmt.execute();
     

@@ -26,19 +26,20 @@ function fnHandleGet(byId) {
     var dataCompInicio = $.request.parameters.get("dataCompInicio");
     var dataCompFim = $.request.parameters.get("dataCompFim");
 
-     var query = ` 
+    var query = ` 
         SELECT 
             tbe.IDEMPRESA,
             tbe.NOFANTASIA,
+            TBVP.IDVENDAPAGAMENTO,
             tbv.IDVENDA,
             tbvp.DSTIPOPAGAMENTO,
             IFNULL ((tbvp.VALORRECEBIDO),0) AS PIX,
             IFNULL (TO_VARCHAR(tbv.DATA_COMPENSACAO, 'DD/mm/YYYY'),'NÃO INFORMADO') AS DATA_COMPENSACAO,
             IFNULL (TO_VARCHAR(tbv.DTHORAFECHAMENTO,'DD/mm/YYYY'),'NÃO INFORMADO') AS DATAVENDA,
             tbvp.NUAUTORIZACAO,
-            TBV.STATUS_BLOQUEIO_ATUALIZACAO,
-            IFNULL(TBV.DOCENTRY_SAP_CONTAS_A_RECEBER_PGTO_PIX, 0) AS DOCENTRY_SAP_CONTAS_A_RECEBER_PGTO_PIX,
-            TO_VARCHAR(ERROR_LOG_SAP_PIX) AS ERROR_LOG_SAP_PIX
+            TBVP.STATUS_BLOQUEIO_ATUALIZACAO,
+            IFNULL(TBVP.DOCENTRY_SAP_CONTAS_A_RECEBER_PGTO_PIX, 0) AS DOCENTRY_SAP_CONTAS_A_RECEBER_PGTO_PIX,
+            TO_VARCHAR(TBVP.ERROR_LOG_SAP_PIX) AS ERROR_LOG_SAP_PIX
         FROM
             "VAR_DB_NAME".VENDA tbv
         INNER JOIN "VAR_DB_NAME".VENDAPAGAMENTO tbvp on tbv.IDVENDA = tbvp.IDVENDA

@@ -232,7 +232,7 @@ function fnObterEnderecosCliente(registro){
         IDINDICACAOIE = registro.SGUF == 'DF' ? 2 : 9;
     }
     
-    let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("Name") = ? AND UPPER("State") = '${registro.SGUF}'`, registro.ECIDADE);
+    let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("Name") = ? AND UPPER("State") = '${registro.SGUF}' `, registro.ECIDADE);
     
     if(!regAbsId.length){
         errorLogIntegracaoCliente(IDCLIENTE, 'ID da Cidade Não Localizado, Verifique os Dados de Endereço e Tente Novamente');

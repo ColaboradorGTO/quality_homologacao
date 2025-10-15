@@ -351,6 +351,8 @@ function executeAtualizarDadosClienteIntegrado(idCliente, idEmpresa, stMsgRetorn
 
     let regCliente = api.sqlQuery(queryCliente, idCliente);
     
+    //return libAtualizarCliente.executeAtualizarCliente(idCliente, session, idEmpresa, conn)
+    
     conn = $.db.getConnection();
     
     if(regCliente.length > 0){

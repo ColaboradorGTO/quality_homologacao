@@ -1,5 +1,7 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
+let conn;
+
 function setTimestampOrNull(stmt, fieldId, value) {
 	if (!value) {
 		stmt.setNull(fieldId);
@@ -66,7 +68,7 @@ function fnGetContatos(idGrupoEmpresarial){
         return [
             `Central de Pedidos: ${EEMAILCENTRALPEDIDOS} - ${NUTELCENTRELPEDIDOS}`,
             `Faturamento: ${EEMAILFATURAMENTO} - ${NUTELFATURAMENTO}`,
-            `Agendamento de Entregas: ${EEMAILAGENDAMENTOSENTREGAS} - ${NUTELAGENDAMENTOSENTREGAS}`,
+            `Agendamentos de Entregas: ${EEMAILAGENDAMENTOSENTREGAS} - ${NUTELAGENDAMENTOSENTREGAS}`,
             `Financeiro: ${EEMAILFINANCEIRO} - ${NUTELFINANCEIRO}`,
             `Compras: ${EEMAILCOMPRAS} - ${NUTELCOMPRAS}`,
             `Cadastro: ${EEMAILCADASTRO} - ${NUTELCADASTRO}`
@@ -74,6 +76,266 @@ function fnGetContatos(idGrupoEmpresarial){
     }
     
     return [];
+}
+
+function getDadosPedido(idResumoPedido){
+    let querydetpedido = `
+        SELECT 
+            STPEDIDOPRIMARIO
+        FROM
+            "VAR_DB_NAME".RESUMOPEDIDO
+        WHERE
+            "STCANCELADO"= 'False'
+            AND IDRESUMOPEDIDO = ?
+    `;
+
+	let regDetalhe = api.sqlQuery(querydetpedido, idResumoPedido);
+	
+	return regDetalhe[0];
+}
+
+function getDadosPedidoSecundario(idResumoPedido){
+    let querydetpedido = `
+        SELECT 
+            IDPEDIDOPRIMARIO
+        FROM
+            "VAR_DB_NAME".RESUMOPEDIDO
+        WHERE
+            "STCANCELADO"= 'False'
+            AND IDRESUMOPEDIDO = ?
+    `;
+
+	let regDetalhe = api.sqlQuery(querydetpedido, idResumoPedido);
+	
+	return regDetalhe[0];
+}
+
+function getValoresPedido(idResumoPedido){
+    let querydetpedido = `
+        SELECT 
+            IFNULL(COUNT(IDDETALHEPEDIDO), 0) TOTALITENS, 
+            IFNULL(SUM(QTDTOTAL), 0) QTDTOTAL, 
+            IFNULL(SUM(VRTOTAL), 0) VRTOTAL
+        FROM
+            "VAR_DB_NAME".DETALHEPEDIDO
+        WHERE
+            "STCANCELADO"= 'False' 
+            AND IDRESUMOPEDIDO = ?
+    `;
+
+	let regDetalhe = api.sqlQuery(querydetpedido, idResumoPedido);
+	
+	return regDetalhe[0];
+}
+
+function getValoresPedidoSecundario(idResumoPedido){
+    let querydetpedido = `
+        SELECT 
+            IFNULL(COUNT(IDDETALHEPEDIDO), 0) TOTALITENS, 
+            IFNULL(SUM(QTDTOTAL), 0) QTDTOTAL, 
+            IFNULL(SUM(VRTOTAL), 0) VRTOTAL
+        FROM
+            "VAR_DB_NAME".DETALHEPEDIDO
+        WHERE
+            "STCANCELADO"= 'False' 
+            AND IDPEDIDOPRIMARIO = ?
+    `;
+
+	let regDetalhe = api.sqlQuery(querydetpedido, idResumoPedido);
+	
+	return regDetalhe[0];
+}
+
+function validarSePedidoSecundario(idResumoPedido){
+    let querydetpedido = `
+        SELECT 
+            IDRESUMOPEDIDO
+        FROM
+            "VAR_DB_NAME".RESUMOPEDIDO
+        WHERE
+            "STCANCELADO"= 'False'
+            AND IDPEDIDOPRIMARIO IS NOT NULL
+            AND IDRESUMOPEDIDO = ?
+    `;
+
+	let reg = api.sqlQuery(querydetpedido, idResumoPedido);
+	
+	return (reg.length > 0);
+}
+
+function getValorTaxa(){
+    let query = `
+        SELECT
+            FIRST_VALUE(VR_TAXA_PERC ORDER BY IDTAXA) AS VR_TAXA_PERC
+        FROM
+            "VAR_DB_NAME".TAXAFLUTUANTEPEDIDOCOMPRA
+        WHERE
+            1 = ?
+            AND ( 
+                DTFIM IS NULL 
+                    OR 
+                TO_DATE(DTFIM) > CURRENT_DATE 
+            )
+    `;
+    
+    let regTaxa = api.sqlQuery(query, 1);
+    
+    if(regTaxa.length > 0){
+        return (Number(regTaxa[0].VR_TAXA_PERC) / 100) + 1;
+    }
+    
+    return 0;
+}
+
+function fnUpdateValoresResumoPedidoSecundario(idResumoPedido, dados){
+    let qtdTotalItens = parseInt(dados.TOTALITENS || 0);
+    let qtdTotalProds = parseInt(dados.QTDTOTAL || 0);
+    let vrTotalBruto = parseFloat(dados.VRTOTAL || 0);
+    let vrTotalLiquido = vrTotalBruto;
+    
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."RESUMOPEDIDO" 
+        SET 
+            "NUTOTALITENS" = ?, 
+            "QTDTOTPRODUTOS" =  ?, 
+            "VRTOTALBRUTO" = (CASE WHEN IFNULL("FATOR_ACRESCIMO_COMPRA", 0) = 0 THEN 1 ELSE "FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)), 
+            "VRTOTALLIQUIDO" = (CASE WHEN IFNULL("FATOR_ACRESCIMO_COMPRA", 0) = 0 THEN 1 ELSE "FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)), 
+            "DTMOVPEDIDO" = now()
+        WHERE 
+            "IDPEDIDOPRIMARIO" =  ? 
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setInt(1, qtdTotalItens);
+    pStmt.setFloat(2, qtdTotalProds);
+    pStmt.setFloat(3, vrTotalBruto);
+    pStmt.setFloat(4, vrTotalLiquido);
+    pStmt.setInt(5, parseInt(idResumoPedido));
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
+function fnUpdateValoresResumoPedido(idResumoPedido, dados){
+    let qtdTotalItens = parseInt(dados.TOTALITENS || 0);
+    let qtdTotalProds = parseFloat(dados.QTDTOTAL || 0);
+    let vrTotalBruto = parseFloat(dados.VRTOTAL || 0);
+    let vrTotalLiquido = vrTotalBruto;
+    
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."RESUMOPEDIDO" 
+        SET 
+            "NUTOTALITENS" = ?, 
+            "QTDTOTPRODUTOS" =  ?, 
+            "VRTOTALBRUTO" = (CASE WHEN IFNULL("FATOR_ACRESCIMO_COMPRA", 0) = 0 THEN 1 ELSE "FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)), 
+            "VRTOTALLIQUIDO" = (CASE WHEN IFNULL("FATOR_ACRESCIMO_COMPRA", 0) = 0 THEN 1 ELSE "FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)), 
+            "DTMOVPEDIDO" = now()
+        WHERE 
+            "IDRESUMOPEDIDO" = ?
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setInt(1, qtdTotalItens);
+    pStmt.setFloat(2, qtdTotalProds);
+    pStmt.setFloat(3, vrTotalBruto);
+    pStmt.setFloat(4, vrTotalLiquido);
+    pStmt.setInt(5, parseInt(idResumoPedido));
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
+function fnUpdateValoresPedido(idResumoPedido){
+    let isSecundario = validarSePedidoSecundario(idResumoPedido);
+    
+    if(isSecundario){
+        return
+    }
+    
+    let dados = getValoresPedido(idResumoPedido);
+    
+    fnUpdateValoresResumoPedido(idResumoPedido, dados, conn);
+    
+    fnUpdateValoresResumoPedidoSecundario(idResumoPedido, dados, conn)
+}
+
+function fnCriarPedidoSecundario(dadosPedido, idPedidoPrimario){
+    let vrTaxaAcrescimo = getValorTaxa();
+    let query = `
+        INSERT INTO 
+            "VAR_DB_NAME"."RESUMOPEDIDO" 
+		(
+            "IDRESUMOPEDIDO", 
+            "IDGRUPOEMPRESARIAL", 
+            "IDSUBGRUPOEMPRESARIAL", 
+            "IDCOMPRADOR", 
+            "IDCONDICAOPAGAMENTO", 
+            "IDFORNECEDOR", 
+            "IDTRANSPORTADORA", 
+            "IDANDAMENTO", 
+            "MODPEDIDO", 
+            "NOVENDEDOR", 
+            "EEMAILVENDEDOR", 
+            "DTPEDIDO", 
+            "DTPREVENTREGA", 
+            "TPFRETE", 
+            "DTFECHAMENTOPEDIDO", 
+            "DTCADASTRO", 
+            "TPARQUIVO", 
+            "STDISTRIBUIDO", 
+            "STAGRUPAPRODUTO", 
+            "STCANCELADO",  
+            "TPFISCAL",  
+            "OBSPEDIDO", 
+            "OBSPEDIDO2", 
+            "STRASCUNHO", 
+            "IDPEDIDOPRIMARIO", 
+            "FATOR_ACRESCIMO_COMPRA",
+            "STPEDIDOPRIMARIO"
+        )
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'False')
+	`;
+   
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+
+	let registro = dadosPedido;
+	
+    let IdResPed = api.executeScalar('SELECT "VAR_DB_NAME"."SEQ_RESUMOPEDIDO".NEXTVAL FROM DUMMY WHERE 1 = ? ', 1);
+    
+    pStmt.setInt(1, parseInt(IdResPed));
+    pStmt.setInt(2, registro.IDGRUPOEMPRESARIAL);
+    pStmt.setInt(3, registro.IDSUBGRUPOEMPRESARIAL);
+    pStmt.setInt(4, registro.IDCOMPRADOR);
+    pStmt.setInt(5, registro.IDCONDICAOPAGAMENTO);
+    pStmt.setString(6, registro.IDFORNECEDOR);
+    setIntOrNull(pStmt,7, registro.IDTRANSPORTADORA);
+    pStmt.setInt(8, registro.IDANDAMENTO);
+    pStmt.setString(9, registro.MODPEDIDO);
+    pStmt.setString(10, registro.NOVENDEDOR);
+    pStmt.setString(11, registro.EEMAILVENDEDOR);
+    pStmt.setDate(12, registro.DTPEDIDO);
+    pStmt.setDate(13, registro.DTPREVENTREGA);
+    pStmt.setString(14, registro.TPFRETE);
+    pStmt.setDate(15, registro.DTFECHAMENTOPEDIDO);
+    pStmt.setDate(16, registro.DTCADASTRO);
+    pStmt.setString(17, registro.TPARQUIVO);
+    pStmt.setString(18, registro.STDISTRIBUIDO);
+    pStmt.setString(19, registro.STAGRUPAPRODUTO);
+    pStmt.setString(20, registro.STCANCELADO);
+    pStmt.setString(21, registro.TPFISCAL);
+    pStmt.setString(22, registro.OBSPEDIDO);
+    pStmt.setString(23, registro.OBSPEDIDO2);
+    pStmt.setString(24, registro.STRASCUNHO);
+    setIntOrNull(pStmt, 25, parseInt(idPedidoPrimario));
+    pStmt.setFloat(26, vrTaxaAcrescimo);
+    	
+    pStmt.execute();
+    
+    pStmt.close();
 }
 
 function fnHandleGet(byId) {
@@ -86,39 +348,14 @@ function fnHandleGet(byId) {
     var IdFabricante = $.request.parameters.get("idFabPesquisa");
     var IdComprador = $.request.parameters.get("idCompradorPesquisa");
     var STSituacaoSAP = $.request.parameters.get("stSituacaoSAP");
+    var idPedidoPrimario = $.request.parameters.get("idPedidoPrimario");
     
     if ( idPedido ) {
-            var conn = $.db.getConnection();
-                	var querydetpedido = ' SELECT IFNULL(COUNT(DETPED.IDDETALHEPEDIDO),0) TOTALITENS, IFNULL(SUM(DETPED.QTDTOTAL),0) QTDTOTAL, IFNULL(SUM(DETPED.VRTOTAL),0) VRTOTAL' +
-            		' FROM  ' +
-            		'   "VAR_DB_NAME".DETALHEPEDIDO  DETPED' +
-            		'  WHERE  ' +
-            		'   DETPED."STCANCELADO"=\'False\' AND ' +
-            		'   DETPED.IDRESUMOPEDIDO = ?  ';
-            
-            	var linha2 = api.sqlQuery(querydetpedido, idPedido);
-            	var det2 = linha2[0];
-               
-                var query2 = 'UPDATE "VAR_DB_NAME"."RESUMOPEDIDO" SET ' + 
-                    ' "NUTOTALITENS" = ?, ' + 
-                    ' "QTDTOTPRODUTOS" =  ?, ' + 
-                    ' "VRTOTALBRUTO" =  ?, ' + 
-                    ' "VRTOTALLIQUIDO" =  ? ' + 
-                    ' WHERE "IDRESUMOPEDIDO" =  ? ';
-                    
-                var pStmt = conn.prepareStatement(api.replaceDbName(query2));
-            
-                    pStmt.setInt(1, parseInt(det2.TOTALITENS));
-                    pStmt.setFloat(2, parseFloat(det2.QTDTOTAL));
-                    pStmt.setFloat(3, parseFloat(det2.VRTOTAL));
-                    pStmt.setFloat(4, parseFloat(det2.VRTOTAL));
-                    pStmt.setInt(5, parseInt(idPedido));
-                    
-                	pStmt.execute();
-            
-            	    pStmt.close();
-            	    
-        	        conn.commit();
+        conn = $.db.getConnection();
+        
+        fnUpdateValoresPedido(idPedido, conn);
+        
+        conn.commit();
     }
     	
     var query =  `
@@ -207,7 +444,10 @@ function fnHandleGet(byId) {
             tbrp.TPARQUIVO,
             tbrp.STDISTRIBUIDO,
             tbrp.STAGRUPAPRODUTO,
-            tbrp.STMIGRADOSAP,
+            CASE
+                WHEN (TBRP_PEDIDO_SECUNDARIO.IDRESUMOPEDIDO IS NOT NULL AND TBRP_PEDIDO_SECUNDARIO.STMIGRADOSAP = 'False') THEN 'False'
+                ELSE tbrp.STMIGRADOSAP
+            END AS STMIGRADOSAP,
             tbrp.LOGSAP,
             TO_VARCHAR( tbrp.DTPEDIDO, 'DD-MM-YYYY HH24:MI:SS') AS DTPEDIDO, 
             TO_VARCHAR( tbrp.DTPEDIDO, 'YYYY-MM-DD') AS DTPEDIDOFORMATADA,
@@ -222,13 +462,19 @@ function fnHandleGet(byId) {
             IFNULL( tbrp.PERCCOMISSAO,0) AS PERCCOMISSAO,
             ( tbrp.TPFISCAL) AS TPFISCAL,
             tbrp.STRASCUNHO,
-            tbrp.STCANCELADO,
+            CASE
+                WHEN (TBRP_PEDIDO_SECUNDARIO.IDRESUMOPEDIDO IS NOT NULL AND TBRP_PEDIDO_SECUNDARIO.STCANCELADO = 'False') THEN 'False'
+                ELSE tbrp.STCANCELADO
+            END AS STCANCELADO,
             tbrp.IDRESUMOPEDIDOORIGEM,
             tbrp.IDRESPREATIVACAO,
             TO_VARCHAR(tbrp.TXTMOTIVOREATIVACAO) AS TXTMOTIVOREATIVACAO,
             tbrp.DTREATIVACAO,
             tbrp.STREATIVADO,
-            (SELECT A.IDRESUMOPEDIDO FROM "VAR_DB_NAME".RESUMOPEDIDO A WHERE A.IDRESUMOPEDIDOORIGEM = tbrp.IDRESUMOPEDIDO ) AS IDRESUMOPEDIDODESTINO
+            tbrp.IDPEDIDOPRIMARIO,
+            tbrp.STPEDIDOPRIMARIO,
+            TBRP_PEDIDO_SECUNDARIO.IDRESUMOPEDIDO AS IDPEDIDOSECUNDARIO,
+            TBRP_PEDIDO_ORIGEM.IDRESUMOPEDIDO AS IDRESUMOPEDIDODESTINO
         FROM
             "VAR_DB_NAME".RESUMOPEDIDO tbrp
         /*INNER JOIN (
@@ -248,7 +494,11 @@ function fnHandleGet(byId) {
         LEFT JOIN "VAR_DB_NAME".TRANSPORTADORA TP ON 
             tbrp.IDTRANSPORTADORA = TP.IDTRANSPORTADORA 
         INNER JOIN "VAR_DB_NAME".CONDICAOPAGAMENTO CDP ON 
-            tbrp.IDCONDICAOPAGAMENTO = CDP.IDCONDICAOPAGAMENTO 
+            tbrp.IDCONDICAOPAGAMENTO = CDP.IDCONDICAOPAGAMENTO
+        LEFT JOIN "VAR_DB_NAME".RESUMOPEDIDO TBRP_PEDIDO_ORIGEM ON 
+            tbrp.IDRESUMOPEDIDO = TBRP_PEDIDO_ORIGEM.IDRESUMOPEDIDOORIGEM
+        LEFT JOIN "VAR_DB_NAME".RESUMOPEDIDO TBRP_PEDIDO_SECUNDARIO ON 
+            tbrp.IDRESUMOPEDIDO = TBRP_PEDIDO_SECUNDARIO.IDPEDIDOPRIMARIO
         WHERE
             1 = ? 
     `;
@@ -257,7 +507,7 @@ function fnHandleGet(byId) {
         query = query + ' And tbrp.IDRESUMOPEDIDO = \'' + byId + '\' ';
     }
     if ( idPedido ) {
-        query = query + ' And tbrp.IDRESUMOPEDIDO = \'' + idPedido + '\' ';
+        query += ` And tbrp.IDRESUMOPEDIDO = '${idPedido}' `;
     }
     if ( IdMarca ) {
         query = query + ' And tbrp.IDSUBGRUPOEMPRESARIAL = \'' + IdMarca + '\' ';
@@ -290,6 +540,9 @@ function fnHandleGet(byId) {
             query = query + ' AND (tbrp.DTPEDIDO BETWEEN \'' + dataPesquisaInicio + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\')';
 			//query = query + ' OR (tbrp.DTMOVPEDIDO BETWEEN \'' + dataPesquisaInicio + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\'))';
     }
+    if(idPedidoPrimario) {
+        query += ` OR (tbrp.IDPEDIDOPRIMARIO = '${idPedidoPrimario}' OR tbrp.IDRESUMOPEDIDOORIGEM = '${idPedidoPrimario}' OR tbrp.IDRESUMOPEDIDO = (SELECT IDPEDIDOPRIMARIO FROM "VAR_DB_NAME".RESUMOPEDIDO WHERE IDRESUMOPEDIDO = '${idPedidoPrimario}')) `;
+    }
     
     query = query + ' ORDER BY tbrp.IDRESUMOPEDIDO DESC';
     
@@ -317,39 +570,11 @@ function fnHandleGet(byId) {
 }
 
 function fnHandlePut() {
-    var conn = $.db.getConnection();
+    let idResPedido = $.request.parameters.get("idrespedido");
     
-    var idResPedido = $.request.parameters.get("idrespedido");
+    conn = $.db.getConnection();
     
-    	var querydetpedido = ' SELECT COUNT(DETPED.IDDETALHEPEDIDO) TOTALITENS, SUM(DETPED.QTDTOTAL) QTDTOTAL, SUM(DETPED.VRTOTAL) VRTOTAL' +
-		' FROM  ' +
-		'   "VAR_DB_NAME".DETALHEPEDIDO  DETPED' +
-		'  WHERE  ' +
-		'   DETPED."STCANCELADO"=\'False\' AND ' +
-		'   DETPED.IDRESUMOPEDIDO = ?  ';
-
-	var linha2 = api.sqlQuery(querydetpedido, idResPedido);
-	var det2 = linha2[0];
-   
-    var query = 'UPDATE "VAR_DB_NAME"."RESUMOPEDIDO" SET ' + 
-        ' "NUTOTALITENS" = ?, ' + 
-        ' "QTDTOTPRODUTOS" =  ?, ' + 
-        ' "VRTOTALBRUTO" =  ?, ' + 
-        ' "VRTOTALLIQUIDO" =  ?, ' + 
-        ' "DTMOVPEDIDO" = now() ' +
-        ' WHERE "IDRESUMOPEDIDO" =  ? ';
-        
-    var pStmt = conn.prepareStatement(api.replaceDbName(query));
-
-        pStmt.setInt(1, parseInt(det2.TOTALITENS));
-        pStmt.setFloat(2, parseFloat(det2.QTDTOTAL));
-        pStmt.setFloat(3, parseFloat(det2.VRTOTAL));
-        pStmt.setFloat(4, parseFloat(det2.VRTOTAL));
-        pStmt.setInt(5, parseInt(idResPedido));
-        
-    	pStmt.execute();
-
-	pStmt.close();
+	fnUpdateValoresPedido(idResPedido);
 
 	conn.commit();
 	
@@ -359,47 +584,49 @@ function fnHandlePut() {
 }
 
 function fnHandlePost(){
-    var conn = $.db.getConnection();
-    var queryId = 'SELECT IFNULL(MAX(TO_INT("IDRESUMOPEDIDO")),0) + 1 FROM "VAR_DB_NAME"."RESUMOPEDIDO" WHERE 1 = ? ';
-    var query = 'INSERT INTO "VAR_DB_NAME"."RESUMOPEDIDO" ' +
-		" ( " +
-		    ' "IDRESUMOPEDIDO", ' +
-    		' "IDGRUPOEMPRESARIAL", ' +
-            ' "IDSUBGRUPOEMPRESARIAL", ' +
-            ' "IDCOMPRADOR", ' +
-            ' "IDCONDICAOPAGAMENTO", ' +
-            ' "IDFORNECEDOR", ' +
-            ' "IDTRANSPORTADORA", ' +
-            ' "IDANDAMENTO", ' +
-            ' "MODPEDIDO", ' +
-            ' "NOVENDEDOR", ' +
-            ' "EEMAILVENDEDOR", ' +
-            ' "DTPEDIDO", ' +
-            ' "DTPREVENTREGA", ' +
-            ' "TPFRETE", ' +
-            ' "DTFECHAMENTOPEDIDO", ' +
-            ' "DTCADASTRO", ' +
-            ' "TPARQUIVO", ' +
-            ' "STDISTRIBUIDO", ' +
-            ' "STAGRUPAPRODUTO", ' +
-            ' "STCANCELADO", ' + 
-            ' "TPFISCAL", ' + 
-            ' "OBSPEDIDO", ' +
-            ' "OBSPEDIDO2", ' +
-            ' "STRASCUNHO" ' +
-    	' ) ' +
-		' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+    conn = $.db.getConnection();
+    
+    let query = `
+        INSERT INTO 
+            "VAR_DB_NAME"."RESUMOPEDIDO" 
+		(
+            "IDRESUMOPEDIDO", 
+            "IDGRUPOEMPRESARIAL", 
+            "IDSUBGRUPOEMPRESARIAL", 
+            "IDCOMPRADOR", 
+            "IDCONDICAOPAGAMENTO", 
+            "IDFORNECEDOR", 
+            "IDTRANSPORTADORA", 
+            "IDANDAMENTO", 
+            "MODPEDIDO", 
+            "NOVENDEDOR", 
+            "EEMAILVENDEDOR", 
+            "DTPEDIDO", 
+            "DTPREVENTREGA", 
+            "TPFRETE", 
+            "DTFECHAMENTOPEDIDO", 
+            "DTCADASTRO", 
+            "TPARQUIVO", 
+            "STDISTRIBUIDO", 
+            "STAGRUPAPRODUTO", 
+            "STCANCELADO",  
+            "TPFISCAL",  
+            "OBSPEDIDO", 
+            "OBSPEDIDO2", 
+            "STRASCUNHO", 
+            "STPEDIDOPRIMARIO" 
+        )
+		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+	`;
 
    
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());
 	
 	let IdResPed;
-
+	
 	for (var i = 0; i < bodyJson.length; i++) {
-        
 		var registro = bodyJson[i];
-		//ALTERAR A SEQUENCE NO BANCO E ATUALIZAR A LINHA DE BAIXO NA PRODUCAO ===>>>>>>>>>>>>>>>>>>
         IdResPed = api.executeScalar('SELECT "VAR_DB_NAME"."SEQ_RESUMOPEDIDO".NEXTVAL FROM DUMMY WHERE 1 = ? ', 1);
         
         pStmt.setInt(1, parseInt(IdResPed));
@@ -426,8 +653,12 @@ function fnHandlePost(){
         pStmt.setString(22, registro.OBSPEDIDO);
         pStmt.setString(23, registro.OBSPEDIDO2);
         pStmt.setString(24, registro.STRASCUNHO);
+        pStmt.setString(25, registro.STPEDIDOPORINTEMEDIARIO == 'True' ? 'True' : 'False');
         	
         pStmt.execute();
+        
+        registro.STPEDIDOPORINTEMEDIARIO == 'True' && fnCriarPedidoSecundario(registro, IdResPed, conn);
+        
 	}
 
 	pStmt.close();
@@ -466,8 +697,19 @@ try {
             break;
     }
     
-} catch(e) {
+} catch (e) {
+    let detalheError = e.stack.split('\n');
+    
+    detalheError = detalheError.length > 3 ? detalheError[1].trim() : detalheError[ detalheError.length - 3].trim()
+    
+    if(detalheError){
+        detalheError = `Linha: ${detalheError.split(':')[1]} da Funcao ${detalheError.split('@').shift()}()`;
+    }
+    
     $.response.contentType = 'application/json';
-    $.response.setBody(JSON.stringify({ message : e.message }));
+    $.response.setBody(JSON.stringify({
+        message: e.message,
+        detalheError
+    }));
     $.response.status = 400;
-}
+}   

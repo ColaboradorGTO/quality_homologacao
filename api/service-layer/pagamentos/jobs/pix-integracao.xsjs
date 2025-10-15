@@ -1,9 +1,25 @@
-let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-let slApi = $.import("quality.concentrador_homologacao.api.service-layer", "api");
+let rootPath = getRootPath();
+
+let api = $.import(rootPath + ".api.apiResponse", "int_api");
+let slApi = $.import(rootPath + ".api.service-layer", "api");
 let dbNameSAP = 'SBO_GTO_TESTE4';
 
 let conn;
 let session;
+
+function getRootPath() {
+    let fullPath = $.request.path.replace(/^\//, '').split('/');
+    let idxPath = fullPath.findIndex(item => item.toLowerCase().includes('concentrador'));
+
+    if (idxPath === -1) {
+        return fullPath.join('.');
+    }
+
+    let path = fullPath.slice(0, idxPath + 1).join('.');
+
+    return path;
+}
+
 
 function setIntOrNull(stmt, fieldId, value) {
 	if (!value) {
@@ -13,7 +29,7 @@ function setIntOrNull(stmt, fieldId, value) {
 	stmt.setInt(fieldId, value);
 }
 
-function fnGetDocEntryContasReceberSAP(idVenda){
+function fnGetDocEntryContasReceberSAP(idVendaPagamento){
     let query = `
         SELECT
             TBO."DocEntry"
@@ -24,7 +40,7 @@ function fnGetDocEntryContasReceberSAP(idVenda){
             AND TBO."U_IS_ID_QUALITY" = ?
     `;
     
-    let result = api.sqlQuery(query, idVenda);
+    let result = api.sqlQuery(query, idVendaPagamento);
     
     if(result.length > 0){
         return Number(result[0]["DocEntry"]);
@@ -33,37 +49,37 @@ function fnGetDocEntryContasReceberSAP(idVenda){
     return null;
 }
 
-function fnValidarIntegracaoContasReceberSAP(idVenda, StAtualizarComError = true){
-    let docEntryContasReceberSAP = fnGetDocEntryContasReceberSAP(idVenda);
+function fnValidarIntegracaoContasReceberSAP(idVendaPagamento, StAtualizarComError = true){
+    let docEntryContasReceberSAP = fnGetDocEntryContasReceberSAP(idVendaPagamento);
     
     if(docEntryContasReceberSAP){
-        return fnGravarLogSucessoContasReceber(idVenda, docEntryContasReceberSAP);
+        return fnGravarLogSucessoContasReceber(idVendaPagamento, docEntryContasReceberSAP);
     } else {
         if(StAtualizarComError){
-            fnGravarLogError(idVenda, 'Erro ao tentar integra o contas a receber');
+            fnGravarLogError(idVendaPagamento, 'Erro ao tentar integra o contas a receber');
         }
     }
     
     return false;
 }
 
-function fnGravarLogSucessoContasReceber(idVenda, docEntryContasReceberSAP){
+function fnGravarLogSucessoContasReceber(idVendaPagamento, docEntryContasReceberSAP){
     let queryUpdate = `
         UPDATE 
-            "VAR_DB_NAME"."VENDA" 
+            "VAR_DB_NAME"."VENDAPAGAMENTO" 
         SET 
             ERROR_LOG_SAP_PIX = NULL,
             DT_HORA_INTEGRACAO_CONTAS_A_RECEBER_PGTO_PIX = CURRENT_TIMESTAMP,
             STATUS_BLOQUEIO_ATUALIZACAO = 'False',
             DOCENTRY_SAP_CONTAS_A_RECEBER_PGTO_PIX = ?
         WHERE 
-            IDVENDA = ? 
+            IDVENDAPAGAMENTO = ? 
     `;
     
 	let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
     
     pStmtUpdate.setInt(1, docEntryContasReceberSAP);
-	pStmtUpdate.setString(2, idVenda);
+	pStmtUpdate.setString(2, idVendaPagamento);
 	pStmtUpdate.execute();
 	
 	pStmtUpdate.close();
@@ -72,21 +88,21 @@ function fnGravarLogSucessoContasReceber(idVenda, docEntryContasReceberSAP){
 	return true;
 }
 
-function fnGravarLogError(idVenda, p_Error){
+function fnGravarLogError(idVendaPagamento, p_Error){
     let queryUpdate = `
         UPDATE 
-            "VAR_DB_NAME"."VENDA" 
+            "VAR_DB_NAME"."VENDAPAGAMENTO" 
         SET 
             STATUS_BLOQUEIO_ATUALIZACAO = 'False',
             ERROR_LOG_SAP_PIX = ? 
         WHERE 
-            IDVENDA = ? 
+            IDVENDAPAGAMENTO = ? 
     `;
     
 	let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
 
 	pStmtUpdate.setString(1, p_Error);
-	pStmtUpdate.setString(2, idVenda);
+	pStmtUpdate.setString(2, idVendaPagamento);
 	pStmtUpdate.execute();
 	
 	pStmtUpdate.close();
@@ -99,19 +115,19 @@ function fnBloquearLinhaEnquantoAtualiza(dadosPagamentoPix){
     let ids = '';
     
     for (var i = 0; i < dadosPagamentoPix.length; i++) {
-        let { IDVENDA } = dadosPagamentoPix[i];
+        let { IDVENDAPAGAMENTO } = dadosPagamentoPix[i];
         
-        ids += "'" + IDVENDA + "'";
+        ids += "'" + IDVENDAPAGAMENTO + "'";
         ids += i < (dadosPagamentoPix.length - 1) ? ', ' : '';
     }
     
     let queryUpdate = `
         UPDATE 
-            "VAR_DB_NAME"."VENDA" 
+            "VAR_DB_NAME"."VENDAPAGAMENTO" 
         SET 
             STATUS_BLOQUEIO_ATUALIZACAO = 'True'
         WHERE 
-            IDVENDA IN (${ids}) 
+            IDVENDAPAGAMENTO IN (${ids}) 
     `;
     
     let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
@@ -124,6 +140,7 @@ function fnBloquearLinhaEnquantoAtualiza(dadosPagamentoPix){
 
 function fnMontarJsonContasReceber(dadosPagamentoPix){
     let {
+        IDVENDAPAGAMENTO,
         IDVENDA,
         IDCAIXAWEB,
         DTCOMPENSACAO,
@@ -151,7 +168,7 @@ function fnMontarJsonContasReceber(dadosPagamentoPix){
         "JournalRemarks": `Pagamento Pix Codigo de Autorização: ${NUAUTORIZACAO}`,
         "Series": series,
         "BPLID": IDEMPRESA,
-        "U_IS_ID_QUALITY": String(IDVENDA),
+        "U_IS_ID_QUALITY": String(IDVENDAPAGAMENTO),
         "U_ITV_Num_Caixa": String(IDCAIXAWEB),
         "PaymentAccounts": [
             {
@@ -176,7 +193,8 @@ function postSlContasReceber(data) {
 
 function integrarPagamentosPixNoSAP(byId) {
     let query = `
-        SELECT 
+        SELECT
+            TBVP.IDVENDAPAGAMENTO,
             TBV.IDVENDA,
             TBV.IDCAIXAWEB,
             IFNULL ((TBVP.VALORRECEBIDO),0) AS VRPIX,
@@ -198,8 +216,8 @@ function integrarPagamentosPixNoSAP(byId) {
             AND TBVP.NOTEF = 'PIX' 
             AND TBVP.DSTIPOPAGAMENTO='PIX'
             AND TBV.STCONFERIDO = 'True'
-            AND TBV.STATUS_BLOQUEIO_ATUALIZACAO = 'False'
-            AND IFNULL(TBV.DOCENTRY_SAP_CONTAS_A_RECEBER_PGTO_PIX, 0) = 0
+            AND TBVP.STATUS_BLOQUEIO_ATUALIZACAO = 'False'
+            AND IFNULL(TBVP.DOCENTRY_SAP_CONTAS_A_RECEBER_PGTO_PIX, 0) = 0
     `;
     
 	var bodyJson = JSON.parse($.request.body.asString()); 
@@ -209,11 +227,11 @@ function integrarPagamentosPixNoSAP(byId) {
         
         for (let i = 0; i < bodyJson.length; i++) {
             let registro = bodyJson[i];
-            ids += "'" + registro.IDVENDA + "'";
+            ids += "'" + registro.IDVENDAPAGAMENTO + "'";
             ids += i < (bodyJson.length - 1) ? ', ' : '';
         }
         
-        query += `AND TBV.IDVENDA IN (${ids})`;
+        query += `AND TBVP.IDVENDAPAGAMENTO IN (${ids})`;
         
         let dadosPagamentoPix = ids.length > 0 ? api.sqlQuery(query, 1) : '';
         
@@ -230,9 +248,9 @@ function integrarPagamentosPixNoSAP(byId) {
         
         for (let i = 0; i < dadosPagamentoPix.length; i++) {
             let registro = dadosPagamentoPix[i];
-            let { IDVENDA } = registro || '';
+            let { IDVENDAPAGAMENTO } = registro || '';
             
-            let stIntegrarNaContaBanco = !fnValidarIntegracaoContasReceberSAP(IDVENDA, false);
+            let stIntegrarNaContaBanco = !fnValidarIntegracaoContasReceberSAP(IDVENDAPAGAMENTO, false);
               
             if(stIntegrarNaContaBanco){
                 let dadosJsonContasReceber = fnMontarJsonContasReceber(registro);

@@ -15,7 +15,6 @@ function setDateOrNull(stmt, fieldId, value) {
 	}
 	stmt.setDate(fieldId, value);
 }
-
 function fnHandleGet(byId) {
     
     var idDaEmpresa = $.request.parameters.get("idEmpresa");
@@ -56,8 +55,9 @@ function fnHandleGet(byId) {
             TBD.STATUS_BLOQUEIO_ATUALIZACAO,
             TBD.DOCENTRY_SAP_CONTAS_A_PAGAR,
             TBD.DOCENTRY_SAP_CONTAS_A_RECEBER,
-            CASE 
-                WHEN ((TBD.DTDEPOSITO <> TBD.DTCOMPENSACAO AND IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) = 0) OR IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_RECEBER, 0) = 0) THEN 'False'
+            CASE
+                WHEN (TBC.TPCONTA = 'DEVSOBRA' AND IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) <> 0) THEN 'True'
+                WHEN (IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) = 0 OR IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_RECEBER, 0) = 0) THEN 'False'
                 ELSE 'True'
             END STINTEGRADOSAP
         FROM
@@ -138,6 +138,7 @@ function fnHandlePut() {
 	    msg : "Atualização realizada com sucesso!"
 	};
 }
+
 
 $.response.contentType = 'application/json';
 $.response.status = $.net.http.OK;

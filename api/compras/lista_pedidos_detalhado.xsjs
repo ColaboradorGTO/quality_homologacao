@@ -32,52 +32,100 @@ function fnHandleGet(byId) {
     var IdMarca = $.request.parameters.get("idMarcaPesquisa");
     var IdFornecedor = $.request.parameters.get("idFornPesquisa");
 
-    var query =  ' SELECT ' +
-        '   tbdp.IDRESUMOPEDIDO AS IDPEDIDO, ' +
-        '   EMP.DSSUBGRUPOEMPRESARIAL AS NOFANTASIAGRUPO, ' +
-        '   FR.IDFORNECEDOR, ' + 
-        '   FR.NORAZAOSOCIAL, ' + 
-        '   FR.NOFANTASIA AS NOFANTASIAFORN, ' + 
-        '   FC.NOFUNCIONARIO AS NOMECOMPRADOR, ' +
-        '   AD.DSANDAMENTO, ' +
-        '   AD.DSSETOR, ' +
-        '   SUM(tbdp.QTDTOTAL) AS QTDPRODTOTAL, ' +
-        '   SUM(tbdp.VRTOTAL) AS VRTOTALCUSTO, ' +
-        '   SUM(tbdp.VRVENDA*tbdp.QTDTOTAL) AS VRTOTALVENDA, ' +
-        '   SUM((tbdp.VRVENDA*tbdp.QTDTOTAL)-tbdp.VRTOTAL) AS VRTOTALLUCRO, ' +
-        '   TO_VARCHAR( tbrp.DTPEDIDO, \'DD-MM-YYYY HH24:MI:SS\') AS DTPEDIDO ' +
-        ' FROM ' +
-        '	"VAR_DB_NAME".DETALHEPEDIDO tbdp ' +
-        '   INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO tbrp ON tbdp.IDRESUMOPEDIDO = tbrp.IDRESUMOPEDIDO  ' +
-        '   INNER JOIN "VAR_DB_NAME".SUBGRUPOEMPRESARIAL EMP ON tbrp.IDSUBGRUPOEMPRESARIAL = EMP.IDSUBGRUPOEMPRESARIAL  ' +
-        '   INNER JOIN "VAR_DB_NAME".FORNECEDOR FR ON tbrp.IDFORNECEDOR = FR.IDFORNECEDOR  ' +
-        '   INNER JOIN "VAR_DB_NAME".FUNCIONARIO FC ON tbrp.IDCOMPRADOR = FC.IDFUNCIONARIO  ' +
-        '   INNER JOIN "VAR_DB_NAME".ANDAMENTOS AD ON tbrp.IDANDAMENTO = AD.IDANDAMENTO  ' +
-        ' WHERE ' +
-        '	1 = ?'+
-        '   AND tbrp.STCANCELADO = \'False\' AND tbdp.STCANCELADO = \'False\' ';
+    var query =  `
+        SELECT
+            TBRP.IDRESUMOPEDIDO AS IDPEDIDO,
+            TBSE.DSSUBGRUPOEMPRESARIAL AS NOFANTASIAGRUPO,
+            TBFR.IDFORNECEDOR, 
+            TBFR.NORAZAOSOCIAL, 
+            TBFR.NOFANTASIA AS NOFANTASIAFORN, 
+            TBFC.NOFUNCIONARIO AS NOMECOMPRADOR,
+            TBA.DSANDAMENTO,
+            TBA.DSSETOR,
+            TBDP.QTDPRODTOTAL,
+            TBDP.VRTOTALCUSTO,
+            TBDP.VRTOTALVENDA,
+            TBDP.VRTOTALLUCRO,
+            TO_VARCHAR( TBRP.DTPEDIDO, 'DD-MM-YYYY HH24:MI:SS') AS DTPEDIDO,
+            TO_VARCHAR( TBRP.DTPREVENTREGA , 'DD-MM-YYYY HH24:MI:SS') AS DTENTREGA,
+            (SELECT FIRST_VALUE(DSFABRICANTE ORDER BY IDFABRICANTE) FROM "VAR_DB_NAME".FABRICANTE WHERE IDFABRICANTE = TBDP.IDFABRICANTE) AS DSFABRICANTE,
+            CASE 
+                WHEN TBDP.STFOTO IS NOT NULL THEN 'True'
+                ELSE 'False'
+            END STFOTO
+        FROM
+            "VAR_DB_NAME".RESUMOPEDIDO TBRP
+        INNER JOIN (
+            SELECT DISTINCT 
+                X1.IDRESUMOPEDIDO,
+                X1.IDFABRICANTE,
+                X2.STFOTO,
+                SUM(X1.QTDTOTAL) AS QTDPRODTOTAL,
+                SUM(X1.VRTOTAL) AS VRTOTALCUSTO,
+                SUM(X1.VRVENDA * X1.QTDTOTAL) AS VRTOTALVENDA,
+                SUM((X1.VRVENDA * X1.QTDTOTAL) - X1.VRTOTAL) AS VRTOTALLUCRO
+            FROM
+                "VAR_DB_NAME".DETALHEPEDIDO X1
+            LEFT JOIN (
+                SELECT DISTINCT 
+                    XS1.IDRESUMOPEDIDO,
+                    CASE
+                        WHEN XS1.IDRESUMOPEDIDO IS NOT NULL THEN 'True'
+                        ELSE 'False'
+                    END STFOTO
+                FROM
+                    "VAR_DB_NAME".DETALHEPEDIDO XS1
+                WHERE
+                    EXISTS (
+                        SELECT 1 FROM "VAR_DB_NAME".TBIMAGEMPRODUTO XS2 WHERE XS1.IDPRODUTO = XS2.IDPRODUTO 
+                    ) 
+            ) AS X2 ON 
+                X1.IDRESUMOPEDIDO = X2.IDRESUMOPEDIDO
+            WHERE
+                X1.STCANCELADO = 'False'
+            GROUP BY
+                X1.IDRESUMOPEDIDO,
+                X2.STFOTO,
+                X1.IDFABRICANTE 
+        ) TBDP ON
+            TBRP.IDRESUMOPEDIDO = TBDP.IDRESUMOPEDIDO
+        INNER JOIN "VAR_DB_NAME".SUBGRUPOEMPRESARIAL TBSE ON 
+            TBRP.IDSUBGRUPOEMPRESARIAL = TBSE.IDSUBGRUPOEMPRESARIAL
+        INNER JOIN "VAR_DB_NAME".FORNECEDOR TBFR ON 
+            TBRP.IDFORNECEDOR = TBFR.IDFORNECEDOR
+        INNER JOIN "VAR_DB_NAME".FUNCIONARIO TBFC ON
+            TBRP.IDCOMPRADOR = TBFC.IDFUNCIONARIO
+        INNER JOIN "VAR_DB_NAME".ANDAMENTOS TBA ON 
+            TBRP.IDANDAMENTO = TBA.IDANDAMENTO
+        WHERE
+            1 = ?
+            AND TBRP.STCANCELADO = 'False'
+    `;
+    
     if ( byId ) {
-        query = query + ' And  tbdp.IDDETALHEPEDIDO = \'' + byId + '\' ';
+        query += ` AND TBDP.IDDETALHEPEDIDO = '${byId}' `;
     }
     if ( idPedido ) {
-        query = query + ' And  tbdp.IDRESUMOPEDIDO = \'' + idPedido + '\' ';
+        query += ` AND TBRP.IDRESUMOPEDIDO = '${idPedido}' `;
     }
     if ( IdMarca ) {
-        query = query + ' And  tbrp.IDSUBGRUPOEMPRESARIAL = \'' + IdMarca + '\' ';
+        query += ` AND TBRP.IDSUBGRUPOEMPRESARIAL = '${IdMarca}' `;
     }
     if ( IdFornecedor ) {
-        query = query + ' And  tbrp.IDFORNECEDOR = \'' + IdFornecedor + '\' ';
+        query += ` AND TBRP.IDFORNECEDOR = '${IdFornecedor}' `;
     }
     if(dataPesquisaInicio && dataPesquisaFim) {
-            query = query + ' AND (tbrp.DTPEDIDO BETWEEN \'' + dataPesquisaInicio + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\')';
+        query += ` AND (TO_DATE(TBRP.DTPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}') `;
     }
-
-	query = query + ' GROUP BY tbdp.IDRESUMOPEDIDO,EMP.DSSUBGRUPOEMPRESARIAL, FR.IDFORNECEDOR, FR.NORAZAOSOCIAL, FR.NOFANTASIA, tbrp.DTPEDIDO, FC.NOFUNCIONARIO, AD.DSANDAMENTO, AD.DSSETOR  ';
+    
+    query += ' ORDER BY TBRP.IDRESUMOPEDIDO ';
 	
     var request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")
     };
+    
+    //$.response.setBody(JSON.stringify({query}))
     
     api.responseWithQuery(query, request, 1);
 }

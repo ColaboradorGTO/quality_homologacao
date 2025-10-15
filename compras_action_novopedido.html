@@ -8,14 +8,22 @@
 
   </h1>
 </div>
+<style>
+  @keyframes blink {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
+  }
+</style>
 <div class="row">
   <div class="col-xl-12">
     <div id="panel-1" class="panel">
-      <div class="panel-hdr pl-3">
-        <br>
-        <button type="button" class="btn btn-danger p-1" onclick="retornaParaTelaPrincipal();"><span
-            class="fal fa-arrow-alt-left p-1"></span>Voltar</button>
-      </div>
       <div class="panel-container show">
         <div class="panel-content">
           <div class="row">
@@ -55,223 +63,234 @@
           </div>
           <div class="panel-tag">
             <div id="cabecalhoPedido">
-            <div class="row">
-              <input type="hidden" name="IDResPedidoAtual" id="IDResPedidoAtual" value="0">
-              <input type="hidden" name="SetorAndamento" id="SetorAndamento" value="COMPRAS">
-              <input type="hidden" name="totalItens" id="totalItens" value="0">
-              <input type="hidden" name="prodqtd" id="prodqtd" value="0">
-              <input type="hidden" name="vrBrutoPed" id="vrBrutoPed" value="0">
-              <input type="hidden" name="IdAndamentoPed" id="IdAndamentoPed" value="1">
-              <input type="hidden" name="stRascunho" id="stRascunho" value="False">
+              <div class="row">
+                <input type="hidden" name="IDResPedidoAtual" id="IDResPedidoAtual" value="0">
+                <input type="hidden" name="SetorAndamento" id="SetorAndamento" value="COMPRAS">
+                <input type="hidden" name="totalItens" id="totalItens" value="0">
+                <input type="hidden" name="prodqtd" id="prodqtd" value="0">
+                <input type="hidden" name="vrBrutoPed" id="vrBrutoPed" value="0">
+                <input type="hidden" name="IdAndamentoPed" id="IdAndamentoPed" value="1">
+                <input type="hidden" name="stRascunho" id="stRascunho" value="False">
+                <input type="hidden" name="idResumoPedidoPrimario" id="idResumoPedidoPrimario" value="">
 
-              <div class="col-sm-6 col-xl-8">
-                <label class="form-label" for="lstforn">Lista Fornecedores</label>
-                <div class="input-group">
-                  <select class="select2 form-control" name="idforn" id="idforn" onChange="verificaDadosDoFornecedorSelecionado()">
-                    <option value=""> </option>
-                  </select>
+                <div class="col-sm-12 col-xl-12">
+                  <input type="checkbox" id="chkStPedidoPorIntermediario" class="form-input" disabled>
+                  <label class="form-label m-0 ml-1" for="chkStPedidoPorIntermediario"> Pedido Por Intermediário
+                  </label>
                 </div>
               </div>
-              <div class="col-sm-6 col-xl-2">
-                <label class="form-label" for="tpdate">Data Pedido</label>
-                <input class="form-control" id="dtpedido" type="date" name="dtpedido" value="">
-              </div>
-              <div class="col-sm-6 col-xl-2">
-                <label class="form-label" for="tpdate">Data Entrega</label>
-                <input class="form-control" id="dtentrega" type="date" name="dtentrega" value="">
-              </div>
+              <hr>
+              <div class="row">
 
-            </div>
-            <hr>
-            <div class="row">
-              <div class="col-sm-6 col-xl-2">
-                <label class="form-label" for="lstfiscal">Fiscal</label>
-                <div class="input-group">
-                  <select class="select2 form-control" name="idfiscal" id="idfiscal" value>
-                    <option value="">Selecione...</option>
-                    <option value="S">Simples Nacional</option>
-                    <option value="N">Lucro Presumido</option>
-                    <option value="R">Lucro Real</option>
-                  </select>
+                <div class="col-sm-6 col-xl-8">
+                  <label class="form-label" for="lstforn">Lista Fornecedores</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idforn" id="idforn"
+                      onChange="verificaDadosDoFornecedorSelecionado()">
+                      <option value=""> </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="tpdate">Data Pedido</label>
+                  <input class="form-control" id="dtpedido" type="date" name="dtpedido" value="">
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="tpdate">Data Entrega</label>
+                  <input class="form-control" id="dtentrega" type="date" name="dtentrega" value="">
                 </div>
               </div>
-              <div class="col-sm-6 col-xl-2">
-                <label class="form-label" for="lstenviar">Enviar</label>
-                <div class="input-group">
-                  <select class="select2 form-control" name="idenviar" id="idenviar">
-                    <option value="">Selecione...</option>
-                    <option value="NE">NÃO ENVIAR</option>
-                    <option value="ET">ETIQUETA</option>
-                    <option value="AR">ARQUIVO</option>
-                  </select>
+              <hr>
+              <div class="row">
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="lstfiscal">Fiscal</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idfiscal" id="idfiscal" value>
+                      <option value="">Selecione...</option>
+                      <option value="S">Simples Nacional</option>
+                      <option value="N">Lucro Presumido</option>
+                      <option value="R">Lucro Real</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="lstenviar">Enviar</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idenviar" id="idenviar">
+                      <option value="">Selecione...</option>
+                      <option value="NE">NÃO ENVIAR</option>
+                      <option value="ET">ETIQUETA</option>
+                      <option value="AR">ARQUIVO</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-5">
+                  <label class="form-label" for="nocomprador">Comprador</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="IdCompradorPedido" id="IdCompradorPedido">
+                      <option value=""> </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="tpempresa">Marca</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idmarca" id="idmarca">
+                      <option value=""> </option>
+                    </select>
+                  </div>
                 </div>
               </div>
-              <div class="col-sm-6 col-xl-5">
-                <label class="form-label" for="nocomprador">Comprador</label>
-                <div class="input-group">
-                  <select class="select2 form-control" name="IdCompradorPedido" id="IdCompradorPedido">
-                    <option value=""> </option>
-                  </select>
+              <hr>
+              <div class="row">
+                <div class="col-sm-6 col-xl-4">
+                  <label class="form-label" for="tppagamento">Condições de Pagamento</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idcondicaopagamento" id="idcondicaopagamento">
+                      <option value=""> </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-4">
+                  <label class="form-label" for="obsForn">Observação do Fornecedor - Max. 450 caracteres</label>
+                  <div class="input-group">
+                    <input type="text" id="obsforn" name="obsforn" class="form-control input" value="" maxlength="450">
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-4">
+                  <label class="form-label" for="obsInt">Observação Interna - Max. 450 caracteres</label>
+                  <div class="input-group">
+                    <input type="text" id="obsint" name="obsint" class="form-control input" value="" maxlength="450">
+                  </div>
                 </div>
               </div>
-              <div class="col-sm-6 col-xl-3">
-                <label class="form-label" for="tpempresa">Marca</label>
-                <div class="input-group">
-                  <select class="select2 form-control" name="idmarca" id="idmarca">
-                    <option value=""> </option>
-                  </select>
+              <hr>
+              <div class="row">
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="lsttipopedido">Tipo Pedido</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idtipopedido" id="idtipopedido">
+                      <option value="">Selecione...</option>
+                      <option value="VESTUARIO">VESTUARIO</option>
+                      <option value="CALCADOS">CALÇADOS</option>
+                      <option value="ARTIGOS">ARTIGOS</option>
+                      <option value="ACESSORIOS">ACESSÓRIOS</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                  <label class="form-label" for="nomevendedor">Vendedor</label>
+                  <div class="input-group">
+                    <input type="text" id="novendedor" name="novendedor" class="form-control input" value="">
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-6">
+                  <label class="form-label" for="evendedor">email vendedor</label>
+                  <div class="input-group">
+                    <input type="text" id="emailvendedor" name="emailvendedor" class="form-control input" value="">
+                  </div>
                 </div>
               </div>
-            </div>
-            <hr>
-            <div class="row">
-              <div class="col-sm-6 col-xl-4">
-                <label class="form-label" for="tppagamento">Condições de Pagamento</label>
-                <div class="input-group">
-                  <select class="select2 form-control" name="idcondicaopagamento" id="idcondicaopagamento">
-                    <option value=""> </option>
-                  </select>
+              <hr>
+              <div class="row">
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="vrdescI">Desconto I(%)</label>
+                  <div class="input-group">
+                    <input type="text" id="VrDescontoPedidoI" name="VrDescontoPedidoI" class="form-control" value="0"
+                      onblur="atualiza_valor_LiqResumo();">
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="vrdescII">Desconto II(%)</label>
+                  <div class="input-group">
+                    <input type="text" id="VrDescontoPedidoII" name="VrDescontoPedidoII" class="form-control" value="0"
+                      onblur="atualiza_valor_LiqResumo();">
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="vrdescIII">Desconto III(%)</label>
+                  <div class="input-group">
+                    <input type="text" id="VrDescontoPedidoIII" name="VrDescontoPedidoIII" class="form-control"
+                      value="0" onblur="atualiza_valor_LiqResumo();">
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-4">
+                  <label class="form-label" for="vrdescI">Total Liq.</label>
+                  <div class="input-group">
+                    <input type="text" id="vrliquidopedido" name="vrliquidopedido" class="form-control" value="0"
+                      readonly>
+                    <input type="hidden" id="vrliquidopedidofixo" name="vrliquidopedidofixo" class="form-control"
+                      value="0">
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-2">
+                  <label class="form-label" for="vrcomis">Comissão(%)</label>
+                  <div class="input-group">
+                    <input type="text" id="VrComissaoPedido" name="VrComissaoPedido" class="form-control" value="0">
+                  </div>
                 </div>
               </div>
-              <div class="col-sm-6 col-xl-4">
-                <label class="form-label" for="obsForn">Observação do Fornecedor - Max. 450 caracteres</label>
-                <div class="input-group">
-                  <input type="text" id="obsforn" name="obsforn" class="form-control input" value="" maxlength="450">
+              <hr>
+              <div class="row">
+                <div class="col-sm-6 col-xl-8">
+                  <label class="form-label" for="tptransportadora">Transportadora</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="idtransportadora" id="idtransportadora">
+                      <option value=""> </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-xl-4">
+                  <label class="form-label" for="tpfretes">Tipo Frete</label>
+                  <div class="input-group">
+                    <select class="select2 form-control" name="tpfrete" id="tpfrete">
+                      <option value="">Selecione...</option>
+                      <option value="PAGO">PAGO - CIF</option>
+                      <option value="APAGAR">A PAGAR - FOB</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-              <div class="col-sm-6 col-xl-4">
-                <label class="form-label" for="obsInt">Observação Interna - Max. 450 caracteres</label>
-                <div class="input-group">
-                  <input type="text" id="obsint" name="obsint" class="form-control input" value="" maxlength="450">
+              <div class="row">
+                <div class="col-sm-12 col-xl-12 p-3 mt-6">
+                  <div id="pendenciasPedido"></div>
                 </div>
               </div>
-            </div>
-            <hr>
-            <div class="row">
-              <div class="col-sm-6 col-xl-3">
-                <label class="form-label" for="lsttipopedido">Tipo Pedido</label>
-                <div class="input-group">
-                  <select class="select2 form-control" name="idtipopedido" id="idtipopedido">
-                    <option value="">Selecione...</option>
-                    <option value="VESTUARIO">VESTUARIO</option>
-                    <option value="CALCADOS">CALÇADOS</option>
-                    <option value="ARTIGOS">ARTIGOS</option>
-                    <option value="ACESSORIOS">ACESSÓRIOS</option>
-                  </select>
+              <div class="row">
+                <div class="col-sm-12 col-xl-12">
+                  <br>
+                  <button class="btn btn-primary mb-2" id="buttonIncluirProdPedido" type="button"
+                    onclick="modal_incluir_produto_pedido()">
+                    <span class="fal fa-list mr-1"></span> Incluir Itens
+                  </button>
+                  <button class="btn btn-info mb-2" id="buttonSalvarPedido" type="button" onclick="salvar_pedido()">
+                    <span class="fal fa-save mr-1"></span> Salvar Cabeçalho Pedido
+                  </button>
+                  <button class="btn btn-danger mb-2" id="buttonFehcarProdPedido" type="button"
+                    onclick="fechar_pedido()">
+                    <span class="fal fa-tasks mr-1"></span> Fechar Pedido
+                  </button>
+                  <button class="btn btn-success mb-2" id="buttonNovoProdPedido" type="button" onclick="NovoPedido()">
+                    <span class="fal fa-pen-alt mr-1"></span> Novo Pedido
+                  </button>
+                  <button type="button" id="buttonClonarProdPedido" class="btn btn-secondary mb-2" title="Clonar Pedido"
+                    onclick="Clonar_Pedido()">
+                    <span class="fal fa-copy mr-1"></span> Clonar Pedido
+                  </button>
+                  <button type="button" id="buttonClonarCabecalhoPedido" class="btn btn-warning mb-2"
+                    title="Clonar Cabeçalho do Pedido" onclick="clonarCabecalhoPedido()">
+                    <span class="fal fa-list-alt mr-1"></span> Clonar Cabeçalho Pedido
+                  </button>
                 </div>
               </div>
-              <div class="col-sm-6 col-xl-3">
-                <label class="form-label" for="nomevendedor">Vendedor</label>
-                <div class="input-group">
-                  <input type="text" id="novendedor" name="novendedor" class="form-control input" value="">
-                </div>
-              </div>
-              <div class="col-sm-6 col-xl-6">
-                <label class="form-label" for="evendedor">email vendedor</label>
-                <div class="input-group">
-                  <input type="text" id="emailvendedor" name="emailvendedor" class="form-control input" value="">
-                </div>
-              </div>
-            </div>
-            <hr>
-            <div class="row">
-              <div class="col-sm-6 col-xl-2">
-                <label class="form-label" for="vrdescI">Desconto I(%)</label>
-                <div class="input-group">
-                  <input type="text" id="VrDescontoPedidoI" name="VrDescontoPedidoI" class="form-control" value="0"
-                    onblur="atualiza_valor_LiqResumo();">
-                </div>
-              </div>
-              <div class="col-sm-6 col-xl-2">
-                <label class="form-label" for="vrdescII">Desconto II(%)</label>
-                <div class="input-group">
-                  <input type="text" id="VrDescontoPedidoII" name="VrDescontoPedidoII" class="form-control" value="0"
-                    onblur="atualiza_valor_LiqResumo();">
-                </div>
-              </div>
-              <div class="col-sm-6 col-xl-2">
-                <label class="form-label" for="vrdescIII">Desconto III(%)</label>
-                <div class="input-group">
-                  <input type="text" id="VrDescontoPedidoIII" name="VrDescontoPedidoIII" class="form-control" value="0"
-                    onblur="atualiza_valor_LiqResumo();">
-                </div>
-              </div>
-              <div class="col-sm-6 col-xl-4">
-                <label class="form-label" for="vrdescI">Total Liq.</label>
-                <div class="input-group">
-                  <input type="text" id="vrliquidopedido" name="vrliquidopedido" class="form-control" value="0"
-                    readonly>
-                  <input type="hidden" id="vrliquidopedidofixo" name="vrliquidopedidofixo" class="form-control"
-                    value="0">
-                </div>
-              </div>
-              <div class="col-sm-6 col-xl-2">
-                <label class="form-label" for="vrcomis">Comissão(%)</label>
-                <div class="input-group">
-                  <input type="text" id="VrComissaoPedido" name="VrComissaoPedido" class="form-control" value="0">
-                </div>
-              </div>
-            </div>
-            <hr>
-            <div class="row">
-              <div class="col-sm-6 col-xl-8">
-                <label class="form-label" for="tptransportadora">Transportadora</label>
-                <div class="input-group">
-                  <select class="select2 form-control" name="idtransportadora" id="idtransportadora">
-                    <option value=""> </option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-sm-6 col-xl-4">
-                <label class="form-label" for="tpfretes">Tipo Frete</label>
-                <div class="input-group">
-                  <select class="select2 form-control" name="tpfrete" id="tpfrete">
-                    <option value="">Selecione...</option>
-                    <option value="PAGO">PAGO - CIF</option>
-                    <option value="APAGAR">A PAGAR - FOB</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-sm-12 col-xl-12 p-3 mt-6">
-                <div id="pendenciasPedido"></div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-sm-12 col-xl-12">
-                <br>
-                <button class="btn btn-primary mb-2" id="buttonIncluirProdPedido" type="button"
-                  onclick="modal_incluir_produto_pedido()">
-                  <span class="fal fa-list mr-1"></span> Incluir Itens
-                </button>
-                <button class="btn btn-info mb-2" id="buttonSalvarPedido" type="button" onclick="salvar_pedido()">
-                  <span class="fal fa-save mr-1"></span> Salvar Cabeçalho Pedido
-                </button>
-                <button class="btn btn-danger mb-2" id="buttonFehcarProdPedido" type="button" onclick="fechar_pedido()">
-                  <span class="fal fa-tasks mr-1"></span> Fechar Pedido
-                </button>
-                <button class="btn btn-success mb-2" id="buttonNovoProdPedido" type="button" onclick="NovoPedido()">
-                  <span class="fal fa-pen-alt mr-1"></span> Novo Pedido
-                </button>
-                <button type="button" id="buttonClonarProdPedido" class="btn btn-secondary mb-2" title="Clonar Pedido"
-                  onclick="Clonar_Pedido()">
-                  <span class="fal fa-copy mr-1"></span> Clonar Pedido
-                </button>
-                <button type="button" id="buttonClonarCabecalhoPedido" class="btn btn-warning mb-2"
-                  title="Clonar Cabeçalho do Pedido" onclick="clonarCabecalhoPedido()">
-                  <span class="fal fa-list-alt mr-1"></span> Clonar Cabeçalho Pedido
-                </button>
-              </div>
-            </div>
             </div>
           </div>
           <div class="row">
             <div class="col-xl-12">
               <div id="panel-1" class="panel">
-                <div class="panel-hdr pl-3 texttablistpedidos">
+                <div class="panel-hdr texttablistpedidos">
                   <h2>
-                    LISTA DOS PRODUTOS DO PEDIDO:
+                    LISTA DOS PRODUTOS DO <span class="fw-300"><i>PEDIDO</i></span>
                   </h2>
                 </div>
                 <div class="panel-container show">

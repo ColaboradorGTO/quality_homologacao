@@ -433,7 +433,7 @@ function BuscaVoucher(){
 
 function BuscaVendaConvenio(){
  
-	return ajaxGet('api/dashboard/venda/resumo-venda-convenio.xsjs?pagesize=1000&status=False&idEmpresa=' + idemp + '&dataFechamento=' + datapesq)
+	return ajaxGet('api/dashboard/venda/resumo-venda-convenio.xsjs?pagesize=1000&status=False&idEmpresa=' + idemp + '&dataFechamento=' + datapesq )
 		.then(retornoTableListVendasConvenio)
 		.catch((e) => { funcError(), console.log(e) });
 }
