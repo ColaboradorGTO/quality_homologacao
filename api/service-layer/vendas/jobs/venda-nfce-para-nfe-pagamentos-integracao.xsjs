@@ -185,7 +185,7 @@ function excutePagamentoNaoIntegrado(byId) {
             
             let queryPagamentoPix = `
                 SELECT 
-                    "VALORRECEBIDO" 
+                    SUM("VALORRECEBIDO") AS "VALORRECEBIDO"
                 FROM 
                     "VAR_DB_NAME".VENDAPAGAMENTO 
                 WHERE 
@@ -251,7 +251,7 @@ function excutePagamentoNaoIntegrado(byId) {
                 "ProjectCode": "PDV_SOFTQUALITY",
                 "PayToCode": 'Pagamento',
                 "Remarks": 'INTEGRACAO QUALITY PAGAMENTO',
-                "U_IS_ID_QUALITY": byId,
+                "U_IS_ID_QUALITY": registro.IDVENDA,
                 "PaymentType": 'bopt_None',
                 "DocTypte": 'rCustomer',
                 "BPLID": parseInt(registro.IDEMPRESA),

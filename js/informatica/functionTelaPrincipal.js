@@ -4739,7 +4739,7 @@ function ListaEmpresas() {
     }
   };
 
-  xmlhttp.open("GET", "informatica_action_listaempresas.html", true);
+  xmlhttp.open("GET", "informatica_action_listaempresas_old.html", true);
   xmlhttp.send();
 }
 
@@ -4807,7 +4807,7 @@ function pesq_empresas() {
         .catch(funcError);
     }
   };
-  xmlhttp.open("GET", "informatica_action_pesqempresas.html", true);
+  xmlhttp.open("GET", "informatica_action_pesqempresas_old.html", true);
   xmlhttp.send();
 }
 
