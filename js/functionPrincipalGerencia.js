@@ -18664,27 +18664,27 @@ function modalPreviaEtiquetaRemanejamento() {
 }
 
 async function imprimirEtiquetaRemanejamento() {
-  try {
-    let etiquetasZPL = '';
-    let { titulo, idEmpresaOrigem, idEmpresaDestino, numOR, numOT, descVolume, categoriaVolume, solicitanteEtiqueta, qtdVolume } = acumuladorEtiquetasRemanejamento;
+    try{
+        let etiquetasZPL = '';
+        let { titulo, idEmpresaOrigem, idEmpresaDestino, numOR, numOT, descVolume, categoriaVolume, solicitanteEtiqueta, qtdVolume } = acumuladorEtiquetasRemanejamento;
 
-    for (let i = 0; i < qtdVolume; i++) {
-      etiquetasZPL += `
+        for (let i = 0; i < qtdVolume; i++) {
+            etiquetasZPL += `
                 ^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR2,2~SD15^JUS^LRN^CI0^XZ
                 ^XA
                 ^MMT
                 ^FWR
-                ^PW660
+                ^PW700
                 ^LL980
                 ^LS0
                 ^CI28
                 
-                ^FO560,0
-                ^GB150,1000,150^FS
+                ^FO565,0
+                ^GB0,1000,5^FS
 
                 ^FO550,${titulo == 'REMANEJAMENTO' ? '120' : '250'}
                 ^FR
-                ^CF0,100
+                ^CF0,75
                 ^FD${titulo}^FS
 
                 ^CF0,60
@@ -18703,22 +18703,22 @@ async function imprimirEtiquetaRemanejamento() {
                 ^FO80,20^FB980,2,1,L,0^FDDESTINATÁRIO: ${idEmpresaDestino}^FS
 
                 ^CF0,40
-                ^FO40,750^FDQTD: ${i + 1}/${qtdVolume}^FS
+                ^FO40,750^FDQTD: ${i+1}/${qtdVolume}^FS
 
                 ^XZ
             `;
+        }
+
+        if (etiquetasZPL?.length <= 0) {
+            return msgWarning('Por favor, insira um comando ZPL ou EPL');
+        }
+
+        await enviarZPLParaImpressora(etiquetasZPL).catch((error) => { throw error });
+
+        msgSuccess('Impressão realizada com sucesso!').then(() => $("#modalImpEtiquetaRemanejamento").modal('hide'));
+
+    } catch (error) {
+        msgError(error.message);
+        console.error(error);
     }
-
-    if (etiquetasZPL?.length <= 0) {
-      return msgWarning('Por favor, insira um comando ZPL ou EPL');
-    }
-
-    await enviarZPLParaImpressora(etiquetasZPL).catch((error) => { throw error });
-
-    msgSuccess('Impressão realizada com sucesso!').then(() => $("#modalImpEtiquetaRemanejamento").modal('hide'));
-
-  } catch (error) {
-    msgError(error.message);
-    console.error(error);
-  }
 }
