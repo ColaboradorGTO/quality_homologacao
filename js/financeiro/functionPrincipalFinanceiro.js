@@ -9471,355 +9471,991 @@ function retornoListaDescontoVendas_simplifcado(respostaListaDescontoVendas) {
 
 }
 
-//////////////////Faturas da Loja////////////////////////////
+//? ================== INICIO ROTINA FATURAS LOJAS ================== //
 
-function ListaFaturaLoja() {
+async function gerarLog(dados, textoFuncao) {
+  let textdados = JSON.stringify(dados);
 
-    /*if(flagConferidoData != ''){
-            Swal.fire({
-    			type: "warning",
-    			title: "Bloqueio de Dados",
-    			html: "Seus Dados estão bloqueado até que o(s) CAIXA(S) seja(am) CONFIRMADO(S)!",
-    			showConfirmButton: true,
-    			timer: 15000
-    		});
-    }else{ */
-        if (window.XMLHttpRequest) {
-          // code for IE7+, Firefox, Chrome, Opera, Safari
-          xmlhttp = new XMLHttpRequest();
-        } else {
-          // code for IE6, IE5
-          xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  let dadosLog = [{
+    "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+    "PATHFUNCAO": textoFuncao,
+    "DADOS": textdados,
+    "IP": ipCliente
+  }];
+
+  await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { console.log('Error ao gerar o LOG: ' + error) });
+}
+
+async function selecionarLinhasDataTableViaInput(element, idTable, nameInputs) {
+  let id = $(element).attr('id');
+  let label = $(`label[for='${id}']`);
+  let stChecked = $(element).prop('checked');
+  let tabela = $('#' + idTable).DataTable();
+  let contador = 0;
+
+  if (stChecked) {
+    await Swal.fire({
+      type: 'question',
+      title: 'Selecione o modo de seleção',
+      text: 'Deseja selecionar todos da tabela ou somente o que está em tela?',
+      showConfirmButton: true,
+      showCancelButton: true,
+      showCloseButton: true,
+      confirmButtonText: 'Todos os registros',
+      cancelButtonText: 'Apenas o que está tela',
+      cancelButtonColor: '#2196F3',
+      allowOutsideClick: false,
+    })
+      .then((resp) => {
+        if (resp.value) {
+          tabela.rows().every(function () {
+            let linhaTabela = $(this.node())
+
+            linhaTabela.find("input[name='" + nameInputs + "']").prop('checked', stChecked).trigger('change');
+
+            if (linhaTabela.find("input[name='" + nameInputs + "']:checked").length > 0) {
+              contador++;
+            }
+          });
         }
-        
-        xmlhttp.onreadystatechange = function () {
-          if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-            document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
-            
-                $('.dataAtual').text(dataAtual);
-                $('#dtiniciofat').val(dataAtualCampo);
-                $('#dtfimfat').val(dataAtualCampo);
-    
-                $("#idloja").select2();
-    
-                ajaxGet('api/informatica/empresa.xsjs')
-                    .then(retornoListaEmpresasSelect)
-                    .catch(funcError);
-            
+
+        if (resp.dismiss == 'cancel') {
+          $("input[name='" + nameInputs + "']").prop('checked', stChecked).trigger('change');
+
+          if ($("input[name='" + nameInputs + "']:checked").length > 0) {
+            contador++;
           }
-        };
-        xmlhttp.open("GET", "financeiro_action_listfaturasloja.html", true);
-        xmlhttp.send();
-    //}
+        }
+      })
+  } else {
+    tabela.rows().every(function () {
+      let linhaTabela = $(this.node())
+
+      linhaTabela.find("input[name='" + nameInputs + "']").prop('checked', stChecked).trigger('change');
+    });
+  }
+
+  stChecked = (contador > 0);
+
+  $(element).prop('checked', stChecked);
+  label.text(stChecked ? 'Desmarcar Todos' : 'Marcar Todos');
 }
 
-function pesq_list_faturas() {
+async function ListaFaturaLoja() {
+  try {
+    animationLoadingStart();
 
-    var datafatinicio = $("#dtiniciofat").val();
-    var datafatfim = $("#dtfimfat").val();
-    var codfatura = $("#codfat").val();
-    var IDEmpresaFat = $("#idloja").val();
-	var contadorFatura = 0;
-    VrTotalFaturaLoja = 0;
-    
-    dataRetorno=[];
-	
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-   
-    xmlhttp.onreadystatechange = function () {
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("resultado").innerHTML = xmlhttp.responseText;
-        //newDataTable('faturaloja');
-        
-            $('.dataAtual').text(dataAtual);
+    await $.get("financeiro_action_listfaturasloja.html", (respHtml) => { $("#js-page-content").html(respHtml) });
 
-		    return	ajaxGet('api/detalhe-fatura.xsjs?pageSize=1000&page=1&idEmpresa=' + IDEmpresaFat + '&dataPesquisaInic=' + datafatinicio + '&dataPesquisaFim=' + datafatfim + '&nuCodigoAutorizacao=' + codfatura)
-				.then(retornoTableListFaturaLoja)
-				.catch(funcError);
-				
+    await ajaxGetAllData('api/informatica/empresa.xsjs', false)
+      .then(retornoListaEmpresasSelect);
+
+    $('.dataAtual').text(dataAtual);
+    $('#dtiniciofat, #dtfimfat').val(dataAtualCampo);
+
+    $("#idloja").select2().focus();
+
+    $('#codfat, #dtiniciofat, #dtfimfat').on('keypress', function (e) {
+      if (e.which == 13) {
+        pesq_list_faturas();
       }
-    };
-    xmlhttp.open("GET", "financeiro_action_pesqfaturaloja.html", true);
-    xmlhttp.send();
+    })
+
+    animationLoadingStop();
+
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
 }
 
-function chamarProximaListafaturaLoja(numPage){
+async function pesq_list_faturas() {
+  let idEmpresa = $("#idloja").val();
+  let codFatura = $("#codfat").val();
+  let dtInicio = $("#dtiniciofat").val();
+  let dtFim = $("#dtfimfat").val();
 
-    var datafatinicio = $("#dtiniciofat").val();
-    var datafatfim = $("#dtfimfat").val();
-    var codfatura = $("#codfat").val();
-    var IDEmpresaFat = $("#idloja").val();
-    
-	ajaxGet('api/detalhe-fatura.xsjs?pageSize=1000&page='+numPage+'&idEmpresa=' + IDEmpresaFat + '&dataPesquisaInic=' + datafatinicio + '&dataPesquisaFim=' + datafatfim + '&nuCodigoAutorizacao=' + codfatura)
-		.then(retornoTableListFaturaLoja)
-		.catch(funcError);
-		
-	$("#resultado").html(
-    "<div align=\"center\">" +
-    "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>"  +
-    "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-    "</div>"
-    );
+  animationLoadingStart();
+
+  try {
+    await $.get("financeiro_action_pesqfaturaloja.html", (respHtml) => $('#resultado').html(respHtml));
+
+    await ajaxGetAllData(`api/detalhe-fatura.xsjs?pageSize=1000&page=1&idEmpresa=${idEmpresa}&dataPesquisaInic=${dtInicio}&dataPesquisaFim=${dtFim}&nuCodigoAutorizacao=${codFatura}`)
+      .then(retornoTableListFaturaLoja);
+
+    animationLoadingStop();
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
 }
 
-function retornoTableListFaturaLoja(faturaLoja) {
+function retornoTableListFaturaLoja(dadosFaturaLoja) {
+  let { data } = dadosFaturaLoja || [];
+  let vrTotal = 0;
+  let dadosTable = [];
 
-  var numPageAtual = parseInt(faturaLoja.page);
+  if (data.length > 0) {
+    for (let registro of data) {
+      let {
+        IDDETALHEFATURA,
+        NOFANTASIA,
+        DSCAIXA,
+        DTPROCESSAMENTO,
+        HRPROCESSAMENTO,
+        NUCODAUTORIZACAO,
+        NOFUNCIONARIO,
+        VRRECEBIDO,
+        STCANCELADO,
+        IDMOVIMENTOCAIXAWEB,
+        STPIX,
+        STCONFERIDOFATURA,
+        DOCENTRY_SAP_CONTAS_A_RECEBER
+      } = registro;
 
-  if (faturaLoja.data.length != 0) {
-    for (var i = 0; i < faturaLoja.data.length; i++) {
-      var registro = faturaLoja.data[i];
+      let dtHora = DTPROCESSAMENTO + ' ' + HRPROCESSAMENTO;
+      let status = '<span style="color: red;">CANCELADO</span>';
+      let stPix = STPIX == 'True' ? 'SIM' : 'NÃO';
+      let stMigrado = DOCENTRY_SAP_CONTAS_A_RECEBER > 0;
+      let stConferido = STCONFERIDOFATURA == 'True';
+      let stAtivo = STCANCELADO == 'False';
+      let btnEditar = `<button type="button" class="btn btn-warning btn-xs mr-1" title="Editar Fatura" onclick="modal_editar_fatura('${IDDETALHEFATURA}')"><span class="d-block fal fa-pen mr-1"></span> Editar</button>`;
+      let btnConferir = `<button type="button" class="btn btn-success btn-xs mr-1" title="Conferir Fatura" onclick="modal_conferir_fatura('${IDDETALHEFATURA}')"><span class="d-block fal fa-check mr-1"></span> Conferir</button>`;
+      let btnCancelar = `<button type="button" class="btn btn-danger btn-xs" title="Cancelar Fatura" onclick="modal_cancela_fatura_Loja('${IDDETALHEFATURA}')"><span class="d-block fal fa-times mr-1"></span> Cancelar</button>`;
+      let selecao = '';
+      let opcoes = '';
 
-      IDFatura = registro.IDDETALHEFATURA;
-      IDEmpFatura = registro.IDEMPRESA;
-      NoEmpFatura = registro.NOFANTASIA;
-      IDCaixaFatura = registro.IDCAIXAWEB;
-      DescCaixaFatura = registro.DSCAIXA;
-      DTFatura = registro.DTPROCESSAMENTO;
-      HRFatura = registro.HRPROCESSAMENTO;
-      CodFatura = registro.NUCODAUTORIZACAO;
-      NoRecebedorFatura = registro.NOFUNCIONARIO;
-      VrFatura = parseFloat(registro.VRRECEBIDO);
-      STFatura = registro.STCANCELADO;
-      IDMovCaixaFatura = registro.IDMOVIMENTOCAIXAWEB;
-      STMovCaixa = registro.STCONFERIDO;
-      MotivoCancelado = registro.TXTMOTIVOCANCELAMENTO;
-      IdMovCaixa = registro.IDMOVCAIXA;
-      STPIX = registro.STPIX;
+      if (stAtivo) {
+        status = `<span style="color: blue;">ATIVO / ${STCONFERIDOFATURA == 'True' ? 'CONFERIDO' : '<span style="color: red;">NÃO CONFERIDO</span>'}</span>`;
+        vrTotal += parseFloat(registro.VRRECEBIDO);
 
-      var DTHRFatura = DTFatura + ' ' + HRFatura;
+        if (stConferido) {
+          btnConferir = '';
+        } else {
+          selecao = `
+            <div class="custom-control custom-checkbox">
+              <input id="${IDDETALHEFATURA}" type="checkbox" class="custom-control-input" name="chkFatura" onchange="selecionarLinhaTable(this)">
+              <label class="custom-control-label" for="${IDDETALHEFATURA}"></label>
+            </div>
+          `;
+        }
 
-      if (IDMovCaixaFatura == IdMovCaixa) {
-        tagIDMov = '<label style="color: blue; font-size: 11px;">' + IdMovCaixa + '</label>';
+        if (stMigrado) {
+          btnEditar = '';
+          btnConferir = '';
+        }
       } else {
-        tagIDMov = '<label style="color: red; font-size: 11px;">' + IdMovCaixa + '</label>';
+        btnConferir = '';
       }
 
-      if (STFatura == 'False') {
-        tagFaturaAtivo = '<label style="color: blue;">ATIVO</label>';
-        VrTotalFaturaLoja = VrTotalFaturaLoja + VrFatura;
-      } else {
-        tagFaturaAtivo = '<label style="color: red;">CANCELADO</label>';
-      }
+      opcoes = !stMigrado ? `
+          <div class="d-flex justify-content-start">
+            ${btnEditar}
+            ${btnConferir}
+          </div>
+        ` : '';
 
-      tagFaturaCancelaBotao = '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-success btn-xs" title="Editar Fatura" id="' + IDFatura + '" onclick="modal_editar_fatura(this.id)" >Editar</button>' +
-        '<button type="button" class="btn btn-danger btn-xs" title="Cancelar Fatura" id="' + IDFatura + '" onclick="modal_cancela_fatura_Loja(this.id)" >Cancelar</button></div>';
-
-      if (STPIX == 'True') {
-        tagStPix = 'SIM';
-      } else {
-        tagStPix = 'NÃO';
-      }
-
-      dataRetorno.push([NoEmpFatura,
-        DTHRFatura,
-        IDMovCaixaFatura,
-        DescCaixaFatura,
-        CodFatura,
-        VrFatura,
-        NoRecebedorFatura,
-        tagFaturaAtivo,
-        tagStPix,
-        tagFaturaCancelaBotao
+      dadosTable.push([
+        selecao,
+        NOFANTASIA,
+        dtHora,
+        IDMOVIMENTOCAIXAWEB,
+        DSCAIXA,
+        NUCODAUTORIZACAO,
+        parseFloat(VRRECEBIDO).toFixed(2),
+        NOFUNCIONARIO,
+        status,
+        stPix,
+        opcoes
       ]);
 
     }
 
-    chamarProximaListafaturaLoja(numPageAtual + 1);
 
-  } else {
+  }
 
-    $('#resultado').html(
-      `<table id="dt-basic-faturaloja" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
-                <thead class="bg-primary-600">
-                    <tr>
-                        <th width="15%" style="font-size: 11px;">Empresa</th>
-                        <th width="15%" style="font-size: 11px;">Data Recebimento</th>
-                        <th width="10%" style="font-size: 11px;">Nº Movimento Caixa</th>
-                        <th width="10%" style="font-size: 11px;">Caixa</th>
-                        <th width="15%" style="font-size: 11px;">Cod. Autorização</th>
-                        <th width="10%" style="font-size: 11px;">Valor</th>
-                        <th style="font-size: 11px;">Recebedor</th>
-                        <th width="10%" style="font-size: 11px;">Situação</th>
-                        <th width="10%" style="font-size: 11px;">PIX</th>
-                        <th width="10%" style="font-size: 11px;">Opção</th>
-                    </tr>
-                </thead>
-                <tbody id="resultadoFaturas">
-                </tbody>
-                <tfoot id="" class="thead-themed totalFaturas">
-                </tfoot>
-            </table>`
-    );
+  $('#resultado').html(`
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>Lista de Faturas</h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <table id="dt-basic-faturaloja" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+            <thead class="bg-primary-600">
+              <tr>
+                <th>Selecão</th>
+                <th>Empresa</th>
+                <th>Data Recebimento</th>
+                <th>Nº Movimento Caixa</th>
+                <th>Caixa</th>
+                <th>Cod. Autorização</th>
+                <th>Valor</th>
+                <th>Recebedor</th>
+                <th>Situação</th>
+                <th>PIX</th>
+                <th>Opção</th>
+              </tr>
+            </thead>
+            <tbody id="resultadoFaturas"> </tbody>
+            <tfoot id="" class="thead-themed totalFaturas"> </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  `);
 
-    $('#dt-basic-faturaloja').DataTable({
-      data: dataRetorno,
-      deferRender: true,
-      //scrollY:        800,
-      //scrollCollapse: false,
-      //scroller:       false,
-      responsive: true,
-      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-        "<'row'<'col-sm-12'tr>>" +
-        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-      buttons: [
-        {
-          extend: 'pdfHtml5',
-          text: 'PDF',
-          titleAttr: 'Generate PDF',
-          className: 'btn-outline-danger btn-sm mr-1'
-        },
-        {
-          extend: 'excelHtml5',
-          text: 'Excel',
-          titleAttr: 'Gerar Excel',
-          className: 'btn-outline-success btn-sm mr-1',
-          exportOptions: {
-            columns: ':visible',
-            format: {
-              body: function (data, row, column, node) {
-                data = $('<p>' + data + '</p>').text();
-                return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
-              }
+  $('#dt-basic-faturaloja').DataTable({
+    title: 'Faturas da Loja',
+    data: dadosTable,
+    deferRender: false,
+    responsive: false,
+    scrollX: true,
+    columnDefs: [
+      { targets: [0], className: "text-center", orderDataType: 'input-checkbox' },
+      { targets: 2, type: 'date-time-br' }
+    ],
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12 caixa-selecao'>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
             }
           }
-        },
-        {
-          extend: 'print',
-          text: 'Print',
-          titleAttr: 'Print Table',
-          className: 'btn-outline-primary btn-sm'
         }
-      ]
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ],
+    initComplete: function () {
+      $('.caixa-selecao').html(`
+        <div id="chkMarcaTodos" class="mb-1 ${dadosTable.length > 0 ? '' : 'd-none'}">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" id="selectAll" class="custom-control-input" onclick="selecionarLinhasDataTableViaInput(this, 'dt-basic-faturaloja', 'chkFatura')">
+                <label class="custom-control-label" for="selectAll">Marcar Todos</label>
+            </div>
+        </div>
+      `);
+    }
+  });
+
+  $('.totalFaturas').html(
+    `<tr>
+        <th colspan="6" style="text-align: center;">Total Lançamentos</th>
+        <th style="text-align: right;">${mascaraValor(vrTotal.toFixed(2))}</th>
+        <th colspan="4"></th>
+    </tr>`
+  );
+
+}
+
+async function modal_editar_fatura(id) {
+  try {
+    animationLoadingStart();
+
+    await $.get('financeiro_action_editarfaturamodal.html', (respHtml) => $('#resulmodaleditefatura').html(respHtml));
+
+    await ajaxGetAllData('api/detalhe-fatura.xsjs?id=' + id, false)
+      .then(retornoEditarFaturaCaixa);
+
+    $("#stPixFat, #stStatusFat").select2({
+      dropdownParent: $("#editeFatura")
     });
 
-    $('.totalFaturas').html(
-      `<tr>
-                <th colspan="6" style="text-align: center;">Total Lançamentos</th>
-                <th style="text-align: right;">${mascaraValor(VrTotalFaturaLoja.toFixed(2))}</th>
-                <th colspan="4"></th>
-            </tr>`
-    );
+    $("#editeFatura").modal('show');
+
+    animationLoadingStop();
+  } catch (error) {
+    console.log(error);
+    msgError();
   }
 }
 
-function modal_editar_fatura(id) {
+function retornoEditarFaturaCaixa(dadosFatura) {
+  let { data } = dadosFatura || [];
+  let { IDDETALHEFATURA, DSCAIXA, NOFANTASIA, NUCODAUTORIZACAO, NUAUTORIZACAO, IDMOVIMENTOCAIXAWEB, STPIX, VRRECEBIDO, STCANCELADO } = data[0];
 
-    $.get('financeiro_action_editarfaturamodal.html', function(res) {
-      
-       $('#resulmodaleditefatura').html(res);
-       $("#editeFatura").modal('show');
-       $('#editeFatura').on('shown.bs.modal', function () {
-           
-            $("#stPixFat").select({
-    			dropdownParent: $("#editeFatura")
-    		});
-            $("#stStatusFat").select({
-    			dropdownParent: $("#editeFatura")
-    		});
-       });
+  let vrFaturaRecebido = mascaraValor(parseFloat(VRRECEBIDO).toFixed(2));
+  let dadosCaixaFatura = IDDETALHEFATURA + ' - ' + DSCAIXA + ' - ' + NUCODAUTORIZACAO;
+
+  $('#IDFaturaEditar').val(IDDETALHEFATURA);
+  $('#DadosFat').val(dadosCaixaFatura);
+  $('#EmpFat').val(NOFANTASIA);
+  $('#IDMovimentoEditar').val(IDMOVIMENTOCAIXAWEB);
+  $('#CodAutorizacaoFat').val(NUCODAUTORIZACAO);
+  $('#VrFatura').val(vrFaturaRecebido);
+  $('#CodPixFat').val(NUAUTORIZACAO);
+  $('#stPixFat').val(STPIX).trigger('change');
+  $('#stStatusFat').val(STCANCELADO).trigger('change');
+}
+
+async function editar_fatura() {
+  let idfaturacaixa = $("#IDFaturaEditar").val();
+  let codAutorizacao = $("#CodAutorizacaoFat").val();
+  let codPix = $("#CodPixFat").val();
+  let stPix = $("#stPixFat").val();
+  let StCancel = $("#stStatusFat").val();
+  let vrfatura = $("#VrFatura").val()?.replaceAll(".", "").replace(",", ".");
+
+  if ($("#CodAutorizacaoFat").val() === '') {
+
+    $("#resultadoeditafatura").html(`
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+        <strong>Atenção!</strong> Informe o Código da Fatura.
+      </div>
+    `);
+
+    return $("#CodAutorizacaoFat").focus();
+  }
+
+  if (!Number(vrfatura || 0)) {
+    $("#resultadoeditafatura").html(`
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+        <strong>Atenção!</strong> Informe o Valor da Fatura.
+      </div>
+    `);
+
+    return $("#VrFatura").focus();
+  }
+
+  let dados = {
+    "IDDETALHEFATURA": parseInt(idfaturacaixa),
+    "NUCODAUTORIZACAO": codAutorizacao,
+    "VRRECEBIDO": parseFloat(vrfatura),
+    "NUAUTORIZACAO": codPix,
+    "STPIX": stPix,
+    "STCANCELADO": StCancel
+  };
+
+  try {
+    animationLoadingStart('Enviando dados...', 1, false);
+
+    await ajaxPut("api/financeiro/atualizar-fatura.xsjs", dados)
+
+    await msgSuccess('Edição realizada com sucesso!');
+
+    $("#editeFatura").modal('hide');
+
+    pesq_list_faturas();
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
+
+}
+
+async function modal_conferir_fatura(id) {
+  msgQuestion('Deseja confirmar a conferência desta fatura?')
+    .then(async (resp) => {
+      if (resp.value) {
+        try {
+          let textoFuncao = 'FINANCEIRO/CONFERIR FATURA SELECIONADA';
+
+          let dados = {
+            "IDS_FATURAS": id,
+            "STCONFERIDO": 'True',
+            "IDFUNCIONARIO": IDFuncionarioLogin,
+          };
+
+          animationLoadingStart('Enviando dados...', 1, false);
+
+          await ajaxPut("api/financeiro/fatura-atualizacao-conferencia.xsjs", dados);
+
+          await gerarLog(dados, textoFuncao);
+
+          await msgSuccess('Conferência realizada com sucesso!');
+
+          pesq_list_faturas();
+
+        } catch (error) {
+          console.log(error);
+          msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+        }
+      }
+    });
+}
+
+function modal_conferir_todas_faturas_selecionadas() {
+  let tabela = $('#dt-basic-faturaloja').DataTable();
+  let ids = '';
+
+  msgQuestion('Deseja confirmar a conferência desta fatura?')
+    .then(async (resp) => {
+      if (resp.value) {
+        tabela.rows().every(function () {
+          let linhaTabela = $(this.node())
+          let input = linhaTabela.find("input[name='chkFatura']:checked");
+          let id = $(input).attr('id');
+
+          ids += id ? (id + ',') : '';
+        });
+
+        if (ids.length == 0) {
+          return msgWarning('Nenhuma fatura selecionada, selecione e tente novamente!')
+        }
+
+        try {
+          let textoFuncao = 'FINANCEIRO/CONFERIR TODAS FATURAS SELECIONADAS';
+
+          let dados = {
+            "IDS_FATURAS": ids.replace(/(^,|,$)/g, ""),
+            "STCONFERIDO": 'True',
+            "IDFUNCIONARIO": IDFuncionarioLogin,
+          };
+
+          animationLoadingStart('Enviando dados...', 1, false);
+
+          await ajaxPut("api/financeiro/fatura-atualizacao-conferencia.xsjs", dados)
+
+          await gerarLog(dados, textoFuncao);
+          console.log(dados)
+          await msgSuccess('Conferência realizada com sucesso!');
+
+          pesq_list_faturas();
+
+        } catch (error) {
+          console.log(error);
+          msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+        }
+      }
     })
-	    return	ajaxGet('api/detalhe-fatura.xsjs?id=' + id)
-			.then(retornoEditarFaturaCaixa)
-			.catch(funcError);
-  
 }
 
-function retornoEditarFaturaCaixa(editarFaturaCaixa) {
+//? ================== FIM ROTINA FATURAS LOJAS ================== //
 
-		IDFaturaCaixa = editarFaturaCaixa.data[0]['IDDETALHEFATURA'];
-		IDCaixaFatura = editarFaturaCaixa.data[0]['IDCAIXAWEB'];
-		DsCaixaFatura = editarFaturaCaixa.data[0]['DSCAIXA'];
-		DsEmpresaFatura = editarFaturaCaixa.data[0]['NOFANTASIA'];
-		CodAutorizacaoFatura = editarFaturaCaixa.data[0]['NUCODAUTORIZACAO'];
-		CodPixFatura = editarFaturaCaixa.data[0]['NUAUTORIZACAO'];
-		IDMovCaixaFatura = editarFaturaCaixa.data[0]['IDMOVIMENTOCAIXAWEB'];
-		StPixFatura = editarFaturaCaixa.data[0]['STPIX'];
-		StCancelFatura = editarFaturaCaixa.data[0]['STCANCELADO'];
-		VrFaturaRecebido = mascaraValor(parseFloat(editarFaturaCaixa.data[0]['VRRECEBIDO']).toFixed(2));
-		
-		DadosCaixaFatura = IDFaturaCaixa+' - '+DsCaixaFatura+' - '+CodAutorizacaoFatura;
-		
-		$('#IDFaturaEditar').val(IDFaturaCaixa);
-		$('#DadosFat').val(DadosCaixaFatura);
-		$('#EmpFat').val(DsEmpresaFatura);
-		$('#IDMovimentoEditar').val(IDMovCaixaFatura);
-		$('#CodAutorizacaoFat').val(CodAutorizacaoFatura);
-		$('#VrFatura').val(VrFaturaRecebido);
-		$('#CodPixFat').val(CodPixFatura);
-		
-		if(StPixFatura == 'True'){
-		    tXtPixFatura = 'SIM';
-		}else{
-		    tXtPixFatura = 'NÃO';
-		}
-		$('#stPixFat').append(
-			`<option value="` + StPixFatura + `" selected> ` + tXtPixFatura + `</option>`
-		);
-		
-		if(StCancelFatura == 'True'){
-		    tXtCancelFatura = 'CANCELADO';
-		}else{
-		    tXtCancelFatura = 'ATIVO';
-		}
-		$('#stStatusFat').append(
-			`<option value="` + StCancelFatura + `" selected> ` + tXtCancelFatura + `</option>`
-		);
+//? ================== INICIO ROTINA FATURAS LOJAS CONSOLIDADAS PARA MIGRACAO ================== //
+
+async function telaListaFaturasConsolidadas() {
+  try {
+    animationLoadingStart();
+
+    await $.get("financeiro_action_lista_faturas_consolidadas.html", (respHtml) => { $("#js-page-content").html(respHtml) });
+
+    await ajaxGetAllData('api/informatica/empresa.xsjs', false)
+      .then(retornoListaEmpresasSelect);
+
+    $('.dataAtual').text(dataAtual);
+    $('#dtinicio, #dtfim').val(dataAtualCampo);
+
+    $("#idloja").select2().focus();
+
+    $('#dtinicio, #dtfim').on('keypress', function (e) {
+      if (e.which == 13) {
+        pesquisarPreviaFaturasConsolidadas();
+      }
+    })
+
+    animationLoadingStop();
+
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
 }
 
-function editar_fatura() {
+async function pesquisarPreviaFaturasConsolidadas() {
+  let idEmpresa = $("#idloja").val();
+  let dtInicio = $("#dtinicio").val();
+  let dtFim = $("#dtfim").val();
 
-	var idfaturacaixa = $("#IDFaturaEditar").val();
-	var codAutorizacao = $("#CodAutorizacaoFat").val();
-	var codPix = $("#CodPixFat").val();
-	var stPix = $("#stPixFat").val();
-	var StCancel = $("#stStatusFat").val();
-	var vrfatura = $("#VrFatura").val().replace(".", "").replace(",", ".");
-	
-    if ($("#CodAutorizacaoFat").val() === '') {
-  
-      $("#resultadoeditafatura").html(
-        "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-        "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-        "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-        "</button>" +
-        "<strong>Atenção!</strong> Informe o Código da Fatura.</div>"
-      );
-        $("#CodAutorizacaoFat").focus();
-        return false;
+  $('#btnIntegrarTodasConsolidacoesFaturas').removeClass('d-flex').addClass('d-none');
+
+  animationLoadingStart();
+
+  try {
+    await ajaxGetAllData(`api/financeiro/previa-consolidacao-faturas.xsjs?pageSize=1000&page=1&idEmpresa=${idEmpresa}&dtInicio=${dtInicio}&dtFim=${dtFim}`)
+      .then(retornoTableListaPreviaFaturasConsolidadas);
+
+  } catch (error) {
+    console.log(error);
+    await msgError();
+  }
+
+  animationLoadingStop();
+}
+
+function retornoTableListaPreviaFaturasConsolidadas(dadosPreviaFaturasConsolidadas) {
+  let { data } = dadosPreviaFaturasConsolidadas || [];
+  let vrTotal = 0;
+  let contador = 0;
+  let dadosTable = [];
+
+  if (data.length > 0) {
+    for (let registro of data) {
+      let {
+        IDEMPRESA,
+        NOFANTASIA,
+        DTPROCESSAMENTO,
+        VRTOTALRECEBIDO,
+        QTDFATURAS,
+        QTDFATURASCONFERIDAS,
+      } = registro;
+      let dtProcessamentoSplit = DTPROCESSAMENTO.split('-')
+      let dtProcessamentoFormatada = dtProcessamentoSplit[2] + '/' + dtProcessamentoSplit[1] + '/' + dtProcessamentoSplit[0];
+
+      let status = '<span style="color: blue;">Aguardando Confirmação</span>';
+      let btnConfirmar = `<button type="button" class="btn btn-success btn-xs mr-1" title="Confirmar Consolidação Fatura" onclick="modalConfirmarConsolidacaoFatura('${IDEMPRESA}', '${DTPROCESSAMENTO}', '${QTDFATURAS}', '${VRTOTALRECEBIDO}')"><span class="d-block fal fa-check mr-1"></span>Confirmar</button>`;
+
+      if (QTDFATURAS != QTDFATURASCONFERIDAS) {
+        status = '<span style="color: red;">Há Faturas Pedentes de Conferência</span>';
+        btnConfirmar = '';
+      }
+
+      vrTotal += Number(VRTOTALRECEBIDO);
+      contador++;
+
+      dadosTable.push([
+        contador,
+        NOFANTASIA,
+        dtProcessamentoFormatada,
+        VRTOTALRECEBIDO,
+        QTDFATURAS,
+        QTDFATURASCONFERIDAS,
+        status,
+        btnConfirmar
+      ]);
+
     }
-    
-    var dados = {
-      "IDDETALHEFATURA": parseInt(idfaturacaixa),
-      "NUCODAUTORIZACAO":codAutorizacao,
-      "VRRECEBIDO": parseFloat(vrfatura),
-      "NUAUTORIZACAO":codPix,
-      "STPIX":stPix,
-      "STCANCELADO":StCancel
-    };
 
-//console.table(dados);
 
-  	ajaxPut("api/financeiro/atualizar-fatura.xsjs", dados)
-		.then(funcSucessEditarFatura)
-		.catch(funcErrorEditarFatura);
+  }
+
+  $('#resultado').html(`
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>Lista de Previas de Consolidação de Faturas</h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <table id="dt-basic-faturaloja" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+            <thead class="bg-primary-600">
+              <tr>
+                <th>#</th>
+                <th>Empresa</th>
+                <th>Data Recebimento</th>
+                <th>Valor</th>
+                <th>Qtd. Faturas</th>
+                <th>Qtd. Conferida</th>
+                <th>Situação</th>
+                <th>Opção</th>
+              </tr>
+            </thead>
+            <tbody id="resultadoFaturas"> </tbody>
+            <tfoot id="" class="thead-themed totalFaturas"> </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  `);
+
+  $('#dt-basic-faturaloja').DataTable({
+    title: 'Faturas da Loja',
+    data: dadosTable,
+    deferRender: false,
+    responsive: false,
+    scrollX: true,
+    columnDefs: [
+      { targets: [0], className: "text-center" },
+      { type: 'date-time-br', targets: 2 }
+    ],
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12 caixa-selecao'>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
+            }
+          }
+        }
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ]
+  });
+
+  $('.totalFaturas').html(
+    `<tr>
+        <th colspan="6" style="text-align: center;">Total Lançamentos</th>
+        <th style="text-align: right;">${mascaraValor(vrTotal.toFixed(2))}</th>
+        <th colspan="4"></th>
+    </tr>`
+  );
 
 }
 
-function funcSucessEditarFatura(resposta) {
+async function modalConfirmarConsolidacaoFatura(idEmpresa, dtProcessamento, qtdFaturas, vrTotalRecebido) {
+  msgQuestion('Deseja Confirmar a Consolidação?')
+    .then(async (resp) => {
+      if (resp.value) {
+        let textoFuncao = 'FINANCEIRO/CONFIRMAR CONSOLIDACAO FATURAS';
 
-	alerta_atualizado_sucesso();
-	$("#editeFatura").modal('hide');
-	pesq_list_faturas();
+        let dados = [{
+          IDEMPRESA: Number(idEmpresa),
+          DTPROCESSAMENTO: dtProcessamento,
+          QTDTOTALFATURAS: Number(qtdFaturas),
+          VRTOTALRECEBIDO: Number(vrTotalRecebido),
+          IDFUNCIONARIO: Number(IDFuncionarioLogin)
+        }];
+
+        animationLoadingStart('Enviando dados...', 1, false);
+
+        try {
+          await ajaxPost("api/financeiro/consolidacao-faturas.xsjs", dados)
+
+          await gerarLog(dados, textoFuncao);
+
+          await msgSuccess('Consolidação criada com sucesso!');
+        } catch (error) {
+          console.log(error);
+          await msgError('Erro ao tentar criar a consolidação, recarregue e tente novamente!');
+        }
+
+        pesquisarPreviaFaturasConsolidadas();
+      }
+    });
+}
+
+async function pesquisarFaturasConsolidadas() {
+  let idEmpresa = $("#idloja").val();
+  let dtInicio = $("#dtinicio").val();
+  let dtFim = $("#dtfim").val();
+
+  $('#btnIntegrarTodasConsolidacoesFaturas').removeClass('d-none').addClass('d-flex');
+
+  animationLoadingStart();
+
+  try {
+    await ajaxGetAllData(`api/financeiro/consolidacao-faturas.xsjs?pageSize=1000&page=1&idEmpresa=${idEmpresa}&dtInicio=${dtInicio}&dtFim=${dtFim}`)
+      .then(retornoTableListaFaturasConsolidadas);
+
+  } catch (error) {
+    console.log(error);
+    await msgError();
+  }
+
+  animationLoadingStop();
+}
+
+function retornoTableListaFaturasConsolidadas(dadosPreviaFaturasConsolidadas) {
+  let { data } = dadosPreviaFaturasConsolidadas || [];
+  let vrTotal = 0;
+  let contador = 0;
+  let dadosTable = [];
+
+  if (data.length > 0) {
+    for (let registro of data) {
+      let {
+        IDCONSOLIDACAOFATURA,
+        IDEMPRESA,
+        NOFANTASIA,
+        DTPROCESSAMENTO,
+        QTDFATURAS,
+        VRTOTAL,
+        DOCENTRY_SAP_CONTAS_A_RECEBER,
+        STATUS_BLOQUEIO_ATUALIZACAO,
+        ERROR_LOG_SAP
+      } = registro;
+
+      let arrayColorSituacao = [
+        'info',
+        'primary',
+        'success',
+        'danger'
+      ];
+
+      let arrayTxtSituacao = [
+        'Pronto para Integrar SAP',
+        'Em Fila',
+        'Integrado',
+        'Erro ao tentar integrar'
+      ];
+
+      let arrayMsgStatusIntegaracao = [
+        'Consolidação pronta para integrar no SAP',
+        'Consolidação em processo de integração no SAP, aguarde...',
+        'Consolidação integrada no SAP'
+      ];
+
+      let dtProcessamentoSplit = DTPROCESSAMENTO.split('-')
+      let dtProcessamentoFormatada = dtProcessamentoSplit[2] + '/' + dtProcessamentoSplit[1] + '/' + dtProcessamentoSplit[0];
+
+      let stMigrado = DOCENTRY_SAP_CONTAS_A_RECEBER > 0;
+      let stEmAndamento = STATUS_BLOQUEIO_ATUALIZACAO == 'True';
+      let stErroIntegracao = ERROR_LOG_SAP?.length > 0;
+
+      let indexSituacao = stErroIntegracao ? 3 : stMigrado ? 2 : stEmAndamento ? 1 : 0;
+
+      let colorSitucao = arrayColorSituacao[indexSituacao];
+      let txtSituacao = arrayTxtSituacao[indexSituacao];
+      let situacao = `<span class="text-${colorSitucao} fw-900">${txtSituacao}</span>`;
+      let msgStatus = ERROR_LOG_SAP || arrayMsgStatusIntegaracao[indexSituacao];
+
+      let btnVizualizarStatus = `<button type="button" class="btn btn-primary btn-xs mr-1 pt-1" title="Visualizar Status Consolidação" onclick="msgInfo('${txtSituacao}','${msgStatus}')"><span class="d-block fal fa-eye"></span>Status</button>`;
+      let btnIntegrar = `<button type="button" class="btn btn-info btn-xs pt-1" title="Integrar Consolidação Fatura no SAP" onclick="modalIntegrarConsolidacaoFaturas('${IDCONSOLIDACAOFATURA}')"><span class="d-block fal fa-cloud-upload mr-1"></span>Integrar</button>`;
+
+      let selecao = '';
+
+      if (!stMigrado && !stEmAndamento) {
+        selecao = `
+          <div class="custom-control custom-checkbox">
+            <input id="${IDCONSOLIDACAOFATURA}" type="checkbox" class="custom-control-input" name="chkConsolidacaoFatura" onchange="selecionarLinhaTable(this)">
+            <label class="custom-control-label" for="${IDCONSOLIDACAOFATURA}"></label>
+          </div>
+        `;
+      }
+
+      let opcoes = btnVizualizarStatus + btnIntegrar;
+
+      if (stMigrado || stEmAndamento) {
+        opcoes = btnVizualizarStatus;
+      }
+
+      let containerOpcoes = `
+        <div class="d-flex justify-content-start">
+          ${opcoes}
+        </div>
+      `;
+
+      contador++;
+      vrTotal += Number(VRTOTAL);
+
+      dadosTable.push([
+        selecao,
+        NOFANTASIA,
+        dtProcessamentoFormatada,
+        QTDFATURAS,
+        maskValorEmBRL(VRTOTAL),
+        situacao,
+        containerOpcoes
+      ]);
+
+    }
+
+
+  }
+
+  $('#resultado').html(`
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>Lista de Consolidações de Faturas</h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <table id="dt-basic-faturaloja" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+            <thead class="bg-primary-600">
+              <tr>
+                <th>Seleção</th>
+                <th>Empresa</th>
+                <th>Data Recebimento</th>
+                <th>Qtd. Faturas</th>
+                <th>Valor</th>
+                <th>Situação</th>
+                <th>Opção</th>
+              </tr>
+            </thead>
+            <tbody id="resultadoFaturas"> </tbody>
+            <tfoot id="" class="thead-themed totalFaturas"> </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  `);
+
+  $('#dt-basic-faturaloja').DataTable({
+    title: 'Consolidações de Faturas da Loja',
+    data: dadosTable,
+    deferRender: false,
+    responsive: false,
+    scrollX: true,
+    columnDefs: [
+      { targets: [0], className: "text-center" },
+      { type: 'date-time-br', targets: 2 }
+    ],
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12 caixa-selecao'>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
+            }
+          }
+        }
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ],
+    initComplete: function () {
+      $('.caixa-selecao').html(`
+        <div id="chkMarcaTodos" class="mb-1 ${dadosTable.length > 0 ? '' : 'd-none'}">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" id="selectAll" class="custom-control-input" onclick="selecionarLinhasDataTableViaInput(this, 'dt-basic-faturaloja', 'chkConsolidacaoFatura')">
+                <label class="custom-control-label" for="selectAll">Marcar Todos</label>
+            </div>
+        </div>
+      `);
+    }
+  });
+
+  $('.totalFaturas').html(
+    `<tr>
+        <th colspan="6" style="text-align: center;">Total Lançamentos</th>
+        <th style="text-align: right;">${mascaraValor(vrTotal.toFixed(2))}</th>
+        <th colspan="4"></th>
+    </tr>`
+  );
 
 }
 
+async function buscarIdTodasConsolidacoesFaturasSelecionadas() {
+  let tabela = $('#dt-basic-faturaloja').DataTable();
+  let ids = '';
+
+  tabela.rows().every(function () {
+    let linhaTabela = $(this.node())
+    let input = linhaTabela.find("input[name='chkConsolidacaoFatura']:checked");
+    let id = $(input).attr('id');
+
+    ids += id ? (id + ',') : '';
+  });
+
+  return ids?.replace(/(^,|,$)/g, "");
+}
+
+async function modalIntegrarTodasConsolidacoesFaturas() {
+  let confirmacao = await msgQuestion('Deseja Integrar Todas as Consolidações Selecionadas no SAP?') || false;
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  animationLoadingStart('Validando dados...', 1, false);
+
+  let ids = await buscarIdTodasConsolidacoesFaturasSelecionadas();
+
+  if (ids.length == 0) {
+    return msgWarning('Nenhuma fatura selecionada, selecione e tente novamente!')
+  }
+
+  animationLoadingStart('Enviando dados...', 1, false);
+
+  let textoFuncao = 'FINANCEIRO/INTEGRAR TODAS CONSOLIDACOES FATURAS SELECIONADAS';
+
+  let dados = [{
+    "IDS_CONSOLIDACOES": ids,
+    "IDFUNCIONARIO": Number(IDFuncionarioLogin)
+  }];
+
+  try {
+    await ajaxPost("api/service-layer/fatura/jobs/consolidacao-faturas-integracao.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Consolidações Integradas com sucesso!');
+
+    pesquisarFaturasConsolidadas();
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
+}
+
+async function modalIntegrarConsolidacaoFaturas(idConsolidacao) {
+  let confirmacao = await msgQuestion('Deseja Integrar Esta Consolidação no SAP?') || false
+
+  if (!confirmacao?.value) {
+    return
+  }
+
+  animationLoadingStart('Enviando dados...', 1, false);
+
+  let textoFuncao = 'FINANCEIRO/INTEGRAR CONSOLIDACAO FATURAS';
+
+  let dados = [{
+    "IDS_CONSOLIDACOES": idConsolidacao,
+    "IDFUNCIONARIO": Number(IDFuncionarioLogin)
+  }];
+
+  try {
+    await ajaxPost("api/service-layer/fatura/jobs/consolidacao-faturas-integracao.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Consolidação Integrada com sucesso!');
+
+    pesquisarFaturasConsolidadas();
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
+}
+
+//? ================== FIM ROTINA FATURAS LOJAS CONSOLIDADAS PARA MIGRACAO ================== //
 
 //================ MENU LISTA PEDIDO COMPRAS ==============================================
 

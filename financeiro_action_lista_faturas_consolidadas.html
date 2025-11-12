@@ -1,11 +1,11 @@
 <ol class="breadcrumb page-breadcrumb">
   <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
-  <li class="breadcrumb-item active">Lista de Faturas</li>
+  <li class="breadcrumb-item active">Lista de Faturas Consolidadas</li>
   <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
 </ol>
 <div class="subheader">
   <h1 class="subheader-title">
-    <i class='subheader-icon fal fa-chart-area'></i> Faturas por Lojas e Período
+    <i class='subheader-icon fal fa-chart-area'></i> Faturas Consolidadas por Lojas e Período
   </h1>
 </div>
 <div class="row">
@@ -25,33 +25,31 @@
                 </div>
               </div>
               <div class="col-sm-6 col-xl-3">
-                <label class="form-label" for="fatcod">Código Fatura</label>
-                <input class="form-control" id="codfat" type="text" name="codfat" value="">
+                <label class="form-label" for="dtinicio">Data Início</label>
+                <input class="form-control" id="dtinicio" type="date" name="dtinicio" value="">
               </div>
               <div class="col-sm-6 col-xl-3">
-                <label class="form-label" for="tpdate">Data Início</label>
-                <input class="form-control" id="dtiniciofat" type="date" name="dtiniciofat" value="">
-              </div>
-              <div class="col-sm-6 col-xl-3">
-                <label class="form-label" for="tpdate">Data Fim</label>
-                <input class="form-control" id="dtfimfat" type="date" name="dtfimfat" value="">
+                <label class="form-label" for="dtfim">Data Fim</label>
+                <input class="form-control" id="dtfim" type="date" name="dtfim" value="">
               </div>
             </div>
             <div class="row">
               <div class="col-sm-6 col-xl-6">
                 <br>
-                <button class="btn btn-primary" type="button" onclick="pesq_list_faturas(1)"><span
-                    class="fal fa-search mr-1"></span>Pesquisar</button>
-                <button class="btn btn-info" type="button" onclick="ReceberDadosFatura(1)"><span
-                    class="fal fa-search mr-1"></span>Conciliar</button>
+                <button class="btn btn-primary" type="button" onclick="pesquisarPreviaFaturasConsolidadas()">
+                  <span class="fal fa-search mr-1"></span>Pesquisar
+                </button>
+                <button class="btn btn-info" type="button" onclick="pesquisarFaturasConsolidadas()">
+                  <span class="fal fa-search mr-1"></span>Consolidado
+                </button>
               </div>
               <div class="col-sm-6 col-xl-6">
                 <br>
 
-                <div id="btnConferirTodasFaturasSelecionadas" class="justify-content-end d-flex">
+                <div id="btnIntegrarTodasConsolidacoesFaturas" class="d-none justify-content-end">
                   <button class="btn btn-warning fw-900" type="button"
-                    onclick="modal_conferir_todas_faturas_selecionadas()">
-                    <span class="fal fa-check fw-900 mr-1"></span>Conferir Todos</button>
+                    onclick="modalIntegrarTodasConsolidacoesFaturas()">
+                    <span class="fal fa-cloud-upload fw-900 mr-1"></span>Integrar Todos</button>
                 </div>
               </div>
             </div>
