@@ -1,6 +1,6 @@
 let dbNameSAP = "SBO_GTO_TESTE4";
 let filePath = "quality.concentrador_homologacao.api";
-let filePathLibs = `${filePath}.service-layer.devolucao.devolucao-produtos-voucher.libs`;
+let filePathLibs = `${filePath}.service-layer.devolucao.devolucao-produtos-voucher-nova.libs`;
 
 let api = $.import(`${filePath}.apiResponse`, "int_api");
 let slApi = $.import(`${filePath}.service-layer.devolucao`, "api");
@@ -10,6 +10,36 @@ let libRefDevolucao = $.import(filePathLibs, "referencia-nota-devolucao-voucher"
 let translate = $.import(`${filePath}.service-layer`, "traducao-texto");
 
 let conn;
+
+function ajustarDataDentroDos30Dias(dataOriginal) {
+    let [ano, mes, dia] = dataOriginal.split("-").map(Number);
+    
+    let dataHora = new Date(ano, mes - 1, dia); 
+    let agora = new Date();
+    let limite = new Date();
+    let novaData = '';
+    
+    dataHora.setHours(0, 0, 0, 0);
+    agora.setHours(0, 0, 0, 0);
+    limite.setHours(0, 0, 0, 0);
+    limite.setDate(agora.getDate() - 30);
+    
+    if(dataHora < limite){
+        novaData = new Date();
+        novaData.setDate(agora.getDate() - 29);
+        
+        dataHora = novaData;
+    }
+    
+    ano = dataHora.getFullYear();
+    mes = String(dataHora.getMonth() + 1);
+    dia = String(dataHora.getDate());
+    
+    mes = mes.length < 2 ? ('0' + mes) : mes;
+    dia = dia.length < 2 ? ('0' + dia) : dia;
+    
+    return `${ano}-${mes}-${dia}`;
+}
 
 function fnAtualizarStatusDevolucaoResumoVoucher(idVoucher, docEntryDev){
     let queryUpdate = `
@@ -116,7 +146,7 @@ function getDocEntryRefDevolucaoSAP(docEntryDevolucao, chaveNota){
     let resultRefDevolucao = api.sqlQuery(queryValidaRefDevolucao, docEntryDevolucao);
     
     if(resultRefDevolucao.length){
-        return Number(regDocEntry[0].DocEntry);
+        return Number(resultRefDevolucao[0].DocEntry);
     }
     
     return false;
@@ -153,7 +183,8 @@ function fnVerificarDadosIntegradosCliente(dadosCliente, session){
         UFLOJAVENDA,
         IDLOJAVENDA,
         INDICACAOIESAP,
-        IDINDICACAOIE
+        IDINDICACAOIE,
+        NUCEP
     } = dadosCliente || '';
     
    let queryClienteSap = `
@@ -162,7 +193,8 @@ function fnVerificarDadosIntegradosCliente(dadosCliente, session){
             TRIM(UPPER(TBC1."Street")) AS ENDERECOCLIENTESAP, 
             TRIM(UPPER(TBC1."Block")) AS BAIRROCLIENTESAP, 
             TRIM(UPPER(TBC1."State")) AS UFCLIENTESAP,
-            TRIM(UPPER(TBC1."U_SKILL_indIEDest")) AS INDICACAOIESAP
+            TRIM(UPPER(TBC1."U_SKILL_indIEDest")) AS INDICACAOIESAP,
+            TRIM(TBC1."ZipCode") AS NUCEPSAP
         FROM
             ${dbNameSAP}.OCRD TBO
         INNER JOIN ${dbNameSAP}.CRD1 AS TBC1 ON
@@ -189,10 +221,20 @@ function fnVerificarDadosIntegradosCliente(dadosCliente, session){
             ENDERECOCLIENTESAP,
             BAIRROSAP,
             UFCLIENTESAP, 
-            INDICACAOIESAP
+            INDICACAOIESAP,
+            NUCEPSAP,
+            BAIRROCLIENTESAP
         } = regClienteSap[0] || null;
         
-        if(!INDICACAOIESAP || INDICACAOIESAP != IDINDICACAOIE || NOMECLIENTESAP != DSNOMERAZAOSOCIAL || NOMECLIENTESAP.length < 5){
+        if(EBAIRRO.length > 0 && !/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(EBAIRRO) || BAIRROCLIENTESAP.length > 0 && !/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(BAIRROCLIENTESAP)){
+            stAtualizar = true;
+        }
+        
+        if(NUCEP.length != 8 || NUCEPSAP.length != 8){
+            stAtualizar = true;
+        }
+        
+        if(!INDICACAOIESAP || INDICACAOIESAP != IDINDICACAOIE || NOMECLIENTESAP != DSNOMERAZAOSOCIAL || NOMECLIENTESAP.length < 5 || NOMECLIENTESAP.includes('  ')){
             stAtualizar = true;
         }
         
@@ -360,8 +402,8 @@ function obterLinhasDoDetalhe(idVoucher, estqCodEmpresa, vDesc, vTotalVenda) {
     return lines;
 }
 
-function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
-    
+function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno, stAjustarData = 'False'){
+    var totalProcessados = 0;
     let queryVoucher = `
         SELECT TOP 100 DISTINCT
             CASE
@@ -370,7 +412,7 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
             END AS ST_TRANSFERE,
             TBR.IDVOUCHER,
             TBR.NUVOUCHER,
-            TO_DATE(TBR.DTINVOUCHER) AS DATA_VOUCHER,
+            TO_VARCHAR(TBR.DTINVOUCHER, 'YYYY-MM-DD') AS DATA_VOUCHER,
             ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) AS DIFTEMPOEMDIAS,
             TBV.PROTNFE_INFPROT_CSTAT AS CSTATSEFAZ,
             TBV.PROTNFE_INFPROT_CHNFE AS CHAVENFE,
@@ -383,7 +425,7 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
             TBE.ESTOQUECODIGO,
             TBV.NFE_INFNFE_TOTAL_ICMSTOT_VDESC,
             TBV.NFE_INFNFE_TOTAL_ICMSTOT_VPROD,
-            TBV.SAP_DOCENTRY,
+            TBV.SAP_DOCENTRY_CORRETO,
             TBR.STDEVOLUCAO,
             TBR.STREFDEVOLUCAOSAP,
             TBR.IDCLIENTE,
@@ -392,8 +434,9 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
             TBC.NUCPFCNPJ,
             TBC.IDINDICACAOIE,
             TBC.STATUALIZARCADASTROSAP,
-            TRIM(UPPER(TBC.EENDERECO)) AS EENDERECO,
-            TRIM(UPPER(TBC.EBAIRRO)) AS EBAIRRO,
+            TRIM(TBC.NUCEP) AS NUCEP,
+            TRIM(UPPER(IFNULL(TBC.EENDERECO, 'SEM ENDERECO'))) AS EENDERECO,
+            TRIM(UPPER(IFNULL(TBC.EBAIRRO, 'NI'))) AS EBAIRRO,
             TRIM(UPPER(TBC.ECIDADE)) AS ECIDADE,
             TRIM(UPPER(TBC.SGUF)) AS UFCLIENTE,
             TRIM(UPPER(TBE.SGUF)) AS UFLOJAVENDA,
@@ -405,16 +448,21 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
         INNER JOIN "VAR_DB_NAME".CLIENTE TBC ON 
             TBR.IDCLIENTE = TBC.IDCLIENTE
         INNER JOIN "VAR_DB_NAME".EMPRESA TBE ON
-            TBV.IDEMPRESA = TBE.IDEMPRESA 
+            TBV.IDEMPRESA = TBE.IDEMPRESA
+        INNER JOIN ${dbNameSAP}.OINV TBO ON
+            TBV.SAP_DOCENTRY_CORRETO = TBO."DocEntry"
         WHERE
             TBR.STTIPOTROCA <> 'TROCO'
             AND TBR.STCANCELADO = 'False'
             AND TBV.STCANCELADO = 'False'
             AND TBV.PROTNFE_INFPROT_CSTAT = 100
-            AND IFNULL(TBV.SAP_DOCENTRY, 0) <> 0
+            AND IFNULL(TBV.SAP_DOCENTRY_CORRETO, 0) <> 0
             AND (TBR.STREFDEVOLUCAOSAP = 'False' OR TBR.STDEVOLUCAOSAP = 'False')
-            AND LENGTH(TBC.NUCPFCNPJ) = 11
-            AND UPPER(TBC.TPCLIENTE) = 'FISICA'
+            AND (
+                (LENGTH(TBC.NUCPFCNPJ) = 11 AND UPPER(TBC.TPCLIENTE) = 'FISICA') 
+                OR 
+                (LENGTH(TBC.NUCPFCNPJ) = 14 AND UPPER(TBC.TPCLIENTE) <> 'FISICA' AND TBO."Model" = 39 )
+            )
             AND IFNULL(TBC.IDCLIENTESAP, '') <> ''
             AND 1 = ?
     `;
@@ -424,7 +472,8 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
     } else {
         queryVoucher += `
             AND TO_DATE(TBR.DTINVOUCHER) >= '2025-01-01'
-            AND ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) > 3
+            AND ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) > 3 
+            
         `;
     }
     
@@ -465,7 +514,8 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
                 IDCLIENTESAP,
                 DSNOMERAZAOSOCIAL,
                 UFLOJAVENDA,
-                IDLOJAVENDA
+                IDLOJAVENDA,
+                NUCEP
             } = dados;
             let tempoCriacaoVoucherEmDias = Number(DIFTEMPOEMDIAS);
             let dadosCliente = {
@@ -480,7 +530,8 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
                 ECIDADE,
                 UFCLIENTE, 
                 UFLOJAVENDA,
-                IDLOJAVENDA
+                IDLOJAVENDA,
+                NUCEP
             };
             
             if(!idClienteAnterior || !ufClienteAnterior || !ufLojaAnterior){
@@ -499,17 +550,19 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
             
             if(fnVerificarDadosIntegradosCliente(dadosCliente, session)){
                 
+                let dataDevolucao = stAjustarData != 'False' ? ajustarDataDentroDos30Dias(dados.DATA_VOUCHER) : dados.DATA_VOUCHER;
+                
                 let dadosDevolucao = {
                     "DocType": "dDocument_Items",
                     "U_ID_VENDA_PDV": dados.IDVOUCHER,
-                    "DocDate": dados.DATA_VOUCHER,
-                    "DocDueDate": dados.DATA_VOUCHER,
+                    "DocDate": dataDevolucao,
+                    "DocDueDate": dataDevolucao,
                     "CardCode": dados.IDCLIENTESAP,
                     "Comments": `Ref a Dev Mercadoria Voucher n. ${dados.NUVOUCHER}  IDVENDA ${dados.IDVENDA}`,
                     "JournalMemo": `Ref a Dev Mercadoria Voucher n. ${dados.NUVOUCHER}  IDVENDA ${dados.IDVENDA}`,
                     "OpeningRemarks": `Devolucao NF ${dados.NNF} Serie: ${dados.SERIE} Chave: ${dados.CHAVENFE}`,
                     "ClosingRemarks": `Devolucao NF ${dados.NNF} Serie: ${dados.SERIE} Chave: ${dados.CHAVENFE}`,     
-                    "TaxDate": dados.DATA_VOUCHER,
+                    "TaxDate": dataDevolucao,
                     "Project": "PDV_SOFTQUALITY",
                     "BPL_IDAssignedToInvoice": dados.IDEMPRESA,
                     "SequenceCode": getSeqCode(dados.IDEMPRESA),
@@ -519,6 +572,7 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
                     "U_finNfe": 4,
                     "U_SKILL_FormaPagto": 90,
                     "PeyMethod": null,
+                    "ControlAccount": "2.01.01.02.0006",  
                     "U_Classification": 999, //Parametro para não duplicar a entrada no estoque(999)
                     "DocumentLines": obterLinhasDoDetalhe(dados.IDVOUCHER, dados.ESTOQUECODIGO, parseFloat(dados.NFE_INFNFE_TOTAL_ICMSTOT_VDESC), parseFloat(dados.NFE_INFNFE_TOTAL_ICMSTOT_VPROD)),
                     "TaxExtension": {
@@ -580,3 +634,6 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno){
     };
     
 }
+
+
+

@@ -3072,494 +3072,667 @@ function funcError(data) {
 	});
 }
 
-//================ MENU DESPESAS ==============================================
-function listaDespesaLoja() {
+//?==================================== INICIO ROTINA DESPESAS ==================================== //
+// Autor_Atualização: Hendryw Deyvison
+// E-mail: hendryw.deyvison@gmail.com
+// Data: 20/06/2025
 
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+// Inicio Funcoes Globais da Rotina
+async function retornoListaCategoriaDespesa(respostaListaCategoriaDespesa) {
+  let { data } = respostaListaCategoriaDespesa || '';
+  let idsCategoriasIgnorar = [ 248, 258, 259 ];
+
+  $('#IDCategoriaReceitaDespesa').html("<option value=''>Selecione</option>");
+
+  for (let { IDCATEGORIARECDESP, DSCATEGORIA } of data) {
+
+    if (!idsCategoriasIgnorar.includes(IDCATEGORIARECDESP)) {
+      $('#IDCategoriaReceitaDespesa').append(`<option value="${IDCATEGORIARECDESP}"> ${IDCATEGORIARECDESP} - ${DSCATEGORIA}</option>`);
     }
-    
-        $("#resultado").html(
-          "<div align=\"center\">" +
-          "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>"  +
-          "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-          "</div>"
-        );
-        
-    xmlhttp.onreadystatechange = function () {
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
-        
-            $('.dataAtual').text(dataAtual);
-            $('#dtconsultainicio').val(dataAtualCampo);
-            $('#dtconsultafim').val(dataAtualCampo);
-        
-        	$("#idloja").select2();
-			$("#idCategoria").select2();
-			
-        	ajaxGet('api/informatica/empresa.xsjs')
-        		.then(retornoListaEmpresasSelect)
-        		.catch(funcError);
-        		
-    		ajaxGet('api/categoria-receita-despesa.xsjs?tipo=D')
-        		.then(retornoListaCategoriaReceitaDespesaSelect)
-        		.catch(funcError);
-      }
-    };
-    xmlhttp.open("GET", "financeiro_action_listdespesaloja.html", true);
-    xmlhttp.send();
+
+  }
 }
 
-function pesq_despesas_lojas(numPage) {
+async function validarDadosEditarDespesaLoja(){
+  let camposValidar = $('#resulmodaleditdespesa input:not([type="hidden"]), #resulmodaleditdespesa select');
+  let campoInvalido = [];
+  let stValido = true;
 
-    var IDEmpresaPesqVenda = $("#idloja").val();
-    var idCategoria = $("#idCategoria").val();
-    var datapesqinicio = $("#dtconsultainicio").val();
-    var datapesqfim = $("#dtconsultafim").val();
-    TotalDespesaLoja = 0;
-    contador = 0;
-    dataRetorno=[];
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  animationLoadingStart('Validando dados...', 100, false);
+
+  for (let campo of camposValidar) {
+    let id = $(campo).attr('id');
+    let valueCampo = $(campo).val();
+    let labelCampo = $(`label[for="${id}"]`).text().trim();
+
+    valueCampo = id == 'VrDespesa' ? Number(valueCampo.replaceAll(".", "").replace(",", ".") || 0) : valueCampo;
+
+    if (valueCampo?.length == 0 || (id == 'VrDespesa' && valueCampo <= 0)) {
+      campoInvalido = [`Informe o Campo: ${labelCampo}`, campo];
+      break;
     }
-   
-    xmlhttp.onreadystatechange = function () {
-        
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("resultado").innerHTML = xmlhttp.responseText;
-        newDataTable('pesqdespesas');
-        
-        $('.dataAtual').text(dataAtual);
-      
-        ajaxGet('api/financeiro/despesa-loja.xsjs?page='+numPage+'&idCategoria='+idCategoria+'&idEmpresa=' + IDEmpresaPesqVenda + '&dataPesquisaInicio=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim)
-        	.then(retornoListaDespesasLoja)
-        	.catch(funcErrorListaDespesasLoja);
-      }
-    };
-    
-    xmlhttp.open("GET", "action_pesqdespesasloja.html", true);
-    xmlhttp.send();
+
+  };
+
+  if (campoInvalido?.length > 0) {
+    stValido = false;
+    await msgWarning(campoInvalido[0])
+    .then(() => setTimeout(() => $(campoInvalido[1]).is('input') ? $(campoInvalido[1]).focus() : $(campoInvalido[1]).focus().select2('open'), 500));
+  }
+
+  animationLoadingStop();
+
+  return stValido;
 }
 
-function funcErrorListaDespesasLoja() {
-	Swal.fire({
-		type: "error",
-		title: "Erro ao carregar os dados da retornoListaDespesasLoja",
-		showConfirmButton: false,
-		timer: 15000
-	});
+async function montarPayloadEditarDespesaLoja(){
+  let idDespesa = $("#idDespesaLoja").val();
+  let idFuncionarioAjuste = $("#IDFuncDespesa").val();
+  let idCategoria = $('#IDCategoriaReceitaDespesa').val();
+  let dtDespesa = $('#DTDespesa').val();
+  let horaDespesa = $('#HRDespesa').val();
+  let dsHistorico = $("#DsHistorioDespesa").val();
+  let dsPagoa = $("#DsPagoA").val();
+  let tpNota = $("#TPNota").val();
+  let numNota = $("#NuNotaFiscal").val();
+  let vrDespesa = parseFloat($('#VrDespesa').val().replaceAll(".", "").replace(",", ".") || 0);
+  let txtObservacaoAjuste = 'Despesa Editada';
+
+  return [{
+    "IDDESPESASLOJA": parseInt(idDespesa),
+    "IDCATEGORIARECEITADESPESA": parseInt(idCategoria),
+    "VRDESPESA": parseFloat(vrDespesa),
+    "DSPAGOA": dsPagoa,
+    "DSHISTORIO": dsHistorico,
+    "TPNOTA": tpNota,
+    "NUNOTAFISCAL": numNota,
+    "IDUSRCACELAMENTO": parseInt(idFuncionarioAjuste),
+    "DSMOTIVOCANCELAMENTO": txtObservacaoAjuste,
+    "DTDESPESA": (dtDespesa + ' ' + horaDespesa)
+  }];
+}
+
+async function montarPayloadDespesasLojaSelecionadasParaIntegracao(){
+  let tabela = $('#dt-basic-despesas-lojas').DataTable();
+  let dados = [];
+
+  tabela.rows().every(function () {
+    let linhaTabela = $(this.node())
+    let input = linhaTabela.find("input[name='chkDespesaLoja']:checked");
+    let id = $(input).attr('id');
+
+    if (id?.length > 0) {
+      let IDDESPESASLOJA = Number(id);
+      let IDFUNCIONARIO = Number(IDFuncionarioLogin);
+
+      dados.push({
+        IDDESPESASLOJA,
+        IDFUNCIONARIO
+      });
+
+    }
+
+  });
+
+  return dados;
+}
+
+// Fim Funcoes Globais da Rotina
+
+async function TelaListaDespesaLoja() {
+  try {
+    animationLoadingStart();
+
+    let respHtml = await $.get("financeiro_action_listdespesaloja.html");
+    let listaEmpresas = await ajaxGetAllData('api/empresa.xsjs', false)
+    let listaCategorias = await ajaxGetAllData('api/categoria-receita-despesa.xsjs?tipo=D', false)
+
+    $('#js-page-content').html(respHtml);
+
+    retornoListaEmpresasSelect(listaEmpresas);
+    retornoListaCategoriaReceitaDespesaSelect(listaCategorias);
+
+    $('.dataAtual').text(dataAtual);
+    $('#dtconsultainicio, #dtconsultafim')
+    .val(dataAtualCampo)
+    .on('keypress', (e) => { (e.which == 13) && pesquisarDespesasLojas() });
+
+    $("#idloja, #idCategoria").select2();
+
+    $("#dtconsultainicio").focus();
+
+    animationLoadingStop();
+
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
+}
+
+async function pesquisarDespesasLojas() {
+  let idEmpresaPesq = $("#idloja").val();
+  let idCategoria = $("#idCategoria").val();
+  let dtPesqInicio = $("#dtconsultainicio").val();
+  let dtPesqFim = $("#dtconsultafim").val();
+
+  $('#btnMigrarTodasDespesasLojasSelecionadas').removeClass('d-flex').addClass('d-none');
+
+  try{
+    await ajaxGetAllData('api/financeiro/despesa-loja.xsjs?page=1&idCategoria=' + idCategoria + '&idEmpresa=' + idEmpresaPesq + '&dataPesquisaInicio=' + dtPesqInicio + '&dataPesquisaFim=' + dtPesqFim)
+      .then(retornoListaDespesasLoja)
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
 }
 
 function retornoListaDespesasLoja(respostaListaDespesas) {
+  let { data } = respostaListaDespesas || '';
+  let dadosTabela = [];
+  let vrTotalDespesas = 0;
+  let contador = 0;
+  let stAtivarBtnMigrarTodos = false;
 
-    var contadorDespesaLoja = 0;
-    var numPageAtual = parseInt(respostaListaDespesas.page);
-	
-	if(respostaListaDespesas.data.length != 0){
-        for (var i=0; i < respostaListaDespesas.data.length; i++) { 
-            contador ++;
-            var registro = respostaListaDespesas.data[i];
-            
-            IDDespesaLoja = registro['IDDESPESASLOJA'];
-            IDCategDespesaLoja = registro['IDCATEGORIARECEITADESPESA'];
-            DTMovDespesaLoja = registro['DTDESPESA'];
-            DescDespesaLoja = registro['DSCATEGORIA'];
-            VrDespesaLoja = registro['VRDESPESA'];
-            PagoADespesaLoja = registro['DSPAGOA'];
-            FuncVale = registro['NOFUNCVALE'];
-            TxtHistoricoDespesaLoja = registro['DSHISTORIO'];
-            NuNotaDespesaLoja = registro['NUNOTAFISCAL'];
-            SituacaoDespesaAtivoLoja = registro['STATIVO'];
-            SituacaoDespesaLoja = registro['STCANCELADO'];
-            empresa = registro['NOFANTASIA'];    
-            TotalDespesaLoja = TotalDespesaLoja + VrDespesaLoja;
-    
-            if(IDCategDespesaLoja == 248){
-                PagoADespesaLoja = FuncVale;
-            }
-            
-            if (SituacaoDespesaLoja == 'False') {
-                tagDespesaAtivo = '<label style="color: blue;">Ativo</label>';
-                tagDespesaAtivoBotao = '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-danger btn-xs" title="Cancelar Despesa" id="' + IDDespesaLoja + '" onclick="status_Despesa_Loja(this.id,\'True\')" >Cancelar</button><button type="button" class="btn btn-warning btn-xs" title="Editar Despesa" id="'+IDDespesaLoja+'" onclick="modal_ajustar_despesa(this.id)" >Editar</button></div></div>';
-            } else {
-                tagDespesaAtivo = '<label style="color: red;">Cancelado</label>';
-                tagDespesaAtivoBotao = '<div class="btn-group btn-group-xs"><button type="button" class="btn btn-info btn-xs" title="Ativar Despesa" id="' + IDDespesaLoja + '" onclick="status_Despesa_Loja(this.id,\'False\')" >Ativar</button></div>';
-            }
-            
-            dataRetorno.push( [contador,
-                                empresa,
-                                DTMovDespesaLoja,
-                                DescDespesaLoja,
-                                VrDespesaLoja,
-                                PagoADespesaLoja,
-                                TxtHistoricoDespesaLoja,
-                                NuNotaDespesaLoja,
-                                tagDespesaAtivo,
-                                tagDespesaAtivoBotao
-                                ]);
+  let arraySituacao = [
+    { color: 'info', txt: 'Pronto para Integrar SAP' },
+    { color: 'primary', txt: 'Em Fila' },
+    { color: 'success', txt: 'Integrado' },
+    { color: 'danger', txt: 'Erro ao Tentar Integrar' },
+    { color: 'danger', txt: 'Cancelada' }
+  ];
+
+  let arrayMsgStatusIntegracao = [
+    'Despesa Pronta Para Integrar',
+    'Integração Em Andamento, Aguarde...',
+    'Despesa Integrada Com Sucesso!',
+    'Erro ao Tentar Integrar',
+    'Cancelada'
+  ]
+
+  if (data.length > 0) {
+    for (let registro of data) {
+      let idDespesaLoja = registro?.IDDESPESASLOJA;
+      let nomeLoja = registro?.NOFANTASIA;
+      let idCategDespesaLoja = registro?.IDCATEGORIARECEITADESPESA;
+      let dtMovDespesaLoja = registro?.DTDESPESA;
+      let descDespesaLoja = registro?.DSCATEGORIA;
+      let vrDespesaLoja = Number(registro?.VRDESPESA || 0);
+      let nomeFuncVale = registro?.NOFUNCVALE;
+      let tpNotaDespesaLoja = registro?.TPNOTA;
+      let nuNotaDespesaLoja = registro?.NUNOTAFISCAL;
+      let stDespesaLoja = registro?.STCANCELADO == 'False';
+      let txtHistoricoDespesaLoja = registro?.DSHISTORIO || '';
+      let pagoADespesaLoja = idCategDespesaLoja == 248 ? nomeFuncVale : registro?.DSPAGOA;
+      let stMigrado = Number(registro?.DOCENTRY_SAP_CONTAS_A_PAGAR || 0) > 0;
+      let logErrorIntegracao = registro?.ERROR_LOG_SAP || '';
+      let stAguardandoEmFila = registro?.STATUS_BLOQUEIO_ATUALIZACAO == 'True';
+      let indexSituacao = !stDespesaLoja ? 4 : logErrorIntegracao.length ? 3 : stMigrado ? 2 : stAguardandoEmFila ? 1 : 0;
+      let colorSitucao = arraySituacao[indexSituacao].color;
+      let msgTitleIntegracao = (logErrorIntegracao.length) ? 'MOTIVO:' : arraySituacao[indexSituacao].txt
+      let msgTextIntegracao = logErrorIntegracao?.replaceAll("'", "") || arrayMsgStatusIntegracao[indexSituacao]?.replaceAll("'", "");
+      let txtSituacao = arraySituacao[indexSituacao].txt;
+      let tagStatusDespesa = `<span class="text-${colorSitucao} fw-900">${txtSituacao}</span>`;
+      let tagTipoNotaDespesa = tpNotaDespesaLoja == 1 ? '<label style="color: blue;">NFE</label>' : '<label style="color: red;">NFCE</label>';
+      let containerBtns = '';
+
+      let chkSelecao = `
+        <div class="custom-control custom-checkbox">
+          <input id="${idDespesaLoja}" type="checkbox" class="custom-control-input" name="chkDespesaLoja" onchange="selecionarLinhaTable(this)">
+          <label class="custom-control-label" for="${idDespesaLoja}"></label>
+        </div>
+      `;
+
+      let btnAtivar = `
+        <button type="button" class="btn btn-success btn-xs mr-1 pt-1" title="Ativar Despesa" onclick="ativarDespesaLoja('${idDespesaLoja}')" >
+          <i class="d-block fal fa-check mr-1"></i>Ativar
+        </button>
+      `;
+
+      let btnCancelar = `
+        <button type="button" class="btn btn-danger btn-xs mr-1 pt-1" title="Cancelar Despesa" onclick="cancelarDespesaLoja('${idDespesaLoja}')" >
+          <i class="d-block fal fa-times mr-1"></i>Cancelar
+        </button>
+      `;
+
+      let btnEditar = `
+        <button type="button" class="btn btn-warning btn-xs mr-1 pt-1" title="Editar Despesa" onclick="abrirModalEditarDespesa(${idDespesaLoja})" >
+            <span class="fal fa-pen mr-1"></span>Editar
+        </button>
+      `;
+
+      let btnIntegrar = `
+        <button type="button" class="btn btn-info btn-xs mr-1 pt-1" title="Integrar Adiantamento Salarial no SAP" onclick="modalIntegrarDespesaLoja('${idDespesaLoja}')">
+          <i class="d-block fal fa-cloud-upload mr-1"></i>Integrar
+        </button>
+      `;
+
+      let btnVisualizarStatus = `
+        <button type="button" class="btn btn-primary btn-xs mr-1 pt-1" title="Visualizar Status de Integração do Adiantamento Salarial" onclick="msgInfo('${msgTitleIntegracao}', '${msgTextIntegracao}')">
+          <i class="d-block fal fa-eye mr-1"></i>Visualizar
+        </button>
+      `;
+
+      if (stDespesaLoja) {
+        vrTotalDespesas += vrDespesaLoja;
+
+        containerBtns = btnVisualizarStatus;
+        containerBtns += !stAguardandoEmFila ? btnIntegrar : '';
+        containerBtns += !stAguardandoEmFila ? (btnEditar + btnCancelar) : '';
+
+      } else {
+        containerBtns = btnAtivar
+      }
+
+      chkSelecao = (!stDespesaLoja || stAguardandoEmFila || stMigrado) ? '' : chkSelecao;
+      containerBtns = stMigrado ? '' : `<div class="btn-group btn-group-xs">${containerBtns}</div>`;
+
+      if (!stAtivarBtnMigrarTodos && chkSelecao.length > 0) {
+        stAtivarBtnMigrarTodos = true;
+      }
+
+      contador++;
+
+      dadosTabela.push([
+        contador,
+        chkSelecao,
+        nomeLoja,
+        dtMovDespesaLoja,
+        descDespesaLoja,
+        maskValorEmBRL(vrDespesaLoja.toFixed(2)),
+        pagoADespesaLoja,
+        txtHistoricoDespesaLoja,
+        tagTipoNotaDespesa,
+        nuNotaDespesaLoja,
+        tagStatusDespesa,
+        containerBtns
+      ]);
+    }
+
+  }
+
+  stAtivarBtnMigrarTodos && $('#btnMigrarTodasDespesasLojasSelecionadas').removeClass('d-none').addClass('d-flex')
+
+  exibirListaDespesasLojas(dadosTabela, vrTotalDespesas)
+}
+
+function exibirListaDespesasLojas(dadosTabela, vrTotalDespesas){
+  $('#resultado').html(`
+      <div class="row">
+        <div class="col-xl-12">
+            <div id="panel-1" class="panel">
+                <div class="panel-hdr">
+                    <h2> Lista de Despesas Por Período<span class="fw-300"><i>Por Loja</i></span> </h2>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div>
+                            <table id="dt-basic-despesas-lojas"
+                                class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                                <thead class="bg-primary-600">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Seleção</th>
+                                        <th>Empresa</th>
+                                        <th>Data Mov.</th>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                        <th>Pago a</th>
+                                        <th>Histórico</th>
+                                        <th>Tipo Nota</th>
+                                        <th>Nota Fiscal</th>
+                                        <th>Situação</th>
+                                        <th>Opção</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfooter>
+                                  <tr>
+                                    <th class="text-right" colspan="5">Total Despesas: </th>
+                                    <th>${maskValorEmBRL(vrTotalDespesas)}</th>
+                                    <th colspan="6"></th>
+                                  </tr>
+                                </tfooter>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  `);
+
+  $('#dt-basic-despesas-lojas').DataTable({
+    data: dadosTabela,
+    deferRender: false,
+    responsive: true,
+    columnDefs: [
+      {
+        targets: 1,
+        className: 'text-center no-export',
+        orderDataType: 'input-checkbox',
+      },
+      {
+        targets: 3,
+        type: 'date-time-br',
+      },
+      {
+        targets: [11],
+        className: 'no-export'
+      },
+      {
+        targets: '_all',
+        createdCell: function (td, cellData) {
+          $(td).css('color', 'blue');
         }
-        
-        chamarProximaListaDespesaLoja(numPageAtual + 1); 
-    }else{
-        
-        $('#resultado').html(
-            `<table id="dt-basic-pesqdespesas" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
-                <thead class="bg-primary-600">
-                    <tr>
-                        <th ></th>
-                        <th>Empresa</th>
-                        <th >Data Mov.</th>
-                        <th >Descrição</th>
-                        <th >Valor</th>
-                        <th >Pago a</th>
-                        <th >Histórico</th>
-                        <th >Nota Fiscal</th>
-                        <th >Situação</th>
-                        <th >Opção</th>
-                    </tr>
-                </thead>
-                <tbody id="resultadoDespesa">
-                </tbody>
-                </table>`  
-	    );
-        
-       $('#dt-basic-pesqdespesas').DataTable( {
-           data: dataRetorno,
-           
-            deferRender:    true,
-            //scrollY:        800,
-            //scrollCollapse: false,
-            //scroller:       false,
-            responsive: true,
-            dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-                        "<'row'<'col-sm-12'tr>>" +
-                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            buttons: [
-                        {
-                            extend: 'pdfHtml5',
-                            text: 'PDF',
-                            titleAttr: 'Generate PDF',
-                            className: 'btn-outline-danger btn-sm mr-1'
-                        },
-                        {
-                            extend: 'excelHtml5',
-                            text: 'Excel',
-                            titleAttr: 'Generate Excel',
-                            className: 'btn-outline-success btn-sm mr-1'
-                        },
-                        {
-                            extend: 'print',
-                            text: 'Print',
-                            titleAttr: 'Print Table',
-                            className: 'btn-outline-primary btn-sm'
-                        }
-                    ]
-            
-        } ); 
-        /*$('#totalResultadoDespesa').html(
-            `<tr>
-                <th colspan="3" style="text-align: center;">Total Lançamentos</th>
-                <th style="text-align: right;">${mascaraValor(TotalDespesaLoja.toFixed(2))}</th>
-                <th colspan="5"></th>
-            </tr>`
-        );*/
+      },
+      { targets: [0, 1, 3, 5, 8, 9], width: '5%' },
+      { targets: [2, 4, 6, 7], width: '15%' },
+      { targets: [10, 11], width: '10%' },
+    ],
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'l>>" +
+      "<'row'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start caixa-selecao'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end mb-2'B>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        title: null,
+        filename: function () {
+          let hoje = new Date().toLocaleDateString('pt-BR').replaceAll('/', '-');
+          return `Lista de Despesas de Lojas_${hoje}`;
+        },
+        customize: function (xlsx) {
+          const sheet = xlsx.xl.worksheets['sheet1.xml'];
+
+          $('row c[r^="I"]', sheet).each(function () {
+            $(this).attr('t', 'inlineStr');
+            $(this).html(`<is><t>${$(this).text()}</t></is>`);
+          });
+        },
+        exportOptions: {
+          columns: ':visible:not(.no-export)',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              data = data?.replace(/\s+/g, ' ')?.trim();
+              
+              if(column != 8 && $.isNumeric(data.replaceAll('.', '').replace('R$', '').replace(',', '.'))){
+                return data.replace(/[^\d,]/g, '').replace(',', '.')
+              }
+
+              return data;
+            }
+          }
+        }
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ],
+    initComplete: function (settings) {
+      if (dadosTabela.length > 0) {
+        let idTable = `#${settings.nTable.id}`;
+
+        $('html, body').animate({
+          scrollTop: $(idTable).offset().top - 70
+        }, 1000);
+
+        $(idTable).focus();
+
+        $('.caixa-selecao').html(`
+          <div id="chkMarcaTodos" class="mb-1">
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" id="selectAll" class="custom-control-input" onclick="selecionarLinhasDataTableViaInput(this, '${settings.nTable.id}', 'chkDespesaLoja')">
+              <label class="custom-control-label" for="selectAll">Marcar Todos</label>
+            </div>
+          </div>
+        `);
+      }
     }
-
-}
-
-function chamarProximaListaDespesaLoja(numPage){
-    
-    var IDEmpresaPesqVenda = $("#idloja").val();
-    var idCategoria = $("#idCategoria").val();
-    var datapesqinicio = $("#dtconsultainicio").val();
-    var datapesqfim = $("#dtconsultafim").val();
-
-    ajaxGet('api/financeiro/despesa-loja.xsjs?page='+numPage+'&idCategoria='+idCategoria+'&idEmpresa=' + IDEmpresaPesqVenda + '&dataPesquisaInicio=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim)
-        	.then(retornoListaDespesasLoja)
-        	.catch(funcErrorListaDespesasLoja);
-        	
-    $("#resultado").html(
-    "<div align=\"center\">" +
-    "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>"  +
-    "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-    "</div>"
-    );
-}
-
-function modal_cancela_despsa_Loja(id) {
-
-    $.get('financeiro_action_canceldespesa_modal.html', function(res) {
-      
-       $("#cancelDespesaLoja").modal('show');
-       $('#cancelDespesaLoja').on('shown.bs.modal', function () {});
-       $('#resulModalCancelaDespesaLoja').html(res);
-   })
-    
-	    return	ajaxGet('api/financeiro/deposito-loja.xsjs?id=' + id)
-			.then(retornoCancelaDespesaLoja)
-			.catch(funcError);
-  
-}
-
-function retornoCancelaDespesaLoja(retornoCancelaDespesaLoja) {
-
-		idDepositoLoja = retornoCancelaDespesaLoja.data[0]['IDDEPOSITOLOJA'];
-        dataMovimentoCaixa = retornoCancelaDespesaLoja.data[0]['DTMOVIMENTOCAIXA'];
-        dataDeposito = retornoCancelaDespesaLoja.data[0]['DTDEPOSITO'];
-        descHistorico = retornoCancelaDespesaLoja.data[0]['DSHISTORIO'];
-        numeroDocumentoDeposito = retornoCancelaDespesaLoja.data[0]['NUDOCDEPOSITO'];
-        valorDeposito = mascaraValor(parseFloat(retornoCancelaDespesaLoja.data[0]['VRDEPOSITO']).toFixed(2));
-        status = retornoCancelaDespesaLoja.data[0]['STATIVO'];
-        descContaBanco = retornoCancelaDespesaLoja.data[0]['DSCONTABANCO'];
-        nomeFuncionario = retornoCancelaDespesaLoja.data[0]['NOFUNCIONARIO'];
-        nomeFantasia = retornoCancelaDespesaLoja.data[0]['NOFANTASIA'];
-	
-	    $('#nomeEmpDepositoLoja').val(nomeFantasia);
-		$('#IDDepositoLoja').val(idDepositoLoja);
-		$('#nofuncionario').html(nomeFuncionario);
-		$('#nomeDeposito').val(numeroDocumentoDeposito +' / '+ descHistorico);
-		$('#valorDeposito').val(valorDeposito);
-}
-
-function cancela_despesa_loja(){
-    
-    var IDDepositoLoja = $("#IDDespesaLoja").val();
-	var txtmotivocancela = $("#TxtHistoricoCancela").val();
-	
-    if ($("#TxtHistoricoCancela").val() === '') {
-  
-      $("#resultadocanceladepositoloja").html(
-        "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-        "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-        "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-        "</button>" +
-        "<strong>Atenção!</strong> Informe o Motivo do Cancelamento.</div>"
-      );
-        $("#TxtHistoricoCancela").focus();
-        return false;
-    }
-    
-    var dados = [{
-       "IDDEPOSITOLOJA": parseInt(IDDepositoLoja),
-       "DSMOTIVOCANCELAMENTO":txtmotivocancela,
-       "STCANCELADO":'True',
-       "STATIVO":'False',
-       "IDUSRCACELAMENTO": parseInt(IDFuncionarioLogin)
-    }];
-
-
-  	ajaxPut("api/financeiro/despesa-loja.xsjs", dados)
-		.then(funcSucessCancelaDespesa)
-		.catch(funcError);
-}
-
-function funcSucessCancelaDespesa(resposta) {
-
-	$("#buttoncanceladespesaloja").attr("disabled", true);
-	alerta_cancel_Despesa();
-	$("#cancelDespesaLoja").modal('hide');
-	pesq_despesas_lojas();
-
-}
-
-function alerta_cancel_Despesa() {
-Swal.fire(
-  {
-      type: "success",
-      title: "Despesa Cancelada com Sucesso.",
-      showConfirmButton: false,
-      timer: 2500
   });
 }
 
-function retornoListaCategoriaDespesa(respostaListaCategoriaDespesa) {
+async function abrirModalEditarDespesa(idDespesa) {
+  try {
+    animationLoadingStart();
 
-	for (var i = 0; i < respostaListaCategoriaDespesa.data.length; i++) {
+    let respHtml = await $.get('action_ajustedespesapmodal.html');
+    let listaCategoriasDespesas = await ajaxGetAllData('api/categoria-receita-despesa.xsjs', false);
+    let dadosDepesa = await ajaxGetAllData('api/despesa-loja/todos.xsjs?id=' + idDespesa, false);
 
-		IDCategDespesa = respostaListaCategoriaDespesa.data[i]['IDCATEGORIARECDESP'];
-		DSCategDespesa = respostaListaCategoriaDespesa.data[i]['DSCATEGORIA'];
+    $('#resulmodaleditdespesa').html(respHtml);
 
-		if (IDCategDespesa != '248' && IDCategDespesa != '259' && IDCategDespesa != '258') {
-			$('#IDCategoriaReceitaDespesa').append(
-				`<option value="` + IDCategDespesa + `"> ` + IDCategDespesa + ` - ` + DSCategDespesa + `</option>`
-			);
-		}
+    await retornoListaCategoriaDespesa(listaCategoriasDespesas);
+    await preencherDadosDespesaModalEditar(dadosDepesa);
 
-	}
+    $('#IDFuncDespesa').val(IDFuncionarioLogin);
+
+    $("#editDespesa").modal({
+      backdrop: 'static',
+      keyboard: false,
+      show: true
+    });
+
+    $("#IDCategoriaReceitaDespesa").select2({
+      dropdownParent: $("#editDespesa")
+    }).focus();
+
+    $('#editDespesa').find('#footerdespesa').html(`
+      <button id="buttoneditdespesa" type="button" class="btn btn-success" onclick="salvarEdicaoDespesaLoja()">
+        <i class="fal fa-check mr-1"></i> Salvar
+      </button>
+      <button type="button" class="btn btn-secondary" data-dismiss="modal">
+        <i class="fal fa-times mr-1"></i>Fechar
+      </button>
+    `);
+
+    animationLoadingStop();
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
+
 }
 
-function modal_ajustar_despesa(id) {
+async function preencherDadosDespesaModalEditar(dadosDespesa) {
+  let { data } = dadosDespesa || '';
 
-	$.get('action_ajustedespesapmodal.html', function(res) {
+  if (data?.length > 0) {
+    for (let registro of data) {
+      let {
+        IDDESPESASLOJA,
+        IDEMPRESA,
+        NOFANTASIA,
+        IDCATEGORIARECEITADESPESA,
+        DTDESPESAUPDATE,
+        HRDESPESAUPDATE,
+        VRDESPESA,
+        DSPAGOA,
+        DSHISTORICO,
+        NUNOTAFISCAL,
+        TPNOTA
+      } = registro || '';
+      let stReadOnly = false;
 
-		$('#resulmodaleditdespesa').html(res);
-		$("#editDespesa").modal('show');
-		$('#editDespesa').on('shown.bs.modal', function() {});
+      $('#IDEmpresaDespesa').val(IDEMPRESA);
+      $('#nomeempDespesa').val(NOFANTASIA);
 
-		$('#IDEmpresaDespesa').val(IDEmpresaLogin);
-		$('#nomeempDespesa').val(NOEmpresaLogin);
-		$('#IDFuncDespesa').val(IDFuncionarioLogin);
-        
-		$("#IDCategoriaReceitaDespesa").focus();
-		$("#IDCategoriaReceitaDespesa").select2({
-			dropdownParent: $("#editDespesa")
-		});
+      $('#idDespesaLoja').val(IDDESPESASLOJA);
+      $('#DTDespesa').val(DTDESPESAUPDATE).prop('readonly', stReadOnly);
+      $('#HRDespesa').val(HRDESPESAUPDATE).prop('readonly', stReadOnly)
+      $('#IDCategoriaReceitaDespesa').val(IDCATEGORIARECEITADESPESA).trigger('change');
 
-		return ajaxGet('api/categoria-receita-despesa.xsjs')
-			.then(retornoListaCategoriaDespesa)
-			.catch(funcError);
-	})
-  
-  	return ajaxGet('api/despesa-loja/todos.xsjs?id=' + id)
-	.then(retornoUpdateDespesa)
-	.catch(funcErrorUpdateDespesa);
-	
-}
-
-function retornoUpdateDespesa(updateDespesa) {
-
-	for (var i = 0; i < updateDespesa.data.length; i++) {
-	    
-		IDDespesaLoja = updateDespesa.data[i]['IDDESPESASLOJA'];
-		IDCategDespesaLoja = updateDespesa.data[i]['IDCATEGORIARECEITADESPESA'];
-		DSCategDespesaLoja = updateDespesa.data[i]['DSCATEGORIARECDESP'];
-		DTDespesaLojaUP = updateDespesa.data[i]['DTDESPESAUPDATE'];
-		HRDespesaLojaUP = updateDespesa.data[i]['HRDESPESAUPDATE'];
-		VrDespesaLoja = mascaraValor(parseFloat(updateDespesa.data[i]['VRDESPESA']).toFixed(2));
-		PagoADespesaLoja = updateDespesa.data[i]['DSPAGOA'];
-		TxtHistoricoDespesaLoja = updateDespesa.data[i]['DSHISTORICO'];
-		NuNotaDespesaLoja = updateDespesa.data[i]['NUNOTAFISCAL'];
-		tpNota = updateDespesa.data[i]['TPNOTA'];
-		SituacaoDespesaAtivoLoja = updateDespesa.data[i]['STATIVO'];
-		SituacaoDespesaLoja = updateDespesa.data[i]['STCANCELADO'];
-
-		$('#idDespesaLoja').val(IDDespesaLoja);
-		$('#DTDespesa').val(DTDespesaLojaUP);
-		$('#HRDespesa').val(HRDespesaLojaUP);
-		$('#IDCategoriaReceitaDespesa').append(
-				`<option value="` + IDCategDespesaLoja + `" selected> ` + IDCategDespesaLoja + ` - ` + DSCategDespesaLoja + `</option>`
-		);
-			
-		$('#DsHistorioDespesa').val(TxtHistoricoDespesaLoja);
-		$('#DsPagoA').val(PagoADespesaLoja);
-		$('#TPNota').val(tpNota);
-		$('#NuNotaFiscal').val(NuNotaDespesaLoja);
-		$('#VrDespesaDespesa').val(VrDespesaLoja); 
-	}
-}
-
-function funcErrorUpdateDespesa(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do retornoUpdateDespesa',
-		showConfirmButton: false,
-		timer: 15000
-	});
-}
-
-function ajustar_despesa() {
-
-	var iddesp = $("#idDespesaLoja").val();
-	var idfuncionarioajuste = $("#IDFuncDespesa").val();
-	var idcategoria = $('#IDCategoriaReceitaDespesa').val();
-	var dshistorico = $("#DsHistorioDespesa").val();
-	var dspagoa = $("#DsPagoA").val();
-	var tpnota = $("#TPNota").val();
-	var nunota = $("#NuNotaFiscal").val();
-	var vrdespesa = $('#VrDespesaDespesa').val().replace(".", "").replace(",", ".");
-
-    if ($("#DsHistorioDespesa").val() === '') {
-  
-      $("#resultadoajustemovcaixa").html(
-        "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-        "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-        "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-        "</button>" +
-        "<strong>Atenção!</strong> Informe o Motivo para o Ajuste da Despesa.</div>"
-      );
-        $("#DsHistorioDespesa").focus();
-        return false;
+      $('#DsHistorioDespesa').val(DSHISTORICO);
+      $('#DsPagoA').val(DSPAGOA);
+      $('#TPNota').val(TPNOTA);
+      $('#NuNotaFiscal').val(NUNOTAFISCAL);
+      $('#VrDespesa').val(mascaraValor(parseFloat(VRDESPESA).toFixed(2)));
     }
+  }
+}
 
-    if ($("#DsPagoA").val() === '') {
-  
-      $("#resultadoajustemovcaixa").html(
-        "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-        "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-        "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-        "</button>" +
-        "<strong>Atenção!</strong> Informe Para quem foi pago a Despesa.</div>"
-      );
-        $("#DsPagoA").focus();
-        return false;
-    }
+async function salvarEdicaoDespesaLoja() {
+  let stDadosValidos = await validarDadosEditarDespesaLoja();
+
+  if(!stDadosValidos){
+    return;
+  }
+
+  let confirmacao = await msgQuestion('Deseja realmente editar os dados dessa despesa?');
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  let dados = await montarPayloadEditarDespesaLoja();
+
+  await atualizarDadosDespesaLoja(dados, "FINANCEIRO/EDITAR DESPESA");
+
+  $('#editDespesa').modal('hide');
+
+  pesquisarDespesasLojas();
+}
+
+async function atualizarDadosDespesaLoja(dados, textoFuncao){
+  try{
+    animationLoadingStart('Atualizando dados, aguarde...', 1, false);
+
+    await ajaxPut("api/despesa-loja/editar-despesa.xsjs", dados)
+
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Dados da Despesa Atualizado Com Sucesso!');
+
+    pesquisarDespesasLojas();
+
+  } catch(error){
+    console.log(error);
+    msgError('Erro ao tentar editar a despesa, recarregue e tente novamente!');
+  }
+}
+
+async function ativarDespesaLoja(id) {
+  let confirmacao = await msgQuestion('Deseja realmente Ativar essa despesa?');
+
+  if(!confirmacao?.value){
+    return;
+  }
+
+  let dados = {
+    "IDDESPESASLOJA": parseInt(id),
+    "STCANCELADO": 'False'
+  };
+
+  let textoFuncao = 'FINANCEIRO/ATIVAR DESPESA';
+
+  atualizarStatusDespesaLoja(dados, textoFuncao);
+}
+
+async function cancelarDespesaLoja(id) {
+  let confirmacao = await msgQuestion('Deseja realmente Cancelar essa despesa?');
+
+  if(!confirmacao?.value){
+    return;
+  }
+
+  let dados = {
+    "IDDESPESASLOJA": parseInt(id),
+    "STCANCELADO": 'True'
+  };
+
+  let textoFuncao = 'FINANCEIRO/CANCELAR DESPESA';
+
+  atualizarStatusDespesaLoja(dados, textoFuncao);
+}
+
+async function atualizarStatusDespesaLoja(dados, textoFuncao){
+  try{
+    animationLoadingStart('Atualizando dados, aguarde...', 1, false);
+
+    await ajaxPut("api/despesa-loja/atualizacao-status.xsjs", dados);
+
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Status da Despesa Atualizado Com Sucesso!');
+
+    pesquisarDespesasLojas();
+
+  } catch(error){
+    console.log(error);
+    msgError('Erro ao atualizar o status da despesa, recarregue e tente novamente!');
+  }
+}
+
+async function modalIntegrarDespesaLoja(idDespesaLoja) {
+  let confirmacao = await msgQuestion('Deseja Integrar Esta Despesa no SAP?') || false;
+
+  if (!confirmacao?.value) {
+    return
+  }
+
+  animationLoadingStart('Enviando dados...', 1, false);
+
+  let dados = [{
+    IDDESPESASLOJA: Number(idDespesaLoja),
+    IDFUNCIONARIO: Number(IDFuncionarioLogin)
+  }];
+
+  let textoFuncao = 'FINANCEIRO/INTEGRAR DESPESA';
+
+  await integrarDespesasLojaNoSAP(dados, textoFuncao);
+}
+
+async function modalIntegrarTodasDespesasLojaSelecionadas() {
+  let confirmacao = await msgQuestion('Deseja Integrar Todas as Despesas Selecionadas no SAP?') || false;
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  animationLoadingStart('Validando dados...', 1, false);
+
+  let dados = await montarPayloadDespesasLojaSelecionadasParaIntegracao();
+
+  if (dados.length == 0) {
+    return msgWarning('Nenhuma Despesa selecionada, selecione e tente novamente!')
+  }
+
+  animationLoadingStart('Enviando dados...', 1, false);
+
+  let textoFuncao = 'FINANCEIRO/INTEGRAR TODAS DESPESAS SELECIONADAS';
+
+  await integrarDespesasLojaNoSAP(dados, textoFuncao)
+}
+
+async function integrarDespesasLojaNoSAP(dados, textoFuncao){
+  try {
+    animationLoadingStart('Integrando despesas, aguarde...', 1, false);
     
-    TxtObservacaoAjuste = 'Despesa Editada';
+    await ajaxPost("api/service-layer/despesa/jobs/despesas-integracao.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
     
-	var dados = [{
+    await msgSuccess('Despesas Integradas com sucesso!');
 
-		"IDDESPESASLOJA": parseInt(iddesp),
-		"IDCATEGORIARECEITADESPESA": parseInt(idcategoria),
-		"VRDESPESA": parseFloat(vrdespesa),
-		"DSPAGOA": dspagoa,
-		"DSHISTORIO": dshistorico,
-		"TPNOTA": tpnota,
-		"NUNOTAFISCAL": nunota,
-		"IDUSRCACELAMENTO": parseInt(idfuncionarioajuste),
-		"DSMOTIVOCANCELAMENTO": TxtObservacaoAjuste,
-	}];
-
-	ajaxPut("api/despesa-loja/editar-despesa.xsjs", dados)
-		.then(funcSucessUpdateDespesa)
-		.catch(funcError);
-
+    pesquisarDespesasLojas();
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
 }
 
-function funcSucessUpdateDespesa(resposta) {
-
-	//$("#buttoneditdespesa").attr("disabled", true);
-	alerta_atualizado_sucesso();
-	$("#editDespesa").modal('hide');
-	pesq_despesas_lojas(1);
-}
-
-function status_Despesa_Loja(id,status) {
-
-    var dados = {
-      "IDDESPESASLOJA": parseInt(id),
-      "STCANCELADO":status
-    };
-
-  	ajaxPut("api/despesa-loja/atualizacao-status.xsjs", dados)
-		.then(funcSucessUpdateDespesa)
-		.catch(funcErrorUpdateDespesa);
-
-}
-
-function funcSucessUpdateDespesa(resposta) {
-
-	alerta_cancel_ativa_despesa();
-	pesq_despesas_lojas(1);
-
-}
-
-function funcErrorUpdateDespesa(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do funcSucessUpdateDespesa',
-		showConfirmButton: false,
-		timer: 15000
-	});
-}
-
+//?==================================== FIM ROTINA DESPESAS ==================================== //
 
 // ========================= INICIO EXTRATO CONTA LOJA ===
 function ListaExtrato() {
@@ -5189,678 +5362,1404 @@ function chamarProximaListaRemessaVenda(numPage) {
     
 }
 
-//////////////////Quebra de Caixa da Loja////////////////////////////
+//? ====================================== INICIO ROTINA QUEBRA DE CAIXA DA LOJA ====================================== //
 
-function selecionamarcavendedor(){
-    
-    $("#idloja").empty();
-    
-    idmarca = $('#idmarca').val();
+async function selecionamarcavendedor() {
+  let idmarca = $('#idmarca').val();
 
-    ajaxGet('api/comercial/empresa.xsjs?idmarca=' + idmarca)
-	.then(retornoListaEmpresasSelect)
-	.catch(funcError);
+  $("#idloja").empty();
+
+  try {
+    await ajaxGetAllData('api/comercial/empresa.xsjs?idmarca=' + idmarca)
+      .then(retornoListaEmpresasSelect)
+  } catch (error) {
+    console.log(error);
+    msgError()
+  }
 }
 
-function ListaQuebraCaixaLoja() {
+async function carregarEmpresasPorMarcaUF() {
+  let idmarca = $('#idmarca').val();
+  let uf = $('#iduf').val();
 
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    
-    xmlhttp.onreadystatechange = function () {
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
-        
-            $('.dataAtual').text(dataAtual);
-            $('#DTInicio').val(dataAtualCampo);
-            $('#DTFim').val(dataAtualCampo);
-            
-            $("#idloja").select2();
-            $("#idmarca").select2();
-            $("#iduf").select2();
-        
-            $('.DescTituloQuebraCaixa').html(
-			`<i class='subheader-icon fal fa-chart-area'></i> Quebra de Caixas das Lojas - <span class='fw-300'></span>`);
+  $("#idloja").empty();
 
-			ajaxGet('api/informatica/grupoempresas.xsjs')
-                .then(retornoListaGrupoEmpresasSelect)
-                .catch(funcError);
-
-      }
-    };
-    xmlhttp.open("GET", "financeiro_action_listquebracaixaloja.html", true);
-    xmlhttp.send();
+  try {
+    await ajaxGetAllData(`api/comercial/empresa.xsjs?idmarca=${idmarca}&ufprod=${uf}`)
+      .then(retornoListaEmpresasSelect)
+  } catch (error) {
+    console.log(error);
+    msgError()
+  }
 }
 
-function pesq_quebra_caixa_loja() {
+async function ListarQuebraCaixaLoja() {
+  try {
+    animationLoadingStart();
 
-    var datapesqinicio = $("#DTInicio").val();
-    var datapesqfim = $("#DTFim").val();
-    var IDMarcaLoja = $("#idmarca").val();
-    var IDEmpresaLoja = $("#idloja").val();
-    var CPFOperadorQuebra = $("#cpfOperador").val();
-    var stQuebraPositivaNegativa = $("#stQuebraPositvaNegativa").val();
-    
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-   
-    $("#resultado").html(
-      "<div align=\"center\">" +
-      "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>"  +
-      "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-      "</div>"
-      );
-   
-   
-    xmlhttp.onreadystatechange = function () {
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("resultado").innerHTML = xmlhttp.responseText;
-        //newDataTable('quebracaixa');
-        
-            $('.dataAtual').text(dataAtual);
-            if(stQuebraPositivaNegativa === '0'){
-    		    ajaxGet('api/dashboard/quebra-caixa/lista-quebra-caixa.xsjs?pageSize=1000&page=1&idEmpresa=' + IDEmpresaLoja + '&dataPesquisaInic=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim + '&idMarca=' + IDMarcaLoja + '&cpfquebraop=' + CPFOperadorQuebra)
-    				.then(retornoTableListQuebraCaixaLoja)
-    				.catch(funcErrorQuebraCaixaLoja);
-            }else{
-                if(stQuebraPositivaNegativa === '1'){
-                     ajaxGet('api/dashboard/quebra-caixa/lista-quebra-caixa.xsjs?pageSize=1000&page=1&idEmpresa=' + IDEmpresaLoja + '&dataPesquisaInic=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim +'&stQuebraPositivaNegativa=Positiva' + '&idMarca=' + IDMarcaLoja + '&cpfquebraop=' + CPFOperadorQuebra)
-        				.then(retornoTableListQuebraCaixaLoja)
-        				.catch(funcErrorQuebraCaixaLoja);
-                }else{
-                    ajaxGet('api/dashboard/quebra-caixa/lista-quebra-caixa.xsjs?pageSize=1000&page=1&idEmpresa=' + IDEmpresaLoja + '&dataPesquisaInic=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim +'&stQuebraPositivaNegativa=Negativa' + '&idMarca=' + IDMarcaLoja + '&cpfquebraop=' + CPFOperadorQuebra)
-        				.then(retornoTableListQuebraCaixaLoja)
-        				.catch(funcErrorQuebraCaixaLoja);
-                }
-            }
-				
-      }
-    };
-    xmlhttp.open("GET", "financeiro_action_pesqquebracaixaloja.html", true);
-    xmlhttp.send();
+    let dataHtml = await $.get("financeiro_action_listquebracaixaloja.html");
+    let dataGrupoEmpresas = await ajaxGetAllData('api/informatica/grupoempresas.xsjs', false);
+
+    $('#js-page-content').html(dataHtml);
+
+    retornoListaGrupoEmpresasSelect(dataGrupoEmpresas);
+
+    $('.dataAtual').text(dataAtual);
+    $('#dtInicio, #dtFim').val(dataAtualCampo);
+    $("#idloja, #idmarca, #iduf, #stQuebraPositvaNegativa").select2();
+
+    $('#cpfOperador, #dtInicio, #dtFim').on('keypress', (e) => { (e.which == 13) && pesquisarQuebrasDeCaixa() });
+
+    animationLoadingStop();
+
+    $('#idmarca').focus();
+
+  } catch (error) {
+    console.log(error);
+    msgError()
+  }
 }
 
-function retornoTableListQuebraCaixaLoja(quebraCaixaLoja) {
+async function pesquisarQuebrasDeCaixa() {
+  let dtInicio = $("#dtInicio").val();
+  let dtFim = $("#dtFim").val();
+  let idMarca = Number($("#idmarca").val()) || "";
+  let idEmpresa = Number($("#idloja").val()) || "";
+  let cpfOperador = $("#cpfOperador").val()?.replace(/\D/g, "") || "";
+  let stQuebra = $("#stQuebraPositvaNegativa").val();
 
-    var numPageAtual = parseInt(quebraCaixaLoja.page);
+  $('#btnConferirTodasQuebrasCaixaSelecionadas').addClass('d-none').removeClass('d-flex');
 
-    if(numPageAtual === 1){
-        
-        $('#resultadoListaQuebra').html(
-            `<table id="dt-basic-quebracaixa" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
-                <thead class="bg-primary-600">
-                    <tr>
-                        <th>*</th>
-                        <th>Empresa</th>
-                        <th>DT Lançamento</th>
-                        <th>Nº Movimento</th>
-                        <th>Matrícula</th>
-                        <th>Colaborador</th>
-                        <th>CPF</th>
-                        <th>Vr Quebra Sistema</th>
-                        <th>Vr Quebra Lançado</th>
-                        <th>Histórico</th>
-                        <th>Situação</th>
-                        <th>Opções</th>
-                    </tr>
-                </thead>
-                <tbody id="resultadoQuebraCaixa">
-                </tbody>
-                <tfoot id="totalQuebraCaixaLoja"class="thead-themed">
-                </tfoot>
-            </table>`
-        );
-	            
-        var tableQuebraLoja = $('#dt-basic-quebracaixa').DataTable({
-            deferRender:    true,
-            ordering:  false,
-            //scrollY:        800,
-            //scrollCollapse: false,
-            //scroller:       false,
-            responsive: true,
-            dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-                        "<'row'<'col-sm-12'tr>>" +
-                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        
-            buttons: [
-                        {
-                            extend: 'excelHtml5',
-                            text: 'Excel',
-                            titleAttr: 'Generate Excel',
-                            className: 'btn-outline-success btn-sm mr-1'
-                        }
-                    ]
-        });
-        
-        tableQuebraLoja.rows().remove().draw();
-        $('#totalQuebraCaixaLoja').html('');
-    }
+  try {
+    await ajaxGetAllData(`api/dashboard/quebra-caixa/lista-quebra-caixa.xsjs?idEmpresa=${idEmpresa}&dataPesquisaInic=${dtInicio}&dataPesquisaFim=${dtFim}&idMarca=${idMarca}&cpfquebraop=${cpfOperador}&stQuebraPositivaNegativa=${stQuebra}`)
+      .then(retornoTableListQuebraCaixaLoja)
 
-    if(quebraCaixaLoja.data.length != 0){
-        
-        contadorQuebraLoja = 0;
-        
-	    for (var i = 0; i < quebraCaixaLoja.data.length; i++) {
+  } catch (error) {
+    console.log(error);
+    msgError()
+  }
+}
 
-		contadorQuebraLoja = contadorQuebraLoja + 1;
+function retornoTableListQuebraCaixaLoja(dataQuebrasCaixasLojas) {
+  let { data } = dataQuebrasCaixasLojas || [];
+  let dadosTable = [];
+  let contador = 0;
+  let totalQuebraLanc = 0;
+  let totalQuebraSistemaLanc = 0;
 
-		IDQuebraLoja = quebraCaixaLoja.data[i]['IDQUEBRACAIXA'];
-		EmpMovQuebraLoja = quebraCaixaLoja.data[i]['NOFANTASIA'];
-		IDMovQuebraLoja = quebraCaixaLoja.data[i]['IDMOVIMENTOCAIXA'];
-		IDGerente = quebraCaixaLoja.data[i]['IDGERENTE'];
-		IDFuncQuebra = quebraCaixaLoja.data[i]['IDFUNCIONARIO'];
-		DTLancamento = quebraCaixaLoja.data[i]['DTLANCAMENTO'];
-		VrQuebrasistemaLoja = parseFloat(quebraCaixaLoja.data[i]['VRQUEBRASISTEMA']);
-		VrQuebraLancadoLoja = parseFloat(quebraCaixaLoja.data[i]['VRQUEBRAEFETIVADO']);
-		TxtHistoricoQuebra = quebraCaixaLoja.data[i]['TXTHISTORICO'];
-		NomeFuncQuebra = quebraCaixaLoja.data[i]['NOMEOPERADOR'];
-		CPFNomeFuncQuebra = quebraCaixaLoja.data[i]['CPFOPERADOR'];
-		MatNomeFuncQuebra = quebraCaixaLoja.data[i]['IDFUNCIONARIO'];
-		SituacaoQuebraLoja = quebraCaixaLoja.data[i]['STATIVO'];
+  if (data.length > 0) {
+    $('#btnConferirTodasQuebrasCaixaSelecionadas').removeClass('d-none').addClass('d-flex');
 
-	    if(SituacaoQuebraLoja=='True'){ 
-            tagQuebraAtivo='<label style="color: blue;">Ativo</label>';
-            tagQuebraAtivoBotao='<div class="btn-group btn-group-xs"><button type="button" class="btn btn-danger btn-xs" title="Cancelar Quebra" id="'+IDQuebraLoja+'" onclick="status_Quebra_Caixa_Loja(this.id,\'False\')" >Cancelar</button><button type="button" class="btn btn-info btn-xs" title="Imprimir Quebra" id="'+IDQuebraLoja+'" onclick="modal_Imprimir_Quebra(this.id)" >Imprimir</button></div>';
-        }else{
-            tagQuebraAtivo='<label style="color: red;">Cancelado</label>';
-            tagQuebraAtivoBotao='<div class="btn-group btn-group-xs"><button type="button" class="btn btn-info btn-xs" title="Ativar Quebra" id="'+IDQuebraLoja+'" onclick="status_Quebra_Caixa_Loja(this.id,\'True\')" >Ativar</button></div>';
-        }
-        
-        if(VrQuebraLancadoLoja>0){
-            tagVrQuebraLanc = '<label style="color: blue;"> + ' + mascaraValor(VrQuebraLancadoLoja.toFixed(2)) + '</label>';
-        }else{
-            tagVrQuebraLanc = '<label style="color: red;"> - ' + mascaraValor(VrQuebraLancadoLoja.toFixed(2)) + '</label>';
-        }
-        
-         if(VrQuebrasistemaLoja>0){
-            tagVrQuebraSistemaLanc = '<label style="color: blue;"> + ' + mascaraValor(VrQuebrasistemaLoja.toFixed(2)) + '</label>';
-        }else{
-            tagVrQuebraSistemaLanc = '<label style="color: red;"> - ' + mascaraValor(VrQuebrasistemaLoja.toFixed(2)) + '</label>';
+    for (let registro of data) {
+      let idQuebraLoja = registro?.IDQUEBRACAIXA;
+      let empMovQuebraLoja = registro?.NOFANTASIA;
+      let idMovQuebraLoja = registro?.IDMOVIMENTOCAIXA;
+      let dtLancamento = registro?.DTLANCAMENTO;
+      let vrQuebraSistemaLoja = parseFloat(registro?.VRQUEBRASISTEMA || 0);
+      let vrQuebraLancadoLoja = parseFloat(registro?.VRQUEBRAEFETIVADO || 0);
+      let txtHistoricoQuebra = registro?.TXTHISTORICO;
+      let nomeFuncQuebra = registro?.NOMEOPERADOR;
+      let cpfNomeFuncQuebra = registro?.CPFOPERADOR;
+      let matFuncQuebra = registro?.IDFUNCIONARIO;
+      let situacaoQuebraLoja = registro?.STATIVO == 'True';
+      let situacaoConferido = registro?.STCONFERIDO == 'True';
+      let tagQuebraAtivo = '<label style="color: red;">Cancelado</label>';
+      let containerButtons = '';
+      let btnAtivar = `<button type="button" class="btn btn-info btn-xs" title="Ativar Quebra" id="" onclick="modalAtivarQuebraCaixaLoja('${idQuebraLoja}')" ><span class="d-block fal fa-check mr-1"></span>Ativar</button>`;
+      let btnCancelar = `<button type="button" class="btn btn-danger btn-xs mr-1" title="Cancelar Quebra" id="" onclick="modalCancelarQuebraCaixaLoja('${idQuebraLoja}')" ><span class="d-block fal fa-times mr-1"></span>Cancelar</button>`;
+      let btnImprimir = `<button type="button" class="btn btn-info btn-xs mr-1" title="Imprimir Quebra" id="" onclick="modalImprimirQuebraCaixa('${idQuebraLoja}')" ><span class="d-block fal fa-printer mr-1"></span>Imprimir</button>`;
+      let btnConferir = `<button type="button" class="btn btn-success btn-xs mr-1" title="Conferir Fatura" onclick="modalConferirQuebraCaixa('${idQuebraLoja}')"><span class="d-block fal fa-check mr-1"></span> Conferir</button>`;
+      let inpuSelecao = `
+        <div class="custom-control custom-checkbox">
+          <input id="${idQuebraLoja}" type="checkbox" class="custom-control-input" name="chkQuebraCaixa" onchange="selecionarLinhaTable(this)">
+          <label class="custom-control-label" for="${idQuebraLoja}"></label>
+        </div>
+      `;
+
+      let vrFormatadoComSinal = (valor)=>{
+        let sinal = valor < 0 ? '-' : valor > 0 ? '+' : '';
+
+        return  sinal + mascaraValor(valor.toFixed(2))
+      };
+
+      let corDeAcordoComValor = (valor)=>{
+        let color = valor < 0 ? 'red' : valor > 0 ? 'blue' : 'black';
+
+        return  color;
+      };
+
+      let tagVrQuebraLanc = `<label style="color: ${corDeAcordoComValor(vrQuebraLancadoLoja)};">${vrFormatadoComSinal(vrQuebraLancadoLoja)}</label>`;
+      let tagVrQuebraSistemaLanc = `<label style="color: ${corDeAcordoComValor(vrQuebraSistemaLoja)};"> ${vrFormatadoComSinal(vrQuebraSistemaLoja)}</label>`;
+
+      if (situacaoQuebraLoja) {
+        let txt = 'ATIVO / ';
+
+        if (situacaoConferido) {
+          containerButtons = btnImprimir;
+          inpuSelecao = '';
+          txt += 'CONFERIDO'
+        } else {
+          containerButtons = btnCancelar + btnImprimir + btnConferir;
+          txt += '<span style="color: red;">NÃO CONFERIDO</span>'
         }
 
-		tableQuebraLoja.row.add([
-            `<label style="color: blue;">` + contadorQuebraLoja + `</label>`,
-            `<label style="color: blue;">` + EmpMovQuebraLoja + `</label>`,
-            `<label style="color: blue;">` + DTLancamento + `</label>`,
-            `<label style="color: blue;">` + IDMovQuebraLoja + `</label>`,
-            `<label style="color: blue;">` + MatNomeFuncQuebra + `</label>`,
-            `<label style="color: blue;">` + NomeFuncQuebra + `</label>`,
-            `<label style="color: blue;">` + CPFNomeFuncQuebra + `</label>`,
-            tagVrQuebraSistemaLanc,
-            tagVrQuebraLanc,
-            `<label style="color: blue;">` + TxtHistoricoQuebra + `</label>`,
-            tagQuebraAtivo,
-            tagQuebraAtivoBotao,
-        ]).draw(false);
-        
-	}
-	
-        chamarProximaListaQuebraCaixaLoja(numPageAtual + 1);
-    }else{
+        tagQuebraAtivo = `<span style="color: blue;">${txt}</span>`;
 
-    }
-	
-}
-
-
-function chamarProximaListaQuebraCaixaLoja(numPage){
-
-    var datapesqinicio = $("#DTInicio").val();
-    var datapesqfim = $("#DTFim").val();
-    var IDMarcaLoja = $("#idmarca").val();
-    var IDEmpresaLoja = $("#idloja").val();
-    var CPFOperadorQuebra = $("#cpfOperador").val();
-    var stQuebraPositivaNegativa = $("#stQuebraPositvaNegativa").val();
-    
-            if(stQuebraPositivaNegativa === '0'){
-    		    ajaxGet('api/dashboard/quebra-caixa/lista-quebra-caixa.xsjs?pageSize=1000&page='+numPage +'&idEmpresa=' + IDEmpresaLoja + '&dataPesquisaInic=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim + '&idMarca=' + IDMarcaLoja + '&cpfquebraop=' + CPFOperadorQuebra)
-    				.then(retornoTableListQuebraCaixaLoja)
-    				.catch(funcErrorQuebraCaixaLoja);
-            }else{
-                if(stQuebraPositivaNegativa === '1'){
-                    ajaxGet('api/dashboard/quebra-caixa/lista-quebra-caixa.xsjs?pageSize=1000&page='+numPage +'&idEmpresa=' + IDEmpresaLoja + '&dataPesquisaInic=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim +'&stQuebraPositivaNegativa=Positiva' + '&idMarca=' + IDMarcaLoja + '&cpfquebraop=' + CPFOperadorQuebra)
-        				.then(retornoTableListQuebraCaixaLoja)
-        				.catch(funcErrorQuebraCaixaLoja);
-                }else{
-                    ajaxGet('api/dashboard/quebra-caixa/lista-quebra-caixa.xsjs?pageSize=1000&page='+numPage +'&idEmpresa=' + IDEmpresaLoja + '&dataPesquisaInic=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim +'&stQuebraPositivaNegativa=Negativa' + '&idMarca=' + IDMarcaLoja + '&cpfquebraop=' + CPFOperadorQuebra)
-        				.then(retornoTableListQuebraCaixaLoja)
-        				.catch(funcErrorQuebraCaixaLoja);
-                }
-            }
-}
-
-function funcErrorQuebraCaixaLoja(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do retornoTableListQuebraCaixaLoja',
-		showConfirmButton: false,
-		timer: 15000
-	});
-}
-
-function modal_Imprimir_Quebra(id) {
-    
-    $.get('action_imprimirmodalquebra.html', function(res) {
-
-		$('#resulmodalimprimirquebra').html(res);
-		$("#imprimiDadosQuebra").modal('show');
-		$('#imprimiDadosQuebra').on('shown.bs.modal', function() {});
-		
-		return	ajaxGet('api/dashboard/quebra-caixa/quebra-caixa.xsjs?id=' + id) 
-			.then(retornoTableImprimeQuebra) 
-			.catch(funcError);
-	})
-} 
-
-function retornoTableImprimeQuebra(imprimeQuebraLoja) {
-
-            var idfuncionarioop = $("#IDFuncionario").val();
-            
-            IDFuncionarioQuebraLoja = '';
-
-			IDQuebraLoja = imprimeQuebraLoja.data[0]['IDQUEBRACAIXA'];
-			IDMovQuebraLoja = imprimeQuebraLoja.data[0]['IDMOVIMENTOCAIXA'];
-			IDEmpresaQuebraLoja = imprimeQuebraLoja.data[0]['IDEMPRESA'];
-			IDFuncionarioQuebraLoja = imprimeQuebraLoja.data[0]['IDFUNCIONARIO'];
-			DsCaixaQuebraLoja = imprimeQuebraLoja.data[0]['DSCAIXA'];
-			DTMovQuebraLoja = imprimeQuebraLoja.data[0]['DTLANCAMENTO'];
-			VrQuebraLoja = parseFloat(imprimeQuebraLoja.data[0]['VRQUEBRAEFETIVADO']);
-			TxtHistQuebraLoja = imprimeQuebraLoja.data[0]['TXTHISTORICO'];
-		    RazaoEmpresaQuebra = imprimeQuebraLoja.data[0]['NORAZAOSOCIAL'];
-			NoFantasiaEmpresaQuebra = imprimeQuebraLoja.data[0]['NOFANTASIA'];
-			CNPJEmpresaQuebra = imprimeQuebraLoja.data[0]['NUCNPJ'];
-			EndEmpresaQuebra = imprimeQuebraLoja.data[0]['EENDERECO'];
-			BairroEmpresaQuebra = imprimeQuebraLoja.data[0]['EBAIRRO'];
-			CidadeEmpresaQuebra = imprimeQuebraLoja.data[0]['ECIDADE'];
-			UFEmpresaQuebra = imprimeQuebraLoja.data[0]['SGUF'];
-			NoFuncionarioQuebra = imprimeQuebraLoja.data[0]['NOMEOPERADOR'];
-			FuncaoFuncionarioQuebra = imprimeQuebraLoja.data[0]['DSFUNCAO'];
-			CPFFuncionario = imprimeQuebraLoja.data[0]['CPFOPERADOR']; 
-			NoGerente = imprimeQuebraLoja.data[0]['NOMEGERENTE'];
-
-			if(idfuncionarioop == IDFuncionarioQuebraLoja){
-			    
-    			$('.TituloModalImprimir').html( 
-            		`Impressão de Recibos <small class="m-0 text-muted">Imprimir Quebra de Caixa</small>`
-            	);
-    
-            	$('.TituloRecibo').html(
-            		`<h3 style="text-align: center;">AUTORIZAÇÃO DE DESCONTO EM FOLHA DE PAGAMENTO POR QUEBRA DE CAIXA</h3>`
-            	);
-    
-            	$('.CorpoRecibo1').html(
-            		`<div class="col-sm-12" style="text-align: justify;">Valor da Quebra:<b> R$ ` + mascaraValor(VrQuebraLoja.toFixed(2)) + ` - </b>Referente:<b> ` + (DsCaixaQuebraLoja) + ` - </b>Movimento:<b> ` + (IDMovQuebraLoja) + `</b></div>`
-            	);
-    
-            	$('.CorpoRecibo2').html(
-            		`<div class="col-sm-12" style="text-align: justify;">Pelo presente instrumento, Eu,<b> ` + NoFuncionarioQuebra + `</b>, brasileiro(a), função (` + FuncaoFuncionarioQuebra + `), inscrito(a) no CPF sob o nº <b> ` + CPFFuncionario + ` </b>, 
-            		colaborador(a) da empresa GTO COM. ATAC. DE CONFEC. E CALÇ. LTDA., inscrita no CNPJ nº.<b> ` + CNPJEmpresaQuebra + `</b>, com sede na ` + EndEmpresaQuebra + ` - ` + BairroEmpresaQuebra + ` - ` + CidadeEmpresaQuebra + ` - ` + UFEmpresaQuebra + `, 
-            		<b>AUTORIZO</b> a empresa a efetuar o desconto até o limite total do meu adicional de quebra de caixa, em meu salário, através da folha de pagamento, dos valores faltantes no meu caixa, seguindo assim os ditames legais do Art. 462, §1º da CLT e CCT vigentes.</div>
-                    `
-            	);
-            	
-            	$('.CorpoRecibo3').html( 
-            		`<div class="col-sm-12" style="text-align: justify;">Motivo: <b>` + TxtHistQuebraLoja + ` </b></div>`
-            	);
-            	
-            	$('.CorpoRecibo4').html(
-            		`<div class="col-sm-12">Brasília, ` + dataAtual + `.</div>`
-            	);
-            	
-            	$('.CorpoRecibo5').html(
-            		`<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
-        			    <div class="col-sm-12" style="text-align: center;">` + NoFuncionarioQuebra + ` - CPF: ` + CPFFuncionario + `</div>`
-            	);
-            	
-            	$('.CorpoRecibo6').html(
-            		`<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
-        			    <div class="col-sm-12" style="text-align: center;">` + NoFantasiaEmpresaQuebra + ` - ` + NoGerente + `</div>`
-            	);
-			}else{
-    			$('.TituloModalImprimir').html( 
-            		`Impressão de Recibos <small class="m-0 text-muted">Imprimir Desconto em Folha</small>`
-            	);
-    
-            	$('.TituloRecibo').html(
-            		`<h3 style="text-align: center;">DESCONTO AUTORIZADO EM FOLHA DE PAGAMENTO</h3>`
-            	);
-    
-            	$('.CorpoRecibo1').html(
-            		`<div class="col-sm-12" style="text-align: justify;">Valor da Quebra:<b> R$ ` + mascaraValor(VrQuebraLoja.toFixed(2)) + ` - </b>Referente:<b> ` + (DsCaixaQuebraLoja) + ` - </b>Movimento:<b> ` + (IDMovQuebraLoja) + `</b></div>`
-            	);
-    
-            	$('.CorpoRecibo2').html(
-            		`<div class="col-sm-12" style="text-align: justify;">Pelo presente instrumento, Eu,<b> ` + NoFuncionarioQuebra + `</b>, brasileiro(a), função (` + FuncaoFuncionarioQuebra + `), inscrito(a) no CPF sob o nº <b> ` + CPFFuncionario + ` </b>, 
-            		colaborador(a) da empresa GTO COM. ATAC. DE CONFEC. E CALÇ. LTDA., inscrita no CNPJ nº.<b> ` + CNPJEmpresaQuebra + `</b>, com sede na ` + EndEmpresaQuebra + ` - ` + BairroEmpresaQuebra + ` - ` + CidadeEmpresaQuebra + ` - ` + UFEmpresaQuebra + `, 
-            		<b>AUTORIZO</b> a empresa a efetuar o desconto acima especificado em meu salário, através da folha de pagamento.</div>
-                    `
-            	);
-            	
-            	$('.CorpoRecibo3').html( 
-            		`<div class="col-sm-12" style="text-align: justify;">Motivo: <b>` + TxtHistQuebraLoja + ` </b></div>`
-            	);
-            	
-            	$('.CorpoRecibo4').html(
-            		`<div class="col-sm-12">Brasília, ` + dataAtual + `.</div>`
-            	);
-            	
-            	$('.CorpoRecibo5').html(
-            		`<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
-        			    <div class="col-sm-12" style="text-align: center;">` + NoFuncionarioQuebra + ` - CPF: ` + CPFFuncionario + `</div>`
-            	);
-            	
-            	$('.CorpoRecibo6').html(
-            		`<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
-        			    <div class="col-sm-12" style="text-align: center;">` + NoFantasiaEmpresaQuebra + ` - ` + NoGerente + `</div>`
-            	);
-			}
-			
-		textoFuncao = 'QUEBRA DE CAIXA Nº '+ IDQuebraLoja + ' DO MOVIMENTO: ' + IDMovQuebraLoja + ' FUNCIONARIO: ' + NoFuncionarioQuebra;
-		
-        var dadosCancelaQuebra = [{
-            
-            "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-            "PATHFUNCAO":"FINANCEIRO/IMPRESSÃO QUEBRA DE CAIXA",
-            "DADOS":textoFuncao,
-            "IP":ipCliente
-        }];
-    
-      	ajaxPost("api/log-web.xsjs", dadosCancelaQuebra)
-    		.then(funcSucessLog)
-    		.catch(funcError);
-		
-}
-
-function status_Quebra_Caixa_Loja(id,status) {
-
-    var dados = {
-      "IDQUEBRACAIXA": parseInt(id),
-      "STATIVO":status
-    };
-    
-  	ajaxPut("api/dashboard/quebra-caixa/atualizacao-status.xsjs", dados)
-		.then(funcSucessUpdateQuebraCaixaLoja)
-		.catch(funcError);
-		
-	const textdados = JSON.stringify(dados);
-	
-	if(status=='True'){
-	    textoFuncao = 'FINANCEIRO/ATIVADO QUEBRA DE CAIXA';
-	}else{
-	    textoFuncao = 'FINANCEIRO/CANCELAMENTO DE QUEBRA DE CAIXA';
-	}
-		
-    var dadosCancelaQuebra = [{
-        
-        "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-        "PATHFUNCAO":textoFuncao,
-        "DADOS":textdados,
-        "IP":ipCliente
-    }];
-
-  	ajaxPost("api/log-web.xsjs", dadosCancelaQuebra)
-		.then(funcSucessLog)
-		.catch(funcError);
-
-}
-
-function funcSucessUpdateQuebraCaixaLoja(resposta) {
-
-	alerta_cancel_ativa_quebra_caixa();
-	pesq_quebra_caixa_loja();
-
-}
-
-function alerta_cancel_ativa_quebra_caixa() {
-Swal.fire(
-  {
-      type: "success",
-      title: "Quebra de Caixa Atualizado com Sucesso.",
-      showConfirmButton: false,
-      timer: 2500
-  });
-}
-
-//////////////////Adiantamento Salarial da Loja////////////////////////////
-
-function ListaAdiantamentoLoja() {
-
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    
-    xmlhttp.onreadystatechange = function () {
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
-        
-            $('.dataAtual').text(dataAtual);
-            $('#DTInicio').val(dataAtualCampo);
-            $('#DTFim').val(dataAtualCampo);
-
-            $("#idloja").select2();
-            $("#idmarca").select2();
-            $("#iduf").select2();
-        
-            $('.DescTituloQuebraCaixa').html(
-			`<i class='subheader-icon fal fa-chart-area'></i> Adiantamento Salarial das Lojas <span class='fw-300'></span>`);
-
-			ajaxGet('api/informatica/grupoempresas.xsjs')
-                .then(retornoListaGrupoEmpresasSelect)
-
+      } else {
+        tagQuebraAtivo = '<span style="color: red;">CANCELADO</span>';
+        containerButtons = btnAtivar;
+        inpuSelecao = '';
       }
-    };
-    xmlhttp.open("GET", "financeiro_action_listadiantamentoloja.html", true);
-    xmlhttp.send();
-}
 
-function pesq_adiantamento_loja() {
+      containerButtons = `
+        <div class="d-flex justify-content-start">
+          ${containerButtons}
+        </div>
+      `;
 
-    var datapesqinicio = $("#DTInicio").val();
-    var datapesqfim = $("#DTFim").val();
-    var IDMarcaLoja = $("#idmarca").val();
-    var IDEmpresaLoja = $("#idloja").val();
+      totalQuebraLanc += vrQuebraLancadoLoja;
+      totalQuebraSistemaLanc += vrQuebraSistemaLoja;
+
+      contador++;
+
+      dadosTable.push([
+        inpuSelecao,
+        `<span style="color: blue;">${empMovQuebraLoja}</span>`,
+        `<span style="color: blue;">${dtLancamento}</span>`,
+        `<span style="color: blue;">${idMovQuebraLoja}</span>`,
+        `<span style="color: blue;">${matFuncQuebra}</span>`,
+        `<span style="color: blue;">${nomeFuncQuebra}</span>`,
+        `<span style="color: blue;">${maskCpf(cpfNomeFuncQuebra)}</span>`,
+        tagVrQuebraSistemaLanc,
+        tagVrQuebraLanc,
+        `<span style="color: blue;">${txtHistoricoQuebra?.toUpperCase()}</span>`,
+        tagQuebraAtivo,
+        containerButtons,
+      ]);
+
+    }
+  }
   
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-   
-    $("#resultado").html(
-      "<div align=\"center\">" +
-      "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>"  +
-      "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-      "</div>"
-      );
-   
-   
-    xmlhttp.onreadystatechange = function () {
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("resultado").innerHTML = xmlhttp.responseText;
-        newDataTable('quebracaixa');
-        
-            $('.dataAtual').text(dataAtual);
+  //console.log(dadosTable)
 
-		    return	ajaxGet('api/dashboard/adiantamento-salarial/adiantamentolojas.xsjs?idEmpresa=' + IDEmpresaLoja + '&dataPesquisaIni=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim + '&idMarca=' + IDMarcaLoja)
-				.then(retornoTableListAdiantamentoLoja)
-				.catch(funcErrorListAdiantamentoLoja);
-				
+  $('#resultado').html(
+    `<div class="row">
+          <div class="col-xl-12">
+            <div id="panel-1" class="panel">
+              <div class="panel-hdr">
+                <h2>
+                  Lista de Quebra de Caixas<span class="fw-300"><i></i></span>
+                </h2>
+              </div>
+              <div class="panel-container show">
+                <div class="panel-content">
+                  <div id="resultadoListaQuebra" class="overflow-auto">
+                    <table id="dt-basic-quebracaixa"
+                      class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                      <thead class="bg-primary-600">
+                        <tr>
+                          <th>Seleção</th>
+                          <th>Empresa</th>
+                          <th>Dt. Lançamento</th>
+                          <th>Nº Movimento</th>
+                          <th>Matrícula</th>
+                          <th>Colaborador</th>
+                          <th>CPF</th>
+                          <th>Vr. Quebra Sistema</th>
+                          <th>Vr. Quebra Lançado</th>
+                          <th>Histórico</th>
+                          <th>Situação</th>
+                          <th>Opções</th>
+                        </tr>
+                      </thead>
+                      <tbody id="resultadoQuebraCaixa"></tbody>
+                      <tfoot id="totalQuebraCaixaLoja" class="thead-themed"></tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`
+  );
+
+  $('#totalQuebraCaixaLoja').html(`
+      <tr>
+        <td colspan="7" class="text-right fw-900">Totais</td>
+        <td>
+          <span style="color: ${totalQuebraSistemaLanc >= 0 ? `blue;">` : `red;"> -`}${mascaraValor(totalQuebraSistemaLanc.toFixed(2))}</span>
+        </td>
+        <td>
+          <span style="color: ${totalQuebraLanc >= 0 ? `blue;">` : `red;"> -`}${mascaraValor(totalQuebraLanc.toFixed(2))}</span>
+        </td>
+        <td colspan="3"></td>
+      </tr>
+  `)
+
+  $('#dt-basic-quebracaixa').DataTable({
+    data: dadosTable,
+    deferRender: false,
+    ordering: true,
+    responsive: false,
+    columnDefs: [
+      { targets: [0], className: 'text-center align-middle', width: '5%' },
+      { targets: [2, 4, 7, 8], width: '5%' },
+      { targets: [11], width: '10%' },
+      { targets: '_all', className: 'align-middle'},
+    ],
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'l>>" +
+      "<'row'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start caixa-selecao'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end mb-2'B>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        title: 'Quebras de Caixa',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':gt(0):lt(10)',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              return $.isNumeric(data.replaceAll(',', '').trim()) ? data.replace(',', '.').trim() : data.trim();
+            }
+          }
+        }
       }
-    };
-    xmlhttp.open("GET", "financeiro_action_pesqadiantamentoloja.html", true);
-    xmlhttp.send();
-}
+    ],
+    initComplete: function (settings) {
+      if(dadosTable.length > 0){
+        let idTable = `#${settings.nTable.id}`;
 
-function retornoTableListAdiantamentoLoja(adiantamentoLoja) {
+        $('html, body').animate({
+          scrollTop: $(idTable).offset().top - 70
+        }, 1000);
 
-	var VrTotalAdiantamentoLoja = 0;
-	var contadorAdiantamento = 0;
+        $(idTable).find('tbody td:first').focus();
 
-
-		var tableAdiantamentoSal = $('#dt-basic-adiantamentoloja').DataTable({
-            deferRender:    true,
-            
-            ordering:  false,
-            //scrollY:        800,
-            //scrollCollapse: false,
-            //scroller:       false,
-            responsive: true,
-            dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-                        "<'row'<'col-sm-12'tr>>" +
-                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-        
-            buttons: [
-                        {
-                            extend: 'excelHtml5',
-                            text: 'Excel',
-                            titleAttr: 'Generate Excel',
-                            className: 'btn-outline-success btn-sm mr-1'
-                        }
-                    ]
-        });
-
-        tableAdiantamentoSal.rows().remove().draw();
-        
-        $('#totalAdiantamentoLoja').html('');
-        
-	for (var i = 0; i < adiantamentoLoja.data.length; i++) {
-
-		contadorAdiantamento = contadorAdiantamento + 1;
-
-		IDMovAdiantamento = adiantamentoLoja.data[i]['IDADIANTAMENTOSALARIO'];
-		DTMovAdiantamento = adiantamentoLoja.data[i]['DTLANCAMENTO'];
-		NomeFuncAdiantamento = adiantamentoLoja.data[i]['NOFUNCIONARIO'];
-		CPFFuncAdiantamento = adiantamentoLoja.data[i]['NUCPF'];
-		VrAdiantamento = parseFloat(adiantamentoLoja.data[i]['VRVALORDESCONTO']);
-		DsEmpAdiantamento = (adiantamentoLoja.data[i]['NOFANTASIA']);
-		STAdiantamento = adiantamentoLoja.data[i]['STATIVO'];
-        
-        if(STAdiantamento=='True'){
-            VrTotalAdiantamentoLoja = VrTotalAdiantamentoLoja + VrAdiantamento;
-        }
-		
-		
-	    if(STAdiantamento=='True'){
-            tagAdiantAtivo='<label style="color: blue;">Ativo</label>';
-            tagAdiantAtivoBotao='<div class="btn-group btn-group-xs"><button type="button" class="btn btn-danger btn-xs" title="Cancelar Adiantamento" id="'+IDMovAdiantamento+'" onclick="status_Adiantamento_salario(this.id,\'False\')" >Cancelar</button></div>';
-        }else{
-            tagAdiantAtivo='<label style="color: red;">Cancelado</label>';
-            tagAdiantAtivoBotao='<div class="btn-group btn-group-xs"><button type="button" class="btn btn-info btn-xs" title="Ativar Adiantamento" id="'+IDMovAdiantamento+'" onclick="status_Adiantamento_salario(this.id,\'True\')" >Ativar</button></div>';
-        }
-
-		tableAdiantamentoSal.row.add([
-            `<label style="color: blue;">` + contadorAdiantamento + `</label>`,
-            `<label style="color: blue;">` + DsEmpAdiantamento + `</label>`,
-            `<label style="color: blue;">` + DTMovAdiantamento + `</label>`,
-            `<label style="color: blue;">` + NomeFuncAdiantamento + `</label>`,
-            `<label style="color: blue;">` + CPFFuncAdiantamento + `</label>`,
-            `<label style="color: blue;">` + mascaraValor(VrAdiantamento.toFixed(2)) + `</label>`,
-            tagAdiantAtivo,
-            tagAdiantAtivoBotao,
-        ]).draw(false);
-	}
-
-	$('.totalAdiantamentoLoja').html(
-		`<tr>
-            <th colspan="5" style="text-align: center;">Total Lançamentos</th>
-            <th style="text-align: right;">${mascaraValor(VrTotalAdiantamentoLoja.toFixed(2))}</th>
-            <th colspan="2"></th>
-        </tr>`
-	);
-}
-
-function funcErrorListAdiantamentoLoja(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do retornoTableListAdiantamentoLoja',
-		showConfirmButton: false,
-		timer: 15000
-	});
-}
-
-function funcSucessUpdateAdiantamento(resposta) {
-
-	alerta_cancel_ativa_adiantamento();
-	pesq_adiantamento_loja();
-
-}
-
-function alerta_cancel_ativa_adiantamento() {
-Swal.fire(
-  {
-      type: "success",
-      title: "Adiantamento Atualizado com Sucesso.",
-      showConfirmButton: false,
-      timer: 2500
+        $('.caixa-selecao').html(`
+          <div id="chkMarcaTodos" class="mb-1">
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" id="selectAll" class="custom-control-input" onclick="selecionarLinhasDataTableViaInput(this, 'dt-basic-quebracaixa', 'chkQuebraCaixa')">
+              <label class="custom-control-label" for="selectAll">Marcar Todos</label>
+            </div>
+          </div>
+        `);
+      }
+    }
   });
 }
 
-function status_Adiantamento_salario(id,status) {
+async function montarPayloadTodasQuebrasCaixaSelecionadas() {
+  let tabela = $('#dt-basic-quebracaixa').DataTable();
+  let dados = [];
 
-  Swal.fire({
-    title: 'Certeza que Deseja Cancelar o Adiantamento?',
-    text: "Você não poderá reverter o cancelamento!",
-    buttonsStyling: false,
-    showCancelButton: true,
-    customClass: {
-      confirmButton: 'btn btn-primary btn-lg',
-      cancelButton: 'btn btn-danger btn-lg',
-      loader: 'custom-loader'
-    },
-    loaderHtml: '<div class="spinner-border text-primary"></div>',
-    preConfirm: () => {
-      Swal.showLoading()
-      return new Promise((resolve) => { 
-          
-        var dados = {
-          "IDADIANTAMENTOSALARIO": parseInt(id),
-          "STATIVO":status
-        };
-            
-        ajaxPut("api/financeiro/atualizacao-adiantamento-status.xsjs", dados)
-        		.then(funcSucessUpdateAdiantamento)
-        		.catch(funcError);
-        		
-    	const textdados = JSON.stringify(dados);
-    	
-    	if(status=='True'){
-    	    textoFuncao = 'FINANCEIRO/CANCELADO O ADIANTAMENTO SALARIAL';
-    	}else{
-    	    textoFuncao = 'FINANCEIRO/ATIVADO O ADIANTAMENTO SALARIAL'; 
-    	}
-    		
-        var dadosCancelaAtivaAdiantamento = [{
-            
-            "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-            "PATHFUNCAO":textoFuncao,
-            "DADOS":textdados,
-            "IP":ipCliente
-        }];
-    
-      	ajaxPost("api/log-web.xsjs", dadosCancelaAtivaAdiantamento)
-    		.then(funcSucessLog)
-    		.catch(funcError);
-            		
-      })
+  tabela.rows().every(function () {
+    let linhaTabela = $(this.node())
+    let input = linhaTabela.find("input[name='chkQuebraCaixa']:checked");
+    let id = $(input).attr('id');
+
+    if (id?.length > 0) {
+      let IDQUEBRACAIXA = Number(id);
+      let IDFUNCIONARIO = Number(IDFuncionarioLogin);
+      let STCONFERIDO = 'True';
+
+      dados.push({
+        IDQUEBRACAIXA,
+        IDFUNCIONARIO,
+        STCONFERIDO
+      });
+
     }
-  })
+
+  });
+
+  return dados;
 }
+
+async function modalConferirTodasQuebrasCaixaSelecionadas() {
+  let confirmacao = await msgQuestion('Deseja Confirmar Todas as Quebras de Caixa Selecionadas?') || false;
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  animationLoadingStart('Validando dados...', 1, false);
+
+  let dados = await montarPayloadTodasQuebrasCaixaSelecionadas();
+
+  if (dados.length == 0) {
+    return msgWarning('Nenhuma Quebra de Caixa selecionada, selecione e tente novamente!')
+  }
+
+  animationLoadingStart('Enviando dados...', 1, false);
+
+  let textoFuncao = 'FINANCEIRO/CONFIRMAR TODAS QUEBRAS DE CAIXA SELECIONADAS';
+
+  await atualizarConferenciaQuebrasCaixa(dados, textoFuncao);
+
+}
+
+async function modalConferirQuebraCaixa(idQuebraCaixa) {
+  let confirmacao = await msgQuestion('Deseja Confirmar a Quebra de Caixa?') || false;
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  let dados = [
+    {
+      IDQUEBRACAIXA: Number(idQuebraCaixa),
+      STCONFERIDO: 'True',
+      IDFUNCIONARIO: Number(IDFuncionarioLogin)
+    }
+  ];
+
+  let textoFuncao = 'FINANCEIRO/CONFIRMAR QUEBRA DE CAIXA';
+
+  await atualizarConferenciaQuebrasCaixa(dados, textoFuncao);
+
+}
+
+async function atualizarConferenciaQuebrasCaixa(dados, textoFuncao) {
+  try {
+    animationLoadingStart('Enviando dados...', 1, false);
+
+    await ajaxPut("api/financeiro/quebra-caixa-conferencia.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Quebras de Caixa Confirmadas com sucesso!');
+
+    pesquisarQuebrasDeCaixa();
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
+}
+
+async function montarBodyModalImprimirQuebraCaixa(dadosQuebraCaixa) {
+  let idFuncionarioOp = $("#IDFuncionario").val();
+  let data = dadosQuebraCaixa?.data[0] || []
+  let idQuebraLoja = data?.IDQUEBRACAIXA;
+  let idMovQuebraLoja = data?.IDMOVIMENTOCAIXA;
+  let idFuncionarioQuebraLoja = data?.IDFUNCIONARIO || '';
+  let dsCaixaQuebraLoja = data?.DSCAIXA;
+  let vrQuebraLoja = parseFloat(data?.VRQUEBRAEFETIVADO);
+  let txtHistQuebraLoja = data?.TXTHISTORICO;
+  let noFantasiaEmpresaQuebra = data?.NOFANTASIA;
+  let cnpjEmpresaQuebra = data?.NUCNPJ;
+  let endEmpresaQuebra = data?.EENDERECO;
+  let bairroEmpresaQuebra = data?.EBAIRRO;
+  let cidadeEmpresaQuebra = data?.ECIDADE;
+  let ufEmpresaQuebra = data?.SGUF;
+  let noFuncionarioQuebra = data?.NOMEOPERADOR;
+  let funcaoFuncionarioQuebra = data?.DSFUNCAO;
+  let cpfFuncionario = data?.CPFOPERADOR;
+  let noGerente = data?.NOMEGERENTE;
+
+  if (idFuncionarioOp == idFuncionarioQuebraLoja) {
+
+    $('.TituloModalImprimir').html(
+      `Impressão de Recibos <small class="m-0 text-muted">Imprimir Quebra de Caixa</small>`
+    );
+
+    $('.TituloRecibo').html(
+      `<h3 style="text-align: center;">AUTORIZAÇÃO DE DESCONTO EM FOLHA DE PAGAMENTO POR QUEBRA DE CAIXA</h3>`
+    );
+
+    $('.CorpoRecibo1').html(
+      `<div class="col-sm-12" style="text-align: justify;">Valor da Quebra:<b> R$ ${mascaraValor(vrQuebraLoja.toFixed(2))} - </b>Referente:<b> ${dsCaixaQuebraLoja} - </b>Movimento:<b> ${idMovQuebraLoja}</b></div>`
+    );
+
+    $('.CorpoRecibo2').html(
+      `<div class="col-sm-12" style="text-align: justify;">
+        Pelo presente instrumento, Eu,<b> ${noFuncionarioQuebra}</b>, brasileiro(a), função (${funcaoFuncionarioQuebra}), inscrito(a) no CPF sob o nº <b> ${cpfFuncionario} </b>, colaborador(a) da empresa GTO COM. ATAC. DE CONFEC. E CALÇ. LTDA., inscrita no CNPJ nº.<b> ${cnpjEmpresaQuebra}</b>, com sede na ${endEmpresaQuebra} - ${bairroEmpresaQuebra} - ${cidadeEmpresaQuebra} - ${ufEmpresaQuebra}, <b>AUTORIZO</b> a empresa a efetuar o desconto até o limite total do meu adicional de quebra de caixa, em meu salário, através da folha de pagamento, dos valores faltantes no meu caixa, seguindo assim os ditames legais do Art. 462, §1º da CLT e CCT vigentes.
+      </div>`
+    );
+
+    $('.CorpoRecibo3').html(
+      `<div class="col-sm-12" style="text-align: justify;">Motivo: <b>${txtHistQuebraLoja} </b></div>`
+    );
+
+    $('.CorpoRecibo4').html(
+      `<div class="col-sm-12">Brasília, ${dataAtual}.</div>`
+    );
+
+    $('.CorpoRecibo5').html(
+      `<div class="col-sm-12" style="text-align: center;">
+        --------------------------------------------------------------------------------------------------------------------
+      </div>
+      <div class="col-sm-12" style="text-align: center;">
+        ${noFuncionarioQuebra} - CPF: ${cpfFuncionario}
+      </div>`
+    );
+
+    $('.CorpoRecibo6').html(
+      `<div class="col-sm-12" style="text-align: center;">
+        --------------------------------------------------------------------------------------------------------------------
+      </div>
+      <div class="col-sm-12" style="text-align: center;">
+        ${noFantasiaEmpresaQuebra} - ${noGerente}
+      </div>`
+    );
+  } else {
+    $('.TituloModalImprimir').html(
+      `Impressão de Recibos <small class="m-0 text-muted">Imprimir Desconto em Folha</small>`
+    );
+
+    $('.TituloRecibo').html(
+      `<h3 style="text-align: center;">DESCONTO AUTORIZADO EM FOLHA DE PAGAMENTO</h3>`
+    );
+
+    $('.CorpoRecibo1').html(
+      `<div class="col-sm-12" style="text-align: justify;">Valor da Quebra:<b> R$ ${mascaraValor(vrQuebraLoja.toFixed(2))} - </b>Referente:<b> ${(dsCaixaQuebraLoja)} - </b>Movimento:<b> ${(idMovQuebraLoja)}</b></div>`
+    );
+
+    $('.CorpoRecibo2').html(
+      `<div class="col-sm-12" style="text-align: justify;">
+        Pelo presente instrumento, Eu,<b> ${noFuncionarioQuebra}</b>, brasileiro(a), função (${funcaoFuncionarioQuebra}), inscrito(a) no CPF sob o nº <b> ${cpfFuncionario} </b>, colaborador(a) da empresa GTO COM. ATAC. DE CONFEC. E CALÇ. LTDA., inscrita no CNPJ nº.<b> ${cnpjEmpresaQuebra}</b>, com sede na ${endEmpresaQuebra} - ${bairroEmpresaQuebra} - ${cidadeEmpresaQuebra} - ${ufEmpresaQuebra}, <b>AUTORIZO</b> a empresa a efetuar o desconto acima especificado em meu salário, através da folha de pagamento.
+      </div>`
+    );
+
+    $('.CorpoRecibo3').html(
+      `<div class="col-sm-12" style="text-align: justify;">Motivo: <b>${txtHistQuebraLoja} </b></div>`
+    );
+
+    $('.CorpoRecibo4').html(
+      `<div class="col-sm-12">Brasília, ${dataAtual}.</div>`
+    );
+
+    $('.CorpoRecibo5').html(
+      `<div class="col-sm-12" style="text-align: center;">
+        --------------------------------------------------------------------------------------------------------------------
+      </div>
+      <div class="col-sm-12" style="text-align: center;">
+        ${noFuncionarioQuebra} - CPF: ${cpfFuncionario}
+      </div>`
+    );
+
+    $('.CorpoRecibo6').html(
+      `<div class="col-sm-12" style="text-align: center;">
+        --------------------------------------------------------------------------------------------------------------------
+      </div>
+      <div class="col-sm-12" style="text-align: center;">
+        ${noFantasiaEmpresaQuebra} - ${noGerente}
+      </div>`
+    );
+  }
+
+  let textoFuncao = `QUEBRA DE CAIXA Nº ${idQuebraLoja} DO MOVIMENTO: ${idMovQuebraLoja} FUNCIONARIO: ${noFuncionarioQuebra}`;
+  let dados = [{
+    "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+    "PATHFUNCAO": "FINANCEIRO/IMPRESSÃO QUEBRA DE CAIXA",
+    "DADOS": textoFuncao,
+    "IP": ipCliente
+  }];
+
+  await gerarLog(dados, textoFuncao);
+}
+
+async function modalImprimirQuebraCaixa(idQuebraCaixa) {
+  try{
+    animationLoadingStart();
+
+    let dataHtml = await $.get('action_imprimirmodalquebra.html');
+    let dataQuebraCaixa = await ajaxGet('api/dashboard/quebra-caixa/quebra-caixa.xsjs?id=' + idQuebraCaixa);
+
+    $('#resulmodalimprimirquebra').html(dataHtml);
+
+    await montarBodyModalImprimirQuebraCaixa(dataQuebraCaixa);
+
+    $("#imprimiDadosQuebra").modal('show');
+
+    animationLoadingStop();
+
+  } catch(error){
+    console.log(error);
+    msgError();
+  }
+}
+
+async function modalAtivarQuebraCaixaLoja(idQuebraCaixa) {
+   let confirmacao = await msgQuestion('Deseja Ativar a Quebra de Caixa?') || false;
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  let textoFuncao = 'FINANCEIRO/ATIVADO QUEBRA DE CAIXA';
+  let dados = {
+    "IDQUEBRACAIXA": parseInt(idQuebraCaixa),
+    "STATIVO": 'True'
+  };
+
+  await atualizarStatusQuebraCaixa(dados, textoFuncao);
+
+}
+
+async function modalCancelarQuebraCaixaLoja(idQuebraCaixa) {
+   let confirmacao = await msgQuestion('Deseja Cancelar a Quebra de Caixa?') || false;
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  let textoFuncao = 'FINANCEIRO/CANCELAMENTO DE QUEBRA DE CAIXA';
+  let dados = {
+    "IDQUEBRACAIXA": parseInt(idQuebraCaixa),
+    "STATIVO": 'False'
+  };
+
+  await atualizarStatusQuebraCaixa(dados, textoFuncao);
+
+}
+
+async function atualizarStatusQuebraCaixa(dados, textoFuncao){
+  try {
+    animationLoadingStart('Enviando dados...', 1, false);
+
+    await ajaxPut("api/dashboard/quebra-caixa/atualizacao-status.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Quebras de Caixa Atualizada com sucesso!');
+
+    pesquisarQuebrasDeCaixa();
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
+}
+
+//? ====================================== FIM ROTINA QUEBRA DE CAIXA DA LOJA ====================================== //
+
+//? ====================================== INICIO ROTINA QUEBRA DE CAIXA DA LOJA PARA INTEGRACAO ====================================== //
+
+async function ListarQuebraCaixaLojaIntegracaoSAP() {
+  try {
+    animationLoadingStart();
+
+    let dataHtml = await $.get("financeiro_action_lista_quebra_caixa_loja_integracao_sap.html");
+    let dataGrupoEmpresas = await ajaxGetAllData('api/informatica/grupoempresas.xsjs', false);
+
+    $('#js-page-content').html(dataHtml);
+
+    retornoListaGrupoEmpresasSelect(dataGrupoEmpresas);
+
+    $('.dataAtual').text(dataAtual);
+    $('#dtInicio, #dtFim').val(dataAtualCampo);
+    $("#idloja, #idmarca, #iduf, #stQuebraPositvaNegativa").select2();
+
+    $('#cpfOperador, #dtInicio, #dtFim').on('keypress', (e) => { (e.which == 13) && pesquisarQuebraCaixaLojaIntegracaoSAP() });
+
+    animationLoadingStop();
+
+    $('#idmarca').focus();
+
+  } catch (error) {
+    console.log(error);
+    msgError()
+  }
+}
+
+async function pesquisarQuebraCaixaLojaIntegracaoSAP() {
+  let dtInicio = $("#dtInicio").val();
+  let dtFim = $("#dtFim").val();
+  let idMarca = Number($("#idmarca").val()) || "";
+  let idEmpresa = Number($("#idloja").val()) || "";
+  let cpfOperador = $("#cpfOperador").val()?.replace(/\D/g, "") || "";
+  let tpQuebra = $("#stQuebraPositvaNegativa").val();
+  let stAtivo = 'True';
+  let stConferido = 'True';
+
+  $('#btnConferirTodasQuebrasCaixaSelecionadas').addClass('d-none').removeClass('d-flex');
+
+  try {
+    await ajaxGetAllData(`api/financeiro/quebra-caixa.xsjs?idEmpresa=${idEmpresa}&dtInicio=${dtInicio}&dtFim=${dtFim}&idMarca=${idMarca}&cpfOperadorQuebra=${cpfOperador}&tpQuebra=${tpQuebra}&stAtivo=${stAtivo}&stConferido=${stConferido}`)
+      .then(retornoTableListQuebraCaixaLojaIntegracaoSAP)
+
+  } catch (error) {
+    console.log(error);
+    msgError()
+  }
+}
+
+function retornoTableListQuebraCaixaLojaIntegracaoSAP(dataQuebrasCaixasLojas) {
+  let { data } = dataQuebrasCaixasLojas || [];
+  let dadosTable = [];
+  let contador = 0;
+  let totalQuebraLanc = 0;
+  let totalQuebraSistemaLanc = 0;
+
+  let arrayColorSituacao = [
+    'info',
+    'primary',
+    'success',
+    'danger'
+  ];
+
+  let arrayTxtSituacao = [
+    'Pronto para Integrar SAP',
+    'Em Fila',
+    'Integrado',
+    'Erro ao tentar integrar',
+  ];
+
+  let arrayMsgStatusIntegaracao = [
+    'Quebra de Caixa pronta para integrar no SAP',
+    'Quebra de Caixa em processo de integração no SAP, aguarde...',
+    'Quebra de Caixa integrada no SAP'
+  ];
+
+  if (data.length > 0) {
+    $('#btnConferirTodasQuebrasCaixaSelecionadas').removeClass('d-none').addClass('d-flex');
+
+    for (let registro of data) {
+      let idQuebraLoja = registro?.IDQUEBRACAIXA;
+      let empMovQuebraLoja = registro?.NOFANTASIA;
+      let idMovQuebraLoja = registro?.IDMOVIMENTOCAIXA;
+      let dtLancamento = registro?.DTLANCAMENTO;
+      let vrQuebraSistemaLoja = parseFloat(registro?.VRQUEBRASISTEMA || 0);
+      let vrQuebraLancadoLoja = parseFloat(registro?.VRQUEBRAEFETIVADO || 0);
+      let txtHistoricoQuebra = registro?.TXTHISTORICO;
+      let nomeFuncQuebra = registro?.NOMEOPERADOR;
+      let cpfNomeFuncQuebra = registro?.CPFOPERADOR;
+      let matFuncQuebra = registro?.IDFUNCIONARIO;
+      let docEntry = vrQuebraLancadoLoja < 0 ? registro?.DOCENTRY_SAP_CONTAS_A_PAGAR : registro?.DOCENTRY_SAP_CONTAS_A_RECEBER;
+
+      let stMigrado = Number(docEntry || 0) > 0;
+      let stEmAndamento = registro?.STATUS_BLOQUEIO_ATUALIZACAO == 'True';
+      let stErroIntegracao = registro?.ERROR_LOG_SAP?.length > 0;
+
+      let indexSituacao = stErroIntegracao ? 3 : stMigrado ? 2 : stEmAndamento ? 1 : 0;
+
+      let colorSitucao = arrayColorSituacao[indexSituacao];
+      let titleMsgStatus = (stErroIntegracao) ? 'MOTIVO:' : arrayTxtSituacao[indexSituacao]
+      let txtSituacao = arrayTxtSituacao[indexSituacao];
+      let situacao = `<span class="text-${colorSitucao} fw-900">${txtSituacao}</span>`;
+      let msgStatus = registro?.ERROR_LOG_SAP || arrayMsgStatusIntegaracao[indexSituacao];
+
+      let btnVizualizarStatus = `<button type="button" class="btn btn-primary btn-xs mr-1 pt-1" title="Visualizar Status Quebra de Caixa" onclick="msgInfo('${titleMsgStatus}','${msgStatus}')"><span class="d-block fal fa-eye"></span>Status</button>`;
+      let btnIntegrar = `<button type="button" class="btn btn-info btn-xs mr-1 pt-1" title="Integrar Quebra de Caixa no SAP" onclick="modalIntegrarQuebraCaixa('${idQuebraLoja}')"><span class="d-block fal fa-cloud-upload mr-1"></span>Integrar</button>`;
+      let btnCancelarConfirmacao = `<button type="button" class="btn btn-danger btn-xs mr-1 pt-1" title="Cancelar Confirmação de Quebra de Caixa" onclick="modalCancelarConferenciaQuebraCaixa('${idQuebraLoja}')"><span class="d-block fal fa-times mr-1"></span>Cancelar</button>`;
+      let inpuSelecao ='';
+
+      let vrFormatadoComSinal = (valor) => {
+        let sinal = valor < 0 ? '-' : valor > 0 ? '+' : '';
+
+        return sinal + mascaraValor(valor.toFixed(2))
+      };
+
+      let corDeAcordoComValor = (valor) => {
+        let color = valor < 0 ? 'red' : valor > 0 ? 'blue' : 'black';
+
+        return color;
+      };
+
+      let tagVrQuebraLanc = `<label style="color: ${corDeAcordoComValor(vrQuebraLancadoLoja)};">${vrFormatadoComSinal(vrQuebraLancadoLoja)}</label>`;
+      let tagVrQuebraSistemaLanc = `<label style="color: ${corDeAcordoComValor(vrQuebraSistemaLoja)};"> ${vrFormatadoComSinal(vrQuebraSistemaLoja)}</label>`;
+
+      if (!stMigrado && !stEmAndamento) {
+        inpuSelecao = `
+          <div class="custom-control custom-checkbox">
+            <input id="${idQuebraLoja}" type="checkbox" class="custom-control-input" name="chkQuebraCaixa" onchange="selecionarLinhaTable(this)">
+            <label class="custom-control-label" for="${idQuebraLoja}"></label>
+          </div>
+        `;
+      }
+
+      let opcoes = btnVizualizarStatus + btnIntegrar + btnCancelarConfirmacao;
+
+      if (stMigrado || stEmAndamento) {
+        opcoes = btnVizualizarStatus;
+      }
+
+      let containerButtons = `
+        <div class="d-flex justify-content-start">
+          ${opcoes}
+        </div>
+      `;
+
+      totalQuebraLanc += vrQuebraLancadoLoja;
+      totalQuebraSistemaLanc += vrQuebraSistemaLoja;
+
+      contador++;
+
+      dadosTable.push([
+        inpuSelecao,
+        `<span style="color: blue;">${empMovQuebraLoja}</span>`,
+        `<span style="color: blue;">${dtLancamento}</span>`,
+        `<span style="color: blue;">${idMovQuebraLoja}</span>`,
+        `<span style="color: blue;">${matFuncQuebra}</span>`,
+        `<span style="color: blue;">${nomeFuncQuebra}</span>`,
+        `<span style="color: blue;">${maskCpf(cpfNomeFuncQuebra)}</span>`,
+        tagVrQuebraLanc,
+        `<span style="color: blue;">${txtHistoricoQuebra?.toUpperCase()}</span>`,
+        situacao,
+        containerButtons,
+      ]);
+
+    }
+
+  }
+
+  $('#resultado').html(
+    `<div class="row">
+          <div class="col-xl-12">
+            <div id="panel-1" class="panel">
+              <div class="panel-hdr">
+                <h2>
+                  Lista de Quebra de Caixas<span class="fw-300"><i></i></span>
+                </h2>
+              </div>
+              <div class="panel-container show">
+                <div class="panel-content">
+                  <div id="resultadoListaQuebra" class="overflow-auto">
+                    <table id="dt-basic-quebracaixa"
+                      class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                      <thead class="bg-primary-600">
+                        <tr>
+                          <th>Seleção</th>
+                          <th>Empresa</th>
+                          <th>Dt. Lançamento</th>
+                          <th>Nº Movimento</th>
+                          <th>Matrícula</th>
+                          <th>Colaborador</th>
+                          <th>CPF</th>
+                          <th>Vr. Quebra</th>
+                          <th>Histórico</th>
+                          <th>Situação</th>
+                          <th>Opções</th>
+                        </tr>
+                      </thead>
+                      <tbody id="resultadoQuebraCaixa"></tbody>
+                      <tfoot id="totalQuebraCaixaLoja" class="thead-themed"></tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`
+  );
+
+  $('#totalQuebraCaixaLoja').html(`
+      <tr>
+        <td colspan="7" class="text-right fw-900">Totais</td>
+        <td>
+          <span style="color: ${totalQuebraLanc >= 0 ? `blue;">` : `red;"> -`}${mascaraValor(totalQuebraLanc.toFixed(2))}</span>
+        </td>
+        <td colspan="2"></td>
+      </tr>
+  `)
+
+  $('#dt-basic-quebracaixa').DataTable({
+    data: dadosTable,
+    deferRender: false,
+    ordering: true,
+    responsive: false,
+    columnDefs: [
+      { targets: [0], className: 'text-center align-middle', width: '5%' },
+      { targets: [2, 4, 7], width: '5%' },
+      { targets: [10], width: '10%' },
+      { targets: '_all', className: 'align-middle' },
+    ],
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'l>>" +
+      "<'row'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start caixa-selecao'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end mb-2'B>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        title: 'Quebras de Caixa',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':gt(0):lt(10)',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              return $.isNumeric(data.replaceAll('.', '')) ? data.replace(',', '.') : data;
+            }
+          }
+        }
+      }
+    ],
+    initComplete: function (settings) {
+      if (dadosTable.length > 0) {
+        let idTable = `#${settings.nTable.id}`;
+
+        $('html, body').animate({
+          scrollTop: $(idTable).offset().top - 70
+        }, 1000);
+
+        $(idTable).find('tbody td:first').focus();
+
+        $('.caixa-selecao').html(`
+          <div id="chkMarcaTodos" class="mb-1">
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" id="selectAll" class="custom-control-input" onclick="selecionarLinhasDataTableViaInput(this, 'dt-basic-quebracaixa', 'chkQuebraCaixa')">
+              <label class="custom-control-label" for="selectAll">Marcar Todos</label>
+            </div>
+          </div>
+        `);
+      }
+    }
+  });
+}
+
+async function buscarIdTodasQuebrasCaixasSelecionadas() {
+  let tabela = $('#dt-basic-quebracaixa').DataTable();
+  let arrayIds = [];
+
+  tabela.rows().every(function () {
+    let linhaTabela = $(this.node())
+    let input = linhaTabela.find("input[name='chkQuebraCaixa']:checked");
+    let id = $(input).attr('id');
+
+    id > 0 && arrayIds.push(id);
+  });
+
+  return arrayIds;
+}
+
+async function montarPayloadQuebrasCaixaIntegracao(arrayIds){
+  let dados = [];
+
+  for(let idQuebra of arrayIds){
+    dados.push({
+      IDQUEBRACAIXA: Number(idQuebra?.trim()),
+      IDFUNCIONARIO: Number(IDFuncionarioLogin)
+    })
+  }
+
+  return dados;
+}
+
+async function modalIntegrarTodasQuebrasCaixaSelecionadas() {
+  let confirmacao = await msgQuestion('Deseja Integrar Todas as Consolidações Selecionadas no SAP?') || false;
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  animationLoadingStart('Validando dados...', 1, false);
+
+  let ids = await buscarIdTodasQuebrasCaixasSelecionadas();
+  let dados = await montarPayloadQuebrasCaixaIntegracao(ids);
+
+  if (dados.length == 0) {
+    return msgWarning('Nenhuma Quebra de Caixa selecionada, selecione e tente novamente!')
+  }
+
+  animationLoadingStart('Enviando dados...', 1, false);
+
+  let textoFuncao = 'FINANCEIRO/INTEGRAR TODAS QUEBRAS DE CAIXA SELECIONADAS';
+
+  await integrarQuebrasCaixasNoSAP(dados, textoFuncao)
+}
+
+async function modalIntegrarQuebraCaixa(idQuebraCaixa) {
+  let confirmacao = await msgQuestion('Deseja Integrar Esta Quebra de Caixa no SAP?') || false;
+
+  if (!confirmacao?.value) {
+    return
+  }
+
+  animationLoadingStart('Enviando dados...', 1, false);
+
+  let dados = await montarPayloadQuebrasCaixaIntegracao([idQuebraCaixa]);
+
+  let textoFuncao = 'FINANCEIRO/INTEGRAR QUEBRA DE CAIXA';
+
+  await integrarQuebrasCaixasNoSAP(dados, textoFuncao);
+}
+
+async function integrarQuebrasCaixasNoSAP(dados, textoFuncao){
+  try {
+    await ajaxPost("api/service-layer/quebra-caixa/jobs/quebras-de-caixas-integracao.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+    
+    await msgSuccess('Quebras de Caixa Integradas com sucesso!');
+
+    pesquisarQuebraCaixaLojaIntegracaoSAP();
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
+}
+
+async function modalCancelarConferenciaQuebraCaixa(idQuebraCaixa) {
+  let confirmacao = await msgQuestion('Deseja Cancelar a Conferência da Quebra de Caixa?') || false;
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  let dados = [
+    {
+      IDQUEBRACAIXA: Number(idQuebraCaixa),
+      STCONFERIDO: 'False',
+      IDFUNCIONARIO: Number(IDFuncionarioLogin)
+    }
+  ];
+
+  let textoFuncao = 'FINANCEIRO/CANCELAR CONFIRMAÇÃO QUEBRA DE CAIXA';
+
+  await cancelarConfirmacaoQuebraCaixa(dados, textoFuncao);
+
+}
+
+async function cancelarConfirmacaoQuebraCaixa(dados, textoFuncao) {
+  try {
+    animationLoadingStart('Enviando dados...', 1, false);
+
+    await ajaxPut("api/financeiro/quebra-caixa-conferencia.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Quebras de Caixa Atualizadas com sucesso!');
+
+    pesquisarQuebraCaixaLojaIntegracaoSAP();
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
+}
+
+//? ====================================== FIM ROTINA QUEBRA DE CAIXA DA LOJA PARA INTEGRACAO ====================================== //
+
+//? ====================================== INICIO ROTINA ADIANTAMENTO SALARIAL ====================================== //
+
+async function TelaListaAdiantamentosSalariaisLoja() {
+  animationLoadingStart();
+
+  try{
+    let respHtml = await $.get('financeiro_action_listadiantamentoloja.html');
+    let listaGruposEmpresariais = await ajaxGet('api/informatica/grupoempresas.xsjs');
+    let listaEmpresas = await ajaxGet('api/empresa.xsjs');
+
+    $('#js-page-content').html(respHtml);
+
+    retornoListaGrupoEmpresasSelect(listaGruposEmpresariais);
+    retornoListaEmpresasSelect(listaEmpresas);
+
+    $('.dataAtual').text(dataAtual);
+    $('#DTInicio, #DTFim')
+    .val(dataAtualCampo)
+    .on('keypress', (e)=> { e.which == 13 && pesquisarAdiantamentosSalariais()});
+
+    $("#idmarca, #idloja, #iduf").select2();
+
+    $('#DTInicio').focus();
+
+    animationLoadingStop();
+
+  } catch(error){
+    console.log(error);
+    msgError();
+  }
+
+}
+
+async function pesquisarAdiantamentosSalariais() {
+  let dtPesqInicio = $("#DTInicio").val();
+  let dtPesqFim = $("#DTFim").val();
+  let idMarca = Number($("#idmarca").val()) || '';
+  let idEmpresa = Number($("#idloja").val()) || '';
+
+  $('#btnMigrarTodosAdiantamentosSalariaisSelecionados').removeClass('d-flex').addClass('d-none');
+
+  try{
+    animationLoadingStart();
+
+    await ajaxGet('api/dashboard/adiantamento-salarial/adiantamentolojas.xsjs?idEmpresa=' + idEmpresa + '&dataPesquisaIni=' + dtPesqInicio + '&dataPesquisaFim=' + dtPesqFim + '&idMarca=' + idMarca)
+      .then(retornoListaAdiantamentosLoja);
+
+    animationLoadingStop();
+
+  } catch(error){
+    console.log(error);
+    msgError();
+  }
+}
+
+function retornoListaAdiantamentosLoja(adiantamentoLoja) {
+  let { data } = adiantamentoLoja || [];
+  let dadosTabela = [];
+  let vrTotalAdiantamento = 0;
+  let contador = 0;
+  let stAtivarBtnMigrarTodos = false;
+
+  let arraySituacao = [
+    {color: 'info', txt: 'Pronto para Integrar SAP'},
+    {color: 'primary', txt: 'Em Fila'},
+    {color: 'success', txt: 'Integrado'},
+    {color: 'danger', txt: 'Erro ao Tentar Integrar'},
+    {color: 'danger', txt: 'Cancelado'}
+  ];
+
+  let arrayMsgStatusIntegracao = [
+    'Adiantamento Pronto Para Integrar',
+    'Integração Em Andamento, Aguarde...',
+    'Adiantamento Integrado Com Sucesso!',
+    'Erro ao Tentar Integrar',
+    'Cancelado'
+  ];
+
+  for (let registro of data) {
+    let idMovAdiantamento = registro?.IDADIANTAMENTOSALARIO;
+    let dtMovAdiantamento = registro?.DTLANCAMENTO;
+    let nomeFuncAdiantamento = registro?.NOFUNCIONARIO;
+    let cpfFuncAdiantamento = registro?.NUCPF;
+    let vrAdiantamento = parseFloat(registro?.VRVALORDESCONTO);
+    let descEmpAdiantamento = registro?.NOFANTASIA;
+    let stAdiantamento = registro?.STATIVO == 'True';
+    let stMigrado = Number(registro?.DOCENTRY_SAP_CONTAS_A_PAGAR || 0) > 0;
+    let logErrorIntegracao = registro?.ERROR_LOG_SAP || '';
+    let stAguardandoEmFila = registro?.STATUS_BLOQUEIO_ATUALIZACAO == 'True';
+
+    let indexSituacao = !stAdiantamento ? 4 : logErrorIntegracao.length ? 3 : stMigrado ? 2 : stAguardandoEmFila ? 1 : 0;
+
+    let colorSitucao = arraySituacao[indexSituacao].color;
+    let msgTitleIntegracao = (logErrorIntegracao.length) ? 'MOTIVO:' : arraySituacao[indexSituacao].txt
+    let msgTextIntegracao = logErrorIntegracao || arrayMsgStatusIntegracao[indexSituacao];
+    let txtSituacao = arraySituacao[indexSituacao].txt;
+
+    let tagStAdiantamento = `<span class="text-${colorSitucao} fw-900">${txtSituacao}</span>`;
+    let containerBtns = '';
+
+    let chkSelecao = `
+      <div class="custom-control custom-checkbox">
+        <input id="${idMovAdiantamento}" type="checkbox" class="custom-control-input" name="chkAdiantamentoSalarial" onchange="selecionarLinhaTable(this)">
+        <label class="custom-control-label" for="${idMovAdiantamento}"></label>
+      </div>
+    `;
+
+    let btnAtivar = `
+      <button type="button" class="btn btn-success btn-xs" title="Ativar Adiantamento" onclick="ativarAdiantamentoSalarial('${idMovAdiantamento}')" >
+        <i class="d-block fal fa-check mr-1"></i>Ativar
+      </button>
+    `;
+    let btnCancelar = `
+      <button type="button" class="btn btn-danger btn-xs" title="Cancelar Adiantamento" onclick="cancelarAdiantamentoSalarial('${idMovAdiantamento}')" >
+        <i class="d-block fal fa-times mr-1"></i>Cancelar
+      </button>
+    `;
+    let btnIntegrar = `
+      <button type="button" class="btn btn-info btn-xs mr-1 pt-1" title="Integrar Adiantamento Salarial no SAP" onclick="modalIntegrarAdiantamentoSalarial('${idMovAdiantamento}')">
+        <i class="d-block fal fa-cloud-upload mr-1"></i>Integrar
+      </button>
+    `;
+    let btnVisualizarStatus = `
+      <button type="button" class="btn btn-primary btn-xs mr-1 pt-1" title="Visualizar Status de Integração do Adiantamento Salarial" onclick="msgInfo('${msgTitleIntegracao}', '${msgTextIntegracao}')">
+        <i class="d-block fal fa-eye mr-1"></i>Visualizar
+      </button>
+    `;
+
+    if (stAdiantamento) {
+      vrTotalAdiantamento += vrAdiantamento;
+
+      containerBtns = !stAguardandoEmFila ? btnIntegrar : '';
+      containerBtns += btnVisualizarStatus + (!stAguardandoEmFila ? btnCancelar : '');
+
+    } else {
+      containerBtns = btnAtivar
+    }
+
+    chkSelecao = (!stAdiantamento || stAguardandoEmFila || stMigrado) ? '' : chkSelecao;
+    containerBtns = stMigrado ? '' : `<div class="btn-group btn-group-xs">${containerBtns}</div>`;
+
+    if (!stAtivarBtnMigrarTodos && chkSelecao.length > 0){
+      stAtivarBtnMigrarTodos = true;
+    }
+
+    contador++;
+
+    dadosTabela.push([
+      contador,
+      chkSelecao,
+      descEmpAdiantamento,
+      dtMovAdiantamento,
+      nomeFuncAdiantamento,
+      maskCpf(cpfFuncAdiantamento),
+      maskValorEmBRL(vrAdiantamento.toFixed(2)),
+      tagStAdiantamento,
+      containerBtns,
+    ]);
+  }
+
+  stAtivarBtnMigrarTodos && $('#btnMigrarTodosAdiantamentosSalariaisSelecionados').removeClass('d-none').addClass('d-flex');
+
+  exibirListaAdiantamentosSalariais(dadosTabela, vrTotalAdiantamento);
+}
+
+function exibirListaAdiantamentosSalariais(dadosTabela, vrTotalAdiantamento){
+  $('#resultado').html(`
+    <div class="panel">
+      <div class="panel-container show">
+        <div class="panel-content">  
+          <table id="dt-basic-adiantamentoloja" class="table table-bordered table-hover table-striped w-100">
+            <thead class="bg-primary-600 text-left">
+              <tr>
+                <th>#</th>
+                <th>Seleção</th>
+                <th>Empresa</th>
+                <th>DT Lançamento</th>
+                <th>Colaborador</th>
+                <th>CPF</th>
+                <th>Vr Lançado</th>
+                <th>Situação</th>
+                <th>Opções</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot class="thead-themed totalAdiantamentoLoja">
+              <tr>
+                  <th colspan="6" style="text-align: center;">Total Lançamentos</th>
+                  <th style="text-align: center;">${maskValorEmBRL(vrTotalAdiantamento.toFixed(2))}</th>
+                  <th colspan="2"></th>
+              </tr>
+            </tfoot>
+          </table>  
+        </div>
+      </div>
+    </div>
+  `);
+
+  $('#dt-basic-adiantamentoloja').DataTable({
+    data: dadosTabela,
+    responsive: true,
+    deferRender: true,
+    columnDefs: [
+      {
+        targets: 1,
+        className: 'text-center no-export',
+        orderDataType: 'input-checkbox',
+      },
+      {
+        targets: 3,
+        type: 'date-time-br',
+      },
+      {
+        targets: [8],
+        className: 'no-export',
+        width: '10%'
+      },
+      {
+        targets: '_all',
+        createdCell: function (td, cellData) {
+          $(td).css('color', 'blue');
+        }
+      },
+      {
+        targets: [0, 1, 6],
+        width: '5%'
+      },
+      {
+        targets: 2,
+        width: '25%'
+      },
+      {
+        targets: [3, 5, 7, 8],
+        width: '10%'
+      },
+      {
+        targets: 4,
+        width: '20%',
+      },
+    ],
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'l>>" +
+      "<'row'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start caixa-selecao'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end mb-2'B>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        title: null,
+        filename: function () {
+          let hoje = new Date().toLocaleDateString('pt-BR').replaceAll('/', '-');
+          return `Lista de Adiantamentos Salariais_${hoje}`;
+        },
+        exportOptions: {
+          columns: ':visible:not(.no-export)',
+          format: {
+            body: function (data, row, column, node) {
+              data = $(`<p>${data}</p>`).text();
+              data = data?.replace(/\s+/g, ' ')?.trim();
+
+              return $.isNumeric(data.replaceAll('.', '')?.replace(',', '.').replace('R$', '')) ? data.replaceAll('.', '')?.replace(',', '.').replace('R$', '') : data;
+            }
+          }
+        },
+      }
+    ],
+    initComplete: function (settings) {
+      if (dadosTabela.length > 0) {
+        let idTable = `#${settings.nTable.id}`;
+
+        $('html, body').animate({
+          scrollTop: $(idTable).offset().top - 70
+        }, 1000);
+
+        $(idTable).focus();
+
+        $('.caixa-selecao').html(`
+          <div id="chkMarcaTodos" class="mb-1">
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" id="selectAll" class="custom-control-input" onclick="selecionarLinhasDataTableViaInput(this, '${settings.nTable.id}', 'chkAdiantamentoSalarial')">
+              <label class="custom-control-label" for="selectAll">Marcar Todos</label>
+            </div>
+          </div>
+        `);
+      }
+    }
+  });
+}
+
+async function cancelarAdiantamentoSalarial(id) {
+  let confirmacao = await msgQuestion('Certeza que Deseja Cancelar o Adiantamento?');
+
+
+  if(!confirmacao?.value){
+    return;
+  }
+
+  let dados = {
+    "IDADIANTAMENTOSALARIO": parseInt(id),
+    "STATIVO": 'False'
+  };
+
+  try{
+    animationLoadingStart('Atualizando dados, aguarde...', 100, false);
+
+    await ajaxPut("api/financeiro/atualizacao-adiantamento-status.xsjs", dados);
+
+    await gerarLog(dados, 'FINANCEIRO/CANCELADO O ADIANTAMENTO SALARIAL');
+
+    await msgSuccess('Cancelamento realizado com sucesso!');
+
+    pesquisarAdiantamentosSalariais();
+
+  } catch(error){
+    console.log(error);
+    msgError('Erro ao tentar atualizar o status do adiantamento salarial, recarregue e tente novamente!');
+  }
+}
+
+async function ativarAdiantamentoSalarial(id) {
+  let confirmacao = await msgQuestion('Certeza que Deseja Ativar o Adiantamento?');
+
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  let dados = {
+    "IDADIANTAMENTOSALARIO": parseInt(id),
+    "STATIVO": 'True'
+  };
+
+  try {
+    animationLoadingStart('Atualizando dados, aguarde...', 100, false);
+
+    await ajaxPut("api/financeiro/atualizacao-adiantamento-status.xsjs", dados);
+
+    await gerarLog(dados, 'FINANCEIRO/ATIVADO O ADIANTAMENTO SALARIAL');
+
+    await msgSuccess('Reativação realizada com sucesso!');
+
+    pesquisarAdiantamentosSalariais();
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar o status do adiantamento salarial, recarregue e tente novamente!');
+  }
+}
+
+async function montarPayloadAdiantamentosSalariaisSelecionados() {
+  let tabela = $('#dt-basic-adiantamentoloja').DataTable();
+  let dados = [];
+
+  tabela.rows().every(function () {
+    let linhaTabela = $(this.node())
+    let input = linhaTabela.find("input[name='chkAdiantamentoSalarial']:checked");
+    let id = $(input).attr('id');
+
+    if (id?.length > 0) {
+      let IDADIANTAMENTOSALARIO = Number(id);
+      let IDFUNCIONARIO = Number(IDFuncionarioLogin);
+
+      dados.push({
+        IDADIANTAMENTOSALARIO,
+        IDFUNCIONARIO,
+      });
+
+    }
+
+  });
+
+  return dados;
+}
+
+async function modalIntegrarAdiantamentoSalarial(id) {
+  let confirmacao = await msgQuestion('Certeza que Deseja Integrar o Adiantamento?');
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  animationLoadingStart('Integrando Adiantamentos, aguarde...', 100, false);
+
+  let dados = [{
+    IDADIANTAMENTOSALARIO: parseInt(id),
+    IDFUNCIONARIO: Number(IDFuncionarioLogin)
+  }];
+
+  await integrarAdiantamentosSalariaisNoSAP(dados, 'FINANCEIRO/INTEGRAR ADIANTAMENTO SALARIAL');
+}
+
+async function modalIntegrarTodosAdiantamentosSalariaisSelecionados() {
+  let confirmacao = await msgQuestion('Certeza que Deseja Integrar Todos os Adiantamentos Selecionados?');
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  animationLoadingStart('Integrando Adiantamentos, aguarde...', 100, false);
+
+  let dados = await montarPayloadAdiantamentosSalariaisSelecionados();
+
+  if(dados.length == 0){
+    return msgWarning('Nenhum adiantamento selecionado, selecione e tente novamente!')
+  }
+
+  await integrarAdiantamentosSalariaisNoSAP(dados, 'FINANCEIRO/INTEGRAR TODOS OS ADIANTAMENTOS SALARIAIS');
+
+}
+
+async function integrarAdiantamentosSalariaisNoSAP(dados, textoFuncao) {
+  try {
+    await ajaxPost("api/service-layer/adiantamento-salarial/jobs/adiantamentos-salariais-integracao.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Adiantamentos Salariais Integrados com sucesso!');
+
+    pesquisarAdiantamentosSalariais();
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar integrar os dados, recarregue e tente novamente!');
+  }
+}
+
+//? ====================================== FIM ROTINA ADIANTAMENTO SALARIAL ====================================== //
 
 //=====================CAIXA STATUS =======================
 function RelatorioCaixasStatus() {
@@ -9487,64 +10386,64 @@ async function gerarLog(dados, textoFuncao) {
 }
 
 async function selecionarLinhasDataTableViaInput(element, idTable, nameInputs) {
-  let id = $(element).attr('id');
-  let label = $(`label[for='${id}']`);
-  let stChecked = $(element).prop('checked');
-  let tabela = $('#' + idTable).DataTable();
-  let contador = 0;
+    let id = $(element).attr('id');
+    let label = $(`label[for='${id}']`);
+    let stChecked = $(element).prop('checked');
+    let tabela = $('#' + idTable).DataTable();
+    let contador = 0;
 
-  if (stChecked) {
-    await Swal.fire({
-      type: 'question',
-      title: 'Selecione o modo de seleção',
-      text: 'Deseja selecionar todos da tabela ou somente o que está em tela?',
-      showConfirmButton: true,
-      showCancelButton: true,
-      showCloseButton: true,
-      confirmButtonText: 'Todos os registros',
-      cancelButtonText: 'Apenas o que está tela',
-      cancelButtonColor: '#2196F3',
-      allowOutsideClick: false,
-    })
-      .then((resp) => {
-        if (resp.value) {
-          tabela.rows().every(function () {
+    if(stChecked){
+        await Swal.fire({
+            type: 'question',
+            title: 'Selecione o modo de seleção',
+            text: 'Deseja selecionar todos da tabela ou somente o que está em tela?',
+            showConfirmButton: true,
+            showCancelButton: true,
+            showCloseButton: true,
+            confirmButtonText: 'Todos os registros',
+            cancelButtonText: 'Apenas o que está tela',
+            cancelButtonColor: '#2196F3',
+            allowOutsideClick: false,
+        })
+        .then((resp)=>{
+            if(resp.value){
+                tabela.rows().every(function () {
+                    let linhaTabela = $(this.node())
+
+                    linhaTabela.find("input[name='" + nameInputs + "']").prop('checked', stChecked).trigger('change');
+
+                    if(linhaTabela.find("input[name='" + nameInputs + "']:checked").length > 0){
+                      contador++;
+                    }
+                });
+            } 
+
+            if (resp.dismiss == 'cancel'){
+                $("input[name='" + nameInputs + "']").prop('checked', stChecked).trigger('change');
+
+                if($("input[name='" + nameInputs + "']:checked").length > 0){
+                  contador++;
+                }
+            }
+        })
+    } else {
+        tabela.rows().every(function () {
             let linhaTabela = $(this.node())
 
             linhaTabela.find("input[name='" + nameInputs + "']").prop('checked', stChecked).trigger('change');
+        });
+    }
 
-            if (linhaTabela.find("input[name='" + nameInputs + "']:checked").length > 0) {
-              contador++;
-            }
-          });
-        }
+    stChecked = (contador > 0);
 
-        if (resp.dismiss == 'cancel') {
-          $("input[name='" + nameInputs + "']").prop('checked', stChecked).trigger('change');
-
-          if ($("input[name='" + nameInputs + "']:checked").length > 0) {
-            contador++;
-          }
-        }
-      })
-  } else {
-    tabela.rows().every(function () {
-      let linhaTabela = $(this.node())
-
-      linhaTabela.find("input[name='" + nameInputs + "']").prop('checked', stChecked).trigger('change');
-    });
-  }
-
-  stChecked = (contador > 0);
-
-  $(element).prop('checked', stChecked);
-  label.text(stChecked ? 'Desmarcar Todos' : 'Marcar Todos');
+    $(element).prop('checked', stChecked);
+    label.text(stChecked ? 'Desmarcar Todos' : 'Marcar Todos');
 }
 
 async function ListaFaturaLoja() {
   try {
     animationLoadingStart();
-
+    
     await $.get("financeiro_action_listfaturasloja.html", (respHtml) => { $("#js-page-content").html(respHtml) });
 
     await ajaxGetAllData('api/informatica/empresa.xsjs', false)
@@ -9578,10 +10477,10 @@ async function pesq_list_faturas() {
   animationLoadingStart();
 
   try {
-    await $.get("financeiro_action_pesqfaturaloja.html", (respHtml) => $('#resultado').html(respHtml));
+    await $.get("financeiro_action_pesqfaturaloja.html", (respHtml)=>$('#resultado').html(respHtml));
 
     await ajaxGetAllData(`api/detalhe-fatura.xsjs?pageSize=1000&page=1&idEmpresa=${idEmpresa}&dataPesquisaInic=${dtInicio}&dataPesquisaFim=${dtFim}&nuCodigoAutorizacao=${codFatura}`)
-      .then(retornoTableListFaturaLoja);
+        .then(retornoTableListFaturaLoja);
 
     animationLoadingStop();
   } catch (error) {
@@ -9610,7 +10509,8 @@ function retornoTableListFaturaLoja(dadosFaturaLoja) {
         IDMOVIMENTOCAIXAWEB,
         STPIX,
         STCONFERIDOFATURA,
-        DOCENTRY_SAP_CONTAS_A_RECEBER
+        DOCENTRY_SAP_CONTAS_A_RECEBER,
+        IDCONSOLIDACAOFATURA
       } = registro;
 
       let dtHora = DTPROCESSAMENTO + ' ' + HRPROCESSAMENTO;
@@ -9626,10 +10526,11 @@ function retornoTableListFaturaLoja(dadosFaturaLoja) {
       let opcoes = '';
 
       if (stAtivo) {
-        status = `<span style="color: blue;">ATIVO / ${STCONFERIDOFATURA == 'True' ? 'CONFERIDO' : '<span style="color: red;">NÃO CONFERIDO</span>'}</span>`;
+        status = `<span style="color: blue;">ATIVO / ${STCONFERIDOFATURA == 'True' ? 'CONFERIDO' : '<span style="color: red;">NÃO CONFERIDO</span>'} ${IDCONSOLIDACAOFATURA ? ' / CONSOLIDADO' : ''}</span>`;
         vrTotal += parseFloat(registro.VRRECEBIDO);
 
         if (stConferido) {
+          btnEditar = '';
           btnConferir = '';
         } else {
           selecao = `
@@ -9771,14 +10672,14 @@ function retornoTableListFaturaLoja(dadosFaturaLoja) {
 }
 
 async function modal_editar_fatura(id) {
-  try {
+  try{
     animationLoadingStart();
 
     await $.get('financeiro_action_editarfaturamodal.html', (respHtml) => $('#resulmodaleditefatura').html(respHtml));
-
+    
     await ajaxGetAllData('api/detalhe-fatura.xsjs?id=' + id, false)
-      .then(retornoEditarFaturaCaixa);
-
+    .then(retornoEditarFaturaCaixa);
+    
     $("#stPixFat, #stStatusFat").select2({
       dropdownParent: $("#editeFatura")
     });
@@ -9786,7 +10687,7 @@ async function modal_editar_fatura(id) {
     $("#editeFatura").modal('show');
 
     animationLoadingStop();
-  } catch (error) {
+  } catch(error){
     console.log(error);
     msgError();
   }
@@ -9795,7 +10696,7 @@ async function modal_editar_fatura(id) {
 function retornoEditarFaturaCaixa(dadosFatura) {
   let { data } = dadosFatura || [];
   let { IDDETALHEFATURA, DSCAIXA, NOFANTASIA, NUCODAUTORIZACAO, NUAUTORIZACAO, IDMOVIMENTOCAIXAWEB, STPIX, VRRECEBIDO, STCANCELADO } = data[0];
-
+  
   let vrFaturaRecebido = mascaraValor(parseFloat(VRRECEBIDO).toFixed(2));
   let dadosCaixaFatura = IDDETALHEFATURA + ' - ' + DSCAIXA + ' - ' + NUCODAUTORIZACAO;
 
@@ -9830,9 +10731,9 @@ async function editar_fatura() {
     `);
 
     return $("#CodAutorizacaoFat").focus();
-  }
+  } 
 
-  if (!Number(vrfatura || 0)) {
+  if (!Number(vrfatura || 0)){
     $("#resultadoeditafatura").html(`
       <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -9854,7 +10755,7 @@ async function editar_fatura() {
     "STCANCELADO": StCancel
   };
 
-  try {
+  try{
     animationLoadingStart('Enviando dados...', 1, false);
 
     await ajaxPut("api/financeiro/atualizar-fatura.xsjs", dados)
@@ -9865,7 +10766,7 @@ async function editar_fatura() {
 
     pesq_list_faturas();
 
-  } catch (error) {
+  } catch(error){
     console.log(error);
     msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
   }
@@ -9874,36 +10775,36 @@ async function editar_fatura() {
 
 async function modal_conferir_fatura(id) {
   msgQuestion('Deseja confirmar a conferência desta fatura?')
-    .then(async (resp) => {
-      if (resp.value) {
-        try {
-          let textoFuncao = 'FINANCEIRO/CONFERIR FATURA SELECIONADA';
+  .then(async (resp)=>{
+    if(resp.value){
+      try{
+        let textoFuncao = 'FINANCEIRO/CONFERIR FATURA SELECIONADA';
 
-          let dados = {
-            "IDS_FATURAS": id,
-            "STCONFERIDO": 'True',
-            "IDFUNCIONARIO": IDFuncionarioLogin,
-          };
+        let dados = {
+          "IDS_FATURAS": id,
+          "STCONFERIDO": 'True',
+          "IDFUNCIONARIO": IDFuncionarioLogin,
+        };
 
-          animationLoadingStart('Enviando dados...', 1, false);
+        animationLoadingStart('Enviando dados...', 1, false);
 
-          await ajaxPut("api/financeiro/fatura-atualizacao-conferencia.xsjs", dados);
+        await ajaxPut("api/financeiro/fatura-atualizacao-conferencia.xsjs", dados);
 
-          await gerarLog(dados, textoFuncao);
+        await gerarLog(dados, textoFuncao);
 
-          await msgSuccess('Conferência realizada com sucesso!');
+        await msgSuccess('Conferência realizada com sucesso!');
 
-          pesq_list_faturas();
+        pesq_list_faturas();
 
-        } catch (error) {
-          console.log(error);
-          msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
-        }
+      } catch(error){
+        console.log(error);
+        msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
       }
-    });
+    } 
+  }); 
 }
 
-function modal_conferir_todas_faturas_selecionadas() {
+function modal_conferir_todas_faturas_selecionadas(){
   let tabela = $('#dt-basic-faturaloja').DataTable();
   let ids = '';
 
@@ -9914,11 +10815,11 @@ function modal_conferir_todas_faturas_selecionadas() {
           let linhaTabela = $(this.node())
           let input = linhaTabela.find("input[name='chkFatura']:checked");
           let id = $(input).attr('id');
-
+ 
           ids += id ? (id + ',') : '';
         });
 
-        if (ids.length == 0) {
+        if(ids.length == 0){
           return msgWarning('Nenhuma fatura selecionada, selecione e tente novamente!')
         }
 
@@ -9961,7 +10862,7 @@ async function telaListaFaturasConsolidadas() {
 
     await ajaxGetAllData('api/informatica/empresa.xsjs', false)
       .then(retornoListaEmpresasSelect);
-
+    
     $('.dataAtual').text(dataAtual);
     $('#dtinicio, #dtfim').val(dataAtualCampo);
 
@@ -9972,6 +10873,9 @@ async function telaListaFaturasConsolidadas() {
         pesquisarPreviaFaturasConsolidadas();
       }
     })
+
+    $('#btnConferirTodasConsolidacoesFaturasSelecionadas').addClass('d-none');
+    $('#btnConfirmarTodasConsolidacoesFaturasSelecionadas').removeClass('d-none');
 
     animationLoadingStop();
 
@@ -9986,7 +10890,9 @@ async function pesquisarPreviaFaturasConsolidadas() {
   let dtInicio = $("#dtinicio").val();
   let dtFim = $("#dtfim").val();
 
-  $('#btnIntegrarTodasConsolidacoesFaturas').removeClass('d-flex').addClass('d-none');
+  $('#btnConferirTodasConsolidacoesFaturasSelecionadas').addClass('d-none');
+  $('#btnConfirmarTodasConsolidacoesFaturasSelecionadas').removeClass('d-none');
+
 
   animationLoadingStart();
 
@@ -9994,11 +10900,11 @@ async function pesquisarPreviaFaturasConsolidadas() {
     await ajaxGetAllData(`api/financeiro/previa-consolidacao-faturas.xsjs?pageSize=1000&page=1&idEmpresa=${idEmpresa}&dtInicio=${dtInicio}&dtFim=${dtFim}`)
       .then(retornoTableListaPreviaFaturasConsolidadas);
 
-  } catch (error) {
-    console.log(error);
-    await msgError();
-  }
-
+    } catch (error) {
+      console.log(error);
+      await msgError();
+    }
+    
   animationLoadingStop();
 }
 
@@ -10018,15 +10924,22 @@ function retornoTableListaPreviaFaturasConsolidadas(dadosPreviaFaturasConsolidad
         QTDFATURAS,
         QTDFATURASCONFERIDAS,
       } = registro;
+      let selecao = `
+          <div class="custom-control custom-checkbox">
+            <input id="${IDEMPRESA}|${DTPROCESSAMENTO}|${QTDFATURAS}|${VRTOTALRECEBIDO}" type="checkbox" class="custom-control-input" name="chkConsolidacaoFatura" onchange="selecionarLinhaTable(this)">
+            <label class="custom-control-label" for="${IDEMPRESA}|${DTPROCESSAMENTO}|${QTDFATURAS}|${VRTOTALRECEBIDO}"></label>
+          </div>
+        `;
       let dtProcessamentoSplit = DTPROCESSAMENTO.split('-')
-      let dtProcessamentoFormatada = dtProcessamentoSplit[2] + '/' + dtProcessamentoSplit[1] + '/' + dtProcessamentoSplit[0];
+      let dtProcessamentoFormatada = dtProcessamentoSplit[2] + '/'+ dtProcessamentoSplit[1] + '/' + dtProcessamentoSplit[0];
 
       let status = '<span style="color: blue;">Aguardando Confirmação</span>';
       let btnConfirmar = `<button type="button" class="btn btn-success btn-xs mr-1" title="Confirmar Consolidação Fatura" onclick="modalConfirmarConsolidacaoFatura('${IDEMPRESA}', '${DTPROCESSAMENTO}', '${QTDFATURAS}', '${VRTOTALRECEBIDO}')"><span class="d-block fal fa-check mr-1"></span>Confirmar</button>`;
-
-      if (QTDFATURAS != QTDFATURASCONFERIDAS) {
+      
+      if(QTDFATURAS != QTDFATURASCONFERIDAS){
         status = '<span style="color: red;">Há Faturas Pedentes de Conferência</span>';
         btnConfirmar = '';
+        selecao = '';
       }
 
       vrTotal += Number(VRTOTALRECEBIDO);
@@ -10034,6 +10947,7 @@ function retornoTableListaPreviaFaturasConsolidadas(dadosPreviaFaturasConsolidad
 
       dadosTable.push([
         contador,
+        selecao,
         NOFANTASIA,
         dtProcessamentoFormatada,
         VRTOTALRECEBIDO,
@@ -10059,6 +10973,7 @@ function retornoTableListaPreviaFaturasConsolidadas(dadosPreviaFaturasConsolidad
             <thead class="bg-primary-600">
               <tr>
                 <th>#</th>
+                <th>Seleção</th>
                 <th>Empresa</th>
                 <th>Data Recebimento</th>
                 <th>Valor</th>
@@ -10107,7 +11022,7 @@ function retornoTableListaPreviaFaturasConsolidadas(dadosPreviaFaturasConsolidad
           format: {
             body: function (data, row, column, node) {
               data = $('<p>' + data + '</p>').text();
-              return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
+              return $.isNumeric(data.replace(',', '.')) ? data.replaceAll('.', '').replace(',', '.') : data;
             }
           }
         }
@@ -10118,12 +11033,22 @@ function retornoTableListaPreviaFaturasConsolidadas(dadosPreviaFaturasConsolidad
         titleAttr: 'Print Table',
         className: 'btn-outline-primary btn-sm'
       }
-    ]
+    ],
+    initComplete: function () {
+      $('.caixa-selecao').html(`
+        <div id="chkMarcaTodos" class="mb-1 ${dadosTable.length > 0 ? '' : 'd-none'}">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" id="selectAll" class="custom-control-input" onclick="selecionarLinhasDataTableViaInput(this, 'dt-basic-faturaloja', 'chkConsolidacaoFatura')">
+                <label class="custom-control-label" for="selectAll">Marcar Todos</label>
+            </div>
+        </div>
+      `);
+    }
   });
 
   $('.totalFaturas').html(
     `<tr>
-        <th colspan="6" style="text-align: center;">Total Lançamentos</th>
+        <th colspan="7" style="text-align: center;">Total Lançamentos</th>
         <th style="text-align: right;">${mascaraValor(vrTotal.toFixed(2))}</th>
         <th colspan="4"></th>
     </tr>`
@@ -10131,24 +11056,87 @@ function retornoTableListaPreviaFaturasConsolidadas(dadosPreviaFaturasConsolidad
 
 }
 
-async function modalConfirmarConsolidacaoFatura(idEmpresa, dtProcessamento, qtdFaturas, vrTotalRecebido) {
+async function buscarTodasPreviasConsolidacoesFaturasSelecionadas(){
+  let tabela = $('#dt-basic-faturaloja').DataTable();
+  let dados = [];
+
+  tabela.rows().every(function () {
+    let linhaTabela = $(this.node())
+    let input = linhaTabela.find("input[name='chkConsolidacaoFatura']:checked");
+    let id = $(input).attr('id');
+
+    if(id?.length > 0){
+      let dadosConsolidacao = id?.split('|');
+      let IDEMPRESA = Number(dadosConsolidacao[0]);
+      let DTPROCESSAMENTO = dadosConsolidacao[1];
+      let QTDTOTALFATURAS = Number(dadosConsolidacao[2]);
+      let VRTOTALRECEBIDO = Number(dadosConsolidacao[3]);
+      
+      dados.push({
+        IDEMPRESA,
+        DTPROCESSAMENTO,
+        QTDTOTALFATURAS,
+        VRTOTALRECEBIDO,
+        IDFUNCIONARIO: Number(IDFuncionarioLogin)
+      });
+
+    }
+
+  });
+console.log('DADOS: ', dados)
+  return dados;
+}
+
+async function modalConfirmarTodasConsolidacoesFaturas() {
+  let confirmacao = await msgQuestion('Deseja Confirmar Todas as Consolidações Selecionadas?') || false;
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  animationLoadingStart('Validando dados...', 1, false);
+
+  let dados = await buscarTodasPreviasConsolidacoesFaturasSelecionadas();
+
+  if (dados.length == 0) {
+    return msgWarning('Nenhuma fatura selecionada, selecione e tente novamente!')
+  }
+
+  animationLoadingStart('Enviando dados...', 1, false);
+
+  let textoFuncao = 'FINANCEIRO/CONFIRMAR TODAS CONSOLIDACOES FATURAS SELECIONADAS';
+
+  try {
+    await ajaxPost("api/financeiro/consolidacao-faturas.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Consolidações Criadas com sucesso!');
+
+    pesquisarPreviaFaturasConsolidadas();
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
+}
+
+async function modalConfirmarConsolidacaoFatura(idEmpresa, dtProcessamento, qtdFaturas, vrTotalRecebido){
   msgQuestion('Deseja Confirmar a Consolidação?')
     .then(async (resp) => {
       if (resp.value) {
-        let textoFuncao = 'FINANCEIRO/CONFIRMAR CONSOLIDACAO FATURAS';
+          let textoFuncao = 'FINANCEIRO/CONFIRMAR CONSOLIDACAO FATURAS';
 
-        let dados = [{
-          IDEMPRESA: Number(idEmpresa),
-          DTPROCESSAMENTO: dtProcessamento,
-          QTDTOTALFATURAS: Number(qtdFaturas),
-          VRTOTALRECEBIDO: Number(vrTotalRecebido),
-          IDFUNCIONARIO: Number(IDFuncionarioLogin)
-        }];
+          let dados = [{
+            IDEMPRESA: Number(idEmpresa),
+            DTPROCESSAMENTO: dtProcessamento,
+            QTDTOTALFATURAS: Number(qtdFaturas),
+            VRTOTALRECEBIDO: Number(vrTotalRecebido),
+            IDFUNCIONARIO: Number(IDFuncionarioLogin)
+          }];
 
-        animationLoadingStart('Enviando dados...', 1, false);
+          animationLoadingStart('Enviando dados...', 1, false);
 
-        try {
-          await ajaxPost("api/financeiro/consolidacao-faturas.xsjs", dados)
+        try{
+          await ajaxPost("api/financeiro/consolidacao-faturas.xsjs", dados);
 
           await gerarLog(dados, textoFuncao);
 
@@ -10168,7 +11156,8 @@ async function pesquisarFaturasConsolidadas() {
   let dtInicio = $("#dtinicio").val();
   let dtFim = $("#dtfim").val();
 
-  $('#btnIntegrarTodasConsolidacoesFaturas').removeClass('d-none').addClass('d-flex');
+  $('#btnConferirTodasConsolidacoesFaturasSelecionadas').removeClass('d-none');
+  $('#btnConfirmarTodasConsolidacoesFaturasSelecionadas').addClass('d-none');
 
   animationLoadingStart();
 
@@ -10201,7 +11190,9 @@ function retornoTableListaFaturasConsolidadas(dadosPreviaFaturasConsolidadas) {
         VRTOTAL,
         DOCENTRY_SAP_CONTAS_A_RECEBER,
         STATUS_BLOQUEIO_ATUALIZACAO,
-        ERROR_LOG_SAP
+        ERROR_LOG_SAP,
+        STCANCELADO,
+        TXTMOTIVOCANCELAMENTO
       } = registro;
 
       let arrayColorSituacao = [
@@ -10215,7 +11206,8 @@ function retornoTableListaFaturasConsolidadas(dadosPreviaFaturasConsolidadas) {
         'Pronto para Integrar SAP',
         'Em Fila',
         'Integrado',
-        'Erro ao tentar integrar'
+        'Erro ao tentar integrar',
+        'Cancelado'
       ];
 
       let arrayMsgStatusIntegaracao = [
@@ -10230,20 +11222,23 @@ function retornoTableListaFaturasConsolidadas(dadosPreviaFaturasConsolidadas) {
       let stMigrado = DOCENTRY_SAP_CONTAS_A_RECEBER > 0;
       let stEmAndamento = STATUS_BLOQUEIO_ATUALIZACAO == 'True';
       let stErroIntegracao = ERROR_LOG_SAP?.length > 0;
+      let stCancelado = STCANCELADO == 'True';
 
-      let indexSituacao = stErroIntegracao ? 3 : stMigrado ? 2 : stEmAndamento ? 1 : 0;
+      let indexSituacao = stCancelado ? 4 : stErroIntegracao ? 3 : stMigrado ? 2 : stEmAndamento ? 1 : 0;
 
-      let colorSitucao = arrayColorSituacao[indexSituacao];
-      let txtSituacao = arrayTxtSituacao[indexSituacao];
-      let situacao = `<span class="text-${colorSitucao} fw-900">${txtSituacao}</span>`;
-      let msgStatus = ERROR_LOG_SAP || arrayMsgStatusIntegaracao[indexSituacao];
+      let colorSitucao = arrayColorSituacao[indexSituacao > 3 ? 3 : indexSituacao];
+      let txtSituacao = (stCancelado || stErroIntegracao) ? 'MOTIVO:' : arrayTxtSituacao[indexSituacao];
+      let situacao = `<span class="text-${colorSitucao} fw-900">${stCancelado ? 'Cancelado' : txtSituacao}</span>`;
+      let msgStatus = TXTMOTIVOCANCELAMENTO || ERROR_LOG_SAP || arrayMsgStatusIntegaracao[indexSituacao];
 
       let btnVizualizarStatus = `<button type="button" class="btn btn-primary btn-xs mr-1 pt-1" title="Visualizar Status Consolidação" onclick="msgInfo('${txtSituacao}','${msgStatus}')"><span class="d-block fal fa-eye"></span>Status</button>`;
-      let btnIntegrar = `<button type="button" class="btn btn-info btn-xs pt-1" title="Integrar Consolidação Fatura no SAP" onclick="modalIntegrarConsolidacaoFaturas('${IDCONSOLIDACAOFATURA}')"><span class="d-block fal fa-cloud-upload mr-1"></span>Integrar</button>`;
+      let btnIntegrar = `<button type="button" class="btn btn-info btn-xs mr-1 pt-1" title="Integrar Consolidação Fatura no SAP" onclick="modalIntegrarConsolidacaoFaturas('${IDCONSOLIDACAOFATURA}')"><span class="d-block fal fa-cloud-upload mr-1"></span>Integrar</button>`;
+      let btnCancelar = `<button type="button" class="btn btn-danger btn-xs" title="Cancelar Conciliação" onclick="modalCancelarConciliacaoFaturas('${IDCONSOLIDACAOFATURA}')"><span class="d-block fal fa-times mr-1"></span> Cancelar</button>`;
+
 
       let selecao = '';
 
-      if (!stMigrado && !stEmAndamento) {
+      if(!stMigrado && !stEmAndamento && !stCancelado){
         selecao = `
           <div class="custom-control custom-checkbox">
             <input id="${IDCONSOLIDACAOFATURA}" type="checkbox" class="custom-control-input" name="chkConsolidacaoFatura" onchange="selecionarLinhaTable(this)">
@@ -10252,9 +11247,9 @@ function retornoTableListaFaturasConsolidadas(dadosPreviaFaturasConsolidadas) {
         `;
       }
 
-      let opcoes = btnVizualizarStatus + btnIntegrar;
+      let opcoes = btnVizualizarStatus + btnIntegrar + btnCancelar;
 
-      if (stMigrado || stEmAndamento) {
+      if(stMigrado || stEmAndamento || stCancelado){
         opcoes = btnVizualizarStatus;
       }
 
@@ -10265,7 +11260,7 @@ function retornoTableListaFaturasConsolidadas(dadosPreviaFaturasConsolidadas) {
       `;
 
       contador++;
-      vrTotal += Number(VRTOTAL);
+      vrTotal += !stCancelado ? Number(VRTOTAL) : 0;
 
       dadosTable.push([
         selecao,
@@ -10374,7 +11369,7 @@ function retornoTableListaFaturasConsolidadas(dadosPreviaFaturasConsolidadas) {
 
 }
 
-async function buscarIdTodasConsolidacoesFaturasSelecionadas() {
+async function buscarIdTodasConsolidacoesFaturasSelecionadas(){
   let tabela = $('#dt-basic-faturaloja').DataTable();
   let ids = '';
 
@@ -10428,7 +11423,7 @@ async function modalIntegrarTodasConsolidacoesFaturas() {
 
 async function modalIntegrarConsolidacaoFaturas(idConsolidacao) {
   let confirmacao = await msgQuestion('Deseja Integrar Esta Consolidação no SAP?') || false
-
+  
   if (!confirmacao?.value) {
     return
   }
@@ -10453,6 +11448,44 @@ async function modalIntegrarConsolidacaoFaturas(idConsolidacao) {
     console.log(error);
     msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
   }
+}
+
+async function modalCancelarConciliacaoFaturas(idConsolidacao) {
+  let confirmacao = await msgQuestion('Deseja Realmente Cancelar Esta Consolidação?', 'Esta Ação é Irreversivel!') || false
+  
+  if (!confirmacao?.value) {
+    return
+  }
+
+  let motivo = await msgQuestionInputMotivo("Digite o Motivo do Cancelamento:");
+
+  if (!motivo?.value || !motivo?.reason?.length) {
+    return
+  }
+
+  animationLoadingStart('Enviando dados...', 1, false);
+
+  let textoFuncao = 'FINANCEIRO/CANCELAR CONSOLIDACAO FATURAS';
+
+  let dados = [{
+    "IDCONSOLIDACAOFATURA": Number(idConsolidacao),
+    "STCANCELADO": 'True',
+    "TXTMOTIVOCANCELAMENTO": motivo.reason,
+    "IDFUNCIONARIO": Number(IDFuncionarioLogin)
+  }];
+  
+  try {
+    await ajaxPut("api/financeiro/consolidacao-faturas.xsjs", dados);
+    await gerarLog(dados, textoFuncao);
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar atualizar os dados, recarregue e tente novamente!');
+  }
+
+  await msgSuccess('Consolidação Cancelada com sucesso!');
+
+  pesquisarFaturasConsolidadas();
 }
 
 //? ================== FIM ROTINA FATURAS LOJAS CONSOLIDADAS PARA MIGRACAO ================== //

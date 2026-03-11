@@ -110,6 +110,22 @@ function getDadosPedidoSecundario(idResumoPedido){
 	return regDetalhe[0];
 }
 
+function getIdPedidoSecundario(idResumoPedido){
+    let querydetpedido = `
+        SELECT 
+            IDRESUMOPEDIDO
+        FROM
+            "VAR_DB_NAME".RESUMOPEDIDO
+        WHERE
+            "STCANCELADO"= 'False'
+            AND IDPEDIDOPRIMARIO = ?
+    `;
+
+	let reg = api.sqlQuery(querydetpedido, idResumoPedido);
+	
+	return reg.length > 0 ? reg[0].IDRESUMOPEDIDO : 0;
+}
+
 function getValoresPedido(idResumoPedido){
     let querydetpedido = `
         SELECT 
@@ -199,11 +215,11 @@ function fnUpdateValoresResumoPedidoSecundario(idResumoPedido, dados){
         SET 
             "NUTOTALITENS" = ?, 
             "QTDTOTPRODUTOS" =  ?, 
-            "VRTOTALBRUTO" = (CASE WHEN IFNULL("FATOR_ACRESCIMO_COMPRA", 0) = 0 THEN 1 ELSE "FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)), 
-            "VRTOTALLIQUIDO" = (CASE WHEN IFNULL("FATOR_ACRESCIMO_COMPRA", 0) = 0 THEN 1 ELSE "FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)), 
+            "VRTOTALBRUTO" = IFNULL("FATOR_ACRESCIMO_COMPRA", 1) * CAST( ? AS DECIMAL(12, 2)), 
+            "VRTOTALLIQUIDO" = IFNULL("FATOR_ACRESCIMO_COMPRA", 1) * CAST( ? AS DECIMAL(12, 2)),
             "DTMOVPEDIDO" = now()
         WHERE 
-            "IDPEDIDOPRIMARIO" =  ? 
+            "IDRESUMOPEDIDO" =  ? 
     `;
     
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -230,8 +246,8 @@ function fnUpdateValoresResumoPedido(idResumoPedido, dados){
         SET 
             "NUTOTALITENS" = ?, 
             "QTDTOTPRODUTOS" =  ?, 
-            "VRTOTALBRUTO" = (CASE WHEN IFNULL("FATOR_ACRESCIMO_COMPRA", 0) = 0 THEN 1 ELSE "FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)), 
-            "VRTOTALLIQUIDO" = (CASE WHEN IFNULL("FATOR_ACRESCIMO_COMPRA", 0) = 0 THEN 1 ELSE "FATOR_ACRESCIMO_COMPRA" END) * CAST( ? AS DECIMAL(21, 6)), 
+            "VRTOTALBRUTO" = IFNULL("FATOR_ACRESCIMO_COMPRA", 1) * CAST( ? AS DECIMAL(12, 2)),
+            "VRTOTALLIQUIDO" = IFNULL("FATOR_ACRESCIMO_COMPRA", 1) * CAST( ? AS DECIMAL(12, 2)),
             "DTMOVPEDIDO" = now()
         WHERE 
             "IDRESUMOPEDIDO" = ?
@@ -257,10 +273,11 @@ function fnUpdateValoresPedido(idResumoPedido){
     }
     
     let dados = getValoresPedido(idResumoPedido);
+    let idResumoPedidoSecundario = getIdPedidoSecundario(idResumoPedido);
     
     fnUpdateValoresResumoPedido(idResumoPedido, dados, conn);
     
-    fnUpdateValoresResumoPedidoSecundario(idResumoPedido, dados, conn)
+    idResumoPedidoSecundario > 0 && fnUpdateValoresResumoPedidoSecundario(idResumoPedidoSecundario, dados, conn)
 }
 
 function fnCriarPedidoSecundario(dadosPedido, idPedidoPrimario){
@@ -339,16 +356,16 @@ function fnCriarPedidoSecundario(dadosPedido, idPedidoPrimario){
 }
 
 function fnHandleGet(byId) {
-    
-    var idPedido = $.request.parameters.get("idpedido");
-    var dataPesquisaInicio = $.request.parameters.get("dataPesquisaInicio");
-    var dataPesquisaFim = $.request.parameters.get("dataPesquisaFim");
-    var IdMarca = $.request.parameters.get("idMarcaPesquisa");
-    var IdFornecedor = $.request.parameters.get("idFornPesquisa");
-    var IdFabricante = $.request.parameters.get("idFabPesquisa");
-    var IdComprador = $.request.parameters.get("idCompradorPesquisa");
-    var STSituacaoSAP = $.request.parameters.get("stSituacaoSAP");
-    var idPedidoPrimario = $.request.parameters.get("idPedidoPrimario");
+    let idPedido = $.request.parameters.get("idpedido");
+    let dataPesquisaInicio = $.request.parameters.get("dataPesquisaInicio");
+    let dataPesquisaFim = $.request.parameters.get("dataPesquisaFim");
+    let idMarca = $.request.parameters.get("idMarcaPesquisa");
+    let idFornecedor = $.request.parameters.get("idFornPesquisa");
+    let idFabricante = $.request.parameters.get("idFabPesquisa");
+    let idComprador = $.request.parameters.get("idCompradorPesquisa");
+    let stSituacaoSAP = $.request.parameters.get("stSituacaoSAP");
+    let tpPedido = $.request.parameters.get("tpPedido");
+    let stRelacao = $.request.parameters.get("stRelacao");
     
     if ( idPedido ) {
         conn = $.db.getConnection();
@@ -358,42 +375,12 @@ function fnHandleGet(byId) {
         conn.commit();
     }
     	
-    var query =  `
+    let query =  `
         SELECT
             tbrp.IDRESUMOPEDIDO AS IDPEDIDO,
             tbrp.IDGRUPOEMPRESARIAL AS IDGRUPOPEDIDO,
             tbrp.IDSUBGRUPOEMPRESARIAL AS IDSUBGRUPOPEDIDO,
-            IFNULL((SELECT 
-                    STRING_AGG(TBD.IDFABRICANTE, ' // ' ORDER BY TBD.IDFABRICANTE) AS IDSFABRICANTE
-                FROM (
-                        SELECT 
-                            DISTINCT 
-                                FAB.IDFABRICANTE
-                        FROM 
-                            "VAR_DB_NAME".DETALHEPEDIDO tbds
-                        LEFT JOIN 
-                            "VAR_DB_NAME".FABRICANTE FAB ON FAB.IDFABRICANTE = tbds.IDFABRICANTE
-                        WHERE 
-                            tbds.IDRESUMOPEDIDO = TBRP.IDRESUMOPEDIDO  
-                            AND tbds.STCANCELADO = 'False'
-                    ) AS TBD
-            ), '') AS IDFABRICANTE,
-            IFNULL((SELECT 
-                    STRING_AGG(TBD.DSFABRICANTE, ' // ' ORDER BY TBD.IDFABRICANTE) AS DSFABRICANTE
-                FROM (
-                        SELECT 
-                            DISTINCT 
-                                FAB.IDFABRICANTE,
-                                FAB.DSFABRICANTE
-                        FROM 
-                            "VAR_DB_NAME".DETALHEPEDIDO tbds
-                        LEFT JOIN 
-                            "VAR_DB_NAME".FABRICANTE FAB ON FAB.IDFABRICANTE = tbds.IDFABRICANTE
-                        WHERE 
-                            tbds.IDRESUMOPEDIDO = TBRP.IDRESUMOPEDIDO  
-                            AND tbds.STCANCELADO = 'False'
-                    ) AS TBD
-            ), '') AS FABRICANTE,
+            IFNULL(TBFAB.DSFABRICANTE, '') AS FABRICANTE,
             EMP.DSSUBGRUPOEMPRESARIAL AS NOFANTASIA,
             EMP.EEMAILFATURAMENTO,
             EMP.NUTELFATURAMENTO,
@@ -451,7 +438,8 @@ function fnHandleGet(byId) {
             tbrp.LOGSAP,
             TO_VARCHAR( tbrp.DTPEDIDO, 'DD-MM-YYYY HH24:MI:SS') AS DTPEDIDO, 
             TO_VARCHAR( tbrp.DTPEDIDO, 'YYYY-MM-DD') AS DTPEDIDOFORMATADA,
-            TO_VARCHAR( tbrp.DTPEDIDO, 'DD/MM/YYYY HH24:MI:SS') AS DTPEDIDOFORMATADABR,
+            TO_VARCHAR( tbrp.DTPEDIDO, 'DD/MM/YYYY') AS DTPEDIDOFORMATADABR,
+            TO_VARCHAR( tbrp.DTPREVENTREGA, 'DD/MM/YYYY') AS DTPREVENTREFAFORMATADABR,
             IFNULL( tbrp.NUTOTALITENS,0) AS NUTOTALITENS,
             IFNULL( tbrp.QTDTOTPRODUTOS,0) AS QTDTOTPRODUTOS,
             IFNULL( tbrp.VRTOTALBRUTO,0) AS VRTOTALBRUTO,
@@ -477,20 +465,14 @@ function fnHandleGet(byId) {
             TBRP_PEDIDO_ORIGEM.IDRESUMOPEDIDO AS IDRESUMOPEDIDODESTINO
         FROM
             "VAR_DB_NAME".RESUMOPEDIDO tbrp
-        /*INNER JOIN (
-            SELECT 
-                *
-            FROM
-                "VAR_DB_NAME".DETALHEPEDIDO 
-        ) AS DETP ON DETP.IDRESUMOPEDIDO = TBRP.IDRESUMOPEDIDO*/
         INNER JOIN "VAR_DB_NAME".SUBGRUPOEMPRESARIAL EMP ON 
             tbrp.IDSUBGRUPOEMPRESARIAL = EMP.IDSUBGRUPOEMPRESARIAL 
         INNER JOIN "VAR_DB_NAME".ANDAMENTOS AD ON 
             tbrp.IDANDAMENTO = AD.IDANDAMENTO 
-        LEFT JOIN "VAR_DB_NAME".FORNECEDOR FN ON 
-            tbrp.IDFORNECEDOR = FN.IDFORNECEDOR 
         INNER JOIN "VAR_DB_NAME".FUNCIONARIO FC ON 
             tbrp.IDCOMPRADOR = FC.IDFUNCIONARIO 
+        LEFT JOIN "VAR_DB_NAME".FORNECEDOR FN ON 
+            tbrp.IDFORNECEDOR = FN.IDFORNECEDOR 
         LEFT JOIN "VAR_DB_NAME".TRANSPORTADORA TP ON 
             tbrp.IDTRANSPORTADORA = TP.IDTRANSPORTADORA 
         INNER JOIN "VAR_DB_NAME".CONDICAOPAGAMENTO CDP ON 
@@ -499,23 +481,94 @@ function fnHandleGet(byId) {
             tbrp.IDRESUMOPEDIDO = TBRP_PEDIDO_ORIGEM.IDRESUMOPEDIDOORIGEM
         LEFT JOIN "VAR_DB_NAME".RESUMOPEDIDO TBRP_PEDIDO_SECUNDARIO ON 
             tbrp.IDRESUMOPEDIDO = TBRP_PEDIDO_SECUNDARIO.IDPEDIDOPRIMARIO
+        LEFT JOIN (
+            SELECT 
+                STRING_AGG(SUB.IDFABRICANTE, ' // ' ORDER BY SUB.IDFABRICANTE) AS IDSFABRICANTE,
+                STRING_AGG(SUB.DSFABRICANTE, ' // ' ORDER BY SUB.IDFABRICANTE) AS DSFABRICANTE,
+                SUB.IDRESUMOPEDIDO
+            FROM (
+                    SELECT DISTINCT
+                        A.IDRESUMOPEDIDO,
+                        B.IDFABRICANTE,
+                        B.DSFABRICANTE
+                    FROM 
+                        "VAR_DB_NAME".DETALHEPEDIDO A
+                    LEFT JOIN "VAR_DB_NAME".FABRICANTE B ON 
+                        A.IDFABRICANTE = B.IDFABRICANTE
+                    WHERE 
+                        A.STCANCELADO = 'False'
+                ) SUB
+            GROUP BY 
+                SUB.IDRESUMOPEDIDO
+        ) AS TBFAB ON 
+            TBRP.IDRESUMOPEDIDO = TBFAB.IDRESUMOPEDIDO
         WHERE
             1 = ? 
     `;
     
     if ( byId ) {
-        query = query + ' And tbrp.IDRESUMOPEDIDO = \'' + byId + '\' ';
+        query += ` AND tbrp.IDRESUMOPEDIDO = '${byId}' `;
     }
-    if ( idPedido ) {
-        query += ` And tbrp.IDRESUMOPEDIDO = '${idPedido}' `;
+    
+    if ( idPedido && stRelacao == 'true' ) {
+        query += `
+            AND (
+                '${idPedido}' IN (TBRP.IDRESUMOPEDIDO, TBRP.IDPEDIDOPRIMARIO, TBRP.IDRESUMOPEDIDOORIGEM)
+                    OR TBRP.IDRESUMOPEDIDO IN (
+                    (
+                        SELECT
+                            IDPEDIDOPRIMARIO
+                        FROM
+                            "VAR_DB_NAME".RESUMOPEDIDO
+                        WHERE
+                            IDRESUMOPEDIDO = '${idPedido}'
+                    ),
+                    (
+                        SELECT
+                            IDRESUMOPEDIDOORIGEM
+                        FROM
+                            "VAR_DB_NAME".RESUMOPEDIDO
+                        WHERE
+                            IDRESUMOPEDIDO = '${idPedido}'
+                    ),
+                    (
+                        SELECT
+                            B.IDRESUMOPEDIDO
+                        FROM
+                            "VAR_DB_NAME".RESUMOPEDIDO A
+                        INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO B ON 
+                            A.IDRESUMOPEDIDO = B.IDPEDIDOPRIMARIO
+                        WHERE 
+                            A.IDRESUMOPEDIDOORIGEM = '${idPedido}'
+                    ),
+                    (
+                        SELECT
+                            C.IDRESUMOPEDIDO
+                        FROM
+                            "VAR_DB_NAME".RESUMOPEDIDO A
+                        INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO B ON 
+                            A.IDPEDIDOPRIMARIO = B.IDRESUMOPEDIDO
+                        INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO C ON 
+                            B.IDRESUMOPEDIDOORIGEM = C.IDRESUMOPEDIDO 
+                        WHERE 
+                            A.IDRESUMOPEDIDO = '${idPedido}'
+                    )
+                )
+            )
+        `;
+    } else if ( idPedido ) {
+        query += ` AND tbrp.IDRESUMOPEDIDO = '${idPedido}' `;
     }
-    if ( IdMarca ) {
-        query = query + ' And tbrp.IDSUBGRUPOEMPRESARIAL = \'' + IdMarca + '\' ';
+    
+    if ( idMarca ) {
+        query += ` AND tbrp.IDSUBGRUPOEMPRESARIAL = '${idMarca}' `;
     }
-    if ( IdFornecedor ) {
-        query = query + ' And tbrp.IDFORNECEDOR = \'' + IdFornecedor + '\' ';
+    
+    if ( idFornecedor ) {
+        query += ` AND tbrp.IDFORNECEDOR = '${idFornecedor}' `;
     }
-    if ( IdFabricante ) {
+    
+    if ( idFabricante ) {
         query += `
             AND tbrp.IDRESUMOPEDIDO IN
                 (
@@ -524,29 +577,30 @@ function fnHandleGet(byId) {
                     FROM
                         "VAR_DB_NAME".DETALHEPEDIDO 
                     WHERE 
-                        IDFABRICANTE = ${IdFabricante} AND STCANCELADO = 'False'
+                        IDFABRICANTE = ${idFabricante} AND STCANCELADO = 'False'
                 )
         `;
     }
-    if ( IdComprador ) {
-        query = query + ' And FC.IDFUNCIONARIO = \'' + IdComprador + '\' ';
+    
+    if ( idComprador ) {
+        query += ` AND FC.IDFUNCIONARIO = '${idComprador}' `;
     }
-    if ( STSituacaoSAP === 'False') {
-        query = query + ' And tbrp.STMIGRADOSAP IS NULL And AD.IDANDAMENTO = 5';
-    }else if ( STSituacaoSAP === 'True'){
-        query = query + ' And tbrp.STMIGRADOSAP = \'' + STSituacaoSAP + '\' And AD.IDANDAMENTO = 5';
+    
+    if ( stSituacaoSAP ) {
+        query += ` AND IFNULL(tbrp.STMIGRADOSAP, 'False') = '${stSituacaoSAP}' AND AD.IDANDAMENTO = 5 `;
     }
+    
     if(!idPedido && dataPesquisaInicio && dataPesquisaFim) {
-            query = query + ' AND (tbrp.DTPEDIDO BETWEEN \'' + dataPesquisaInicio + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\')';
-			//query = query + ' OR (tbrp.DTMOVPEDIDO BETWEEN \'' + dataPesquisaInicio + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\'))';
-    }
-    if(idPedidoPrimario) {
-        query += ` OR (tbrp.IDPEDIDOPRIMARIO = '${idPedidoPrimario}' OR tbrp.IDRESUMOPEDIDOORIGEM = '${idPedidoPrimario}' OR tbrp.IDRESUMOPEDIDO = (SELECT IDPEDIDOPRIMARIO FROM "VAR_DB_NAME".RESUMOPEDIDO WHERE IDRESUMOPEDIDO = '${idPedidoPrimario}')) `;
+        query += ` AND ((TO_DATE(tbrp.DTPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}') OR (TO_DATE(tbrp.DTMOVPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}')) `;
     }
     
-    query = query + ' ORDER BY tbrp.IDRESUMOPEDIDO DESC';
+    if(tpPedido) {
+        query += tpPedido == 'Primario' ? ` AND TBRP.STPEDIDOPRIMARIO = 'True' ` : ` AND TBRP.IDPEDIDOPRIMARIO IS NOT NULL `;
+    }
     
-    var request = { 
+    query += ' ORDER BY tbrp.IDRESUMOPEDIDO DESC';
+    
+    let request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")
     };

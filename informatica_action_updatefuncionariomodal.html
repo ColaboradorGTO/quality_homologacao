@@ -109,13 +109,19 @@
 </div>
 <div class="form-group"> 
     <div class="row">
-        <div class="col-sm-4 col-xl-4">
+        <div class="col-sm-3 col-xl-3">
             <label class="form-label" for="cpfFuncionario">CPF</label>
             <div class="input-group">
                 <input type="text" id="cpfFuncionario" maxlength="14" name="cpfFuncionario" class="form-control input" value="" onkeydown="javascript: fMasc( this, mCPF );" onblur="buscaCPF(this.value)">
             </div>
         </div>
-        <div class="col-sm-8 col-xl-8">
+        <div class="col-sm-3 col-xl-3">
+            <label class="form-label" for="cpfFuncionario">Telefone</label>
+            <div class="input-group">
+                <input type="text" id="telefoneFuncionario" maxlength="16" name="telefoneFuncionario" class="form-control input" oninput="mascaraTelefoneTempoReal(this)" onkeypress="mascaraTelefoneTempoReal(this)">
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-6">
             <label class="form-label" for="nomeFuncionario">Funcionário</label>
             <div class="input-group">
                 <input type="text" id="nomefuncionario" name="nomeFuncionario" class="form-control input" style="text-transform: uppercase" value="">

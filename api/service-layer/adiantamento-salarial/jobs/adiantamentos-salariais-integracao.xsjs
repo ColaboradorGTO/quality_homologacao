@@ -56,11 +56,11 @@ function fnGetDocEntryContasPagarSAP(idDoc, JrnlMemo){
     return null;
 }
 
-function fnValidarIntegracaoContasPagarSAP(idDoc, JrnlMemo, StAtualizarComError = true){
+function fnValidarIntegracaoContasPagarSAP(idDoc, idFuncionario, JrnlMemo, StAtualizarComError = true){
     let docEntryContasPagarSAP = fnGetDocEntryContasPagarSAP(idDoc, JrnlMemo);
     
     if(docEntryContasPagarSAP){
-        return fnGravarLogSucessoContasPagarSAP(idDoc, docEntryContasPagarSAP);
+        return fnGravarLogSucessoContasPagarSAP(idDoc, idFuncionario, docEntryContasPagarSAP);
     } else {
         if(StAtualizarComError){
             fnGravarLogError(idDoc, 'Erro ao tentar integra o contas a pagar');
@@ -70,7 +70,7 @@ function fnValidarIntegracaoContasPagarSAP(idDoc, JrnlMemo, StAtualizarComError 
     return false;
 }
 
-function fnGravarLogSucessoContasPagarSAP(idDoc, docEntryContasPagarSAP){
+function fnGravarLogSucessoContasPagarSAP(idDoc, idFuncionario, docEntryContasPagarSAP){
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."ADIANTAMENTOSALARIAL" 
@@ -78,7 +78,8 @@ function fnGravarLogSucessoContasPagarSAP(idDoc, docEntryContasPagarSAP){
             ERROR_LOG_SAP  = NULL,
             DT_HORA_INTEGRACAO_CONTAS_A_PAGAR = CURRENT_TIMESTAMP,
             STATUS_BLOQUEIO_ATUALIZACAO = 'False',
-            DOCENTRY_SAP_CONTAS_A_PAGAR = ?
+            DOCENTRY_SAP_CONTAS_A_PAGAR = ?,
+            IDUSRMIGRACAO = ${ idFuncionario || "IDUSRMIGRACAO" }
         WHERE 
             IDADIANTAMENTOSALARIO = ? 
     `;
@@ -118,21 +119,14 @@ function fnGravarLogError(idDespesa, p_Error){
 	return false;
 }
 
-function fnBloquearLinhaEnquantoAtualiza(dados){
-    let ids = '';
-    
-    for (var i = 0; i < dados.length; i++) {
-        let { IDADIANTAMENTOSALARIO } = dados[i];
-        
-        ids += IDADIANTAMENTOSALARIO;
-        ids += i < (dados.length - 1) ? ', ' : '';
-    }
+function fnAtualizarBloqueioLinhaEnquantoAtualiza(ids, stBloquear){
+    let statusBloquear = stBloquear ? 'True' : 'False';
     
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."ADIANTAMENTOSALARIAL" 
         SET 
-            STATUS_BLOQUEIO_ATUALIZACAO = 'True'
+            STATUS_BLOQUEIO_ATUALIZACAO = '${statusBloquear}'
         WHERE 
             IDADIANTAMENTOSALARIO IN (${ids}) 
     `;
@@ -153,6 +147,7 @@ function fnMontarJsonContasPagar(dados){
         TXTMOTIVO,
         IDEMPRESA,
         CPF_FUNCIONARIO,
+        NOFUNCIONARIO,
         CPF_GERENTE
     } = dados || '';
     
@@ -161,15 +156,17 @@ function fnMontarJsonContasPagar(dados){
     let accountCode = '1.01.03.05.0001';// Fixo
     let series = 18;
     let vrDoc = Number(VRVALORDESCONTO);
+    let JrnlMemo = (`Integração ADIANTAMENTO SALARIAL(${IDADIANTAMENTOSALARIO}) Quality, CPF(${CPF_FUNCIONARIO}), Motivo: ${TXTMOTIVO}`).replace(/\s+/g, ' ').trim();
     
     return {
         "DocType": "rAccount", //fixo
         "DocDate": dateDoc,
         "CashAccount": cashAccount,
         "CashSum": vrDoc,
-        "Reference2": `Integração ADIANTAMENTO SALARIAL(${IDADIANTAMENTOSALARIO}) Quality`,
-        "Remarks": `${CPF_FUNCIONARIO} ${TXTMOTIVO}`,
-        "JournalRemarks": `${CPF_FUNCIONARIO} ${TXTMOTIVO}`,
+        //"Reference1": CPF_FUNCIONARIO,
+        //"Reference2": NOFUNCIONARIO,//`Integração ADIANTAMENTO SALARIAL(${IDADIANTAMENTOSALARIO}) Quality`,
+        "Remarks": JrnlMemo,
+        "JournalRemarks": JrnlMemo,
         "TaxDate": dateDoc,
         "Series": series,
         "DueDate": dateDoc,
@@ -180,13 +177,14 @@ function fnMontarJsonContasPagar(dados){
             {
                 "LineNum": 0,
                 "AccountCode": accountCode,
-                "SumPaid": vrDoc
+                "SumPaid": vrDoc,
+                "Decription": (`Motivo: ${TXTMOTIVO}`).replace(/\s+/g, ' ').trim()
             }
         ]
     };
 }
 
-function postSlContasPagar(data, JrnlMemo) {
+function postSlContasPagar(data, idFuncionario, JrnlMemo) {
     let response = slApi.post('/VendorPayments', data, session);
     
     if (response.status !== 204) {
@@ -194,7 +192,7 @@ function postSlContasPagar(data, JrnlMemo) {
         return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o Contas a Pagar'));
     }
 
-    return fnValidarIntegracaoContasPagarSAP(Number(data.U_IS_ID_QUALITY), JrnlMemo);
+    return fnValidarIntegracaoContasPagarSAP(Number(data.U_IS_ID_QUALITY), idFuncionario, JrnlMemo);
 }
 
 function integrarAdiantamentosSalariaisNoSAP(byId) {
@@ -206,6 +204,7 @@ function integrarAdiantamentosSalariaisNoSAP(byId) {
             TO_VARCHAR(TBA.TXTMOTIVO) AS TXTMOTIVO,
             TBA.IDEMPRESA,
             TBF.NUCPF AS CPF_FUNCIONARIO,
+            TBF.NOFUNCIONARIO,
             TBF2.NUCPF AS CPF_GERENTE
         FROM
             "VAR_DB_NAME".ADIANTAMENTOSALARIAL TBA
@@ -217,24 +216,27 @@ function integrarAdiantamentosSalariaisNoSAP(byId) {
             1 = ?
             AND TBA.STATIVO = 'True'
             AND TBA.STATUS_BLOQUEIO_ATUALIZACAO = 'False'
-            --AND IFNULL(TO_VARCHAR(TBA.ERRORLOGSAP), '') = ''
+            --AND IFNULL(TO_VARCHAR(TBA.ERROR_LOG_SAP), '') = ''
             AND IFNULL(TBA.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) = 0
     `;
 	
 	var bodyJson = JSON.parse($.request.body.asString()); 
-
+    
     if(bodyJson.length > 0){
         let ids = '';
+        let idFuncionario = null;
         
         for (let i = 0; i < bodyJson.length; i++) {
             let registro = bodyJson[i];
             ids += registro.IDADIANTAMENTOSALARIO;
             ids += i < (bodyJson.length - 1) ? ', ' : '';
+            
+            if(!idFuncionario){
+                idFuncionario = registro.IDFUNCIONARIO;
+            }
         }
         
         query += `AND TBA.IDADIANTAMENTOSALARIO IN (${ids})`;
-        
-        //return {query}
         
         let resultQuery = ids.length > 0 ? api.sqlQuery(query, 1) : '';
         
@@ -244,7 +246,7 @@ function integrarAdiantamentosSalariaisNoSAP(byId) {
         //return {resultQuery}
         conn = $.db.getConnection();
         
-       // fnBloquearLinhaEnquantoAtualiza(resultQuery);
+       fnAtualizarBloqueioLinhaEnquantoAtualiza(ids, true);
         
         session = slApi.loginServiceLayer(true);
         slApi.loginServiceLayer(true);
@@ -257,17 +259,18 @@ function integrarAdiantamentosSalariaisNoSAP(byId) {
                 CPF_FUNCIONARIO,
             } = registro || '';
             
-            let JrnlMemo = (`${CPF_FUNCIONARIO} ${TXTMOTIVO}`).trim();
+            let JrnlMemo = (`Integração ADIANTAMENTO SALARIAL(${IDADIANTAMENTOSALARIO}) Quality, CPF(${CPF_FUNCIONARIO}), Motivo: ${TXTMOTIVO}`).replace(/\s+/g, ' ').trim();
             
-            let stIntegrar = !fnValidarIntegracaoContasPagarSAP(IDADIANTAMENTOSALARIO, JrnlMemo, false);
+            let stIntegrar = !fnValidarIntegracaoContasPagarSAP(IDADIANTAMENTOSALARIO, null, JrnlMemo, false);
             
             if(stIntegrar){
                 let dadosJsonContasPagar = fnMontarJsonContasPagar(registro);
-                // return {dadosJsonContasPagar}
-                postSlContasPagar(dadosJsonContasPagar, JrnlMemo);
+                //return {dadosJsonContasPagar}
+                postSlContasPagar(dadosJsonContasPagar, idFuncionario, JrnlMemo);
             }
         }
         
+        fnAtualizarBloqueioLinhaEnquantoAtualiza(ids, false);
     }
 	
 	return 'Migração adiantamentos salariais realizada com sucesso!';

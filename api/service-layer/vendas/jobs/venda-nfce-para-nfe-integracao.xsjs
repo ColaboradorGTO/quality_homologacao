@@ -4,6 +4,37 @@ let dbNameSAP = 'SBO_GTO_TESTE4'
 
 let conn;
 
+function ajustarDataDentroDos30Dias(dataOriginal) {
+    return `2025-07-30`;
+    let [ano, mes, dia] = dataOriginal.split("-").map(Number);
+    
+    let dataHora = new Date(ano, mes - 1, dia); 
+    let agora = new Date();
+    let limite = new Date();
+    let novaData = '';
+    
+    dataHora.setHours(0, 0, 0, 0);
+    agora.setHours(0, 0, 0, 0);
+    limite.setHours(0, 0, 0, 0);
+    limite.setDate(agora.getDate() - 30);
+    
+    if(dataHora < limite){
+        novaData = new Date();
+        novaData.setDate(agora.getDate() - 29);
+        
+        dataHora = novaData;
+    }
+    
+    ano = dataHora.getFullYear();
+    mes = String(dataHora.getMonth() + 1);
+    dia = String(dataHora.getDate());
+    
+    mes = mes.length < 2 ? ('0' + mes) : mes;
+    dia = dia.length < 2 ? ('0' + dia) : dia;
+    
+    return `${ano}-${mes}-${dia}`;
+}
+
 function errorLogVenda(idVenda, p_Error){
     let query = `
         UPDATE 
@@ -34,6 +65,7 @@ function atualizaMigracaoVenda(idVenda, idSap, idSapDocEntry){
         SET
             SAP_DOCENTRY = ?,
             SAP_DOCENTRY_CORRETO = ?,
+            STCONTINGENCIA = 'False',
             ERRORLOGSAP = NULL,
             TXTOBSCORRECAOCONTINGENCIA = (SELECT (TO_VARCHAR(CURRENT_TIMESTAMP) || ' Venda NFCE Transformada Para NFE(55) Chave: ') FROM DUMMY)
 		WHERE 
@@ -174,8 +206,12 @@ function obterLinhasDoDetalhe(idVenda, estqCodEmpresa, vDesc, vTotalVenda) {
 }
 
 function excuteVendaNaoIntegradaNfceParaNfe(byId){
+    let dataInicio = $.request.parameters.get("dataInicio");
+    let dataFim = $.request.parameters.get("dataFim");
+    let ajustarData = $.request.parameters.get("ajustarData") || 'False';
+    
     let query = ` 
-        SELECT TOP 100
+        SELECT TOP 50
             TBV.IDVENDA, 
             TO_VARCHAR(TBV.DTHORAFECHAMENTO,'DD/MM/YYYY') AS DTHORAFECHAMENTO, 
             TBV.IDEMPRESA,
@@ -199,13 +235,14 @@ function excuteVendaNaoIntegradaNfceParaNfe(byId){
             TBE.IDEMPRESA = TBV.IDEMPRESA
         WHERE 
             1 = ? 
+            /*AND TBE.SGUF = 'MG'*/
             AND TBV.PROTNFE_INFPROT_CSTAT <> 100  
             AND TBV.STCANCELADO = 'False' 
             AND TBV.STCONTINGENCIA = 'True'
-            AND TBV.SAP_DOCENTRY IS NULL
-            // --AND TO_DATE(TBV.DTHORAFECHAMENTO) >= '2024-01-01' 
-            AND (TO_DATE(TBV.DTHORAFECHAMENTO) >= '2025-05-01' AND TO_DATE(TBV.DTHORAFECHAMENTO) <= '2025-05-31')
-            AND IFNULL(TBV.ERRORLOGSAP,'') = '' 
+            AND IFNULL(TBV.SAP_DOCENTRY, 0) = 0
+            AND (TO_DATE(TBV.DTHORAFECHAMENTO) >= '2024-01-01' AND TO_DATE(TBV.DTHORAFECHAMENTO) <= '2025-10-28'/*ADD_DAYS(CURRENT_DATE, -2)*/)
+            AND TBV.NFE_INFNFE_IDE_DHEMI IS NOT NULL
+            AND IFNULL(TBV.ERRORLOGSAP,'') = ''
             AND NOT EXISTS (
                 SELECT 
                     1 
@@ -220,6 +257,7 @@ function excuteVendaNaoIntegradaNfceParaNfe(byId){
     `; 
     
     if(byId){
+        // retirar a clausula de UF = GO acima
         query += ` AND TBV.IDVENDA = '${byId}' `;
     }
     
@@ -230,6 +268,11 @@ function excuteVendaNaoIntegradaNfceParaNfe(byId){
 	
 	for (let i = 0; i < response.length; i++) {
         let registro = response[i];
+        let dataEmissaoVenda = registro.NFE_INFNFE_IDE_DHEMI;
+        
+        if(ajustarData == 'True'){
+            dataEmissaoVenda = ajustarDataDentroDos30Dias(dataEmissaoVenda);
+        }
         
         if(i === 0){
             conn = $.db.getConnection();
@@ -244,8 +287,8 @@ function excuteVendaNaoIntegradaNfceParaNfe(byId){
 		let venda = {
 			"DocType": "dDocument_Items",
 			"U_ID_VENDA_PDV": registro.IDVENDA,
-			"DocDate": registro.NFE_INFNFE_IDE_DHEMI,
-			"DocDueDate": registro.NFE_INFNFE_IDE_DHEMI,
+			"DocDate": dataEmissaoVenda,
+			"DocDueDate": dataEmissaoVenda,
 			"CardCode": retCardCode[0].U_IS_PN_SAIDA,
 			"DocTotal": parseFloat(registro.NFE_INFNFE_TOTAL_ICMSTOT_VNF),
 			"Comments": `Ref a Venda em Contigencia nao enviada a Sefaz NFCE ${registro.NFE_INFNFE_IDE_NNF} Serie ${registro.NFE_INFNFE_IDE_SERIE} IDVENDA: ${registro.IDVENDA}`,
@@ -253,7 +296,7 @@ function excuteVendaNaoIntegradaNfceParaNfe(byId){
 			"ClosingRemarks": `Ref a Venda em Contigencia nao enviada a Sefaz NFCE ${registro.NFE_INFNFE_IDE_NNF} Serie ${registro.NFE_INFNFE_IDE_SERIE} IDVENDA: ${registro.IDVENDA}`,
 			"PaymentGroupCode": 93,
 			"SalesPersonCode": 8, 
-			"TaxDate": registro.NFE_INFNFE_IDE_DHEMI,
+			"TaxDate": dataEmissaoVenda,
 			"Project": "PDV_SOFTQUALITY",
 			"BPL_IDAssignedToInvoice": registro.IDEMPRESA,
 			"SequenceCode": retSequenceCode[0].SEQCOD,

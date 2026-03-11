@@ -1,0 +1,57 @@
+
+                            <div id="resultadodepositoBonificacao"></div>
+                            
+                            <div class="form-group">
+                                <div class="row">
+                                    <input type="hidden" name="idfuncBonificacao" id="idfuncBonificacao" value="True">
+                                    <div class="col-sm-6 col-xl-10">
+                                        <label class="form-label" for="empresa">Funcionário</label>
+                                        <div class="input-group">
+                                            <input type="text" id="funcionario_Bonificacao" name="funcionario_Bonificacao" class="form-control input" value="" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-4 col-xl-4">
+                                        <label class="form-label" for="tpbonifcacao">Tipo</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="tipoMovimento" id="tipoMovimento">
+                                                <option value="0"> Selecione...</option>
+                                                <option value="Credito">Crédito</option>
+                                                <option value="Debito">Débito</option>
+                                            </select>
+                                        </div>
+                                    </div>  
+                                    <div class="col-sm-4 col-xl-4">
+                                        <label class="form-label" for="vrdesp">Valor (R$)</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrDeposito" name="VrDeposito" class="form-control input" value="0">
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-10 col-xl-10">
+                                        <label class="form-label" for="descdepos">Histórico</label>
+                                        <div class="input-group">
+                                            <input type="text" id="DsHistorio" name="DsHistorio" class="form-control input" maxlength="200">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-12">                                        
+                                        <div id="tudo"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+    <script>
+        $("#VrDeposito").mask('#.##0,00', {reverse: true});
+    </script>
+    

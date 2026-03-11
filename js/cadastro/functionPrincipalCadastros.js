@@ -1600,7 +1600,7 @@ function retornoListaPedidos(respostaListaPedidos) {
 
 async function Enviar_Pedido_Compras(id, idandamento) {
   try {
-    if (IDFuncionarioLogin != 1459 && IDFuncionarioLogin != 632 && IDFuncionarioLogin != 2006) {
+    if (IDFuncionarioLogin != 1459 && IDFuncionarioLogin != 632 && IDFuncionarioLogin != 2006 && IDFuncionarioLogin != 30142) {
       return msgInfo('Usuário sem permissão!', 'Fale com o seu gestor!');
     }
 

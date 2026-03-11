@@ -3339,7 +3339,7 @@ function update_funcionario() {
 
     console.log(dados);
     if (SenhaAtualizar == NSenhaAtualizar) {
-            ajaxPut("api/informatica/funcionario-loja.xsjs", dados)
+            ajaxPut("api/comercial/funcionario-loja.xsjs", dados)
                 .then(funcSucessUpdateFuncionario)
                 .catch(funcError);
     }else{

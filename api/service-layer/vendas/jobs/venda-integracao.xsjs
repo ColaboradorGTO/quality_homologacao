@@ -1,125 +1,228 @@
-var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var securityStorage = new $.security.Store("localStore.xssecurestore");
-var slApi = $.import("quality.concentrador_homologacao.api.service-layer.api", "slApi");
-var vendaJson = $.import("quality.concentrador_homologacao.api.service-layer.vendas.venda", "vendaJson");
+let { sqlQuery, replaceDbName } = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let { loginServiceLayer, post } = $.import("quality.concentrador_homologacao.api.service-layer", "api");
+let { getJsonVenda } = $.import("quality.concentrador_homologacao.api.service-layer.vendas.libs", "json-venda-65-manual");
+let dbNameSAP = 'SBO_GTO_TESTE4';
+let conn;
 
-function errorLogVenda(idVenda, p_Error){
-
-    var conn = $.db.getConnection();
-
-    var query = 'UPDATE "QUALITY_CONC_HML"."VENDA" SET ERRORLOGSAP = ? WHERE IDVENDA = ?';
-
-	var pStmt = conn.prepareStatement(api.replaceDbName(query));
-
-	pStmt.setString(1, p_Error);
-	pStmt.setInt(2, idVenda);
-	pStmt.execute();
-	
-	pStmt.close();
-	conn.commit();
-
-	return 'True';
+function ajustarDataVenda(uf, data) {
+    let [ano, mes, dia] = data.split("-").map(Number);
+    //return `${ano}-${mes}-${dia}`;
+    
+    let dataHora = new Date(ano, mes - 1, dia); 
+    let agora = new Date();
+    let limite = new Date();
+    let novaData = '';
+    let diasSubtracao;
+    
+    dataHora.setHours(0, 0, 0, 0);
+    agora.setHours(0, 0, 0, 0);
+    limite.setHours(0, 0, 0, 0);
+    
+    if(uf == 'GO') {
+        limite.setDate(agora.getDate() - 15)
+        diasSubtracao = 14;
+    } else {
+        limite.setDate(agora.getDate() - 30)
+        diasSubtracao = 29;
+    }
+    
+    if(dataHora <= limite){
+        novaData = new Date();
+        novaData.setDate(agora.getDate() - diasSubtracao);
+        
+        dataHora = novaData;
+    }
+    
+    ano = dataHora.getFullYear();
+    mes = String(dataHora.getMonth() + 1);
+    dia = String(dataHora.getDate());
+    
+    mes = mes.length < 2 ? ('0' + mes) : mes;
+    dia = dia.length < 2 ? ('0' + dia) : dia;
+    
+    return `${ano}-${mes}-${dia}`;
 }
 
-function atualizaMigracaoVenda(idVenda, idSap){
-    var conn = $.db.getConnection();
-    var query = 'UPDATE "QUALITY_CONC_HML"."VENDA" SET' +
-		'  SAP_DOCENTRY = ? '+
-		' WHERE IDVENDA = ?';
-	
-	var pStmt = conn.prepareStatement(api.replaceDbName(query));
+function registrarErrorLogVenda(idVenda, p_Error){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."VENDA"
+        SET 
+            ERRORLOGSAP = ? 
+        WHERE 
+            IDVENDA = ? 
+    `;
 
-	pStmt.setInt(1, parseInt(idSap));
-	pStmt.setInt(2, idVenda);
-	pStmt.execute();
+	let pStmtUpdate = conn.prepareStatement(replaceDbName(query));
+
+	pStmtUpdate.setString(1, p_Error);
+	pStmtUpdate.setString(2, idVenda);
 	
-	pStmt.close();
+	pStmtUpdate.executeUpdate();
+	pStmtUpdate.close();
+	
+	conn.commit();
+}
+
+function registrarSucessoIntegracao(idVenda, docNum, docEntry){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."VENDA" 
+        SET
+            SAP_DOCENTRY = ?,
+            SAP_DOCENTRY_CORRETO = ?
+		WHERE 
+		    IDVENDA = ?
+    `;
+	
+	let pStmtUpdate = conn.prepareStatement(replaceDbName(query));
+
+	pStmtUpdate.setInt(1, parseInt(docNum));
+	pStmtUpdate.setInt(2, parseInt(docEntry));
+	pStmtUpdate.setString(3, idVenda);
+	
+	pStmtUpdate.executeUpdate();
+	pStmtUpdate.close();
 
 	conn.commit();
-	return 'True';
+}
+
+function getDadosVendaSAP(idVenda){
+    let query = `
+        SELECT 
+            "DocEntry", 
+            "DocNum" 
+        FROM 
+            ${dbNameSAP}.OINV 
+        WHERE 
+            1 = ? 
+            AND "U_ID_VENDA_PDV" = '${idVenda}'
+            AND "CANCELED" = 'N'
+            AND "Model" = 54
+    `;
+    
+    return sqlQuery(query, 1);
+}
+
+function getListaVendasParaIntegrar(idVenda){
+    let query = `
+        SELECT TOP 70
+            TBV.IDVENDA
+        FROM
+            "VAR_DB_NAME".VENDA TBV
+        INNER JOIN "VAR_DB_NAME".EMPRESA TBE ON
+            TBE.IDEMPRESA = TBV.IDEMPRESA
+        WHERE
+            1 = ?
+            AND TBV.PROTNFE_INFPROT_CSTAT = 100   
+            AND IFNULL(TBV.PROTNFE_INFPROT_NPROT,'') <> ''  
+            AND IFNULL(TBV.PROTNFE_INFPROT_CHNFE,'') <> ''  
+            AND TBV.STCANCELADO = 'False'  
+            AND TBV.STCONTINGENCIA = 'False'  
+            AND TBV.NFE_INFNFE_IDE_TPAMB = 1  
+            AND TBV.NFE_INFNFE_IDE_MOD = 65
+            AND TBV.SAP_DOCENTRY IS NULL
+            AND IFNULL(TBV.ERRORLOGSAP, '') = '' 
+            /*AND NOT EXISTS (
+                SELECT
+                    1
+                FROM
+                    ${dbNameSAP}.OINV XA
+                WHERE
+                    XA."CANCELED" = 'N'
+                    AND XA."BPLId" = TBV.IDEMPRESA
+                    AND XA."Serial" = TBV.NFE_INFNFE_IDE_NNF
+                    AND XA."SeriesStr" = CAST(TBV.NFE_INFNFE_IDE_SERIE AS VARCHAR(10)) 
+            )*/
+            AND (TO_DATE(TBV.DTHORAFECHAMENTO) BETWEEN '2024-01-01' AND ADD_DAYS(CURRENT_DATE, -1))
+    `;
+   
+    if(idVenda){
+        query += ` AND TBV.IDVENDA = '${idVenda}' `;
+    }
+    
+    query += ' ORDER BY TBV.DTHORAFECHAMENTO ASC ';
+    
+	return sqlQuery(query, 1);
 }
 
 function postSl(data, session) {
-    
-   var response = slApi.post('/Invoices',data,session);
+   let response = post('/Invoices', data, session);
+   let msg = 'Erro ao integrar a venda'
+   
     if (response.status !== 204) {
-        return JSON.parse(response.body.asString());
-   }else{
-        return 'True';
+        response =  JSON.parse(response.body.asString());
+        
+        msg += response.error.message.value || '';
+        
+    } else {
+       let regSAP = getDadosVendaSAP(data.U_ID_VENDA_PDV);
+       
+       if(regSAP.length > 0){
+           let { DocEntry, DocNum } = regSAP[0];
+           
+           return {
+                success: true,
+                DocEntry, 
+                DocNum
+           }
+       }
    }
-    
+   
+   return {
+        success: false,
+        msg
+    }
 }
 
-function excuteVendaNaoIntegrada(){
-    
-    var query = ' SELECT ' + 
-    '   A.idvenda,  ' + 
-    '   cast(A.dthorafechamento as date) as "DATA",  ' + 
-    '   A.IDEMPRESA, ' + 
-    '   A.NFE_INFNFE_EMIT_FANT, ' + 
-    '   A.PROTNFE_INFPROT_CHNFE, ' + 
-    '   A.NFE_INFNFE_IDE_NNF, ' + 
-    '   A.NFE_INFNFE_IDE_SERIE, ' + 
-    '   A.protnfe_infprot_cstat, ' + 
-    '   A.protnfe_infprot_nprot, ' + 
-    '   A.NFE_INFNFE_EMIT_ENDEREMIT_UF ' + 
-    ' FROM "QUALITY_CONC_HML".venda A ' + 
-    ' WHERE 1=? and' + 
-    '   A.protnfe_infprot_cstat = 100  ' + 
-    '   and ifnull(A.protnfe_infprot_nprot,\'\') <> \'\' ' + 
-    '   and IFNULL(A.PROTNFE_INFPROT_CHNFE,\'\') <> \'\' ' + 
-    '   and A.stcancelado = \'False\' ' + 
-    '   and a.stcontingencia = \'False\' ' + 
-    '   and a.NFE_INFNFE_IDE_TPAMB = 1 ' + 
-    '   AND A.NFE_INFNFE_IDE_MOD = 65 ' + 
-    '   AND NOT EXISTS (SELECT 1 ' + 
-    ' FROM SBO_GTO_TESTE1.OINV XA WHERE  ' + 
-    '   XA.CANCELED = \'N\' AND ' + 
-    '   XA."BPLId" = A.IDEmpresa and  ' + 
-    '   XA."Serial" = A.NFE_INFNFE_IDE_NNF and ' + 
-    '   XA."SeriesStr" = cast(A.NFE_INFNFE_IDE_SERIE as varchar(10)) ' + 
-    '   ) ' ; 
-   
-	
-            query = query + ' AND (A.DTHORAFECHAMENTO BETWEEN \'2022-01-05 00:00:00\' AND \'2022-01-30 23:59:00\')';
-    
-    
-    query = query +  '   ORDER BY A.idvenda ';
-   
-
-	var response = api.sqlQuery(query, 1);
-	var data = [];
-	var session = '';
-	for (var i = 0; i < response.length; i++) {
-        var det = response[i];
-        //return 'aqui';
-	    var retJson = vendaJson.obterJsonVenda(det.IDVENDA);
-       
-      
-        if(i === 0){
-		    session = slApi.loginServiceLayer(true);
-		    slApi.loginServiceLayer(true);
-		} 
-	
-		var retSl = postSl(retJson,session);
-		if(retSl !== 'True'){
-		    errorLogVenda(det.IDVENDA, retSl.error.message.value);
-		    return retSl;
-		}
-	
-		var resultMigracao = api.sqlQuery('select "DocNum" as IDSAP from "SBO_GTO_TESTE1".OINV where 1=? AND "U_ID_VENDA_PDV" = \''+ det.IDVENDA+'\'', 1);
-	   if(resultMigracao.length > 0)
-	   {
-	       //return resultMigracao[0].MARCACOD;
-	       atualizaMigracaoVenda(det.IDVENDA, resultMigracao[0].IDSAP);
-	   }
-
-	}
-	return 'Migração Nota-saida realizada com sucesso!';
-
-	//response.data = transferenciaSaida;
-
-	//return postSl(transferenciaSaida,'true');
+function excuteVendaNaoIntegrada(idVenda){
+	let listaVendas = getListaVendasParaIntegrar(idVenda);
+	//return {listaVendas}
+	let arrayJson = [];
+	if(listaVendas.length > 0){
+        let session = loginServiceLayer(true);
+        
+        conn = $.db.getConnection();
+        
+        for (let registro of listaVendas) {
+            try{
+                let regSAP = getDadosVendaSAP(registro.IDVENDA);
+                //return {regSAP}
+                if(regSAP.length > 0){
+                    let { DocEntry, DocNum } = regSAP[0];
+                    
+                    registrarSucessoIntegracao(registro.IDVENDA, DocNum, DocEntry);
+                    
+                    continue;
+                }
+                
+                let jsonVenda = getJsonVenda(registro.IDVENDA);
+                //arrayJson.push(jsonVenda)
+                //continue
+                let respIntegracao = postSl(jsonVenda, session);
+                
+                if(!respIntegracao.success){
+                    registrarErrorLogVenda(registro.IDVENDA, respIntegracao.msg);
+                    
+                    continue;
+                }
+                
+                registrarSucessoIntegracao(registro.IDVENDA, respIntegracao.DocNum, respIntegracao.DocEntry);
+            } catch(e){
+                let detalheError = e.stack.split('\n');
+                
+                detalheError = detalheError.length > 3 ? detalheError[1].trim() : detalheError[ detalheError.length - 3].trim()
+                
+                if(detalheError){
+                    detalheError = `Linha: ${detalheError.split(':')[1]} da Funcao ${detalheError.split('@').shift()}() da API: venda-integracao.xsjs`;
+                }
+                
+                registrarErrorLogVenda(registro.IDVENDA, (detalheError + ' Error: ' + e.message || 'Erro ao tentar integrar a venda'));
+            }
+        }
+    }
+	//return arrayJson
+	return 'Migração Venda Realizada Com Sucesso!';
 }
 
 if($.response) {
@@ -128,19 +231,31 @@ if($.response) {
     
     try {
         switch ( $.request.method ) {
-            //Handle your GET calls here
+            //Handle your POST calls here
             case $.net.http.POST:
-                var doc = excuteVendaNaoIntegrada();
-                 $.response.setBody(JSON.stringify({ result : doc }));
+                let id = $.request.parameters.get("id");
+                let docReturn = excuteVendaNaoIntegrada(id);
+                
+                $.response.setBody(JSON.stringify(docReturn));
                 break;
                 
             default:
                 break;
         }
-    
-    } catch(e) {
+    } catch (e) {
+        let detalheError = e.stack.split('\n');
+        
+        detalheError = detalheError.length > 3 ? detalheError[1].trim() : detalheError[ detalheError.length - 3].trim()
+        
+        if(detalheError){
+            detalheError = `Linha: ${detalheError.split(':')[1]} da Funcao ${detalheError.split('@').shift()}()`;
+        }
+        
         $.response.contentType = 'application/json';
-        $.response.setBody(JSON.stringify({ message : e.message }));
+        $.response.setBody(JSON.stringify({
+            message: e.message,
+            detalheError
+        }));
         $.response.status = 400;
-    }   
+    }
 }

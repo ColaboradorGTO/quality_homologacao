@@ -494,6 +494,8 @@ function fnHandleGet(byId) {
         query += ` AND (TBDP.STMIGRADOSAP = '${stMigradoSAP}' OR TBDP_PEDIDO_SECUNDARIO.STMIGRADOSAP = '${stMigradoSAP}') `;
     }
     
+    query += ` ORDER BY TBDP.NUREF, TBDP.IDTAMANHO`;
+    
     var request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")

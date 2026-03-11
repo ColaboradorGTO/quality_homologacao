@@ -1,0 +1,87 @@
+<div id="resultadoeditdespesa"></div>
+
+<div class="form-group">
+  <input type="hidden" name="idDespesaLoja" id="idDespesaLoja" value="">
+  <input type="hidden" name="STCancelaDespesa" id="STCancelaDespesa" value="False">
+  <input type="hidden" name="IDEmpresaDespesa" id="IDEmpresaDespesa" value="">
+  <input type="hidden" name="IDFuncDespesa" id="IDFuncDespesa" value="">
+  <div class="row">
+    <div class="col-sm-6 col-xl-10">
+      <label class="form-label" for="nomeempDespesa">Empresa</label>
+      <div class="input-group">
+        <input type="text" id="nomeempDespesa" name="nomeempDespesa" class="form-control input" value="" readonly>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="DTDespesa">Data Despesa</label>
+      <div class="input-group">
+        <input type="date" id="DTDespesa" name="DTDespesa" class="form-control" value="">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="HRDespesa">Hora Despesa</label>
+      <div class="input-group">
+        <input type="time" id="HRDespesa" name="HRDespesa" class="form-control" value="">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="IDCategoriaReceitaDespesa">Despesa</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="IDCategoriaReceitaDespesa" id="IDCategoriaReceitaDespesa">
+          <option value="0" disable> Selecione...</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="DsHistorioDespesa">Histórico</label>
+      <div class="input-group">
+        <input type="text" id="DsHistorioDespesa" name="DsHistorioDespesa" class="form-control input" maxlength="200">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <label class="form-label" for="DsPagoA">Pago à</label>
+      <div class="input-group">
+        <input type="text" id="DsPagoA" name="DsPagoA" class="form-control input" maxlength="200">
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="TPNota">Tipo Nota</label>
+      <div class="input-group">
+        <select class="select form-control" name="TPNota" id="TPNota" onchange="carregadivtiponota(this.value);">
+          <option value="2" selected> NFCe</option>
+          <option value="1"> NFe</option>
+
+        </select>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6" id="1" style="display:none;">
+      <label class="form-label" for="NuNotaFiscal">Nº Chave da Nota</label>
+      <div class="input-group">
+        <input type="hidden" id="NuNotaFiscal" name="NuNotaFiscal" class="form-control input" value=""
+          onkeypress="return Onlynumbers(event);">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+      <label class="form-label" for="VrDespesa">Valor Despesa</label>
+      <div class="input-group">
+        <input type="text" id="VrDespesa" name="VrDespesa" class="form-control input" value="0">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $("#VrDespesa").mask('#.##0,00', { reverse: true });
+</script>

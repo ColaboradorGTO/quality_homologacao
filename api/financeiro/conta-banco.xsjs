@@ -186,9 +186,12 @@ function fnHandleGet(byId) {
 function fnHandlePut() {
     let bodyJson = JSON.parse($.request.body.asString());
     
-    if(!Array.isArray(bodyJson) || !bodyJson.length > 0){
-        throw new Error('Body not found or Invalid Format Body');
-    }
+    // if(!Array.isArray(bodyJson) || !bodyJson.length > 0){
+    //     bodyJson = bodyJson
+    //     throw new Error('Body not found or Invalid Format Body');
+    // }
+    
+    if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
     
     conn = $.db.getConnection();
     
@@ -247,9 +250,11 @@ function fnHandlePut() {
 function fnHandlePost() {
     let bodyJson = JSON.parse($.request.body.asString());
     
-    if(!Array.isArray(bodyJson) || !bodyJson.length > 0){
-        throw new Error('Body not found or Invalid Format Body');
-    }
+    // if(!Array.isArray(bodyJson) || !bodyJson.length > 0){
+    //     throw new Error('Body not found or Invalid Format Body');
+    // }
+    
+    if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
     
     conn = $.db.getConnection();
     

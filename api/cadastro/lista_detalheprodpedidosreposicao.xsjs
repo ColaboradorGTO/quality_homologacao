@@ -47,7 +47,7 @@ function fnHandleGet(byId) {
         query += ` AND  TBD.NUCODBARRAS = '${codbarrasrep}' `;
     }*/
     
-    query += ' ORDER BY TBD.NUREF, TBD.DSPRODUTO ASC ';
+    query += ' ORDER BY TBD.NUREF, TBT.IDTAMANHO ';
 
     var request = { 
         page:  $.request.parameters.get("page"),

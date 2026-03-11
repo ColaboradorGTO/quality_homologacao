@@ -1,5 +1,6 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
+
 function fnHandleGetModuloPrincipal(idModulo) {
     try {
         var query = 'SELECT * FROM "VAR_DB_NAME"."MODULOPRINCIPAL" WHERE ID = ?';
@@ -215,9 +216,6 @@ function fnHandleGetPerfilUsuarioMenu() {
                 IDUSUARIO: item.IDUSUARIO,
                 IDMENU: item.IDMENU,
                 DSPERFIL: item.DSPERFIL,
-                CRIAR: item.CRIAR,
-                ALTERAR: item.ALTERAR,
-                STATIVO: item.STATIVO,
                 IDPERFILUSUARIO: item.IDPERFILUSUARIO,
                 IDMODULO: item.IDMODULO,
                 IDMODULOADMINISTRATIVO: item.IDMODULOADMINISTRATIVO,
@@ -243,6 +241,9 @@ function fnHandleGetPerfilUsuarioMenu() {
                 N3: item.N3,
                 N2: item.N2,
                 N1: item.N1,
+                CRIAR: item.CRIAR,
+                ALTERAR: item.ALTERAR,
+                STATIVO: item.STATIVO,
                 IDMENUFILHO: item.IDMENUFILHO,
                 modulos: modulosPrincipais
             };

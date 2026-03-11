@@ -1,5 +1,5 @@
-var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var slApi = $.import("quality.concentrador_homologacao.api.service-layer.api", "slApi");
+var api = $.import("quality.concentrador.api.apiResponse", "int_api");
+var slApi = $.import("quality.concentrador.api.service-layer.api", "slApi");
 
 let dbNameSAP = 'SBO_GTO_TESTE4';
 

@@ -1,76 +1,99 @@
-var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var securityStorage = new $.security.Store("localStore.xssecurestore");
-var slApi = $.import("quality.concentrador_homologacao.api.service-layer.api", "slApi");
+let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let slApi = $.import("quality.concentrador_homologacao.api.service-layer.api", "slApi");
 
-function patchSl(docEntry,data,session) {
+let dbNameSAP = 'SBO_GTO_TESTE4';
+let session;
+
+function getDadosItem(codPedido, codProduto){
+    let query = `
+        SELECT 
+            TBR.IDRESUMOPEDIDO,
+            TO_VARCHAR(TBR.DTPREVENTREGA,'YYYY-mm-DD') AS DTPREVENTREGA,
+            TBO."DocEntry",
+            TBP1."LineNum"
+        FROM
+            "VAR_DB_NAME".RESUMOPEDIDO TBR
+        INNER JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP ON 
+            TBR.IDRESUMOPEDIDO = TBDP.IDRESUMOPEDIDO
+        INNER JOIN ${dbNameSAP}.OPOR TBO ON
+            TO_VARCHAR(TBDP.IDRESUMOPEDIDO) = TBO."U_ID_VENDA_PDV"
+        INNER JOIN ${dbNameSAP}.POR1 TBP1 ON
+            TBO."DocEntry" = TBP1."DocEntry" AND TO_VARCHAR(TBDP.IDPRODCADASTRO) = TBP1."ItemCode" 
+        WHERE
+            TBO."DocStatus" = 'O'
+            AND TBP1."LineStatus" = 'O'
+            AND TBR.IDRESUMOPEDIDO = '${codPedido}'
+            AND TBDP.IDPRODCADASTRO = '${codProduto}'
+            AND 1 = ?
+    `;
     
-    var response = slApi.patch('/PurchaseOrders('+docEntry+')',data,session);
+    return api.sqlQuery(query, 1);
+}
+
+function registrarErrorAoCancelarSAP(idResumoPedido, idProdCadastro, p_Error){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" 
+        SET 
+            ERRORLOGSAP = ? 
+        WHERE 
+            IDPRODCADASTRO = ?
+            AND IDRESUMOPEDIDO = ? 
+    `;
+    
+    let conn = $.db.getConnection();
+	let pStmt = conn.prepareStatement(api.replaceDbName(query));
+
+	pStmt.setString(1, p_Error);
+	pStmt.setString(2, idProdCadastro);
+	pStmt.setInt(2, idResumoPedido);
+	
+	
+	pStmt.execute();
+	pStmt.close();
+	
+	conn.commit();
+	
+	return "False";
+}
+
+function patchSl(docEntry, data, session, idResumoPedido, idProdCadastro) {
+    if(!session){
+        session = slApi.loginServiceLayer(true);
+    }
+    
+    let response = slApi.patch('/PurchaseOrders('+docEntry+')', data, session);
+    
     if (response.status !== 204) {
-        return JSON.parse(response.body.asString());
+        let resp = JSON.parse(response.body.asString());
+        
+        return registrarErrorAoCancelarSAP(idResumoPedido, idProdCadastro, (resp.error.message.value || 'Erro ao cancelar o item no SAP'))
     }else{
         return 'True';
     }
 }
 
+// FAZER OS TESTES VIA PUT
+// TEM QUE PEGAR O PEDIDO TODO E MIGRAR NOVAMENTE SÓ O QUE FOR QUERER NO PEDIDO
+
 function executeCancelamentoProdutoPedidoCompra(codPedido,codProduto){
-   
-    var dataAtual = '';
-    var data = new Date(); 
-    var dd = ("0" + data.getDate()).slice(-2);
-    var mm = ("0" + (data.getMonth() + 1)).slice(-2);
-    var y = data.getFullYear();
-    
-    var dataAtualizacao = y+'-'+mm+'-'+dd;
-   
-    var query = 'SELECT T1."IDRESUMOPEDIDO", '+
-            	' T1."STCANCELADO", '+
-            	' T1."STMIGRADOSAP", '+
-            	' TO_VARCHAR(T1.DTPREVENTREGA,\'YYYY-mm-DD\') AS DTPREVENTREGA ' +
-                'FROM "QUALITY_CONC_HML"."RESUMOPEDIDO" T1 '+
-                'WHERE  1=? AND ' +
-               	 'T1."IDRESUMOPEDIDO" = '+parseInt(codPedido);
+    let dadosLinhaPedido = getDadosItem(codPedido, codProduto);
 	
-	var linhas = api.sqlQuery(query, 1);
-	var lines = [];
-	var session = '';
-	
-	if(linhas.length > 0){
-        for (var i = 0; i < linhas.length; i++) {
-            var det = linhas[i];
-            var resultDocEntry = api.sqlQuery('select "DocEntry" from "SBO_GTO_TESTE1".OPOR where 1=? AND "U_ID_VENDA_PDV" = \''+ det.IDRESUMOPEDIDO.toString()+'\'', 1);
-            
-            if(resultDocEntry.length > 0)
-            {
-                var queryProduto = 'select a."LineNum" from "SBO_GTO_TESTE1".POR1 a '+ 
-                                    ' inner join "SBO_GTO_TESTE1".OPOR b on a."DocEntry" = b."DocEntry" '+ 
-                                    ' where 1=? AND b."U_ID_VENDA_PDV" = \''+codPedido.toString()+'\''+ 
-                                    ' AND a."ItemCode" = \''+codProduto.toString()+'\'';
-              
-                var resultProd = api.sqlQuery(queryProduto, 1);
-               
-                if(resultProd.length > 0){
-                    var strJson = '{ '+
-                        '"DocDueDate":"'+ det.DTPREVENTREGA+'",'+
-                        ' "DocumentLines": [{ '+
-	                        ' "LineNum": '+parseInt(resultProd[0].LineNum)+', '+
-                            ' "LineStatus": "bost_Close" '+
-                    ' }]}';
-                    if(i === 0){
-                        session = slApi.loginServiceLayer(true);
-                        slApi.loginServiceLayer(true);
-                    } 
-                
-                    var NumDocEntry = resultDocEntry[0].DocEntry;
-                    var rsSl = patchSl(NumDocEntry, JSON.parse(strJson), session);
-                    if(rsSl !== 'True'){
-                        return 'False';
+	if(dadosLinhaPedido.length > 0){
+        for (let { DTPREVENTREGA, DocEntry, LineNum } of dadosLinhaPedido) {
+            let data = {
+                "DocDueDate": DTPREVENTREGA,
+                "DocumentLines": [
+                    {
+                        "LineNum": parseInt(LineNum),
+                        "LineStatus": "bost_Close"
                     }
-                }else{
-                    return 'False'; 
-                }
+                ]
             }
+            
+            return patchSl(DocEntry, data, session, codPedido, codProduto);
         }
-        return 'True';
+        
 	}else{
 	   return 'False'; 
 	}

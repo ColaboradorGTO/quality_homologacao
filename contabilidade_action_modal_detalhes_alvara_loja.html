@@ -1,0 +1,52 @@
+<div class="panel mb-3">
+  <div class="panel-container">
+    <div class="panel-content">
+      <div id="titulo-alvara-modal" class="mb-3">
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl-3">
+          <label class="form-label" for="stAtivoVincAlvaraModal">Status:</label>
+          <select class="form-control" id="stAtivoVincAlvaraModal" disabled>
+            <option value="True"> Ativo </option>
+            <option value="False"> Inativo </option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6 col-xl-3">
+          <label class="form-label" for="dtInicioCompVincAlvaraModal" title="Data Inicio Competência">Dt. Inicio:</label>
+          <input type="date" id="dtInicioCompVincAlvaraModal" class="form-control" name="dtInicioCompVincAlvaraModal"
+            value="" title="Data Inicio Competência">
+        </div>
+        <div class="col-sm-6 col-xl-3">
+          <label class="form-label" for="dtFimCompVincAlvaraModal" title="Data Fim Competência">Dt. Fim:</label>
+          <input type="date" id="dtFimCompVincAlvaraModal" class="form-control" name="dtFimCompVincAlvaraModal"
+            value="" title="Data Fim Competência">
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-sm-6 col-xl-5">
+          <label class="form-label" for="statusVincAlvaraModal">Status Andamento:</label>
+          <select id="statusVincAlvaraModal" class="form-control" disabled> </select>
+        </div>
+        <div class="col-sm-6 col-xl-2">
+          <label class="form-label" for="metragemVincAlvaraModal">Metragem:</label>
+          <input id="metragemVincAlvaraModal" type="text" class="form-control" value="" oninput="formatarMetragem(this)" onblur="this.value = (Number(this.value) || 0) " disabled>
+        </div>
+        <div class="col-sm-6 col-xl-3 d-none">
+          <label class="form-label" for="idProjetoAprovadoVincAlvaraModal">Projeto Aprovado:</label>
+          <input id="idProjetoAprovadoVincAlvaraModal" type="text" class="form-control" value="" onblur="this.value = (this.value?.replace(/\s+/g, ' ').trim()() || '') " disabled>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-sm-6 col-xl-12">
+          <label class="form-label" for="detAndamentoVincAlvaraModal">Detalhe Andamento:</label>
+          <textarea id="detAndamentoVincAlvaraModal" rows="10" class="form-control" style="resize: none" value="" disabled></textarea>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div id="anexos-alvara" class="col-sm-12 col-xl-12 d-flex"></div>
+      </div>
+    </div>
+  </div>
+</div>

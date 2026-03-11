@@ -95,6 +95,47 @@ function loginServiceLayer(force){
     return session;
 }
 
+function getSL(pathUrl, session){
+    let dest = readUrl();
+    let client = new $.net.http.Client();
+    let request = new $.net.http.Request($.net.http.GET, pathUrl);
+   
+    request.cookies.set('B1SESSION', session);
+    
+    client.request(request, dest);
+    
+    let response = client.getResponse();
+    
+    client.close();
+    
+    return response;
+ }
+
+function postBatch(client, batch, session){
+    let dest = readUrl();
+    
+    let request = new $.net.http.Request($.net.http.POST, "/$batch");
+    let { boundary, body } = batch;
+    
+    request.cookies.set('B1SESSION', session);
+    
+    request.headers.set("OData-Version", "3.0");
+    request.headers.set("Content-Type", "multipart/mixed;charset=UTF-8;boundary=" + boundary);
+    request.headers.set("Prefer", "odata.continue-on-error");
+    request.headers.set("Accept", "multipart/mixed");
+    request.headers.set("Connection", "keep-alive");
+    request.headers.set("Accept-Encoding", "gzip");
+    request.headers.set("Content-Encoding", "gzip");
+    
+    request.setBody(body);
+    
+    client.request(request, dest);
+    
+    let response = client.getResponse();
+    
+    return response;
+ }
+
 function post(pathUrl, body, session){
    
     var dest = readUrl();
@@ -115,17 +156,23 @@ function post(pathUrl, body, session){
     return response;
  }
  
-function patch(pathUrl, body, session){
-   
+function patch(pathUrl, body, session, stReplaceCollections = false){
     var dest = readUrl();
-    //session = testSession(session);
-    //var session = loginServiceLayer();
     var client = new $.net.http.Client();
     var request = new $.net.http.Request($.net.http.PATCH, pathUrl);
     
+    request.headers.set('Content-Type', 'application/json');
+    request.headers.set('Accept', 'application/json');
+    request.headers.set('Prefer', 'return-no-content');
+    //request.headers.set('Cache-Control', 'no-cache');
+    //request.headers.set('Pragma', 'no-cache');*/
+    //request.headers.set('Prefer', 'return=representation');
+    
+    if (stReplaceCollections) {
+        request.headers.set('B1S-ReplaceCollectionsOnPatch', 'true');
+    }
     
     request.cookies.set('B1SESSION', session);
-    request.headers.set('Prefer', 'return-no-content');
     request.setBody(JSON.stringify(body));
     
     client.request(request, dest);
@@ -133,14 +180,51 @@ function patch(pathUrl, body, session){
     client.close();
     
     return response;
- }
+}
+
+
+function put(pathUrl, body, session, stReplaceCollections = false){
+   
+    var dest = readUrl();
+    //session = testSession(session);
+    //var session = loginServiceLayer();
+    var client = new $.net.http.Client();
+    var request = new $.net.http.Request($.net.http.PUT, pathUrl);
+    
+    
+    request.cookies.set('B1SESSION', session);
+    request.headers.set('Prefer', 'return-no-content');
+    //stReplaceCollections && request.headers.set('B1S-ReplaceCollectionsOnPatch', 'true');
+    request.setBody(JSON.stringify(body));
+    
+    client.request(request, dest);
+    var response = client.getResponse();
+    client.close();
+    
+    return response;
+}
+
+function getData(pathUrl, session){
+   
+    var dest = readUrl();
+    var client = new $.net.http.Client();
+    var request = new $.net.http.Request($.net.http.GET, pathUrl);
+   
+    request.cookies.set('B1SESSION', session);
+
+    client.request(request, dest);
+    var response = client.getResponse();
+    client.close();
+    
+    return response;
+}
 
 function testget(pathUrl){
    
     var dest = readUrl();
     
-    //var session = loginServiceLayer();
-     var session = '469e6884-d088-11ec-8000-005056b5a3a0';
+    var session = loginServiceLayer();
+    //var session = '469e6884-d088-11ec-8000-005056b5a3a0';
     var client = new $.net.http.Client();
    
     var request = new $.net.http.Request($.net.http.GET, pathUrl);

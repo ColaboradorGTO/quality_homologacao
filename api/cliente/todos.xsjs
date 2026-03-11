@@ -8,60 +8,71 @@ function setStringOrNull(stmt, fieldId, value) {
 	stmt.setString(fieldId, value);
 }
 
+function setDateOrNull(stmt, fieldId, value) {
+	if (!value) {
+		stmt.setNull(fieldId);
+		return;
+	}
+	stmt.setDate(fieldId, value);
+}
+
 function fnHandleGet(byId) {
+    let numeroCpfCnpj = $.request.parameters.get("numeroCpfCnpj");
     
-    var numeroCpfCnpj = $.request.parameters.get("numeroCpfCnpj");
-    
-    var query = ' SELECT ' + 
-    '	tbc.IDCLIENTE,' +
-    '	tbc.IDEMPRESA,' +
-    '	tbc.DSNOMERAZAOSOCIAL,' +
-    '	tbc.DSAPELIDONOMEFANTASIA,' +
-    '	tbc.TPCLIENTE,' +
-    '	tbc.NUCPFCNPJ,' +
-    '	tbc.NURGINSCESTADUAL,' +
-    '	tbc.NUINSCMUNICIPAL,' +
-    '	tbc.NUINSCRICAOSUFRAMA,' +
-    '	tbc.TPINDICADORINSCESTADUAL,' +
-    '	tbc.STOPTANTESIMPLES,' +
-    '	tbc.NUCEP,' +
-    '	tbc.NUIBGE,' +
-    '	tbc.EENDERECO,' +
-    '	tbc.NUENDERECO,' +
-    '	tbc.ECOMPLEMENTO,' +
-    '	tbc.EBAIRRO,' +
-    '	tbc.ECIDADE,' +
-    '	tbc.SGUF,' +
-    '	tbc.EEMAIL,' +
-    '	tbc.NUTELCOMERCIAL,' +
-    '	tbc.NUTELCELULAR,' +
-    '	tbc.DTNASCFUNDACAO,' +
-    '	tbc.DSOBSERVACAO,' +
-    '	tbc.NOCONTATOCLIENTE01,' +
-    '	tbc.EEMAILCONTATOCLIENTE01,' +
-    '	tbc.FONECONTATOCLIENTE01,' +
-    '	tbc.DSCARGOCONTATOCLIENTE01,' +
-    '	tbc.NOCONTATOCLIENTE02,' +
-    '	tbc.EEMAILCONTATOCLIENTE02,' +
-    '	tbc.FONECONTATOCLIENTE02,' +
-    '	tbc.DSCARGOCONTATOCLIENTE02,' +
-    '	tbc.STATIVO,' +
-    '	tbc.IDINDICACAOIE,' +
-    '   TO_VARCHAR(tbc.DTULTALTERACAO,\'YYYY-MM-DD HH24:MI:SS\') AS DTULTALTERACAO ' +
-    ' FROM ' + 
-    '   "VAR_DB_NAME".CLIENTE tbc' +
-    ' WHERE ' +
-        '	1 = ?';
+    let query = `
+        SELECT  
+            IDCLIENTE,
+            IDEMPRESA,
+            DSNOMERAZAOSOCIAL,
+            DSAPELIDONOMEFANTASIA,
+            TO_VARCHAR(TPCLIENTE) as TPCLIENTE,
+            NUCPFCNPJ,
+            NURGINSCESTADUAL,
+            NUINSCMUNICIPAL,
+            NUINSCRICAOSUFRAMA,
+            TPINDICADORINSCESTADUAL,
+            STOPTANTESIMPLES,
+            NUCEP,
+            NUIBGE,
+            EENDERECO,
+            NUENDERECO,
+            ECOMPLEMENTO,
+            EBAIRRO,
+            ECIDADE,
+            SGUF,
+            EEMAIL,
+            NUTELCOMERCIAL,
+            NUTELCELULAR,
+            DTNASCFUNDACAO,
+            DSOBSERVACAO,
+            NOCONTATOCLIENTE01,
+            EEMAILCONTATOCLIENTE01,
+            FONECONTATOCLIENTE01,
+            DSCARGOCONTATOCLIENTE01,
+            NOCONTATOCLIENTE02,
+            EEMAILCONTATOCLIENTE02,
+            FONECONTATOCLIENTE02,
+            DSCARGOCONTATOCLIENTE02,
+            STATIVO,
+            IDINDICACAOIE,
+            TO_VARCHAR(DTULTALTERACAO,'YYYY-MM-DD HH24:MI:SS') AS DTULTALTERACAO,
+            TO_VARCHAR(DTCADASTRO,'YYYY-MM-DD HH24:MI:SS') AS DTCADASTRO
+        FROM  
+            "VAR_DB_NAME".CLIENTE
+        WHERE
+            1 = ?
+            AND ( LENGTH(IFNULL(TRIM(NUCPFCNPJ), '')) = 11 OR LENGTH(IFNULL(TRIM(NUCPFCNPJ), '')) = 14 )
+    `;
     
     if ( byId ) {
-        query = query + ' And  tbc.IDCLIENTE = \'' + byId + '\' ';
+        query += ` AND IDCLIENTE = ${byId} `;
     }
     
     if(numeroCpfCnpj){
-        query = query + ' And  tbc.NUCPFCNPJ = \'' + numeroCpfCnpj + '\' ';
+        query += ` AND NUCPFCNPJ = '${numeroCpfCnpj}' `;
     }
     
-    var request = { 
+    let request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")
     };
@@ -104,7 +115,7 @@ function fnHandlePut() {
         ' "FONECONTATOCLIENTE02" = ?, ' +
         ' "DSCARGOCONTATOCLIENTE02" = ?, ' +
         ' "STATIVO" = ?, ' +
-        ' "DTULTALTERACAO" = now() ' +
+        ' "DTULTALTERACAO" = CURRENT_TIMESTAMP ' +
     	' WHERE "IDCLIENTE" =  ? ';
         
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -117,7 +128,7 @@ function fnHandlePut() {
         pStmt.setInt(1, registro.IDEMPRESA);
         pStmt.setString(2, registro.DSNOMERAZAOSOCIAL);
         setStringOrNull(pStmt, 3, registro.DSAPELIDONOMEFANTASIA);
-        pStmt.setString(4, registro.TPCLIENTE);
+        pStmt.setString(4, (registro.NUCPFCNPJ.length > 11 ? 'JURIDICA' : 'FISICA'));
         pStmt.setString(5, registro.NUCPFCNPJ);
         pStmt.setString(6, registro.NURGINSCESTADUAL);
         pStmt.setString(7, registro.NUINSCMUNICIPAL);
@@ -146,7 +157,6 @@ function fnHandlePut() {
         pStmt.setString(30, registro.FONECONTATOCLIENTE02);
         pStmt.setString(31, registro.DSCARGOCONTATOCLIENTE02);
         pStmt.setString(32, registro.STATIVO);
-        //pStmt.setDate(33, registro.DTULTALTERACAO);
         pStmt.setInt(33, registro.IDCLIENTE);
                     
     	pStmt.execute();
@@ -160,8 +170,7 @@ function fnHandlePut() {
 	};
 }
 
-function fnHandlePost() 
-{
+function fnHandlePost() {
     var conn = $.db.getConnection();
     
     var query = 'INSERT INTO "VAR_DB_NAME"."CLIENTE" ' +
@@ -202,7 +211,7 @@ function fnHandlePost()
         ' "DTULTALTERACAO", ' +
         ' "DTCADASTRO" ' +
     	' ) ' +
-		' VALUES(QUALITY_CONC.SEQ_CLIENTE.NEXTVAL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now(), now()) ';
+		' VALUES("VAR_DB_NAME".SEQ_CLIENTE.NEXTVAL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) ';
 		
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());
@@ -214,7 +223,7 @@ function fnHandlePost()
 		pStmt.setInt(1, registro.IDEMPRESA);
         pStmt.setString(2, registro.DSNOMERAZAOSOCIAL);
         setStringOrNull(pStmt, 3, registro.DSAPELIDONOMEFANTASIA);
-        pStmt.setString(4, registro.TPCLIENTE);
+        pStmt.setString(4, (registro.NUCPFCNPJ.length > 11 ? 'JURIDICA' : 'FISICA'));
         pStmt.setString(5, registro.NUCPFCNPJ);
         pStmt.setString(6, registro.NURGINSCESTADUAL);
         pStmt.setString(7, registro.NUINSCMUNICIPAL);
@@ -232,7 +241,7 @@ function fnHandlePost()
         pStmt.setString(19, registro.EEMAIL);
         pStmt.setString(20, registro.NUTELCOMERCIAL);
         pStmt.setString(21, registro.NUTELCELULAR);
-        setStringOrNull(pStmt, 22, registro.DTNASCFUNDACAO);
+        setDateOrNull(pStmt, 22, registro.DTNASCFUNDACAO);
         pStmt.setString(23, registro.DSOBSERVACAO);
         pStmt.setString(24, registro.NOCONTATOCLIENTE01);
         pStmt.setString(25, registro.EEMAILCONTATOCLIENTE01);

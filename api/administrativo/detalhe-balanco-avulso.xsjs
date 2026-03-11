@@ -91,7 +91,7 @@ function fnHandlePut(){
 
     var conn = $.db.getConnection();
     var bodyJson = JSON.parse($.request.body.asString());
-    
+
     var pTotalContagemGeral = parseInt(bodyJson.TOTALCONTAGEMGERAL);
     var pIdEmpresa = parseInt(bodyJson.IDEMPRESA);
     var pNumeroColetor = parseInt(bodyJson.NUMEROCOLETOR);
@@ -134,6 +134,7 @@ function fnHandlePost(){
 
     var conn = $.db.getConnection();
     var bodyJson = JSON.parse($.request.body.asString());
+    if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
 
     if(bodyJson[0].INSBALANCO === 1){
         var idResumoBalanco = api.sqlQuery('SELECT IDRESUMOBALANCO FROM "VAR_DB_NAME"."RESUMOBALANCO" WHERE IDEMPRESA = ?  AND STATIVO = \'True\'', bodyJson[0].IDEMPRESA);

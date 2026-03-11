@@ -51,7 +51,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
                             <div id="idbuttonalterar" >
                                 <button type="button" class="btn btn-danger" onclick="alterar_pagamentos()">Alterar Pagamentos</button>
                             </div>
@@ -59,6 +58,9 @@
                                 <button type="button" class="btn btn-danger" onclick="alterar_pagamentos_fechar()">Fechar Alterar Pagamentos</button>
                             </div>
                             <hr>
+                            <div id="idbuttoncolaboradoralterar" style="display: none">
+                                <label class="form-label" style="font-size:16px;">Colaborador não habilitado para essa função!</label>
+                            </div>
                             <div id="idpag" style="display: none">
                                 <div class="form-group">
                                     <div class="row">
@@ -77,7 +79,7 @@
                                 <div class="form-group">
                                     <div class="row">
                                         <div class="col-sm-6 col-xl-3">
-                                            <label class="form-label" for="vrdinheiro">Valor Dinheiro</label>
+                                            <label class="form-label" for="vrdinheiro">Valor Dinheiro</label> 
                                                 <div class="input-group">
                                                     <input type="text" id="VrRecDinheiro" name="VrRecDinheiro" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
                                                 </div>
@@ -87,8 +89,25 @@
                                 <hr>
                                 <div class="form-group">
                                     <div class="row">
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="vrpix">Valor PIX</label>
+                                            <div class="input-group">
+                                                <input type="text" id="VrRecPIX" name="VrRecPIX" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-9">
+                                        <label class="form-label" for="nvchpix">Nº Chave PIX</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuChavePIX" name="NuChavePIX" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="form-group">
+                                    <div class="row">
                                         <div class="col-sm-6 col-xl-6">
-                                            <label class="form-label" for="dscartao">Descrição Cartão</label>
+                                            <label class="form-label" for="dscartao">Descrição Cartão TEF</label>
                                             <div class="input-group">
                                                 <select class="select2 form-control" name="DSTipoPagamentoTEF" id="DSTipoPagamentoTEF">
                                                     <option value="0">Selecione...</option>
@@ -132,8 +151,8 @@
                                         <div class="col-sm-6 col-xl-3">
                                         <label class="form-label" for="btntef"></label>
                                             <div class="input-group">
-                                                <button id="idbuttoncart1" type="button" class="btn btn-success" onclick="incluir_cartao()">Incluir + Cartão</button>
-                                                <button id="idbuttoncart2" style="display: none" type="button" class="btn btn-warning" onclick="tirar_cartao()">Tirar Cartão</button>
+                                                <button id="idbuttoncart1" type="button" class="btn btn-success" onclick="incluir_cartao()">Incluir Cartão 2</button>
+                                                <button id="idbuttoncart2" style="display: none" type="button" class="btn btn-warning" onclick="tirar_cartao()">Tirar Cartão 2</button>
                                             </div>
                                         </div>
                                     </div>
@@ -142,7 +161,7 @@
                                 <div id="cart2" class="form-group" style="display: none">
                                     <div class="row">
                                         <div class="col-sm-6 col-xl-6">
-                                            <label class="form-label" for="dscartao2">Descrição Cartão 2</label>
+                                            <label class="form-label" for="dscartao2">Descrição Cartão TEF 2</label>
                                             <div class="input-group">
                                                 <select class="select2 form-control" name="DSTipoPagamentoTEF2" id="DSTipoPagamentoTEF2">
                                                     <option value="0">Selecione...</option>
@@ -181,6 +200,60 @@
                                         <label class="form-label" for="dtprimeiraparc2">Data 1ª Parcela 2</label>
                                             <div class="input-group">
                                                 <input type="date" id="DTParcelaCartao2" name="DTParcelaCartao2" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="btntef"></label>
+                                            <div class="input-group">
+                                                <button id="idbuttoncart3" type="button" class="btn btn-success" onclick="incluir_cartao2()">Incluir Cartão 3</button>
+                                                <button id="idbuttoncart4" style="display: none" type="button" class="btn btn-warning" onclick="tirar_cartao2()">Tirar Cartão 3</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div id="cart4" class="form-group" style="display: none">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-6">
+                                            <label class="form-label" for="dscartao3">Descrição Cartão TEF 3</label>
+                                            <div class="input-group">
+                                                <select class="select2 form-control" name="DSTipoPagamentoTEF3" id="DSTipoPagamentoTEF3">
+                                                    <option value="0">Selecione...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="noperacao3">NSU_CTF 3</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuOperacao3" name="NuOperacao3" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="nautorizacao3">Nº Autorização 3</label>
+                                            <div class="input-group">
+                                                <input type="text" id="NuAutorizacao3" name="NuAutorizacao3" class="form-control input" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="cart5" class="form-group" style="display: none">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="vrcartao3">Valor Cartão 3</label>
+                                            <div class="input-group">
+                                                <input type="text" id="VrRecCartao3" name="VrRecCartao3" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="qtdparc3">Qtd Parcelas 3</label>
+                                            <div class="input-group">
+                                                <input type="number" id="QtdParcelaCartao3" name="QtdParcelaCartao3" class="form-control input" value="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="dtprimeiraparc3">Data 1ª Parcela 3</label>
+                                            <div class="input-group">
+                                                <input type="date" id="DTParcelaCartao3" name="DTParcelaCartao3" class="form-control input" value="">
                                             </div>
                                         </div>
                                     </div>
@@ -292,13 +365,24 @@
                                         <div class="col-sm-6 col-xl-3">
                                         <label class="form-label" for="vrvoucher">Valor Voucher</label>
                                             <div class="input-group">
-                                                <input type="text" id="VrRecVoucher" name="VrRecVoucher" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)">
+                                                <input type="text" id="VrRecVoucher" name="VrRecVoucher" class="form-control input" value="0" onchange="soma_ValoresTotais(this.value)" readonly>
                                             </div>
                                         </div>
                                         <div class="col-sm-6 col-xl-3">
                                         <label class="form-label" for="nvoucher">Nº Voucher</label>
                                             <div class="input-group">
-                                                <input type="text" id="NuVoucher" name="NuVoucher" class="form-control input" value="">
+                                                <input type="text" id="NuVoucher" name="NuVoucher" class="form-control input" value="" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-xl-12">
+                                        <label class="form-label" for="mtalt">Motivo da Alteração</label>
+                                            <div class="input-group">
+                                                <input type="text" id="MotAlterar" name="MotAlterar" class="form-control input" value="">
                                             </div>
                                         </div>
                                     </div>
@@ -310,5 +394,5 @@
                             </div>
 
     <script>
-            $("#VrRecDinheiro,#VrRecCartao,#VrRecPOS,#VrRecCartao2,#VrRecPOS2,#VrRecVoucher").mask('#.##0,00', {reverse: true});
+            $("#VrRecDinheiro,#VrRecPIX,#VrRecCartao,#VrRecPOS,#VrRecCartao2,#VrRecCartao3,#VrRecPOS2,#VrRecVoucher").mask('#.##0,00', {reverse: true});
     </script>

@@ -1,5 +1,8 @@
-var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var libEditProdutoDoItemPedido = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.por-codigo.inativar-alterar-produto.libs.alterar-produtos-item", "libEditProdutoDoItemPedido");
+var api = $.import("quality.concentrador_homologacao.api", "apiResponse");
+var libEditProduto = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.libs.alteracao-pedido.itens", "alterar-dados-produto-pedido");
+var libEditProdutoPedido = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.libs.alteracao-pedido.itens", "alterar-dados-item-pedido");
+
+let conn;
 
 function setTimestampOrNull(stmt, fieldId, value) {
 	if (!value) {
@@ -205,76 +208,7 @@ function getDetalhesProdutoPedido(idDetalhePedido){
 	return api.sqlQuery(queryProdutosPed, idDetalhePedido);
 }
 
-function fnUpdateDetalheProdutoPedido(idDetalhePedido, conn) {
-    let steditcomp = 'True';
-    let lstDeProdutosPed = getDetalhesProdutoPedido(idDetalhePedido);
-    
-    let query = `
-        UPDATE 
-            "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" 
-        SET
-            "IDCOR" = ?,
-            "IDTIPOTECIDO" = ?,
-            "IDESTILO" = ?,
-            "IDFABRICANTE" = ?,
-            "IDLOCALEXPOSICAO" = ?,
-            "IDCATEGORIAS" = ?,
-            "NUREF" = ?,
-            "QTDPRODUTO" = ?,
-            "UND" = ?,
-            "VRCUSTO" = ?,
-            "VRVENDA" = ?,
-            "VRTOTALCUSTO" = ?,
-            "VRTOTALVENDA" = ?,
-            "STECOMMERCE" = ?,
-            "STREDESOCIAL" = ?,
-            "IDFORNECEDOR" = ?,
-            "STREPOSICAO" = ?,
-            "STEDITADOCOMPRAS" = ?,
-            "DTULTATUALIZACAO" = CURRENT_TIMESTAMP
-        WHERE 
-            "IDDETALHEPEDIDO" =  ? 
-            AND "IDTAMANHO" =  ?
-    `;
-    		
-    let pStmt = conn.prepareStatement(api.replaceDbName(query));
-	
-	for (let i = 0; i < lstDeProdutosPed.length; i++) {
-        let registroProd = lstDeProdutosPed[i];
-        
-        pStmt.setInt(1, parseInt(registroProd.IDCOR));
-        pStmt.setInt(2, parseInt(registroProd.IDTIPOTECIDO));
-        pStmt.setInt(3, parseInt(registroProd.IDESTILO));
-        pStmt.setInt(4, parseInt(registroProd.IDFABRICANTE));
-        pStmt.setInt(5, parseInt(registroProd.IDLOCALEXPOSICAO));
-        pStmt.setInt(6, parseInt(registroProd.IDCATEGORIAS));
-        pStmt.setString(7, registroProd.NUREFPROD);
-        pStmt.setFloat(8, parseFloat(registroProd.QTDPRODUTO) || 0);
-        pStmt.setString(9, registroProd.UN);
-        pStmt.setFloat(10, parseFloat(registroProd.VRUNIT) || 0);
-        pStmt.setFloat(11, parseFloat(registroProd.VRVENDA) || 0);
-        pStmt.setFloat(12, parseFloat(registroProd.TOTALCUSTO)||0);
-        pStmt.setFloat(13, parseFloat(registroProd.TOTALVENDA) || 0);
-        pStmt.setString(14, registroProd.STECOMMERCE);
-        pStmt.setString(15, registroProd.STREDESOCIAL);
-        pStmt.setInt(16, parseInt(registroProd.IDFORNECEDOR));
-        pStmt.setString(17, registroProd.STREPOSICAO);
-        pStmt.setString(18, steditcomp);
-        pStmt.setInt(19, parseInt(registroProd.ID));
-        pStmt.setInt(20, parseInt(registroProd.IDTAMANHO));
-        
-        pStmt.execute();
-	}
-    
-    pStmt.close();
-	    
-	return {
-        "msg": "Edição realizado com sucesso!"
-    };
-
-}
-
-function fnUpdateValoresResumoPedido(idResumoPedido, conn){
+function atualizarValoresResumoPedido(idResumoPedido, conn){
     let querydetpedido = `
         SELECT 
             IFNULL(COUNT(IDDETALHEPEDIDO), 0) TOTALITENS, 
@@ -378,8 +312,67 @@ function fnUpdateDetalhePedidoSecundario(dados, conn) {
     }
 }
 
-function fnHandlePut() {
-    let conn = $.db.getConnection();
+function atualizarDetalheProdutoPedido(dados) {
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" 
+        SET
+            "IDCOR" = ?,
+            "IDTIPOTECIDO" = ?,
+            "IDESTILO" = ?,
+            "IDFABRICANTE" = ?,
+            "IDLOCALEXPOSICAO" = ?,
+            "IDCATEGORIAS" = ?,
+            "NUREF" = ?,
+            "QTDPRODUTO" = ?,
+            "UND" = ?,
+            "VRCUSTO" = ?,
+            "VRVENDA" = ?,
+            "VRTOTALCUSTO" = ?,
+            "VRTOTALVENDA" = ?,
+            "STECOMMERCE" = ?,
+            "STREDESOCIAL" = ?,
+            "IDFORNECEDOR" = ?,
+            "STREPOSICAO" = ?,
+            "STEDITADOCOMPRAS" = 'True',
+            "DTULTATUALIZACAO" = CURRENT_TIMESTAMP
+        WHERE 
+            "IDDETALHEPEDIDO" =  ? 
+            AND "IDTAMANHO" =  ?
+    `;
+    		
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+	
+	for (let i = 0; i < dados.length; i++) {
+        let registroProd = dados[i];
+        
+        pStmt.setInt(1, parseInt(registroProd.IDCOR));
+        pStmt.setInt(2, parseInt(registroProd.IDTIPOTECIDO));
+        pStmt.setInt(3, parseInt(registroProd.IDESTILO));
+        pStmt.setInt(4, parseInt(registroProd.IDFABRICANTE));
+        pStmt.setInt(5, parseInt(registroProd.IDLOCALEXPOSICAO));
+        pStmt.setInt(6, parseInt(registroProd.IDCATEGORIAS));
+        pStmt.setString(7, registroProd.NUREFPROD);
+        pStmt.setFloat(8, parseFloat(registroProd.QTDPRODUTO) || 0);
+        pStmt.setString(9, registroProd.UN);
+        pStmt.setFloat(10, parseFloat(registroProd.VRUNIT) || 0);
+        pStmt.setFloat(11, parseFloat(registroProd.VRVENDA) || 0);
+        pStmt.setFloat(12, parseFloat(registroProd.TOTALCUSTO)||0);
+        pStmt.setFloat(13, parseFloat(registroProd.TOTALVENDA) || 0);
+        pStmt.setString(14, registroProd.STECOMMERCE);
+        pStmt.setString(15, registroProd.STREDESOCIAL);
+        pStmt.setInt(16, parseInt(registroProd.IDFORNECEDOR));
+        pStmt.setString(17, registroProd.STREPOSICAO);
+        pStmt.setInt(18, parseInt(registroProd.ID));
+        pStmt.setInt(19, parseInt(registroProd.IDTAMANHO));
+        
+        pStmt.execute();
+	}
+    
+    pStmt.close();
+}
+
+function atualizarDetalhePedido(dados){
     let query = `
         UPDATE 
             "VAR_DB_NAME"."DETALHEPEDIDO" 
@@ -404,6 +397,45 @@ function fnHandlePut() {
     `;
     
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setInt(1, dados.IDCOR);
+    pStmt.setInt(2, dados.IDTIPOTECIDO);
+    pStmt.setInt(3, dados.IDLOCALEXPOSICAO);
+    pStmt.setString(4, dados.NUREF);
+    pStmt.setString(5, dados.DSPRODUTO);
+    pStmt.setFloat(6, dados.QTDTOTAL);
+    pStmt.setInt(7, dados.NUCAIXA);
+    pStmt.setInt(8, dados.UND);
+    pStmt.setFloat(9, dados.VRUNITBRUTO);
+    pStmt.setFloat(10, dados.VRUNITLIQUIDO);
+    pStmt.setFloat(11, dados.VRVENDA);
+    pStmt.setFloat(12, dados.VRTOTAL);
+    pStmt.setString(13, dados.STECOMMERCE);
+    pStmt.setString(14, dados.STREDESOCIAL);
+    pStmt.setInt(15, dados.IDCATEGORIAS);
+    pStmt.setInt(16, dados.IDDETALHEPEDIDO);
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
+function atualizarDadosPedido(dados){
+    let dadosDetalheProdutoPedido = getDetalhesProdutoPedido(dados.IDDETALHEPRODUTOPEDIDO);
+    
+    atualizarDetalhePedido(dados);
+    
+    atualizarDetalheProdutoPedido(dadosDetalheProdutoPedido);
+    
+    atualizarValoresResumoPedido(dados.IDRESUMOPEDIDO);
+    
+    if(stPedidoPrimario){
+        fnUpdateDetalhePedidoSecundario(registro, conn);
+    }
+}
+
+function fnHandlePut() {
+    let conn = $.db.getConnection();
+    
     let bodyJson = JSON.parse($.request.body.asString());
 
     for (let i = 0; i < bodyJson.length; i++) {

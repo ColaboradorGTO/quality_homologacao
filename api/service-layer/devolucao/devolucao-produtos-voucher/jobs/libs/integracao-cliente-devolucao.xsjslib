@@ -303,13 +303,20 @@ function executeIntegrarClienteDevolucao(connDB, session, idVoucher, stMsgRetorn
             "VAR_DB_NAME".RESUMOVOUCHER TBR
         INNER JOIN "VAR_DB_NAME".CLIENTE TBC ON 
             TBR.IDCLIENTE = TBC.IDCLIENTE
+        INNER JOIN "VAR_DB_NAME".VENDA TBV ON
+            TBR.IDRESUMOVENDAWEB = TBV.IDVENDA
+        INNER JOIN ${dbNameSAP}.OINV TBO ON
+            TBV.SAP_DOCENTRY_CORRETO = TBO."DocEntry"
         WHERE
             TBR.STTIPOTROCA <> 'TROCO'
             AND TBR.STCANCELADO = 'False'
             AND (TBR.STREFDEVOLUCAOSAP = 'False' OR TBR.STDEVOLUCAOSAP = 'False')
             AND IFNULL(TBC.IDCLIENTESAP, '') = ''
-            AND LENGTH(TBC.NUCPFCNPJ) = 11
-            AND UPPER(TBC.TPCLIENTE) = 'FISICA'
+            AND (
+                (LENGTH(TBC.NUCPFCNPJ) = 11 AND UPPER(TBC.TPCLIENTE) = 'FISICA') 
+                OR 
+                (LENGTH(TBC.NUCPFCNPJ) = 14 AND UPPER(TBC.TPCLIENTE) <> 'FISICA' AND TBO."Model" = 39 )
+            )
             AND 1 = ?
     `;
     

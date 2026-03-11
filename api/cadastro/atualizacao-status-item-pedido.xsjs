@@ -1,28 +1,11 @@
-var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var libCancelamentoItemPedido = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.por-codigo.cancelamento.libs.produto", "libCancelamentoItemPedido");
+let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let libRemoverProdutos = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.por-codigo.cancelamento.libs", "remover-referencia-pedido");
 
-function getIdDetalhePedidoSecundario(idDetalhePedidoPrimario){
-    let query = `
-        SELECT
-            IDRESUMOPEDIDO,
-            IDDETALHEPEDIDO
-        FROM    
-            "VAR_DB_NAME"."DETALHEPEDIDO" 
-        WHERE 
-            "IDDETALHEPEDIDOPRIMARIO" = ?
-    `;
-    
-    return api.sqlQuery(query, idDetalhePedidoPrimario);
-    
-    if(regDetalhe.length > 0){
-        return regDetalhe[0]
-    }
-    
-    return 0;
-}
+let dbNameSap = 'SBO_GTO_TESTE4';
+let conn;
 
-function fnUpdateValoresResumoPedido(idResumoPedido, conn){
-    let querydetpedido = `
+function getValoresAtualizadoDoPedido(idResumoPedido, idDetalhePedido){
+     let query = `
         SELECT 
             IFNULL(COUNT(IDDETALHEPEDIDO), 0) TOTALITENS, 
             IFNULL(SUM(QTDTOTAL), 0) QTDTOTAL, 
@@ -30,12 +13,189 @@ function fnUpdateValoresResumoPedido(idResumoPedido, conn){
         FROM
             "VAR_DB_NAME".DETALHEPEDIDO
         WHERE
-            "STCANCELADO"= 'False' 
-            AND IDRESUMOPEDIDO = ?
+            IDRESUMOPEDIDO = ${idResumoPedido}
+            AND IDDETALHEPEDIDO <> ${idDetalhePedido}
+            AND STCANCELADO = 'False'
+            AND 1 = ?
     `;
 
-	let regDetalhe = api.sqlQuery(querydetpedido, parseInt(idResumoPedido));
-	let dados = regDetalhe[0];
+	return api.sqlQuery(query, 1);
+}
+
+function getIdsPedidoSecundario(idDetalhePedidoPrimario){
+    let query = `
+        SELECT
+            IDRESUMOPEDIDO AS IDRESUMOPEDIDOSECUNDARIO,
+            IDDETALHEPEDIDO AS IDDETALHEPEDIDOSECUNDARIO
+        FROM    
+            "VAR_DB_NAME"."DETALHEPEDIDO" 
+        WHERE 
+            "IDDETALHEPEDIDOPRIMARIO" = ${idDetalhePedidoPrimario}
+            AND 1 = ?
+    `;
+    
+    return api.sqlQuery(query, 1);
+}
+
+function getIdsItensParaRemoverPedidoSAP(idDetalhePedido){
+    let query = `
+        SELECT
+            TBO."DocEntry",
+            TBDP.IDRESUMOPEDIDO,
+            STRING_AGG( '''' || TBDP.IDPRODCADASTRO || '''', ', ' ORDER BY TBDP.IDDETALHEPEDIDO, TBDP.IDDETALHEPRODUTOPEDIDO ) AS IDS_PRODUTOS
+		FROM
+            "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP
+        INNER JOIN ${dbNameSap}.OPOR TBO ON
+            TO_VARCHAR(TBDP.IDRESUMOPEDIDO) = TBO."U_ID_VENDA_PDV"
+		WHERE
+            TBDP."STCANCELADO"= 'False'
+            AND IFNULL(TBDP.IDPRODCADASTRO, 'NULL') <> 'NULL'
+            AND TBDP."IDDETALHEPEDIDO" = ${idDetalhePedido}
+            AND 1 = ?
+        GROUP BY  
+            TBO."DocEntry",
+            TBDP.IDRESUMOPEDIDO
+    `;
+
+	return api.sqlQuery(query, 1);
+}
+
+function getListaProdutosQuePermaneceraoNoPedido(idResumoPedido, idDetalhePedido){
+    let query = `
+		SELECT
+            TBO."DocEntry",
+            TBR.IDRESUMOPEDIDO,
+            TBD.IDDETALHEPEDIDO,
+            TBDP.IDDETALHEPRODUTOPEDIDO,
+            TBDP.IDPRODCADASTRO,
+            TBDP.QTDPRODUTO,
+            TBDP.VRCUSTO
+		FROM 
+			"VAR_DB_NAME".RESUMOPEDIDO TBR
+		INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO TBD ON 
+			TBR.IDRESUMOPEDIDO = TBD.IDRESUMOPEDIDO 
+		INNER JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP ON 
+            TBDP.IDDETALHEPEDIDO = TBD.IDDETALHEPEDIDO
+		LEFT JOIN ${dbNameSap}.OPOR TBO ON
+            TBR.DOCENTRY_PEDIDO_SAP = TBO."DocEntry" AND TO_VARCHAR(TBDP.IDRESUMOPEDIDO) = TBO."U_ID_VENDA_PDV" AND TBO."DocStatus" = 'O'
+		LEFT JOIN ${dbNameSap}.POR1 TBP1 ON
+            TBO."DocEntry" = TBP1."DocEntry" AND TO_VARCHAR(TBDP.IDPRODCADASTRO) = TBP1."ItemCode" AND TBP1."LineStatus" = 'O' AND IFNULL(TBP1."TrgetEntry", 0) = 0
+		WHERE 
+            TBR.STCANCELADO = 'False'
+            AND TBD.STCANCELADO = 'False' 
+            AND TBDP.STCANCELADO = 'False' 
+            AND TBD.IDRESUMOPEDIDO = ${idResumoPedido}
+            --AND TBD.IDDETALHEPEDIDO <> ${idDetalhePedido}
+            AND 1 = ?
+		ORDER BY 
+			TBD.IDDETALHEPEDIDO,
+			TBDP.IDDETALHEPRODUTOPEDIDO
+    `;
+    
+    return api.sqlQuery(query, 1);
+}
+
+function getDadosItemPedidoSAP(idDetalhePedido){
+    let query = `
+        SELECT
+            TBO."DocEntry",
+            TBO."DocStatus",
+            TBDP.IDRESUMOPEDIDO,
+            TBDP.IDPRODCADASTRO,
+            TBP1."LineStatus",
+            IFNULL(TBP1."TrgetEntry", 0) AS "DocEntryNotaEntrada"
+		FROM
+            "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP
+        INNER JOIN ${dbNameSap}.OPOR TBO ON
+            TO_VARCHAR(TBDP.IDRESUMOPEDIDO) = TBO."U_ID_VENDA_PDV"
+        INNER JOIN ${dbNameSap}.POR1 TBP1 ON
+            TBO."DocEntry" = TBP1."DocEntry" AND TO_VARCHAR(TBDP.IDPRODCADASTRO) = TBP1."ItemCode" 
+		WHERE
+            TBDP."STCANCELADO"= 'False'
+            AND IFNULL(TBDP.IDPRODCADASTRO, 'NULL') <> 'NULL'
+            AND TBDP."IDDETALHEPEDIDO" = ${idDetalhePedido}
+            AND 1 = ?
+        ORDER BY 
+            TBDP.IDDETALHEPEDIDO,
+            TBDP.IDDETALHEPRODUTOPEDIDO
+    `;
+
+	return api.sqlQuery(query, 1);
+}
+
+function getItemComEntradaNoPedidoSAP(idResumoPedido){
+    let query = `
+        SELECT TOP 1
+            TBO."DocEntry"
+		FROM
+            "VAR_DB_NAME".RESUMOPEDIDO TBR
+        INNER JOIN ${dbNameSap}.OPOR TBO ON
+            TO_VARCHAR(TBR.IDRESUMOPEDIDO) = TBO."U_ID_VENDA_PDV"
+        INNER JOIN ${dbNameSap}.POR1 TBP1 ON
+            TBO."DocEntry" = TBP1."DocEntry"
+		WHERE
+            TBR."STCANCELADO"= 'False'
+            AND IFNULL(TBP1."TrgetEntry", 0) > 0
+            AND TBR.IDRESUMOPEDIDO = '${idResumoPedido}'
+            AND 1 = ?
+    `;
+
+	return api.sqlQuery(query, 1);
+}
+
+function validarSeExisteAlgumaEntradaNoPedido(idResumoPedido){
+	let reg = getItemComEntradaNoPedidoSAP(idResumoPedido)
+	
+	if(reg.length > 0){
+        return {
+            "isValid": false,
+            "msg": 'Erro ao cancelar o Item no SAP, Pedido com recepção total ou parcial no SAP',
+        };
+	}
+	
+	return { "isValid": true }
+}
+
+function validarItensNoSap(idDetalhePedido){
+	let regItens = getDadosItemPedidoSAP(idDetalhePedido);
+	
+    if(regItens.length > 0){
+        
+        for( let i = 0; i < regItens.length; i++ ) {
+            
+            let { IDRESUMOPEDIDO, IDPRODCADASTRO, DocStatus, LineStatus, DocEntryNotaEntrada } = regItens[i];
+            
+            if(DocStatus != "O" || LineStatus != "O" || DocEntryNotaEntrada != 0){
+                let motivo = DocStatus != "O" ? 'Pedido Fechado' : DocEntryNotaEntrada != 0 ? 'Referencia com recepção total ou parcial' : 'Referencia com linha fechada'
+                
+                return {
+                    "isValid": false,
+                    "msg": `Erro ao cancelar o Item no SAP, ${motivo} no SAP`
+                };
+            }
+            
+        }
+	}
+	
+	return { "isValid": true }
+}
+
+function validarSeItemEstaAptoAoCancelamento(idResumoPedido, idDetalhePedido){
+    let respValidacaoPedido = validarSeExisteAlgumaEntradaNoPedido(idResumoPedido)
+    let respValidacaoItens = validarItensNoSap(idDetalhePedido);
+    let respValidacao = { "isValid": true, "isValidToCancelInSAP": true };
+    
+    if(respValidacaoItens.isValid){
+        respValidacao.isValidToCancelInSAP = respValidacaoPedido.isValid;
+    } else {
+        respValidacao = respValidacaoItens;
+    }
+    
+    return respValidacao;
+}
+
+function atualizarValoresResumoPedido(idResumoPedido, idDetalhePedido){
+	let dados = getValoresAtualizadoDoPedido(idResumoPedido, idDetalhePedido)
 
     let query = `
         UPDATE 
@@ -52,131 +212,68 @@ function fnUpdateValoresResumoPedido(idResumoPedido, conn){
     
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
     
-    pStmt.setInt(1, parseInt(dados.TOTALITENS || 0));
-    pStmt.setFloat(2, parseFloat(dados.QTDTOTAL || 0));
-    pStmt.setFloat(3, parseFloat(dados.VRTOTAL || 0));
-    pStmt.setFloat(4, parseFloat(dados.VRTOTAL || 0));
+    pStmt.setInt(1, parseInt(dados[0].TOTALITENS || 0));
+    pStmt.setFloat(2, parseFloat(dados[0].QTDTOTAL || 0));
+    pStmt.setFloat(3, parseFloat(dados[0].VRTOTAL || 0));
+    pStmt.setFloat(4, parseFloat(dados[0].VRTOTAL || 0));
     pStmt.setInt(5, parseInt(idResumoPedido));
     
-    pStmt.execute();
+    pStmt.executeUpdate();
     pStmt.close();
 }
 
-function fnAtualizarProdSAP(idDetPedido){
-    idDetPedido = Number(idDetPedido);
-    
-    var querydetpedido = ' SELECT (DETPED.IDPRODCADASTRO), DETPED.IDRESUMOPEDIDO' +
-		' FROM  ' +
-		'   "VAR_DB_NAME".DETALHEPRODUTOPEDIDO  DETPED' +
-		'  WHERE  ' +
-		'   DETPED."STCANCELADO"=\'True\' AND ' +
-		'   DETPED."IDDETALHEPEDIDO" = ?  ';
-
-	var linha2 = api.sqlQuery(querydetpedido, idDetPedido);
-    for (var i = 0; i < linha2.length; i++) {
+function cancelarItemNoPedidoSAP(idResumoPedido, idDetalhePedido, idFilial, usoPrincipal){
+	let listaProdutosQuePermanecerao = getListaProdutosQuePermaneceraoNoPedido(idResumoPedido, idDetalhePedido)
+	let respRemocaoSAP = { "success": true };
+	
+	if(listaProdutosQuePermanecerao.length > 0){
+        let { DocEntry, IDRESUMOPEDIDO, IDDETALHEPEDIDO } = listaProdutosQuePermanecerao[0];
         
-        var det2 = linha2[i];
-        
-        libCancelamentoItemPedido.executeCancelamentoProdutoPedidoCompra(det2.IDRESUMOPEDIDO, det2.IDPRODCADASTRO);
-        /*if(retIntegracaoCancelItemPedido === 'True'){
-            return {
-                "msg": "Cancelamento realizado com sucesso!"
-            };
-        }else{
-            return {
-                "msg": "Error Cancelamento!"
-            };
-        }*/
-        
-    }
-    	
-    return {
-        "msg": "Cancelamento realizado com sucesso!"
-    };
-    
-	//conn.commit();
+        respRemocaoSAP = libRemoverProdutos.removerProdutosDoPedidoSAP(DocEntry, IDRESUMOPEDIDO, IDDETALHEPEDIDO, idFilial, usoPrincipal, listaProdutosQuePermanecerao);
+	}
+    return respRemocaoSAP;
 }
 
-function fnAtualizarDetalheGrade(idDetalhePedido, stCancelado, conn){
-    let query = `
-        UPDATE 
-            "VAR_DB_NAME".DETALHEPEDIDOGRADE 
-        SET 
-            STATIVO = ?
-        WHERE 
-            IDDETALHEPEDIDO = ?
-    `;
-    
-    let pStmt = conn.prepareStatement(api.replaceDbName(query));
-    
-    pStmt.setString(1, stCancelado);
-    pStmt.setInt(2, parseInt(idDetalhePedido));
-    
-    pStmt.execute();
-    pStmt.close();
-}
-
-function fnAtualizarDetalheProdutoPedido(idDetalhePedido, stCancelado, conn){
-    let stAtivo = stCancelado == 'True' ? 'False' : 'True';
-    
+function cancelarDetalheProdutoPedido(idDetalhePedido){
     let query = `
         UPDATE 
             "VAR_DB_NAME".DETALHEPRODUTOPEDIDO 
         SET 
-            STATIVO = ?,
-            STCANCELADO = ?
+            STATIVO = 'False',
+            STCANCELADO = 'True'
         WHERE 
             IDDETALHEPEDIDO = ?
     `;
     
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
     
-    pStmt.setString(1, stAtivo);
-    pStmt.setString(2, stCancelado);
-    pStmt.setInt(3, parseInt(idDetalhePedido));
+    pStmt.setInt(1, parseInt(idDetalhePedido));
     
-    pStmt.execute();
+    pStmt.executeUpdate();
     pStmt.close();
 }
 
-function fnAtualizaDetalhePedidoSecundario(registro, conn) {
-    let dadosPedidoSecundario = getIdDetalhePedidoSecundario(registro.IDDETALHEPEDIDO);
+function cancelarDetalheGrade(idDetalhePedido){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE 
+        SET 
+            STATIVO = 'False',
+            STCANCELADO = 'True'
+        WHERE
+            STATIVO = 'True'
+            AND IDDETALHEPEDIDO = ?
+    `;
     
-    if(dadosPedidoSecundario.length > 0){
-        let idResumoPedidoSecundario = parseInt(dadosPedidoSecundario[0].IDRESUMOPEDIDO);
-        let idDetalhePedidoSecundario = parseInt(dadosPedidoSecundario[0].IDDETALHEPEDIDO);
-        
-        let query = `   
-            UPDATE 
-                "VAR_DB_NAME"."DETALHEPEDIDO" 
-            SET
-                "STCANCELADO" = ?, 
-                "IDRESPCANCELAMENTO" = ?, 
-                "TXTOBSCANCELAMENTO" = ? 
-            WHERE 
-                "IDDETALHEPEDIDO" =  ?
-        `;
-        
-        let pStmt = conn.prepareStatement(api.replaceDbName(query));
-        
-        pStmt.setString(1, registro.STCANCELADO);
-        pStmt.setInt(2, registro.IDRESPCANCELAMENTO);
-        pStmt.setString(3, registro.TXTOBSCANCELAMENTO);
-        pStmt.setInt(4, idDetalhePedidoSecundario);
-        
-        pStmt.execute();
-        pStmt.close();
-        
-        conn.commit();
-        
-        fnAtualizarDetalheGrade(idDetalhePedidoSecundario, registro.STCANCELADO, conn);
-        fnAtualizarDetalheProdutoPedido(idDetalhePedidoSecundario, registro.STCANCELADO, conn)
-        fnUpdateValoresResumoPedido(idResumoPedidoSecundario, conn);
-    }
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setInt(1, parseInt(idDetalhePedido));
+    
+    pStmt.executeUpdate();
+    pStmt.close();
 }
 
-function fnHandlePut() {
-    let conn = $.db.getConnection();
+function cancelarDetalhePedido(idDetalhePedido, registro){
     let query = `
         UPDATE 
             "VAR_DB_NAME"."DETALHEPEDIDO" 
@@ -189,36 +286,89 @@ function fnHandlePut() {
     `;
     
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
-    let bodyJson = JSON.parse($.request.body.asString());
     
-    for(let i = 0; i < bodyJson.length; i++){
-        let registro = bodyJson[i];
+    pStmt.setString(1, registro.STCANCELADO);
+    pStmt.setInt(2, registro.IDRESPCANCELAMENTO);
+    pStmt.setString(3, registro.TXTOBSCANCELAMENTO);
+    pStmt.setInt(4, parseInt(idDetalhePedido));
+    
+    pStmt.executeUpdate();
+    pStmt.close();
+}
+
+function executeCancelamentoItemPedido(idResumoPedido, idDetalhePedido, registro, idFilial, usoPrincipal){
+    let respValidacao = validarSeItemEstaAptoAoCancelamento(idResumoPedido, idDetalhePedido)
+    
+    if(!respValidacao.isValid){
+        return respValidacao;
+    }
+    
+    let { isValidToCancelInSAP } = respValidacao;
+    
+    if(isValidToCancelInSAP){
+        let respCancelItemSap = cancelarItemNoPedidoSAP(idResumoPedido, idDetalhePedido, idFilial, usoPrincipal);
         
-        pStmt.setString(1, registro.STCANCELADO);
-        pStmt.setInt(2, registro.IDRESPCANCELAMENTO);
-        pStmt.setString(3, registro.TXTOBSCANCELAMENTO);
-        pStmt.setInt(4, parseInt(registro.IDDETALHEPEDIDO));
+        if(!respCancelItemSap.success){
+            return respCancelItemSap;
+        }
+    }
+    
+    cancelarDetalhePedido(idDetalhePedido, registro);
+    
+    cancelarDetalheGrade(idDetalhePedido);
+    
+    cancelarDetalheProdutoPedido(idDetalhePedido);
+
+    atualizarValoresResumoPedido(idResumoPedido, idDetalhePedido);
+    
+    return { "isValid": true };
+}
+
+function fnHandlePut() {
+    let bodyJson = JSON.parse($.request.body.asString());
+    let msg = 'Cancelamento realizado com sucesso!';
+    let success = false;
+    let resp = []
+    
+    if(bodyJson.length > 0){
+        conn = $.db.getConnection();
+        for(let i = 0; i < bodyJson.length; i++){
+            let registro = bodyJson[i];
+            let idResumoPedido = registro.IDRESUMOPEDIDO;
+            let idDetalhePedido = registro.IDDETALHEPEDIDO;
+            let dadosPedidoSecundario = getIdsPedidoSecundario(registro.IDDETALHEPEDIDO);
+            let respCancelItemPedido = executeCancelamentoItemPedido(idResumoPedido, idDetalhePedido, registro, 101, 10);
+            resp.push({respCancelItemPedido})
+            
+            if(!respCancelItemPedido.isValid){
+                msg = respCancelItemPedido.msg;
+                
+                break;
+            }
+            
+            if(dadosPedidoSecundario.length > 0){
+                let { IDRESUMOPEDIDOSECUNDARIO, IDDETALHEPEDIDOSECUNDARIO } = dadosPedidoSecundario[0];
+                let respCancelItemPedidoSecundario = executeCancelamentoItemPedido(Number(IDRESUMOPEDIDOSECUNDARIO), Number(IDDETALHEPEDIDOSECUNDARIO), registro, 125, 21);
+                
+                resp.push({respCancelItemPedidoSecundario})
+                
+                if(!respCancelItemPedidoSecundario.isValid){
+                    msg = respCancelItemPedidoSecundario.msg;
+                    
+                    break;
+                }
+            }
+            
+            
+        }
         
-        pStmt.execute();
+        success = true;
         
         conn.commit();
         
-        if(registro.STPEDIDOPRIMARIO == 'True'){
-            fnAtualizaDetalhePedidoSecundario(registro, conn);
-        }
-        
-        fnAtualizarDetalheGrade(registro.IDDETALHEPEDIDO, registro.STCANCELADO, conn);
-        fnAtualizarDetalheProdutoPedido(registro.IDDETALHEPEDIDO, registro.STCANCELADO, conn)
-        fnUpdateValoresResumoPedido(registro.IDRESUMOPEDIDO, conn);
     }
     
-    pStmt.close();
-    
-    conn.commit();
-    
-    return {
-        "msg": "Cancelamento realizado com sucesso!"
-    };
+    return { success, msg, resp };
 }
 
 try {

@@ -6,6 +6,7 @@ let dbNameSAP = "SBO_GTO_TESTE4";
 let idFilialIntermediaria = 125;
 let idFilialPadrao = 101;
 let conn;
+let session;
 
 function getPedidoNoSAP(idResumoPedido){
     let query = `
@@ -67,7 +68,11 @@ function updateLogSuccessMigracao(idResumoPedido, docEntrySAP){
 	conn.commit();
 }
 
-function postSl(idResumoPedido, data, session) {
+function postSl(idResumoPedido, data) {
+    if(!session){
+        session = slApi.loginServiceLayer(true);
+    }
+    
     var response = slApi.post('/PurchaseOrders',data,session);
     
     if (response.status !== 204) {
@@ -194,6 +199,9 @@ function getDadosProdutosPedido(idResumoPedido){
             T1.STCANCELADO = 'False' 
             AND T2.STCANCELADO = 'False' 
             AND T1.IDRESUMOPEDIDO = ?
+        ORDER BY 
+            T1.IDDETALHEPEDIDO,
+            T2.IDDETALHEPRODUTOPEDIDO
     `;
     
     return api.sqlQuery(query, idResumoPedido);
@@ -329,7 +337,7 @@ function montarJsonPedido(dados, BplIdCliente = 101, stPedidoSecundario = false)
 	}
 }
 
-function executeMigracaoPedidoCompra(idResumoPedido, session, idFilial = 101, stPedidoSecundario = false){
+function executeMigracaoPedidoCompra(idResumoPedido, idFilial = 101, stPedidoSecundario = false){
     let dadosMigrados = getPedidoNoSAP(idResumoPedido);
     
     if(dadosMigrados.length > 0){
@@ -343,28 +351,30 @@ function executeMigracaoPedidoCompra(idResumoPedido, session, idFilial = 101, st
         for (let dados of dadosPedido) {
             let jsonPedido = montarJsonPedido(dados, idFilial, stPedidoSecundario);
             
-            postSl(Number(dados.IDRESUMOPEDIDO), jsonPedido, session);
+            postSl(Number(dados.IDRESUMOPEDIDO), jsonPedido);
         }
         
     }
 }
 
+function sleep(ms) {
+    var start = new Date().getTime();
+    while (new Date().getTime() < start + ms) {}
+}
+
 function executePedidoCompra(){
     let idResumoPedido = Number($.request.parameters.get("codPedido"));
     let idResumoPedidoSecundario = getIdResumoPedidoSecundario(idResumoPedido);
-    let session = slApi.loginServiceLayer(true);
     
     conn = $.db.getConnection();
-    
-    slApi.loginServiceLayer(true);
 	
 	if(idResumoPedidoSecundario > 0){
-        executeMigracaoPedidoCompra(idResumoPedido, session, idFilialIntermediaria);
+        executeMigracaoPedidoCompra(idResumoPedido, idFilialIntermediaria);
         
-        executeMigracaoPedidoCompra(idResumoPedidoSecundario, session, idFilialPadrao, true);
+        executeMigracaoPedidoCompra(idResumoPedidoSecundario, idFilialPadrao, true);
         
 	} else{
-        executeMigracaoPedidoCompra(idResumoPedido, session, idFilialPadrao);
+        executeMigracaoPedidoCompra(idResumoPedido, idFilialPadrao);
 	}
     
     return {

@@ -76,11 +76,11 @@ function fnGetDocEntryContasPagarSAP(idDespesa, JrnlMemo){
     return null;
 }
 
-function fnValidarIntegracaoContasPagarSAP(idDespesa, JrnlMemo, StAtualizarComError = true){
+function fnValidarIntegracaoContasPagarSAP(idDespesa, JrnlMemo, idFuncionario, StAtualizarComError = true){
     let docEntryContasPagarSAP = fnGetDocEntryContasPagarSAP(idDespesa, JrnlMemo);
     
-    if(docEntryContasPagarSAP){
-        return fnGravarLogSucessoContasPagarSAP(idDespesa, docEntryContasPagarSAP);
+    if(docEntryContasPagarSAP > 0){
+        return fnGravarLogSucessoContasPagarSAP(idDespesa, docEntryContasPagarSAP, idFuncionario);
     } else {
         if(StAtualizarComError){
             fnGravarLogError(idDespesa, 'Erro ao tentar integra o contas a pagar');
@@ -90,7 +90,7 @@ function fnValidarIntegracaoContasPagarSAP(idDespesa, JrnlMemo, StAtualizarComEr
     return false;
 }
 
-function fnGravarLogSucessoContasPagarSAP(idDespesa, docEntryContasPagarSAP){
+function fnGravarLogSucessoContasPagarSAP(idDespesa, docEntryContasPagarSAP, idFuncionario){
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."DESPESALOJA" 
@@ -98,6 +98,7 @@ function fnGravarLogSucessoContasPagarSAP(idDespesa, docEntryContasPagarSAP){
             ERROR_LOG_SAP  = NULL,
             DT_HORA_INTEGRACAO_CONTAS_A_PAGAR = CURRENT_TIMESTAMP,
             STATUS_BLOQUEIO_ATUALIZACAO = 'False',
+            IDUSRMIGRACAO = ${ idFuncionario || "IDUSRMIGRACAO" },
             DOCENTRY_SAP_CONTAS_A_PAGAR = ?
         WHERE 
             IDDESPESASLOJA = ? 
@@ -115,7 +116,7 @@ function fnGravarLogSucessoContasPagarSAP(idDespesa, docEntryContasPagarSAP){
 	return true;
 }
 
-function fnGravarLogError(idDespesa, p_Error){
+function fnGravarLogError(idDespesa, msgError){
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."DESPESALOJA" 
@@ -128,7 +129,7 @@ function fnGravarLogError(idDespesa, p_Error){
     
 	let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
 
-	pStmtUpdate.setString(1, p_Error);
+	pStmtUpdate.setString(1, msgError);
 	pStmtUpdate.setInt(2, Number(idDespesa));
 	pStmtUpdate.execute();
 	
@@ -138,21 +139,14 @@ function fnGravarLogError(idDespesa, p_Error){
 	return false;
 }
 
-function fnBloquearLinhaEnquantoAtualiza(dados){
-    let ids = '';
-    
-    for (var i = 0; i < dados.length; i++) {
-        let { IDDESPESASLOJA } = dados[i];
-        
-        ids += IDDESPESASLOJA;
-        ids += i < (dados.length - 1) ? ', ' : '';
-    }
+function fnAtualizarBloqueioLinhaEnquantoAtualiza(ids, stBloquear){
+    let statusBloquear = stBloquear ? 'True' : 'False';
     
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."DESPESALOJA" 
         SET 
-            STATUS_BLOQUEIO_ATUALIZACAO = 'True'
+            STATUS_BLOQUEIO_ATUALIZACAO = '${statusBloquear}'
         WHERE 
             IDDESPESASLOJA IN (${ids}) 
     `;
@@ -169,6 +163,7 @@ function fnMontarJsonContasPagar(dadosDeposito){
     let {
         IDDESPESASLOJA,
         IDCATEGORIARECEITADESPESA,
+        DSCATEGORIA,
         IDEMPRESA,
         DTDESPESA,
         VRDESPESA,
@@ -185,7 +180,8 @@ function fnMontarJsonContasPagar(dadosDeposito){
     
     let dateDoc = DTDESPESA;
     let cashAccount = fnGetContaEmpresa(IDEMPRESA);
-    let accountCode = (TPNOTA == '1' || TPNOTA == '2') ? NFE_ACCOUNT : ACCOUNT;
+    //let accountCode = (TPNOTA == '1' || TPNOTA == '2') ? NFE_ACCOUNT : ACCOUNT;
+    let accountCode = TPNOTA == '1' ? NFE_ACCOUNT : ACCOUNT;
     let series = 18;
     let vrDoc = Number(VRDESPESA);
     
@@ -195,8 +191,8 @@ function fnMontarJsonContasPagar(dadosDeposito){
         "CashAccount": cashAccount,
         "CashSum": vrDoc,
         "Reference2": `Integração DESPESA(${IDDESPESASLOJA}) Quality`,
-        "Remarks": `${DSHISTORIO} ${DSPAGOA}`,
-        "JournalRemarks": `${DSHISTORIO} ${DSPAGOA}`,
+        "Remarks": (`Categoria: ${DSCATEGORIA} - Historico: ${DSHISTORIO} - Pago a: ${DSPAGOA}`).trim(),
+        "JournalRemarks": DSCATEGORIA.trim(),//(`Categoria: ${DSCATEGORIA} - Historico: ${DSHISTORIO} - Pago a: ${DSPAGOA}`).trim(),
         "TaxDate": dateDoc,
         "Series": series,
         "DueDate": dateDoc,
@@ -207,13 +203,14 @@ function fnMontarJsonContasPagar(dadosDeposito){
             {
                 "LineNum": 0,
                 "AccountCode": accountCode,
-                "SumPaid": vrDoc
+                "SumPaid": vrDoc,
+                "Decription": DSCATEGORIA.trim()
             }
         ]
     };
 }
 
-function postSlContasPagar(data) {
+function postSlContasPagar(data, idFuncionario) {
     let response = slApi.post('/VendorPayments', data, session);
     
     if (response.status !== 204) {
@@ -221,25 +218,30 @@ function postSlContasPagar(data) {
         return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o Contas a Pagar'));
     }
 
-    return fnValidarIntegracaoContasPagarSAP(Number(data.U_IS_ID_QUALITY));
+    return fnValidarIntegracaoContasPagarSAP(Number(data.U_IS_ID_QUALITY), data.JournalRemarks, idFuncionario);
 }
 
 function integrarDepositosNoSAP(byId) {
+	let bodyJson = JSON.parse($.request.body.asString()); 
+    
     let query = ` 
         SELECT
             TBD.IDDESPESASLOJA,
             TBD.IDCATEGORIARECEITADESPESA,
+            UPPER(TBC.DSCATEGORIA) AS DSCATEGORIA,
             TBD.IDEMPRESA,
             TO_VARCHAR(TBD.DTDESPESA, 'YYYY-MM-DD') AS DTDESPESA,
             TBD.VRDESPESA,
-            IFNULL(TO_VARCHAR(TBD.DSHISTORIO), '') AS DSHISTORIO,
-            IFNULL(TBD.DSPAGOA, '') AS DSPAGOA,
+            UPPER(IFNULL(TO_VARCHAR(TBD.DSHISTORIO), '')) AS DSHISTORIO,
+            UPPER(IFNULL(TBD.DSPAGOA, '')) AS DSPAGOA,
             TBF.NUCPF,
             TBD.TPNOTA
         FROM
             "VAR_DB_NAME".DESPESALOJA TBD
         INNER JOIN "VAR_DB_NAME".FUNCIONARIO TBF ON 
             TBD.IDUSR = TBF.IDFUNCIONARIO
+        INNER JOIN "VAR_DB_NAME".CATEGORIARECEITADESPESA TBC ON 
+            TBD.IDCATEGORIARECEITADESPESA = TBC.IDCATEGORIARECDESP
         WHERE
             1 = ?
             AND TBD.STATIVO = 'True'
@@ -249,30 +251,34 @@ function integrarDepositosNoSAP(byId) {
             AND IFNULL(TBD.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) = 0
     `;
 	
-	var bodyJson = JSON.parse($.request.body.asString()); 
 
     if(bodyJson.length > 0){
         let ids = '';
+        let idFuncionario = '';
         
         for (let i = 0; i < bodyJson.length; i++) {
             let registro = bodyJson[i];
             ids += registro.IDDESPESASLOJA;
             ids += i < (bodyJson.length - 1) ? ', ' : '';
+            
+            if(!idFuncionario){
+                idFuncionario = registro.IDFUNCIONARIO;
+            }
         }
         
-        query += `AND TBD.IDDESPESASLOJA IN (${ids})`;
+        query += ` AND TBD.IDDESPESASLOJA IN (${ids}) `;
         
         //return {query}
         
         let resultQuery = ids.length > 0 ? api.sqlQuery(query, 1) : '';
         
         if(resultQuery.length === 0){
-            return { msg: "DESPESA JÁ INTEGRADA OU CANCELADA OU NÃO EXISTE!" };
+            return { msg: "DESPESAS JÁ INTEGRADAS OU CANCELADAS OU NÃO EXISTEM!" };
         }
         //return {resultQuery}
         conn = $.db.getConnection();
         
-        fnBloquearLinhaEnquantoAtualiza(resultQuery);
+        fnAtualizarBloqueioLinhaEnquantoAtualiza(ids, true);
         
         session = slApi.loginServiceLayer(true);
         slApi.loginServiceLayer(true);
@@ -282,6 +288,7 @@ function integrarDepositosNoSAP(byId) {
             let {
                 IDDESPESASLOJA,
                 IDCATEGORIARECEITADESPESA,
+                DSCATEGORIA,
                 IDEMPRESA,
                 DTDESPESA,
                 VRDESPESA,
@@ -291,17 +298,18 @@ function integrarDepositosNoSAP(byId) {
                 TPNOTA
             } = registro || '';
             
-            let JrnlMemo = (`${DSHISTORIO} ${DSPAGOA}`).trim();
+            let JrnlMemo = DSCATEGORIA.trim();//(`Categoria: ${DSCATEGORIA} - Historico: ${DSHISTORIO} - Pago a: ${DSPAGOA}`).trim();
             
-            let stIntegrar = !fnValidarIntegracaoContasPagarSAP(IDDESPESASLOJA, JrnlMemo, false);
+            let stIntegrar = !fnValidarIntegracaoContasPagarSAP(IDDESPESASLOJA, JrnlMemo, undefined, false);
             
             if(stIntegrar){
                 let dadosJsonContasPagar = fnMontarJsonContasPagar(registro);
                 // return {dadosJsonContasPagar}
-                postSlContasPagar(dadosJsonContasPagar);
+                postSlContasPagar(dadosJsonContasPagar, idFuncionario);
             }
         }
         
+        fnAtualizarBloqueioLinhaEnquantoAtualiza(ids, false);
     }
 	
 	return 'Migração despesas realizada com sucesso!';

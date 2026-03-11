@@ -95,7 +95,7 @@ function patchSl(idDetalheProdutoPedido, data, session) {
     
     if (response.status !== 204) {
         let responseJson = JSON.parse(response.body.asString());
-        let msgReturnError = responseJson.error.message.value.length > 0 ? responseJson.error.message.value : 'Erro ao tentar integrar o Produto de Reposição';
+        let msgReturnError = responseJson.error.message.value || responseJson.message['Store.store'] || 'Erro ao tentar integrar o Produto de Reposição';
         
         return updateLogErrorMigracao(idDetalheProdutoPedido, msgReturnError);
     }
@@ -467,14 +467,15 @@ function montarJsonProduto(dadosProduto, stReposicao = false, stPedidoPrimario =
 
 function executeMigracaoProdutoPedido(idResumoPedido, session, stPedidoPrimario = false){
 	let registros = getDadosDetalheProdutoPedido(idResumoPedido);
-	
+	let arrayProd = [];
 	for (let i = 0; i < registros.length; i++) {
         let dadosProduto = registros[i];
         let idDetalheProdutoPedido = parseInt(dadosProduto.IDDETALHEPRODUTOPEDIDO);
         
         let stMigradoSAP = validarMigracao(dadosProduto.IDPRODCADASTRO);
 		let jsonProduto = montarJsonProduto(dadosProduto, stMigradoSAP, stPedidoPrimario);
-		
+		/*arrayProd.push({stMigradoSAP, jsonProduto})
+		continue;*/
 		if(stPedidoPrimario){
             let stProdutoCriadoNaProduto_RN = verificarSeExisteProduto_RN(dadosProduto.IDPRODCADASTRO);
             
@@ -490,6 +491,8 @@ function executeMigracaoProdutoPedido(idResumoPedido, session, stPedidoPrimario 
             postSl(idDetalheProdutoPedido, jsonProduto, session);
         }
 	}
+	
+	//return arrayProd
 }
 
 function executeProduto(){

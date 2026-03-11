@@ -9,6 +9,7 @@ if(!getCurrentUser()){
 }
 
 var usuario = getCurrentUser().user;
+var ipCliente = '';
 
 
 var IDEmpresaLogin = usuario['IDEMPRESA']; 
@@ -1784,7 +1785,7 @@ async function abreModalXmlVenda(idVenda) {
 
 async function getDanfePDF(dados) {
     return $.ajax({
-        url: 'https://api-quality.vercel.app/gerar-danfe',
+        url: 'https://quality-api.vercel.app/gerar-danfe',
         method: 'POST',
         data: JSON.stringify(dados),
         contentType: 'application/json',
@@ -2325,3 +2326,1749 @@ function gerarDANFEPDF(tpNota, content) {
     }
 
 }
+
+//? =================== INICIO ROTINA DE ALVARAS DE EMPRESAS ===================//
+
+//? /// Inicio Funcoes Auxiliares /// ?//
+
+function capitalizeWords(valor) {
+  valor = String(valor)?.toLowerCase()?.replace(/(^|(?<=\s)|(?<=\())\S/g, letra => letra.toUpperCase())?.replace(/\s+/g, ' ')?.trim() || "";
+
+  return valor
+}
+
+function formatarMetragem(element) {
+  let valor = element.value.replace(/[^0-9,.]/g, '').replaceAll(',', '.').replace(/(,.*)./g, '$1');
+  let partes = valor?.split(".");
+
+  if (partes.length > 1) {
+    valor = partes[1]?.length > 2 ? Number(partes[0] + "." + partes[1].slice(0, 2)) : partes[0] + "." + partes[1] || 0;
+  }
+
+  element.value = valor == '.' ? '0.' : valor;
+}
+
+async function gerarLog(dados, textoFuncao) {
+  let textdados = JSON.stringify(dados);
+
+  let dadosLog = [{
+    "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+    "PATHFUNCAO": textoFuncao,
+    "DADOS": textdados,
+    "IP": ipCliente
+  }];
+
+  await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { console.log('Error ao gerar o LOG: ' + error) });
+}
+
+function retornoListaMarcaAlvaras(respostaListaMarcas) {
+  let { data } = respostaListaMarcas || [];
+
+  $('#idmarca').html('<option value=""> Todas </option>');
+
+  if (data.length > 0) {
+    for (let { IDGRUPOEMPRESARIAL, DSGRUPOEMPRESARIAL } of data) {
+      $('#idmarca').append(`<option value="${IDGRUPOEMPRESARIAL}"> ${DSGRUPOEMPRESARIAL}</option>`);
+    }
+
+    $('#idmarca').append(`<option value="OUTLET">OT - OUTLET </option>`);
+  }
+
+
+  $('#idmarca').select2();
+}
+
+async function retornoListaMarcaAlvarasModal(respostaListaMarcas) {
+  let { data } = respostaListaMarcas || [];
+
+  $('#idGrupoEmpresarialModal').html('<option value=""> Todas </option>');
+
+  if (data.length > 0) {
+    for (let { IDGRUPOEMPRESARIAL, DSGRUPOEMPRESARIAL } of data) {
+      $('#idGrupoEmpresarialModal').append(`<option value="${IDGRUPOEMPRESARIAL}"> ${DSGRUPOEMPRESARIAL}</option>`);
+    }
+
+    $('#idGrupoEmpresarialModal').append(`<option value="OUTLET">OT - OUTLET </option>`);
+  }
+
+
+  $('#idGrupoEmpresarialModal').select2();
+}
+
+async function retornoListaSelectStatusAndamentoModalAlvara(listaStatusAlvara) {
+  let { data } = listaStatusAlvara || [];
+
+  for (let { IDSTATUS, DESCRICAO } of data) {
+    $('#statusVincAlvaraModal').append(`<option value="${IDSTATUS}"> ${DESCRICAO} </option>`)
+  }
+
+  $('#statusVincAlvaraModal').select2();
+}
+
+async function retornoListaSelectAlvaras(listaAlvarás, idSelect = '#idSelectAlvara') {
+  let { data } = listaAlvarás || [];
+
+  idSelect = !idSelect.includes('#') ? '#' + idSelect : idSelect;
+
+  $(idSelect).html(`<option value=""> Todos </option>`)
+
+  for (let { IDALVARA, DESCRICAO } of data) {
+    $(idSelect).append(`<option value="${IDALVARA}"> ${capitalizeWords(DESCRICAO)} </option>`)
+  }
+
+  $(idSelect).select2();
+}
+
+async function carregarFiliaisPorUFMarcaStAtivoAlvaras() {
+  let ufFiliais = $('#ufFilial').val() || '';
+  let idMarca = $('#idmarca').val() || ''
+  let stAtivo = $('#stFilial').val() || '';
+
+  await ajaxGetAllData(`api/empresa.xsjs?uf=${ufFiliais}&idSubGrupoEmpresa=${idMarca}&stAtivo=${stAtivo}`, "Carregando Filiais por Marca, Aguarde...")
+    .then(retornoSelectFiliaisAlvarasEmpresas);
+
+}
+
+function retornoSelectFiliaisAlvarasEmpresas(listaEmpresas) {
+  let { data } = listaEmpresas || [];
+
+  $("#idFilial").html(`<option value=""> Todas </option>`);
+
+  for (let { IDEMPRESA, NOFANTASIA } of data) {
+    $("#idFilial").append(`<option value="${IDEMPRESA}"> ${NOFANTASIA} </option>`);
+  }
+
+  $("#idFilial").select2();
+
+}
+
+async function montarPayloadEditarVinculoAlvaraEmpresaModal(idVinculoAlvara) {
+  let idVinculo = Number(idVinculoAlvara);
+  let dtInicio = $('#dtInicioCompVincAlvaraModal').val();
+  let dtFim = $('#dtFimCompVincAlvaraModal').val();
+  let stAtivo = $('#stAtivoVincAlvaraModal').val();
+  let idStatus = Number($('#statusVincAlvaraModal').val());
+  let descricao = capitalizeWords($('#detAndamentoVincAlvaraModal').val());
+  let metragem = Number($('#metragemVincAlvaraModal').val());
+  let numProjeto = $('#idProjetoAprovadoVincAlvaraModal').val() || '';
+  let idUsuario = Number(IDFuncionarioLogin);
+  let stExisteListaAnexos = $('#dt-basic-arquivos-anexos-alvara')?.length > 0;
+  let listaArquivosAlvaras = !stExisteListaAnexos ? await buscarArquivosAlvaraSelecionadosInput('inputFilesAlvara') : [];
+
+  return [
+    {
+      IDVINCULO: idVinculo,
+      STATIVO: stAtivo,
+      DTINICIOCOMPETENCIA: dtInicio,
+      DTFIMCOMPETENCIA: dtFim,
+      IDSTATUSANDAMENTO: idStatus,
+      DESCRICAODETALHEANDAMENTO: descricao,
+      METRAGEMEMPRESA: metragem,
+      NUMEROPROJETOAPROVADO: numProjeto,
+      IDFUNCIONARIO: idUsuario,
+      ARQUIVOSALVARA: listaArquivosAlvaras
+    }
+  ];
+}
+
+async function montarPayloadAdicionarVinculoAlvaraEmpresaModal(idEmpresa, idAlvara) {
+  let stAtivo = $('#stAtivoVincAlvaraModal').val();
+  let dtInicio = $('#dtInicioCompVincAlvaraModal').val();
+  let dtFim = $('#dtFimCompVincAlvaraModal').val();
+  let idStatus = Number($('#statusVincAlvaraModal').val());
+  let descricao = capitalizeWords($('#detAndamentoVincAlvaraModal').val());
+  let metragem = Number($('#metragemVincAlvaraModal').val());
+  let numProjeto = $('#idProjetoAprovadoVincAlvaraModal').val() || '';
+  let idUsuario = Number(IDFuncionarioLogin);
+  let listaArquivosAlvaras = await buscarArquivosAlvaraSelecionadosInput('inputFilesAlvara');
+
+  return [{
+    IDEMPRESA: Number(idEmpresa),
+    IDALVARA: Number(idAlvara),
+    STATIVO: stAtivo,
+    DTINICIOCOMPETENCIA: dtInicio,
+    DTFIMCOMPETENCIA: dtFim,
+    IDSTATUSANDAMENTO: idStatus,
+    DESCRICAODETALHEANDAMENTO: descricao,
+    METRAGEMEMPRESA: metragem,
+    NUMEROPROJETOAPROVADO: numProjeto,
+    IDFUNCIONARIO: idUsuario,
+    ARQUIVOSALVARA: listaArquivosAlvaras
+  }];
+}
+
+async function buscarArquivosAlvaraSelecionadosInput(idInput) {
+  let listaArquivosAlvaras = [];
+  let { files } = document.getElementById(idInput) || [];
+
+  if (files.length > 0) {
+
+    for (let file of files) {
+      let ARQUIVOBASE64 = await new Promise((resolve, reject) => {
+        let reader = new FileReader();
+
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      let NOMEARQUIVO = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").replace(/ +/g, "-").trim();
+      let TIPOARQUIVO = file.type;
+
+      listaArquivosAlvaras.push(
+        {
+          ARQUIVOBASE64,
+          NOMEARQUIVO,
+          TIPOARQUIVO
+        }
+      );
+    }
+  }
+
+  return listaArquivosAlvaras
+}
+
+async function voltarFocoAoModalAnteriro(idModal, time = 100) {
+  idModal = idModal.includes('#') ? idModal : `#${idModal}`;
+
+  await new Promise((resolve) => {
+    setTimeout(() => {
+      $('body').addClass('modal-open');
+
+      $(idModal).trigger('focus');
+
+      resolve();
+    }, time)
+  })
+}
+
+async function recarregarListaAlvarasEmpresaModal(idEmpresa) {
+  let { data } = await ajaxGetAllData(`api/contabilidade/alvaras-empresa.xsjs?id=${idEmpresa}`, false);
+
+  await preencherListaAlvarasModalEmpresaAlvara(idEmpresa, data[0].LISTA_ALVARAS, true);
+}
+
+async function recarregarListaArquivosAnexosAlvarasModal(idVinculoAlvara) {
+  let { data } = await ajaxGetAllData(`api/contabilidade/vinculo-alvaras-empresa.xsjs?id=${idVinculoAlvara}`, false);
+
+  await listarAnexosAlvarasModalDetalhesAlvaraEmpresa(idVinculoAlvara, data[0].ARQUIVOSALVARAS, true);
+}
+
+async function validarDadosVinculoAlvaraEmpresa(idsElementosIgnorar) {
+  let dtInicio = $('#dtInicioCompVincAlvaraModal').val();
+  let dtFim = $('#dtFimCompVincAlvaraModal').val();
+  let modal = $('#modal-detalhes-alvara-empresa');
+  let inputFile = document.getElementById("inputFilesAlvara");
+  let file = inputFile.files[0];
+  let max_mb = 1.5;
+  let respValidacao = true;
+  let textMsg = '';
+  let campo = '';
+
+  let dtInicioFormatada = new Date(dtInicio + 'T00:00:00');
+  let dtFimFormatada = new Date(dtFim + 'T00:00:00');
+
+  if (dtInicioFormatada > dtFimFormatada) {
+    campo = $('#dtInicioCompVincAlvaraModal');
+    textMsg = `<div>O campo <span class="fw-900">Dt. Inicio</span> está com uma data maior que o <span class="fw-900">Dt.Fim</span>, verifique e tente novamente!<div>`;
+  }
+
+  if (textMsg.length == 0) {
+
+    let arrayElements = modal.find('.modal-body')
+      .find('input, textarea, select')
+      .not(`${idsElementosIgnorar ? idsElementosIgnorar.split(',').map(id => !id.includes('#') ? `#${id?.trim()}` : id).join(', ') : ''}`);
+
+    for (let element of arrayElements) {
+      let idElement = $(element).prop('id');
+      let tpElement = $(element).prop('type');
+      let valElement = $(element).val() || '';
+      let labelElement = $(element).parent().find('label').text().replace(':', '');
+
+      valElement = tpElement == 'text' ? valElement.replace(/[^a-zA-Z0-9À-ÿ]/g, '') : valElement;
+
+      if ((tpElement !== 'file' && valElement.toString().trim()?.length == 0) || (idElement == 'metragemVincAlvaraModal' && Number(valElement) == 0)) {
+        textMsg = `<div>O campo <span class="fw-900">${labelElement}</span> é  de preenchimento obrigatório, verifique e tente novamente!<div>`;
+      }
+
+      if (tpElement == 'date') {
+        let dataInformada = new Date(valElement + 'T00:00:00');
+
+        let ano = dataInformada.getFullYear();
+
+        if (dataInformada == 'Invalid Date' || valElement.length > 10 || (ano < 1900 || ano > 2200)) {
+          textMsg = `<div>O campo <span class="fw-900">${labelElement}</span> está com uma data inválida, verifique e tente novamente!<div>`;
+        }
+      }
+
+      campo = $(element);
+
+      if (textMsg.length > 0) {
+        break;
+      }
+    }
+
+  }
+
+  if (file?.size > max_mb * 1024 * 1024) {
+    msgWarning("Arquivo maior que 1.5MB não é permitido");
+    return;
+  }
+
+  if (textMsg.length > 0) {
+    respValidacao = false;
+
+    await msgWarning(textMsg, ' ').then(() => setTimeout(() => campo.focus(), 300))
+  }
+
+  return respValidacao
+
+}
+
+//? /// Fim Funcoes Auxiliares /// ?//
+
+//? /// Inicio Funcoes Templates /// ?//
+
+async function templateHtmlContatosLojaModal(dsFuncaoFunc, nomeFunc, telefoneFunc, emailLoja, telefoneLoja) {
+  let titleCard = dsFuncaoFunc.toLowerCase().includes('gerente') ? 'Gerente da Loja' : 'Supervisor da Loja';
+  let nome = capitalizeWords(nomeFunc || 'Nome Não Cadastrado');
+  let telefone = maskTelefone(telefoneFunc || telefoneLoja);
+  let email = emailLoja?.toLowerCase() || 'E-mail Não Cadastrado';
+
+  let htmlContato = `
+    <div class="col-xl-6 col-sm-12 mb-3">
+      <div class="panel h-100">
+        <div class="panel-container show">
+          <div class="panel-content">
+
+            <h6 class="fw-500 text-muted mb-3">
+              <i class="fal fa-user-alt mr-1"></i> ${titleCard}
+            </h6>
+
+            <div class="mb-2">
+              <label class="form-label">Nome</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text fal fa-user"></span>
+                </div>
+                <input class="form-control" value="${nome}" disabled>
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label">E-mail</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text fal fa-at"></span>
+                </div>
+                <input class="form-control" placeholder="${'E-mail Não Cadastrado'}" value="${email}" disabled>
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">Telefone</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text fal fa-phone"></span>
+                </div>
+                <input class="form-control" placeholder="${'Telefone Não Cadastrado'}" value="${telefone}" disabled>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return htmlContato;
+}
+
+async function templateHtmlAlvaraLojaModal_old(dados, listaStatusAlvaras) {
+  let {
+    IDVINCULO,
+    DESCRICAOALVARA,
+    DTINICIOCOMPETENCIAALVARA,
+    DTFIMCOMPETENCIAALVARA,
+    IDSTATUS,
+    DESCRICAODETALHEANDAMENTO,
+    METRAGEMEMPRESA,
+    STATIVO,
+  } = dados;
+
+  let stAtivo = STATIVO == 'True' ? 'Ativo' : 'Inativo';
+  let htmlSelectStatusAndamento = await templateHtmlSelectStatusAlvaraLojaModal(listaStatusAlvaras, IDVINCULO, IDSTATUS);
+
+  let htmlAlvara = `
+    <div class="col-sm-12 col-xl-6">
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="d-flex justify-content-start w-100 align-items-center">
+            <h5 class="m-0 fw-500" style="color: #505050"> <i class="fal fa-file-alt mr-2"></i> ${DESCRICAOALVARA} </h5>
+          </div>
+        </div>
+        <div class="panel-container show">
+          <div class="panel-content">
+            <div class="form-group">
+              <div class="row mb-3">
+                <div class="col-sm-4 col-xl-4">
+                  <label class="form-label" for="dtInicio_${IDVINCULO}">Dt Competência Inicio:</label>
+                  <input type="date" id="dtInicio_${IDVINCULO}" class="form-control" name="dtInicio_${IDVINCULO}"
+                    value="${DTINICIOCOMPETENCIAALVARA}" disabled>
+                </div>
+                <div class="col-sm-4 col-xl-4">
+                  <label class="form-label" for="dtFim_${IDVINCULO}">Dt Competência Fim:</label>
+                  <input type="date" id="dtFim_${IDVINCULO}" class="form-control" name="dtFim_${IDVINCULO}"
+                    value="${DTFIMCOMPETENCIAALVARA}" disabled>
+                </div>
+                <div class="col-sm-4 col-xl-4">
+                  <label class="form-label" for="stAtivo_${IDVINCULO}">Status:</label>
+                  <select class="form-control" id="stAtivo_${IDVINCULO}"  disabled>
+                    <option value="True" ${stAtivo == 'Ativo' ? 'selected' : ''}> Ativo </option>
+                    <option value="False" ${stAtivo == 'Inativo' ? 'selected' : ''}> Inativo </option>
+                  </select>
+                </div>
+              </div>
+              <div class="row mb-3">
+                ${htmlSelectStatusAndamento}
+              </div>
+              <div class="row mb-3">
+                <div class="col-sm-12 col-xl-12">
+                  <label class="form-label" for="detAndamento_${IDVINCULO}">Detalhe Andamento:</label>
+                  <input type="text" id="detAndamento_${IDVINCULO}" class="form-control" name="detAndamento_${IDVINCULO}"
+                    value="${DESCRICAODETALHEANDAMENTO}" disabled>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-sm-4 col-xl-4">
+                  <label class="form-label" for="metragem_${IDVINCULO}">Metragem:</label>
+                  <input type="number" id="metragem_${IDVINCULO}" class="form-control" name="metragem_${IDVINCULO}" value="${Number(METRAGEMEMPRESA)}" step="0.01" min="1" oninput="formatarMetragem(this)" disabled>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-12 col-xl-12 mt-4">
+                  <div id="container-btn-editar-alvara-loja-modal-${IDVINCULO}" class="d-flex justify-content-end">
+                    <button id="btn_liberar_edicao_${IDVINCULO}" type="button" class="btn btn-warning btn-xs pt-2 pb-2" title="Editar Alvará da Loja" onclick="liberarCamposEdiçãoAlvaraModal('${IDVINCULO}')"><i class="fal fa-pen p-0"></i> Editar</button>
+                    <button id="btn_editar_${IDVINCULO}" type="button" class="btn btn-success btn-xs pt-2 pb-2 mr-2 d-none" title="Salvar Edição do Alvará da Loja" onclick="modalEditarAlvaraEmpresa('${IDVINCULO}')"><i class="fal fa-save p-0"></i> Salvar Edição</button>
+                    <button id="btn_cancelar_edicao_${IDVINCULO}" type="button" class="btn btn-danger btn-xs pt-2 pb-2 d-none" title="Cancelar Edição" onclick="bloquearCamposEdiçãoAlvaraModal('${IDVINCULO}')"><i class="fal fa-times p-0"></i> Cancelar Edição</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return htmlAlvara;
+}
+
+async function templateHtmlAlvaraLojaModal(dados, listaStatusAlvaras) {
+  let {
+    IDVINCULO,
+    DESCRICAOALVARA,
+    DTINICIOCOMPETENCIAALVARA,
+    DTFIMCOMPETENCIAALVARA,
+    IDSTATUS,
+    DESCRICAODETALHEANDAMENTO,
+    METRAGEMEMPRESA,
+    STATIVO,
+  } = dados;
+
+  let stAtivo = STATIVO == 'True' ? 'Ativo' : 'Inativo';
+  let qtdAlvara = 1;
+  let htmlSelectStatusAndamento = await templateHtmlSelectStatusAlvaraLojaModal(listaStatusAlvaras, IDVINCULO, IDSTATUS);
+
+  let htmlAlvara = `
+    <div class="panel mb-3">
+      <div class="panel-content">
+        <div class="mb-3">
+          <h6 class="fw-500 text-secondary">
+            <i class="fal fa-file-alt mr-2"></i>
+            ALVARÁ - ${DESCRICAOALVARA}
+          </h6>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-sm-4 col-xl-4">
+            <label class="form-label" for="dtInicio_${IDVINCULO}" title="Data Inicio Competência">Dt.
+              Inicio:</label>
+            <input type="date" id="dtInicio_${IDVINCULO}" class="form-control" name="dtInicio_${IDVINCULO}"
+              value="${DTINICIOCOMPETENCIAALVARA}" title="Data Inicio Competência" disabled>
+          </div>
+          <div class="col-sm-4 col-xl-4">
+            <label class="form-label" for="dtFim_${IDVINCULO}" title="Data Fim Competência">Dt. Fim:</label>
+            <input type="date" id="dtFim_${IDVINCULO}" class="form-control" name="dtFim_${IDVINCULO}"
+              value="${DTFIMCOMPETENCIAALVARA}" title="Data Fim Competência" disabled>
+          </div>
+          <div class="col-sm-4 col-xl-4">
+            <label class="form-label" for="stAtivo_${IDVINCULO}">Status:</label>
+            <select class="form-control" id="stAtivo_${IDVINCULO}" disabled>
+              <option value="True" ${stAtivo == 'Ativo' ? 'selected' : ''}> Ativo </option>
+              <option value="False" ${stAtivo == 'Inativo' ? 'selected' : ''}> Inativo </option>
+            </select>
+          </div>
+        </div>
+        <div class="row mb-3">
+          ${htmlSelectStatusAndamento}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Detalhe Andamento</label>
+          <input type="text" class="form-control" value="${DESCRICAODETALHEANDAMENTO}" disabled>
+        </div>
+        <div class="row mb-4">
+          <div class="col-sm-6 col-xl-4">
+            <label class="form-label">Metragem</label>
+            <input type="number" class="form-control" value="${Number(METRAGEMEMPRESA)}" step="0.01" min="1"
+              oninput="formatarMetragem(this)" disabled>
+          </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+          <button id="btn_liberar_edicao_${IDVINCULO}" class="btn btn-warning btn-xs"
+            onclick="liberarCamposEdiçãoAlvaraModal('${IDVINCULO}')">
+            <i class="fal fa-pen"></i> Editar
+          </button>
+
+          <button id="btn_editar_${IDVINCULO}" class="btn btn-success btn-xs d-none"
+            onclick="modalEditarAlvaraEmpresa('${IDVINCULO}')">
+            <i class="fal fa-save"></i> Salvar
+          </button>
+
+          <button id="btn_cancelar_edicao_${IDVINCULO}" class="btn btn-danger btn-xs d-none"
+            onclick="bloquearCamposEdiçãoAlvaraModal('${IDVINCULO}')">
+            <i class="fal fa-times"></i> Cancelar
+          </button>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  return htmlAlvara;
+}
+
+async function templateHtmlSelectStatusAlvaraLojaModal_old(listaStatusAlvaras, idVinculo, idStatusSelected) {
+  let listaStatus = listaStatusAlvaras?.data || [];
+
+  let htmlSelect = `
+    <div class="col-sm-4 col-xl-8">
+      <label class="form-label" for="stStatusAndamento_${idVinculo}">Status:</label>
+      <select id="stStatusAndamento_${idVinculo}" class="form-control" disabled>
+  `;
+
+  for (let { IDSTATUS, DESCRICAO } of listaStatus) {
+    htmlSelect += `
+      <option value="${IDSTATUS}" ${IDSTATUS == idStatusSelected ? 'selected' : ''}> ${DESCRICAO} </option>
+    `;
+  }
+
+  htmlSelect += `
+      </select>
+    </div>
+  `;
+
+  return htmlSelect;
+}
+
+async function templateHtmlSelectStatusAlvaraLojaModal(listaStatusAlvaras, idVinculo, idStatusSelected) {
+  let listaStatus = listaStatusAlvaras?.data || [];
+
+  let htmlSelect = `
+    <div class="col-sm-4 col-xl-8">
+      <label class="form-label" for="stStatusAndamento_${idVinculo}">Status:</label>
+      <select id="stStatusAndamento_${idVinculo}" class="form-control" disabled>
+  `;
+
+  for (let { IDSTATUS, DESCRICAO } of listaStatus) {
+    htmlSelect += `
+      <option value="${IDSTATUS}" ${IDSTATUS == idStatusSelected ? 'selected' : ''}> ${DESCRICAO} </option>
+    `;
+  }
+
+  htmlSelect += `
+      </select>
+    </div>
+  `;
+
+  return htmlSelect;
+}
+
+async function templateHtmlCardListaAlvaras(idAlvara, descAlvara, qtd) {
+  return `
+      <div class="col-sm-12 col-xl-6 d-flex">
+        <div class="panel d-flex flex-column w-100">
+          <div class="panel-hdr">
+            <div class="d-flex justify-content-between align-items-center text-secondary w-100 pl-2 pr-1">
+              <div>
+                <span class="h6 fw-500">
+                  ALVARÁS - ${descAlvara}
+                </span>
+              </div>
+              <span class="panel-toolbar">Qtd: ${qtd}</span>
+            </div> 
+          </div>
+          <div class="panel-container show d-flex flex-column h-100">
+            <div class="panel-content d-flex flex-column flex-grow-1">
+              <div class="table-responsive flex-grow-1">
+                <table id="dt-basic-alvara-${idAlvara}" class="table table-bordered table-hover table-responsive-lg table-striped w-100 h-100">
+                  <thead class="bg-primary-600">
+                    <tr>
+                      <th>#</th>
+                      <th>Dt. Inicio</th>
+                      <th>Dt. Fim</th>
+                      <th>Status</th>
+                      <th>Opções</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                  <tfoot class="thead-themed"></tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  `;
+}
+
+//? /// Fim Funcoes Templates /// ?//
+
+async function TelaConfiguracaoAlvarasEmpresas() {
+  try {
+    animationLoadingStart();
+
+    let htmlPage = await $.get('contabilidade_action_tela_alvaras_empresas.html');
+    let listaMarcas = await ajaxGetAllData('api/informatica/marca.xsjs', false);
+    let listaEmpresas = await ajaxGetAllData('api/empresa.xsjs?stAtivo=True', false);
+    let listaAlvaras = await ajaxGetAllData('api/contabilidade/alvaras.xsjs?stAtivo=True', false);
+
+    $("#js-page-content").html(htmlPage);
+
+    retornoListaMarcaAlvaras(listaMarcas);
+    retornoSelectFiliaisAlvarasEmpresas(listaEmpresas);
+    retornoListaSelectAlvaras(listaAlvaras);
+
+    $('#ufFilial, #stFilial').select2();
+
+    animationLoadingStop();
+  } catch (error) {
+    console.log(error);
+
+    msgError()
+  }
+}
+
+async function pesquisarEmpresasAlvaras() {
+  let ufFiliais = $('#ufFilial').val() || '';
+  let idSubGrupoEmpresa = $("#idmarca").val() || '';
+  let idFilial = $("#idFilial").val() || '';
+  let stAtivo = $('#stFilial').val() || '';
+
+  try {
+    await ajaxGetAllData(`api/contabilidade/empresa.xsjs?uf=${ufFiliais}&idSubGrupoEmpresa=${idSubGrupoEmpresa}&id=${idFilial}&stAtivo=${stAtivo}`, "Buscando Dados, Aguarde...")
+      .then(retornoListaEmpresasAlvaras)
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
+}
+
+async function retornoListaEmpresasAlvaras(respostaListaAlvarasEmpresas) {
+  let idAlvaraSelecionado = $('#idSelectAlvara').val() || '';
+  let { data } = respostaListaAlvarasEmpresas || [];
+  let dadosTabela = [];
+  let contador = 0;
+  let dataAtual = new Date();
+  let arrayTheadAlvaras = [
+    '<th>St. Bombeiro</th> <th> Dt. Fim Bombeiro</th>',
+    '<th>St. Meio Ambiente</th> <th> Dt. Fim Meio Ambiente</th>',
+    '<th>St. Vigilância Sanitária</th> <th> Dt. Fim Vigilância Sanitária</th>',
+    '<th>St. Prefeitura</th> <th> Dt. Fim Prefeitura</th>'
+  ];
+  let arrayStatusNegacao = [
+    'Indeferido',
+    'Cancelado',
+    'Vencido',
+    'Inativo'
+  ];
+  let arrayColorStatus = [
+    'success',
+    'info',
+    'warning',
+    'danger'
+  ];
+
+  let theadAlvaras = idAlvaraSelecionado.length ? arrayTheadAlvaras[Number(idAlvaraSelecionado) - 1] : arrayTheadAlvaras.join('');
+
+  for (let dados of data) {
+    contador++;
+
+    let idEmpresa = dados?.IDEMPRESA;
+    let noFantasia = dados?.NOFANTASIA;
+    let cnpj = maskCnpj(dados?.NUCNPJ);
+    let inscEstadual = maskIE(dados?.NUINSCESTADUAL, dados?.SGUF);
+    let inscMunicipal = dados?.NUINSCMUNICIPAL || '';
+    let endereco = capitalizeWords(dados?.EENDERECO);
+    let bairro = capitalizeWords(dados?.EBAIRRO);
+    let cidade = capitalizeWords(dados?.ECIDADE);
+    let uf = dados?.SGUF;
+    let municipioUf = cidade + ' / ' + uf;
+    let situacao = dados?.STATIVO == 'True' ? 'Ativo' : 'Inativo';
+    let btnEditar = `<button type="button" class="btn btn-info btn-xs" title="Editar Alvarás da Loja" onclick="abrirModalDadosEmpresaAlvara('${idEmpresa}')" ><span class="d-block fal fa-file-alt mr-1"></span>Alvarás</button>`;
+    let dtFimAlvaraPrefeitura = dados?.DTFIMALVARAPREFEITURA || '';
+    let stAlvaraPrefeitura = dados?.STATUSALVARAPREFEITURA || 'Não Iniciado';
+    let idColorStatus = arrayStatusNegacao.includes(stAlvaraPrefeitura) ? 3 : stAlvaraPrefeitura == 'Não Iniciado' ? 2 : stAlvaraPrefeitura == 'Concluído' ? 0 : 1;
+    let colorStatus = arrayColorStatus[idColorStatus];
+    let listaAlvaras = dados?.LISTA_ALVARAS || [];
+
+    let colunasDetAlvaras = await montarColunasDetAlvaras(listaAlvaras, idAlvaraSelecionado);
+
+    if (stAlvaraPrefeitura == 'Concluído') {
+      stAlvaraPrefeitura = 'Emitido - Aprovado';
+    }
+    else if ('Não Iniciado' !== stAlvaraPrefeitura && !arrayStatusNegacao.includes(stAlvaraPrefeitura)) {
+      stAlvaraPrefeitura = 'Aguardando Liberação Dos Demais Orgãos';
+    }
+
+    if (dtFimAlvaraPrefeitura.length > 0) {
+      let dtFimAlvaraPrefeituraDate = new Date(dtFimAlvaraPrefeitura + 'T00:00:00');
+      let partesData = dtFimAlvaraPrefeitura.split('-');
+
+      dtFimAlvaraPrefeitura = `${partesData[2]}/${partesData[1]}/${partesData[0]}`;
+
+      if (dtFimAlvaraPrefeituraDate < dataAtual) {
+        stAlvaraPrefeitura = 'Vencido';
+        colorStatus = 'danger';
+      }
+    }
+
+    let spanStatusAlvara = `<span class="badge badge-${colorStatus}" style="font-size: 100% !important"> ${stAlvaraPrefeitura} </span>`;
+    let spanDtFimAlvara = `<span class="text-${colorStatus != 'danger' ? 'dark' : colorStatus + ' fw-900'}"> ${dtFimAlvaraPrefeitura} </span>`;
+
+    endereco += ' - ' + bairro;
+
+    let containerButtons = `
+        <div class="d-flex justify-content-start">
+          ${btnEditar}
+        </div>
+      `;
+
+
+    dadosTabela.push([
+      idEmpresa,
+      noFantasia,
+      cnpj,
+      inscEstadual,
+      inscMunicipal,
+      endereco,
+      municipioUf,
+      situacao,
+      ...colunasDetAlvaras,
+      containerButtons
+    ]);
+  }
+
+  $('#resultado').html(
+    `<div class="row">
+          <div class="col-xl-12">
+            <div id="panel-1" class="panel">
+              <div class="panel-hdr">
+                <h2>
+                  Lista de Empresas<span class="fw-300"><i></i></span>
+                </h2>
+              </div>
+              <div class="panel-container show">
+                <div class="panel-content">
+                  <div id="resultadoListaQuebra" class="overflow-auto">
+                    <table id="dt-basic-lista-empresa"
+                      class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                      <thead class="bg-primary-600">
+                        <tr>
+                          <th>Nº Filial</th>
+                          <th>Fantasia</th>
+                          <th>Cnpj</th>
+                          <th>I.E</th>
+                          <th>I.M</th>
+                          <th>Endereço</th>
+                          <th>Municipio/UF</th>
+                          <th>Situação</th>
+                          ${theadAlvaras}
+                          <th>Opções</th>
+                        </tr>
+                      </thead>
+                      <tbody id="resultadoLista-empresa"></tbody>
+                      <tfoot id="totalLista-empresaLoja" class="thead-themed"></tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`
+  );
+
+  $('#dt-basic-lista-empresa').DataTable({
+    data: dadosTabela,
+    deferRender: false,
+    ordering: true,
+    responsive: false,
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'l>>" +
+      "<'row'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start caixa-selecao'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end mb-2'B>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        title: 'Lista Empresas Com Status Alvarás',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':gt(0):not(:last-child)',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+
+              let dados = data?.split('/');
+
+              if (dados?.length > 2) {
+                data = dados[2] + '-' + dados[1] + '-' + dados[0];
+              }
+
+              return $.isNumeric(data.replaceAll('.', '')) ? data.replace(',', '.') : data;
+            }
+          }
+        }
+      }
+    ],
+    initComplete: function (settings) {
+      if (dadosTabela.length > 0) {
+        let idTable = `#${settings.nTable.id}`;
+
+        $('html, body').animate({
+          scrollTop: $(idTable).offset().top - 70
+        }, 1000);
+
+        $(idTable).find('tbody td:first').focus();
+      }
+    }
+  });
+}
+
+async function montarColunasDetAlvaras(listaAlvaras, idAlvaraSelecionado) {
+  let dataAtual = new Date();
+  let colunasStAlvaras = [];
+  let arrayStatusNegacao = [
+    'Indeferido',
+    'Cancelado',
+    'Vencido',
+    'Inativo'
+  ];
+  let arrayColorStatus = [
+    'success',
+    'info',
+    'warning',
+    'danger'
+  ];
+
+  for (let dados of listaAlvaras) {
+    let idAlvara = dados?.IDALVARA;
+
+    if (idAlvaraSelecionado && idAlvaraSelecionado != idAlvara) {
+      continue;
+    }
+
+    let dtFimAlvaraPrefeitura = dados?.DTFIMCOMPETENCIAALVARA || '';
+    let stAlvaraPrefeitura = dados?.DESCRICAOSTATUS || 'Não Iniciado';
+    let idColorStatus = arrayStatusNegacao.includes(stAlvaraPrefeitura) ? 3 : stAlvaraPrefeitura == 'Não Iniciado' ? 2 : stAlvaraPrefeitura == 'Concluído' ? 0 : 1;
+    let colorStatus = arrayColorStatus[idColorStatus];
+
+    if (stAlvaraPrefeitura == 'Concluído') {
+      stAlvaraPrefeitura = 'Emitido - Aprovado';
+    }
+    /*else if ('Não Iniciado' !== stAlvaraPrefeitura && !arrayStatusNegacao.includes(stAlvaraPrefeitura)) {
+      stAlvaraPrefeitura = 'Aguardando Liberação Dos Demais Orgãos';
+    }*/
+
+    if (dtFimAlvaraPrefeitura.length > 0) {
+      let dtFimAlvaraPrefeituraDate = new Date(dtFimAlvaraPrefeitura + 'T00:00:00');
+      let partesData = dtFimAlvaraPrefeitura.split('-');
+
+      dtFimAlvaraPrefeitura = `${partesData[2]}/${partesData[1]}/${partesData[0]}`;
+
+      if (dtFimAlvaraPrefeituraDate < dataAtual) {
+        stAlvaraPrefeitura = 'Vencido';
+        colorStatus = 'danger';
+      }
+    }
+
+    let spanStatusAlvara = `<span class="badge badge-${colorStatus}" style="font-size: 100% !important"> ${stAlvaraPrefeitura} </span>`;
+    let spanDtFimAlvara = `<span class="text-${colorStatus != 'danger' ? 'dark' : colorStatus + ' fw-900'}"> ${dtFimAlvaraPrefeitura} </span>`;
+
+    colunasStAlvaras.push(
+      spanStatusAlvara,
+      spanDtFimAlvara
+    )
+  }
+
+  if (!colunasStAlvaras.length) {
+    colunasStAlvaras.push('<span class="badge badge-warning" style="font-size: 100% !important"> Não Iniciado </span>', '');
+  }
+
+  return colunasStAlvaras;
+}
+
+//* Inicio Modal Detalhe Dados Empresa
+async function abrirModalDadosEmpresaAlvara(idEmpresa) {
+  try {
+    animationLoadingStart();
+
+    let htmModal = await $.get('contabilidade_action_modal_alvaras_loja.html');
+    let listaMarcas = await ajaxGetAllData('api/informatica/marca.xsjs', false);
+    let listaStatusAlvaras = await ajaxGetAllData('api/contabilidade/status-alvara.xsjs', false);
+    let dadosAlvarasEmpresas = await ajaxGetAllData(`api/contabilidade/alvaras-empresa.xsjs?id=${idEmpresa}`, false);
+
+    $('#modal-dados-empresa-alvaras .modal-title').html(`<h2> <i class="subheader-icon fal fa-file-alt"></i> Dados da Empresa - Alvarás </h2>`);
+    $('#modal-dados-empresa-alvaras .modal-body').html(htmModal);
+
+    await retornoListaMarcaAlvarasModal(listaMarcas);
+    await preencherDadosModalEmpresaAlvara(dadosAlvarasEmpresas, listaStatusAlvaras);
+
+    $('#modal-dados-empresa-alvaras').on('shown.bs.modal', async () => {
+      try {
+        let listaAlvaras = dadosAlvarasEmpresas.data[0]?.LISTA_ALVARAS || [];
+
+        await preencherListaAlvarasModalEmpresaAlvara(idEmpresa, listaAlvaras);
+
+        $('#modal-dados-empresa-alvaras').off('shown.bs.modal');
+
+        animationLoadingStop();
+      } catch (error) {
+        console.log(error);
+        msgError();
+      }
+    });
+
+    $('#modal-dados-empresa-alvaras').modal({
+      keyboard: false,
+      backdrop: false,
+      show: true
+    })
+
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
+}
+
+async function preencherDadosModalEmpresaAlvara(dadosAlvarasEmpresas, listaStatusAlvaras) {
+  let { data } = dadosAlvarasEmpresas || [];
+
+  for (let dados of data) {
+    let idEmpresa = dados?.IDEMPRESA;
+    let stAtivo = dados?.STATIVO;
+    let noFantasia = dados?.NOFANTASIA;
+    let idGrupoEmpresarial = noFantasia?.toUpperCase().includes('OUTLET') ? 'OUTLET' : dados?.IDGRUPOEMPRESARIAL;
+    let razaoSocial = dados?.NORAZAOSOCIAL;
+    let cnpj = maskCnpj(dados?.NUCNPJ);
+    let inscEstadual = maskIE(dados?.NUINSCESTADUAL, dados?.SGUF);
+    let inscMunicipal = dados?.NUINSCMUNICIPAL || '';
+    let emailEmpresa = dados?.EEMAILPRINCIPAL || '';
+    let telefoneEmpresa = dados?.NUTELGERENCIA || '';
+    let cepEmpresa = dados?.NUCEP ? maskCep(dados?.NUCEP) : '';
+    let endereco = capitalizeWords(dados?.EENDERECO);
+    let complemento = capitalizeWords(dados?.ECOMPLEMENTO) || '';
+    let bairro = capitalizeWords(dados?.EBAIRRO);
+    let cidade = capitalizeWords(dados?.ECIDADE);
+    let uf = dados?.SGUF;
+    let listaAlvaras = dados?.LISTA_ALVARAS || [];
+    let btnEditar = `<button type="button" class="btn btn-info btn-xs" title="Editar Alvarás da Loja" onclick="modalEditarAlvarasLoja('${idEmpresa}')" ><span class="d-block fal fa-file-alt mr-1"></span>Alvarás</button>`;
+
+    endereco += ' - ' + bairro;
+
+    $('#idEmpresaModal').val(idEmpresa);
+    $('#statusEmpresaModal').val(stAtivo);
+    $('#idGrupoEmpresarialModal').val(idGrupoEmpresarial);
+    $('#razaoSocialModal').val(razaoSocial);
+    $('#noFantasiaModal').val(noFantasia);
+    $('#cnpjEmpresaModal').val(cnpj);
+    $('#inscEstadualEmpresaModal').val(inscEstadual);
+    $('#inscMunicipalEmpresaModal').val(inscMunicipal);
+    $('#enderecoEmpresaModal').val(capitalizeWords(endereco));
+    $('#complementoEmpresaModal').val(capitalizeWords(complemento));
+    $('#bairroEmpresaModal').val(capitalizeWords(bairro));
+    $('#cidadeEmpresaModal').val(capitalizeWords(cidade));
+    $('#ufEmpresaModal').val(uf);
+    $('#cepEmpresaModal').val(cepEmpresa);
+
+    await preencherListaContatosModalEmpresaAlvara(dados, emailEmpresa, telefoneEmpresa);
+
+    $('#resultadoModalGenerico select').select2().trigger('change');
+
+  }
+
+}
+
+async function preencherListaContatosModalEmpresaAlvara(dados, emailEmpresa, telefoneEmpresa) {
+  let { LISTA_GERENTES, LISTA_SUPERVISORES } = dados || [];
+  let lista = LISTA_GERENTES.concat(LISTA_SUPERVISORES);
+  let htmlLista = '';
+  let htmlContato = '';
+  let contador = 0;
+
+  for (let i = 0; i < lista.length; i++) {
+    let {
+      DSFUNCAO,
+      NOFUNCIONARIO,
+      TELEFONE
+    } = lista[i];
+
+    htmlContato += await templateHtmlContatosLojaModal(DSFUNCAO, NOFUNCIONARIO, TELEFONE, emailEmpresa, telefoneEmpresa);
+    contador++;
+
+    if (contador == 2 || i == lista.length - 1) {
+      htmlLista += `<div class="row">${htmlContato}</div>`;
+      htmlContato = '';
+      contador = 0;
+    }
+
+  }
+  $('#lista-contatos-loja-modal').html(htmlLista);
+
+}
+
+async function preencherListaAlvarasModalEmpresaAlvara(idEmpresa, listaAlvaras, stRecarregado = false) {
+  let numIdRowAlvara = 1;
+  let contador = 0;
+
+  //*stRecarregado && $('#lista-alvaras-loja-modal').html('');
+
+  stRecarregado && $(`#lista-alvaras-loja-modal table`).DataTable().clear().destroy();
+  stRecarregado && $('#lista-alvaras-loja-modal').empty();
+
+  for (let i = 0; i < listaAlvaras.length; i++) {
+    let { IDALVARA, DESCRICAOALVARA, ITEMS } = listaAlvaras[i];
+    let cardListaAlvara = await templateHtmlCardListaAlvaras(IDALVARA, DESCRICAOALVARA, ITEMS.length);
+    let dadosTabela = [];
+
+    for (let j = 0; j < ITEMS.length; j++) {
+      let { IDVINCULO, IDEMPRESA, IDALVARA, DESCRICAOALVARA, DTINICIOCOMPETENCIAALVARA, DTFIMCOMPETENCIAALVARA, STATIVO } = ITEMS[j];
+      let spanStAtivo = `<span class="text-${STATIVO == 'True' ? 'info' : 'danger'} fw-700">${STATIVO == 'True' ? 'Ativo' : 'Inativo'}</span>`;
+      let opcoes = `
+        <div class="d-flex justify-content-start">
+          <button type = "button" class="btn btn-info btn-xs pt-1 pb-1 mr-1" title = "Visualizar Detalhes do Alvará" onclick="abrirModalDetalhesAlvaraEmpresa('${IDVINCULO}')" > <span class="d-block fal fa-eye"></span></button>
+          <button type = "button" class="btn btn-warning btn-xs pt-1 pb-1" title = "Editar Alvará da Loja" onclick="abrirModalDetalhesAlvaraEmpresa('${IDVINCULO}', 'true')" > <span class="d-block fal fa-pen"></span></button> 
+        </div>
+      `
+
+      dadosTabela.push([
+        j + 1,
+        DTINICIOCOMPETENCIAALVARA,
+        DTFIMCOMPETENCIAALVARA,
+        spanStAtivo,
+        opcoes
+      ])
+    }
+
+    if (contador == 0) $('#lista-alvaras-loja-modal').append(`<div id="row_alvaras_${numIdRowAlvara}" class="row d-flex align-items-stretch"></div>`);
+
+    $(`#lista-alvaras-loja-modal #row_alvaras_${numIdRowAlvara}`).append(cardListaAlvara);
+
+    contador++;
+
+    if (contador == 2 || i == listaAlvaras.length - 1) {
+      numIdRowAlvara++;
+
+      contador = 0
+    }
+
+    $(`#dt-basic-alvara-${IDALVARA}`).DataTable({
+      data: dadosTabela,
+      deferRender: false,
+      ordering: true,
+      responsive: false,
+      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'l>>" +
+        "<'row'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start mb-1' B>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+      buttons: [
+        {
+          text: '<i class="fal fa-plus mr-1"></i>Add Alvará',
+          titleAttr: 'Adicionar Alvará',
+          className: 'btn-outline-success btn-sm mr-1',
+          action: function (e, dt, node, config) {
+            abrirModalVincularNovoAlvaraEmpresa(idEmpresa, IDALVARA, DESCRICAOALVARA);
+          }
+        }
+      ]
+    });
+
+
+  }
+
+  //*$('#lista-alvaras-loja-modal').append(htmlListaAlvaras);
+
+  stRecarregado && $('#lista-alvaras-loja-modal select').select2().trigger('change');
+
+}
+//* Fim Modal Detalhe Dados Empresa
+
+//* Inicio Modal Detalhe Dados Alvara Vinculado a Empresa
+async function abrirModalDetalhesAlvaraEmpresa(idVinculoAlvara, stEditar = false) {
+  try {
+    animationLoadingStart();
+
+    let modal = $('#modal-detalhes-alvara-empresa');
+    let htmModal = await $.get('contabilidade_action_modal_detalhes_alvara_loja.html');
+    let listaStatusAlvaras = await ajaxGetAllData('api/contabilidade/status-alvara.xsjs', false);
+    let dadosAlvara = await ajaxGetAllData(`api/contabilidade/vinculo-alvaras-empresa.xsjs?id=${idVinculoAlvara}`, false);
+
+    modal.find('.modal-body').html(htmModal);
+    modal.find('.modal-title').html(` <h4> <i class="fal fa-file-alt fa-lg mr-2"></i> Detalhes do Alvará</h4> `);
+
+    await retornoListaSelectStatusAndamentoModalAlvara(listaStatusAlvaras);
+    await preencherDetalhesAlvaraModalDetalhesAlvaraEmpresa(dadosAlvara || [], stEditar);
+
+    modal.on('hidden.bs.modal', async () => {
+      try {
+        await voltarFocoAoModalAnteriro('#modal-dados-empresa-alvaras');
+
+        modal.off('hidden.bs.modal');
+      } catch (error) {
+        console.log(error);
+        msgError();
+      }
+    });
+
+    modal.modal({
+      keyboard: false,
+      backdrop: false,
+      show: true
+    });
+
+    animationLoadingStop();
+
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
+}
+
+async function preencherDetalhesAlvaraModalDetalhesAlvaraEmpresa(dadosAlvara, stEditar) {
+  let { data } = dadosAlvara || [];
+
+  for (let dados of data) {
+    let {
+      IDVINCULO,
+      IDEMPRESA,
+      IDALVARA,
+      DESCRICAOALVARA,
+      DTINICIOCOMPETENCIAALVARA,
+      DTFIMCOMPETENCIAALVARA,
+      STATIVO,
+      IDSTATUS,
+      METRAGEMEMPRESA,
+      NUMEROPROJETOAPROVADO,
+      DESCRICAODETALHEANDAMENTO,
+      ARQUIVOSALVARAS
+    } = dados;
+
+    let stAlvaraRegistrado = ARQUIVOSALVARAS.length > 0;
+
+    $('#titulo-alvara-modal').html(`
+      <h6 class="fw-900 text-dark">
+        <i class="fal fa-file-alt fa-lg mr-2"></i>
+        ${DESCRICAOALVARA}
+      </h6>  
+    `);
+
+    $('#dtInicioCompVincAlvaraModal').val(DTINICIOCOMPETENCIAALVARA);
+    $('#dtFimCompVincAlvaraModal').val(DTFIMCOMPETENCIAALVARA);
+    $('#stAtivoVincAlvaraModal').val(STATIVO == 'True' ? 'True' : 'False');
+    $('#statusVincAlvaraModal').val(IDSTATUS);
+    $('#metragemVincAlvaraModal').val(Number(METRAGEMEMPRESA));
+    $('#idProjetoAprovadoVincAlvaraModal').val(NUMEROPROJETOAPROVADO);
+    $('#detAndamentoVincAlvaraModal').val(DESCRICAODETALHEANDAMENTO).text(DESCRICAODETALHEANDAMENTO);
+
+    let btnVisualizarArquivoAlvara = `
+      <button type="button" class="btn btn-info mr-2" onclick="visualizarAnexoAlvaraEmpresa('${IDVINCULO}', '${stAlvaraRegistrado}')">
+        <span><i class="fal fa-eye mr-2"></i></span>Visualizar Arquivo
+      </button>
+    `;
+    let btnDesbloquearAnexarAlvara = stEditar && stAlvaraRegistrado ?
+      `<button type="button" class="btn btn-warning" onclick="selecionarAnexoAlvara(this)">
+          <span><i class="fal fa-pen mr-2"></i></span>Anexar Novo Arquivo
+        </button>`
+      : '';
+    let inputAnexarAlvara = `
+      <div class="col-sm-6 col-xl-6 ${stEditar && stAlvaraRegistrado ? 'd-none' : ''}">
+        <label class="form-label" for="inputFilesAlvara">Anexar Arquivo:</label>
+        <input type="file" class="form-control" id="inputFilesAlvara" accept=".pdf" multiple/>
+      </div>
+    `;
+    let htmlAcoesAnexarAlvara = `
+      <div class="col-sm-6 col-xl-12 d-flex justify-content-start align-items-end mb-2">
+        ${btnVisualizarArquivoAlvara}
+        ${btnDesbloquearAnexarAlvara}
+      </div>
+      ${stEditar ? inputAnexarAlvara : ''}
+    `;
+
+    
+    IDALVARA == 1 && $('#idProjetoAprovadoVincAlvaraModal').parent().removeClass('d-none');
+
+    if (stEditar) {
+      $('#modal-detalhes-alvara-empresa')
+      .find('input, textarea, select')
+      .not('[type="date"]')
+      .prop('disabled', false);
+      
+      $('#anexos-alvara').html(`
+        <div class="col-sm-6 col-xl-6">
+          <label class="form-label" for="inputFilesAlvara">Anexar Arquivo:</label>
+          <input type="file" class="form-control" id="inputFilesAlvara" accept=".pdf" multiple/>
+          </div>
+      `);
+          
+      $('#modal-detalhes-alvara-empresa .modal-footer').html(`
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-success mr-2" onclick="editarVinculoAlvaraEmpresa('${IDVINCULO}', '${IDEMPRESA}')">
+            <span aria-hidden="true"><i class="fal fa-check mr-2"></i></span>Salvar Alterações
+          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <span aria-hidden="true"><i class="fal fa-times mr-2"></i></span>Fechar
+          </button>
+        </div>  
+      `);
+    } else {
+
+      $('#modal-detalhes-alvara-empresa .modal-footer').html(`
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <span aria-hidden="true"><i class="fal fa-times mr-2"></i></span>Fechar
+          </button>
+        </div>  
+      `);
+    }
+
+    $('#stAtivoVincAlvaraModal, #statusVincAlvaraModal').select2().trigger('change');
+
+    await listarAnexosAlvarasModalDetalhesAlvaraEmpresa(IDVINCULO, ARQUIVOSALVARAS, stEditar);
+  }
+}
+
+async function listarAnexosAlvarasModalDetalhesAlvaraEmpresa(idVinculo, listaAnexosAlvarás, stEditar) {
+  let dadosTabela = [];
+  let contador = 0;
+
+  for (let { IDARQUIVOSALVARA, NOMEARQUIVOALVARA, TIPOARQUIVOALVARA, DTHORACRIACAO, STATIVO } of listaAnexosAlvarás) {
+    let stAtivo = STATIVO == 'True' ? 'Ativo' : 'Inativo';
+    let tipoArquivo = TIPOARQUIVOALVARA?.split('/')[1]?.toUpperCase() || '';
+    let spanStAtivo = `<span class="badge badge-${stAtivo == 'Ativo' ? 'success' : 'danger'}" style="font-size: 100% !important"> ${stAtivo} </span>`;
+    let inputFileEditar = `<input type="file" class="form-control d-none" id="inputFileAlvaraEditar_${IDARQUIVOSALVARA}" accept=".pdf"/>`;
+
+    let btnVisualizarArquivo = `
+      <button type="button" class="btn btn-info btn-xs pt-1 pb-1 mr-1" title="Visualizar arquivo" onclick="visualizarAnexoAlvaraEmpresa('${IDARQUIVOSALVARA}')">
+        <span class="fal fa-eye"></span>
+      </button>
+    `;
+    let btnEditarArquivo = `
+      <button type="button" class="btn btn-warning btn-xs pt-1 pb-1 mr-1" title="Editar arquivo" onclick="editarAnexoAlvaraEmpresa('${idVinculo}', '${IDARQUIVOSALVARA}')">
+        <span class="fal fa-pen"></span>
+      </button>
+    `;
+    let btnExcluirArquivo = `
+      <button type="button" class="btn btn-danger btn-xs pt-1 pb-1" title="Cancelar arquivo" onclick="cancelarArquivoAlvaraEmpresa('${idVinculo}', '${IDARQUIVOSALVARA}')">
+        <span class="fal fa-trash-alt"></span>
+      </button>
+    `;
+    let containerOpcoes = `
+      <div class="d-flex justify-content-start">
+        ${btnVisualizarArquivo + (stEditar && STATIVO == 'True' ? (btnEditarArquivo + btnExcluirArquivo) : '')}
+      </div>
+      ${inputFileEditar}
+    `;
+
+    contador++;
+
+    dadosTabela.push([
+      contador,
+      NOMEARQUIVOALVARA,
+      tipoArquivo,
+      DTHORACRIACAO,
+      spanStAtivo,
+      containerOpcoes
+    ]);
+  }
+
+  if (stEditar && !dadosTabela.length) {
+    return
+  }
+
+  $('#anexos-alvara').html(`
+    <div>
+      <input type="file" class="form-control d-none" id="inputFilesAlvara" accept=".pdf" multiple/>
+    </div>
+    <div class="panel d-flex flex-column w-100">
+      <div class="panel-hdr">
+        <div class="d-flex justify-content-between align-items-center text-secondary w-100 pl-2 pr-1">
+          <div>
+            <span class="h6 fw-500">
+              LISTA DE ARQUIVOS ANEXADOS DO ALVARÁ
+            </span>
+          </div>
+        </div> 
+      </div>
+      <div class="panel-container show d-flex flex-column h-100">
+        <div class="panel-content d-flex flex-column flex-grow-1">
+          <div class="table-responsive flex-grow-1">
+            <table id="dt-basic-arquivos-anexos-alvara" class="table table-bordered table-hover table-responsive-lg table-striped w-100 h-100">
+              <thead class="bg-primary-600">
+                <tr>
+                  <th>#</th>
+                  <th>Nome</th>
+                  <th>Tipo</th>
+                  <th>Dt. Inclusão</th>
+                  <th>Status</th>
+                  <th>Opções</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+              <tfoot class="thead-themed"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+
+  $('#dt-basic-arquivos-anexos-alvara').DataTable({
+    data: dadosTabela,
+    deferRender: false,
+    ordering: true,
+    responsive: true,
+    autoWidth: false,
+    columnDefs: [
+      {
+        targets: 0, width: '5%'
+      },
+      {
+        targets: 1, width: '50%'
+      },
+      {
+        targets: [2, 4, 5], width: '10%'
+      },
+      {
+        targets: 3, width: '15%'
+      },
+    ],
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'l>>" +
+      "<'row'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start mb-1' B>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        text: '<i class="fal fa-paperclip mr-1"></i>Anexar Arquivo',
+        titleAttr: 'Anexar Arquivo Alvará',
+        className: `btn-outline-success btn-sm mr-1 ${!stEditar ? 'd-none' : ''}`,
+        action: function (e, dt, node, config) {
+          adicionarAnexosAlvaraEmpresa(idVinculo);
+        }
+      }
+    ]
+  });
+
+}
+//* Fim Modal Detalhe Dados Alvara Vinculado a Empresa
+
+//* Inicio Modal Adicionar Novo Vinculo Alvara na Empresa
+async function abrirModalVincularNovoAlvaraEmpresa(idEmpresa, idAlvara, descAlvara) {
+  try {
+    animationLoadingStart();
+
+    let modal = $('#modal-detalhes-alvara-empresa');
+    let htmModal = await $.get('contabilidade_action_modal_detalhes_alvara_loja.html');
+    let listaStatusAlvaras = await ajaxGetAllData('api/contabilidade/status-alvara.xsjs', false);
+
+    modal.find('.modal-body').html(htmModal);
+    modal.find('.modal-title').html(` <h4> <i class="fal fa-plus fa-lg mr-2"></i> Adicionar Novo Alvará</h4> `);
+
+    modal.find('.modal-body')
+      .find('input, textarea, select')
+      .not('#stAtivoVincAlvaraModal')
+      .prop('disabled', false);
+
+    modal.find('#titulo-alvara-modal').html(`
+      <h6 class="fw-900 text-dark">
+        <i class="fal fa-file-alt fa-lg mr-2"></i>
+        ${descAlvara}
+      </h6>  
+    `);
+
+    $('#anexos-alvara').html(`
+      <div class="col-sm-6 col-xl-6" id="input-anexar-arquivo-alvara">
+        <label class="form-label" for="inputFilesAlvara">Anexar Arquivos:</label>
+        <input type="file" class="form-control" id="inputFilesAlvara" accept=".pdf" multiple/>
+      </div>
+    `);
+
+    idAlvara == 1 && $('#idProjetoAprovadoVincAlvaraModal').parent().removeClass('d-none');
+
+    modal.find('.modal-footer').html(`
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-success mr-2" onclick="adicionarVinculoAlvaraEmpresa('${idEmpresa}', '${idAlvara}')">
+            <span aria-hidden="true"><i class="fal fa-plus mr-2"></i></span>Adicionar
+          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <span aria-hidden="true"><i class="fal fa-times mr-2"></i></span>Fechar
+          </button>
+        </div>  
+      `)
+
+    modal.on('hidden.bs.modal', async () => {
+      try {
+        await voltarFocoAoModalAnteriro('#modal-dados-empresa-alvaras');
+
+        modal.off('hidden.bs.modal');
+      } catch (error) {
+        console.log(error);
+        msgError();
+      }
+    });
+
+    modal.modal({
+      keyboard: false,
+      backdrop: false,
+      show: true
+    });
+
+    await retornoListaSelectStatusAndamentoModalAlvara(listaStatusAlvaras);
+
+    animationLoadingStop();
+
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
+}
+//* Fim Modal Adicionar Novo Vinculo Alvara na Empresa
+
+//* Inicio funcoes de Insercao/Visualizacao/Atualizacao de Dados do Alvara
+async function adicionarVinculoAlvaraEmpresa(idEmpresa, idAlvara) {
+  let respValidacao = await validarDadosVinculoAlvaraEmpresa('idProjetoAprovadoVincAlvaraModal, anexos-alvara input');
+
+  if (!respValidacao) {
+    return;
+  }
+
+  let confirmacao = await msgQuestion('Tem certeza que desja salvar os dados do Alvará?');
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  animationLoadingStart('Enviando dados, aguarde...', 100, false);
+
+  try {
+    let dados = await montarPayloadAdicionarVinculoAlvaraEmpresaModal(idEmpresa, idAlvara);
+    let textoFuncao = 'CONTABILIDADE/ADICIONAR ALVARA EMPRESA';
+
+    let resp = await ajaxPost("api/contabilidade/vinculo-alvaras-empresa.xsjs", dados);
+
+    if (!resp?.success) {
+      return msgWarning(resp.msg);
+    }
+
+    await gerarLog(dados, textoFuncao);
+
+    await recarregarListaAlvarasEmpresaModal(idEmpresa);
+
+    $('#modal-detalhes-alvara-empresa').modal('hide');
+
+    await msgSuccess('Edição realizada com sucesso!');
+
+    pesquisarEmpresasAlvaras();
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro aa tentar enviar os dados do alvará, recarregue e tente novamente!');
+  }
+}
+
+async function editarVinculoAlvaraEmpresa(idVinculoAlvara, idEmpresa) {
+  let respValidacao = await validarDadosVinculoAlvaraEmpresa('idProjetoAprovadoVincAlvaraModal, anexos-alvara input');
+
+  if (!respValidacao) {
+    return;
+  }
+
+  let confirmacao = await msgQuestion('Tem certeza que desja salvar os dados do Alvará?');
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  animationLoadingStart('Enviando dados, aguarde...', 100, false);
+
+  try {
+    let dados = await montarPayloadEditarVinculoAlvaraEmpresaModal(idVinculoAlvara);
+    let textoFuncao = 'CONTABILIDADE/EDITAR ALVARA EMPRESA';
+
+    let resp = await ajaxPut("api/contabilidade/vinculo-alvaras-empresa.xsjs", dados);
+
+    if (!resp?.success) {
+      return msgWarning(resp.msg);
+    }
+
+    await gerarLog(dados, textoFuncao);
+
+    await recarregarListaAlvarasEmpresaModal(idEmpresa);
+
+    $('#modal-detalhes-alvara-empresa').modal('hide');
+
+    await msgSuccess('Edição realizada com sucesso!');
+
+    pesquisarEmpresasAlvaras();
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro aa tentar enviar os dados do alvará, recarregue e tente novamente!');
+  }
+}
+//* Fim funcoes de Visualizacao/Insercao/Atualizacao de Dados do Alvara
+
+//* Inicio funcoes de Visualizacao/Insercao/Atualizacao de Arquivos Anexos do Alvara
+async function visualizarAnexoAlvaraEmpresa(idVinculo) {
+  try {
+    animationLoadingStart();
+
+    let url = "http://164.152.245.77:8000/quality/concentrador_homologacao/api/contabilidade/arquivos-anexos-alvaras-empresa.xsjs?id=" + idVinculo;
+
+    await abrirPdfAlvara(url);
+
+    animationLoadingStop();
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao tentar visualizar o alvará da empresa. recarregue e tente novamamente')
+  }
+}
+
+async function abrirPdfAlvara(url) {
+  let novaAba = window.open("", "_blank");
+
+  novaAba.document.write(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Alvará PDF</title>
+      <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/file-earmark-pdf-fill.svg">
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+      <style>
+        html, body { height: 100%; margin: 0; }
+        iframe { width: 100%; height: 100%; border: none; display: none; }
+        #loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+        #error { display: none; }
+      </style>
+    </head>
+      <body>
+        <div id="loader">
+          <div class="text-center" style="width: 320px;">
+            <div class="spinner-border text-primary mb-3" role="status"></div>
+            <div class="fw-semibold mb-2">Carregando documento, aguarde…</div>
+
+            <button class="btn btn-secondary me-2" onclick="window.close()">Fechar</button>
+          </div>
+        </div>
+
+        <div id="error" class="container h-100 d-flex align-items-center justify-content-center" style="display: none !important;">
+          <div class="text-center">
+            <h5 class="mb-3 text-danger">Não foi possível carregar o documento</h5>
+
+            <p class="text-muted mb-4">  O carregamento demorou mais do que o esperado. </p>
+
+            <button class="btn btn-secondary me-2" onclick="window.close()">Fechar</button>
+          </div>
+        </div>
+
+        <iframe id="pdfFrame"></iframe>
+
+        <script>
+          setTimeout(() => {
+            let iframe = document.getElementById("pdfFrame");
+            let loader = document.getElementById("loader");
+            let error = document.getElementById("error");
+            let carregou = false;
+
+            iframe.onload = () => {
+              carregou = true;
+              loader.style.display = "none";
+              iframe.style.display = "block";
+            };
+
+            iframe.src = "${url}#zoom=100";
+
+            setTimeout(() => {
+              if (!carregou) {
+                loader.style.display = "none";
+                error.style.display = "flex";
+              }
+            }, 8000);
+          }, 1000);
+        </script>
+
+      </body>
+    </html>
+  `);
+
+  novaAba.document.close();
+
+  return;
+}
+
+function adicionarAnexosAlvaraEmpresa(idVinculoAlvara) {
+  let inputElement = $('#inputFilesAlvara');
+
+  inputElement
+    .on('click', function () {
+      this.value = '';
+    })
+    .on('input', async (event) => {
+      if (!event.target?.files?.length) {
+        return;
+      }
+
+      let confirmacao = await msgQuestion('Certeza Que Deseja Anexar o Arquivo Selecionado?');
+
+      if (!confirmacao?.value) {
+        return;
+      }
+
+      try {
+        animationLoadingStart();
+
+        let listaArquivosAlvaras = await buscarArquivosAlvaraSelecionadosInput(event.target.id);
+
+        let dados = [
+          {
+            IDVINCULOALVARAEMPRESA: Number(idVinculoAlvara),
+            IDFUNCIONARIO: Number(IDFuncionarioLogin),
+            ARQUIVOSALVARA: listaArquivosAlvaras
+          }
+        ];
+        let textoFuncao = 'CONTABILIDADE/ADICIONAR ARQUIVO ALVARA EMPRESA';
+
+        let resp = await ajaxPost("api/contabilidade/arquivos-anexos-alvaras-empresa.xsjs", dados);
+
+        if (resp?.success == false) {
+          return msgWarning(resp?.msg)
+        }
+
+        await gerarLog(dados, textoFuncao);
+
+        await recarregarListaArquivosAnexosAlvarasModal(idVinculoAlvara);
+
+        await msgSuccess('Edição realizada com sucesso!');
+
+        inputElement.off('change');
+
+      } catch (error) {
+        console.log(error);
+        msgError('Erro aa tentar enviar os dados do alvará, recarregue e tente novamente!');
+      }
+    });
+
+  inputElement.click();
+}
+
+async function editarAnexoAlvaraEmpresa(idVinculoAlvara, idArquivoAlvara) {
+  let inputElement = $(`#inputFileAlvaraEditar_${idArquivoAlvara}`);
+
+  inputElement
+    .on('click', function () {
+      this.value = '';
+    })
+    .on('change', async (event) => {
+      if (!event.target?.files?.length) {
+        return;
+      }
+
+      let confirmacao = await msgQuestion('Certeza Que Deseja Substituir Pelo Anexo Selecionado?');
+
+      if (!confirmacao?.value) {
+        return;
+      }
+
+      try {
+        animationLoadingStart();
+
+        let listaArquivosAlvaras = await buscarArquivosAlvaraSelecionadosInput(event.target.id);
+
+        let dados = [
+          {
+            IDVINCULOALVARAEMPRESA: Number(idVinculoAlvara),
+            IDARQUIVOSALVARA: Number(idArquivoAlvara),
+            IDFUNCIONARIO: Number(IDFuncionarioLogin),
+            ARQUIVOSALVARA: listaArquivosAlvaras
+          }
+        ];
+        let textoFuncao = 'CONTABILIDADE/EDITAR ARQUIVO ANEXADO ALVARA EMPRESA';
+
+        let resp = await ajaxPut("api/contabilidade/arquivos-anexos-alvaras-empresa.xsjs?cancelar=False", dados);
+
+        if (resp?.success == false) {
+          return msgWarning(resp?.msg)
+        }
+
+        await gerarLog(dados, textoFuncao);
+
+        await recarregarListaArquivosAnexosAlvarasModal(idVinculoAlvara);
+
+        await msgSuccess('Edição realizada com sucesso!');
+
+        inputElement.off('change');
+
+      } catch (error) {
+        console.log(error);
+        msgError('Erro aa tentar enviar os dados do alvará, recarregue e tente novamente!');
+      }
+    });
+
+  inputElement.click();
+}
+
+async function cancelarArquivoAlvaraEmpresa(idVinculoAlvara, idArquivoAlvara) {
+  let confirmacao = await msgQuestion('Certeza Que Deseja Cancelar Este Anexo?');
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  try {
+    animationLoadingStart();
+
+    let dados = [
+      {
+        IDARQUIVOSALVARA: Number(idArquivoAlvara),
+        STATIVO: 'False',
+        IDFUNCIONARIO: Number(IDFuncionarioLogin)
+      }
+    ];
+    let textoFuncao = 'CONTABILIDADE/CANCELAR ARQUIVO ANEXADO ALVARA EMPRESA';
+
+    await ajaxPut("api/contabilidade/arquivos-anexos-alvaras-empresa.xsjs?cancelar=True", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await recarregarListaArquivosAnexosAlvarasModal(idVinculoAlvara);
+
+    await msgSuccess('Edição realizada com sucesso!');
+
+  } catch (error) {
+    console.log(error);
+    msgError('Erro aa tentar enviar os dados do alvará, recarregue e tente novamente!');
+  }
+}
+//* Fim funcoes de Visualizacao/Insercao/Atualizacao de Arquivos Anexos do Alvara
+
+//? =================== FIM ROTINA DE ALVARAS DE EMPRESAS ===================//
+
