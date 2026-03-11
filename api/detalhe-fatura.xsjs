@@ -15,64 +15,74 @@ function setDateOrNull(stmt, fieldId, value) {
 	}
 	stmt.setDate(fieldId, value);
 }
+
 function fnHandleGet(byId) {
+    let idEmpresa = $.request.parameters.get("idEmpresa");
+    let dataPesquisaInic = $.request.parameters.get("dataPesquisaInic");
+    let dataPesquisaFim = $.request.parameters.get("dataPesquisaFim");
+    let nuCodigoAutorizacao = $.request.parameters.get("nuCodigoAutorizacao");
     
-    var idDaEmpresa = $.request.parameters.get("idEmpresa");
-    var dataPesquisaInic = $.request.parameters.get("dataPesquisaInic");
-    var dataPesquisaFim = $.request.parameters.get("dataPesquisaFim");
-    var nuCodigoAutorizacao = $.request.parameters.get("nuCodigoAutorizacao");
-    
-    var query = ' SELECT ' + 
-    '   tbdf.IDDETALHEFATURA,' +
-    '   tbdf.IDEMPRESA,' +
-    '   tbdf.IDFUNCIONARIO,' +
-    '   tbdf.IDDETALHEFATURALOCAL,' +
-    '   tbdf.IDCAIXAWEB,' +
-    '   tbdf.IDCAIXALOCAL,' +
-    '   tbdf.NUESTABELECIMENTO,' +
-    '   tbdf.NUCARTAO,' +
-    '   TO_VARCHAR(tbdf.DTPROCESSAMENTO,\'DD-MM-YYYY\') AS DTPROCESSAMENTO, ' +
-    '   TO_VARCHAR(tbdf.HRPROCESSAMENTO,\'HH24:MI:SS\') AS HRPROCESSAMENTO, ' +
-    '   tbdf.NUNSU,' +
-    '   tbdf.NUNSUHOST,' +
-    '   tbdf.NUCODAUTORIZACAO,' +
-    '   tbdf.VRRECEBIDO,' +
-    '   TO_VARCHAR(tbdf.DTHRMIGRACAO,\'YYYY-MM-DD HH24:MI:SS\') AS DTHRMIGRACAO, ' +
-    '   tbdf.STCANCELADO,' +
-    '   tbdf.IDUSRCACELAMENTO,' +
-    '   tbf.NOFUNCIONARIO,' +
-    '   tbc.DSCAIXA,' +
-    '   tbdf.IDMOVIMENTOCAIXAWEB,' +
-    '   tbdf.TXTMOTIVOCANCELAMENTO,' +
-    '   tbdf.STPIX,' +
-    '   tbdf.NUAUTORIZACAO,' +
-    '   tbmc.ID AS IDMOVCAIXA,' +
-    '   tbmc.STCONFERIDO' +
-    ' FROM ' + 
-    '   "VAR_DB_NAME".DETALHEFATURA tbdf' +
-    '   INNER JOIN "VAR_DB_NAME".CAIXA tbc ON tbc.IDCAIXAWEB = tbdf.IDCAIXAWEB '+
-    '   LEFT JOIN "VAR_DB_NAME".FUNCIONARIO tbf ON tbdf.IDFuncionario = tbf.IDFuncionario '+
-    '   LEFT JOIN "VAR_DB_NAME".MOVIMENTOCAIXA tbmc ON tbdf.IDMOVIMENTOCAIXAWEB = tbmc.ID '+
-    ' WHERE ' +
-        '	1 = ?';
+    let query = `
+        SELECT
+            TBDF.IDDETALHEFATURA,
+            TBDF.IDEMPRESA,
+            TBE.NOFANTASIA,
+            TBDF.IDFUNCIONARIO,
+            TBDF.IDDETALHEFATURALOCAL,
+            TBDF.IDCAIXAWEB,
+            TBDF.IDCAIXALOCAL,
+            TBDF.NUESTABELECIMENTO,
+            TBDF.NUCARTAO,
+            TO_VARCHAR(TBDF.DTPROCESSAMENTO,'DD-MM-YYYY') AS DTPROCESSAMENTO, 
+            TO_VARCHAR(TBDF.HRPROCESSAMENTO,'HH24:MI:SS') AS HRPROCESSAMENTO, 
+            TBDF.NUNSU,
+            TBDF.NUNSUHOST,
+            TBDF.NUCODAUTORIZACAO,
+            TBDF.VRRECEBIDO,
+            TO_VARCHAR(TBDF.DTHRMIGRACAO,'YYYY-MM-DD HH24:MI:SS') AS DTHRMIGRACAO, 
+            TBDF.STCANCELADO,
+            TBDF.IDUSRCACELAMENTO,
+            TBF.NOFUNCIONARIO,
+            TBC.DSCAIXA,
+            TBDF.IDMOVIMENTOCAIXAWEB,
+            TBDF.TXTMOTIVOCANCELAMENTO,
+            TBDF.STPIX,
+            TBDF.NUAUTORIZACAO,
+            TBMC.ID AS IDMOVCAIXA,
+            TBMC.STCONFERIDO,
+            IFNULL(TBDF.STCONFERIDO, 'False') AS STCONFERIDOFATURA,
+            TBDF.IDCONSOLIDACAOFATURA
+        FROM  
+            "VAR_DB_NAME".DETALHEFATURA TBDF
+        INNER JOIN "VAR_DB_NAME".CAIXA TBC ON
+            TBC.IDCAIXAWEB = TBDF.IDCAIXAWEB
+        LEFT JOIN "VAR_DB_NAME".FUNCIONARIO TBF ON
+            TBDF.IDFuncionario = TBF.IDFuncionario
+        LEFT JOIN "VAR_DB_NAME".MOVIMENTOCAIXA TBMC ON
+            TBDF.IDMOVIMENTOCAIXAWEB = TBMC.ID
+        LEFT JOIN "VAR_DB_NAME".EMPRESA TBE ON
+            TBDF.IDEMPRESA = TBE.IDEMPRESA
+        WHERE 
+            1 = ?
+    `;
     
     if ( byId ) {
-        query = query + ' And  tbdf.IDDETALHEFATURA = \'' + byId + '\' ';
+        query += ' And  tbdf.IDDETALHEFATURA = \'' + byId + '\' ';
     }
     
     if ( nuCodigoAutorizacao ) {
-        query = query + ' And  tbdf.NUCODAUTORIZACAO = \'' + nuCodigoAutorizacao + '\' ';
+        query += ' And  tbdf.NUCODAUTORIZACAO = \'' + nuCodigoAutorizacao + '\' ';
     }
     
-    if(idDaEmpresa) {
-        query = query + ' AND tbdf.IDEMPRESA = \'' + idDaEmpresa + '\' ';
+    if(idEmpresa > 0) {
+        query += ' AND tbdf.IDEMPRESA = \'' + idEmpresa + '\' ';
     }
     
-    if(dataPesquisaInic) {
-            query = query + ' AND (tbdf.DTPROCESSAMENTO BETWEEN \'' + dataPesquisaInic + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\')';
-        }
-    
-    var request = { 
+    if(dataPesquisaInic && dataPesquisaFim) {
+        query += ' AND (TO_DATE(TBDF.DTPROCESSAMENTO) BETWEEN \'' + dataPesquisaInic + '\' AND \'' + dataPesquisaFim + '\')';
+    }
+
+    let request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")
     };
@@ -175,6 +185,7 @@ function fnHandlePost()
 		
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());
+	//if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
     var lstId = api.sqlQuery(' SELECT IDDETALHEFATURA FROM "VAR_DB_NAME"."DETALHEFATURA" WHERE IDEMPRESA='+bodyJson[0].IDEMPRESA+' AND VRRECEBIDO = '+bodyJson[0].VRRECEBIDO+' AND STCANCELADO = \'False\' AND DTPROCESSAMENTO = \''+ bodyJson[0].DTPROCESSAMENTO + '\' AND NUCODAUTORIZACAO = ? ', bodyJson[0].NUCODAUTORIZACAO);
 	
 	

@@ -1,0 +1,123 @@
+<!-- Modal Fechamento Caixa Lojas-->
+<div class="modal fade" id="fechamentoLojas" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          Detalhe de Fechamento
+          <small class="m-0 text-muted">
+            Relação de Recebimentos do Fechamento da Loja
+          </small>
+        </h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+      </div>
+      <form id="formFechamentoLoja" name="formFechamentoLoja" method="post" enctype="multipart/form-data"
+        onsubmit="return false;">
+        <fieldset>
+          <div class="modal-body" id="resulmodalfechamentoloja">
+
+          </div>
+          <div class="modal-footer" id="footerfechamentoloja">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalhe Vendas Recebimentos Lojas-->
+<div class="modal fade" id="vendaRecebimentoLojas" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          Detalhe de Vendas dos Recebimentos
+          <small class="m-0 text-muted">
+            Relação das Vendas
+          </small>
+        </h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+      </div>
+      <form id="formVendaRecebimentoLoja" name="formVendaRecebimentoLoja" method="post" enctype="multipart/form-data"
+        onsubmit="return false;">
+        <fieldset>
+          <div class="modal-body" id="resulmodalvendarecebimentoloja">
+
+          </div>
+          <div class="modal-footer" id="footervendarecebimentoloja">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dados da Empresa -->
+<div class="modal fade" id="modal-dados-empresa-alvaras" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">
+          <h4>Dados da Empresa</h4>
+        </div>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Fechar">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <span aria-hidden="true"><i class="fal fa-times mr-2"></i></span>Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dados da Alvará -->
+<div class="modal fade" id="modal-detalhes-alvara-empresa" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">
+          <h4>Dados da Alvará</h4>
+        </div>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" title="Fechar">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <span aria-hidden="true"><i class="fal fa-times mr-2"></i></span>Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal Generico -->
+<div class="modal fade" id="modalGenerico" tabindex="-1" role="dialog" aria-hidden="true"
+  style="overflow: hidden auto;">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="tituloGenerico" class="modal-title">
+
+        </h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+      </div>
+      <div id="resultadoModalGenerico" class="modal-body"></div>
+      <div id="footerModalGenerico" class="modal-footer"></div>
+    </div>
+  </div>
+</div>

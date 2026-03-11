@@ -1497,7 +1497,7 @@ function fnHandlePut() {
     let bodyJson = JSON.parse($.request.body.asString());
     let STATIVO;
     let STCANCELADO;
-    
+  
     let queryInsertHistorico = `
         INSERT INTO
             "VAR_DB_NAME".HISTORICOVOUCHER
@@ -1564,13 +1564,14 @@ function fnHandlePut() {
         pStmtUpdate.execute();
         
     }
-    
+    return bodyJson;
     pStmtUpdate.close();
 
     conn.commit();
     
     return {
-	    msg : "Atualização realizada com sucesso!"
+	    msg : "Atualização realizada com sucesso!",
+	    data: bodyJson
 	};
 }
 

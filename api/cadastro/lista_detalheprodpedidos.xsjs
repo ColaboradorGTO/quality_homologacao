@@ -59,7 +59,7 @@ function fnHandleGet(byId) {
         query += ` AND TBD.IDDETALHEPEDIDO = '${byId}' `;
     }
     
-    query += ' ORDER BY TBD.NUREF, TBD.DSPRODUTO ASC';
+    query += ' ORDER BY TBD.NUREF, TAMANHO.IDTAMANHO ';
 
     var request = { 
         page:  $.request.parameters.get("page"),

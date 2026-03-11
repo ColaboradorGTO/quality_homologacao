@@ -80,6 +80,32 @@ function sqlQuery(query, queryParams) {
 	return data;
 }
 
+function sqlQuery_Prepare(query, params) {
+	let conn = $.db.getConnection();
+	let pstmt = conn.prepareStatement(replaceDbName(query));
+	   
+	pstmt.setInt(1, params);
+	
+	let res = pstmt.executeQuery();
+	let data = [];
+	
+    while (res.next()) {
+        let md = res.getMetaData();
+        let count = md.getColumnCount();
+        let row = {};
+        
+        for (let c = 1; c <= count; c++) {
+            row[md.getColumnLabel(c)] = res.getString(c);
+        }
+        
+        data.push(row);
+    }
+
+    pstmt.close();
+    
+    return data;
+}
+
 function responseWithQuery(query, responsePage, queryParams) {
 
 	try {

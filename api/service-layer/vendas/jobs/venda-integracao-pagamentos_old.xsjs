@@ -1,34 +1,105 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var securityStorage = new $.security.Store("localStore.xssecurestore");
 var slApi = $.import("quality.concentrador_homologacao.api.service-layer.api", "slApi");
 //var errorLib = $.import("service-layer-vendas.common", "error");
 var loginSl = false;
 var sessionSl = '';
+var dbNameSAP = 'SBO_GTO_TESTE4';
+var conn;
 
-function postSl(data, session) {
-    
-   var response = slApi.post('/IncomingPayments',data,session);
-    if (response.status !== 204) {
-        return JSON.parse(response.body.asString());
-   }else{
-        return 'True';
-   }
-    
+function isEmptyObj(obj) {
+    if (Array.isArray(obj)) return obj.length === 0;
+    if (obj && typeof obj === 'object') return Object.keys(obj).length === 0;
+    return !obj;
 }
 
-function errorLogPagamento(idVenda, p_Error){
-    var conn = $.db.getConnection();
-    var query = 'UPDATE "VAR_DB_NAME"."VENDA" SET ERRORLOGSAPPAGAMENTO = ? WHERE IDVENDA = ?';
-	var pStmt = conn.prepareStatement(api.replaceDbName(query));
+function validarIntegracao(idVenda, STvalidaEAtualizaDados = true){
+    let queryValidaIntegracao = `
+        SELECT
+            C."DocEntry"
+        FROM 
+            "VAR_DB_NAME".VENDA TBV 
+        INNER JOIN ${dbNameSAP}.OINV A ON 
+            (TBV.SAP_DOCENTRY_CORRETO = A."DocEntry" OR TBV.SAP_DOCENTRY = A."DocNum") AND TBV.IDVENDA = A.U_ID_VENDA_PDV
+        INNER JOIN ${dbNameSAP}.RCT2 B ON
+            A."DocEntry" = B."DocEntry" AND A."ObjType" = B."InvType"
+        INNER JOIN ${dbNameSAP}.ORCT C ON
+            B."DocNum" = C."DocEntry"
+        WHERE
+            TBV.IDVENDA = ?
+            AND A."CANCELED" = 'N'
+            AND C."Canceled" = 'N'
+            AND A."Model" = 54 
+    `;
+    
+    let resultadoIntegracao = api.sqlQuery(queryValidaIntegracao, idVenda);
+    
+    if(resultadoIntegracao.length > 0){
+        return sucessLogPagamento(idVenda, resultadoIntegracao[0]["DocEntry"]);
+    } else {
+        if(STvalidaEAtualizaDados){
+            return errorLogPagamento(idVenda, 'Erro ao tentar integra o pagamento');
+        }
+        
+        return 'False';
+    }
+}
 
-	pStmt.setString(1, p_Error);
-	pStmt.setString(2, idVenda);
-	pStmt.execute();
+function sucessLogPagamento(idVenda, idDocEntryPagamento){
+    let queryUpdate = `
+        UPDATE 
+            "VAR_DB_NAME"."VENDA" 
+        SET 
+            ERRORLOGSAPPAGAMENTO = NULL,
+            SAP_DOCENTRY_PAGAMENTO = ?
+        WHERE 
+            IDVENDA = ? 
+    `;
+    
+	let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
+
+	pStmtUpdate.setInt(1, idDocEntryPagamento);
+	pStmtUpdate.setString(2, idVenda);
+	pStmtUpdate.execute();
 	
-	pStmt.close();
+	pStmtUpdate.close();
 	conn.commit();
 
 	return 'True';
+}
+
+function errorLogPagamento(idVenda, p_Error){
+    let queryUpdate = `
+        UPDATE 
+            "VAR_DB_NAME"."VENDA" 
+        SET 
+            ERRORLOGSAPPAGAMENTO = ? 
+        WHERE 
+            IDVENDA = ? 
+    `;
+    
+	let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
+
+	pStmtUpdate.setString(1, p_Error);
+	pStmtUpdate.setString(2, idVenda);
+	pStmtUpdate.execute();
+	
+	pStmtUpdate.close();
+	conn.commit();
+
+	return 'False';
+}
+
+function postSl(data, session, idVenda) {
+   let response = slApi.post('/IncomingPayments',data,session);
+   
+    if (response.status !== 204) {
+        response =  JSON.parse(response.body.asString());
+        
+        return errorLogPagamento(idVenda, (response.error.message.value || 'Erro ao tentar integrar o pagamento'));
+   }else{
+        return validarIntegracao(idVenda);
+   }
+    
 }
 
 function obterLinhasDoPagamento(idVenda, dsTipopagamento, dataVendaPesq) {
@@ -102,7 +173,7 @@ function obterLinhasDoPagamento(idVenda, dsTipopagamento, dataVendaPesq) {
         		};
             }else{
                 
-                    var querySomaRecNsu = 'SELECT SUM(VALORRECEBIDO) FROM VAR_DB_NAME.VENDAPAGAMENTO WHERE IDVENDA = ?  AND (STCANCELADO = \'False\' OR STCANCELADO = \'\' OR STCANCELADO IS NULL ) AND NUAUTORIZACAO =\''+det.NUAUTORIZACAO+'\'';
+                    var querySomaRecNsu = 'SELECT SUM(VALORRECEBIDO) FROM "VAR_DB_NAME".VENDAPAGAMENTO WHERE IDVENDA = ?  AND (STCANCELADO = \'False\' OR STCANCELADO = \'\' OR STCANCELADO IS NULL ) AND NUAUTORIZACAO =\''+det.NUAUTORIZACAO+'\'';
     		        var SomaRecNsu = api.executeScalar(querySomaRecNsu,idVenda);
                 
 		        var docLine = {
@@ -137,7 +208,7 @@ function obterJsonVendaPagamento(byId) {
 	    '   TO_VARCHAR(tbv.DTHORAFECHAMENTO,\'YYYY-mm-DD\') AS DTHORAFECHAMENTO, ' +
 		'   tbv.IDEMPRESA,' +
 		'   tbe.CODPARCEIRO,' +
-		'   (SELECT A."AcctCode" FROM SBO_GTO_PRD.OACT A INNER JOIN SBO_GTO_PRD.OWHS B ON A."U_RS_Filial" = B."WhsCode" WHERE B."BPLid" = tbv.IDEMPRESA) AS CONTA, '+
+		'   (SELECT A."AcctCode" FROM SBO_GTO_TESTE4.OACT A INNER JOIN SBO_GTO_TESTE4.OWHS B ON A."U_RS_Filial" = B."WhsCode" WHERE B."BPLid" = tbv.IDEMPRESA) AS CONTA, '+
 		'   tbv.VRRECDINHEIRO,' +
 		'   tbv.VRRECCONVENIO,' +
 		'   tbv.VRRECVOUCHER,' +
@@ -156,11 +227,8 @@ function obterJsonVendaPagamento(byId) {
 		'   "VAR_DB_NAME".VENDA tbv' +
 		'   INNER JOIN "VAR_DB_NAME".EMPRESA tbe ON tbe.IDEMPRESA = tbv.IDEMPRESA' +
 		' WHERE ' +
-		'	1 = ? AND STCANCELADO = \'False\'';
-
-	if (byId) {
-		query = query + ' And  tbv.IDVENDA = \'' + byId + '\' ';
-	}
+		'	1 = ? AND STCANCELADO = \'False\'' +
+		' And  tbv.IDVENDA = \'' + byId + '\' ';
 	
     var resultadoVenda = api.sqlQuery(query, 1);
 	var data = [];
@@ -172,7 +240,7 @@ function obterJsonVendaPagamento(byId) {
 
 		var registro = resultadoVenda[i];
 		
-		var queryIdCupom = 'SELECT T1."DocEntry" FROM SBO_GTO_PRD.OINV T1, VAR_DB_NAME.VENDA T2, SBO_GTO_PRD.INV1 T3 '+  
+		var queryIdCupom = 'SELECT T1."DocEntry" FROM SBO_GTO_TESTE4.OINV T1, "VAR_DB_NAME".VENDA T2, SBO_GTO_TESTE4.INV1 T3 '+  
 		                            'WHERE 1 = ? and "BPLId" = IDEMPRESA AND '+
                                     'T1."DocEntry" = T3."DocEntry" AND '+
                                     '"Serial" = \''+registro.NFE_INFNFE_IDE_NNF+'\' AND '+
@@ -187,10 +255,10 @@ function obterJsonVendaPagamento(byId) {
 	
 		
 		if(resultIdCupom.length > 0){ 
-    		var queryPagamentoPix = 'SELECT SUM("VALORRECEBIDO") AS "VALORRECEBIDO" FROM VAR_DB_NAME.VENDAPAGAMENTO WHERE 1 = ? and (STCANCELADO=\'\' OR STCANCELADO IS NULL OR STCANCELADO=\'False\') AND DSTIPOPAGAMENTO = \'PIX\' AND IDVENDA=\''+registro.IDVENDA+'\'';
+    		var queryPagamentoPix = 'SELECT SUM("VALORRECEBIDO") AS "VALORRECEBIDO" FROM "VAR_DB_NAME".VENDAPAGAMENTO WHERE 1 = ? and (STCANCELADO=\'\' OR STCANCELADO IS NULL OR STCANCELADO=\'False\') AND DSTIPOPAGAMENTO = \'PIX\' AND IDVENDA=\''+registro.IDVENDA+'\'';
     		var lstPagamentoPix = api.sqlQuery(queryPagamentoPix,1);
     		
-    		var queryPagamentoGiroPremiado = 'SELECT "VALORRECEBIDO" FROM VAR_DB_NAME.VENDAPAGAMENTO WHERE 1 = ? and (STCANCELADO=\'\' OR STCANCELADO IS NULL OR STCANCELADO=\'False\') AND DSTIPOPAGAMENTO = \'GIRO PREMIADO\' AND IDVENDA=\''+registro.IDVENDA+'\'';
+    		var queryPagamentoGiroPremiado = 'SELECT "VALORRECEBIDO" FROM "VAR_DB_NAME".VENDAPAGAMENTO WHERE 1 = ? and (STCANCELADO=\'\' OR STCANCELADO IS NULL OR STCANCELADO=\'False\') AND DSTIPOPAGAMENTO = \'GIRO PREMIADO\' AND IDVENDA=\''+registro.IDVENDA+'\'';
     		var lstPagamentoGiroPremiado = api.sqlQuery(queryPagamentoGiroPremiado,1);
     		
             var Str_Json = '{"DocType": "rCustomer"'+
@@ -209,7 +277,7 @@ function obterJsonVendaPagamento(byId) {
                 Str_Json = Str_Json +',"CheckAccount":"2.01.01.02.0002"';
             }
             
-            if(lstPagamentoPix.length > 0){
+            if(lstPagamentoPix.length > 0 && lstPagamentoPix[0].VALORRECEBIDO > 0){
     		    Str_Json = Str_Json + ',"TransferAccount" : "1.01.01.01.9998"'+
     		    ',"TransferSum": '+ parseFloat(lstPagamentoPix[0].VALORRECEBIDO)+
     			',"TransferDate": "'+ registro.DTHORAFECHAMENTO+'"'+
@@ -243,19 +311,43 @@ function obterJsonVendaPagamento(byId) {
                     '}'+
                 ']';
             
-            var queryPagamentos = 'SELECT SUM("VALORRECEBIDO") AS VALORRECEBIDO, '+
-                '   "NSUAUTORIZADORA", '+
-                '   "NUAUTORIZACAO", '+
-                '   "NPARCELAS", '+
-                '   "DSTIPOPAGAMENTO", '+
-                '   "TPAG" '+
-                ' FROM VAR_DB_NAME.VENDAPAGAMENTO '+
-                ' WHERE 1 = ? and (STCANCELADO=\'\' OR STCANCELADO IS NULL OR STCANCELADO=\'False\') AND '+
-                '    (UPPER(DSTIPOPAGAMENTO) <> \'PIX\' AND UPPER(DSTIPOPAGAMENTO) <> \'DINHEIRO\' AND UPPER(DSTIPOPAGAMENTO)<> \'VOUCHER\' AND UPPER(DSTIPOPAGAMENTO) <> \'VALE FUNCIONÁRIO\' AND UPPER(DSTIPOPAGAMENTO) <> \'PARCEIROS DE APOIO\') AND '+
-                '    IDVENDA=\''+registro.IDVENDA+'\' GROUP BY "NSUAUTORIZADORA","NPARCELAS","DSTIPOPAGAMENTO","TPAG","NUAUTORIZACAO" order by tpag desc';
-    		//return queryPagamentos;
-    		var lstPagamentos = api.sqlQuery(queryPagamentos,1);
-    		
+            var queryPagamentos = `
+                SELECT
+                    SUM("VALORRECEBIDO") AS VALORRECEBIDO,
+                    IFNULL("NSUAUTORIZADORA", '') AS NSUAUTORIZADORA,
+                    "NUAUTORIZACAO",
+                    "NPARCELAS",
+                    "DSTIPOPAGAMENTO",
+                    "TPAG" 
+                FROM
+                    "VAR_DB_NAME".VENDAPAGAMENTO 
+                WHERE
+                    1 = ?
+                    AND (
+                        STCANCELADO = ''
+                        OR STCANCELADO IS NULL
+                        OR STCANCELADO = 'False'
+                    )
+                    AND (
+                        UPPER(DSTIPOPAGAMENTO) <> 'PIX'
+                        AND UPPER(DSTIPOPAGAMENTO) <> 'DINHEIRO'
+                        AND UPPER(DSTIPOPAGAMENTO)<> 'VOUCHER'
+                        AND UPPER(DSTIPOPAGAMENTO) <> 'VALE FUNCIONÁRIO'
+                        AND UPPER(DSTIPOPAGAMENTO) <> 'PARCEIROS DE APOIO'
+                    )
+                    AND IDVENDA = '${registro.IDVENDA}'
+                GROUP BY
+                    "NSUAUTORIZADORA",
+                    "NPARCELAS",
+                    "DSTIPOPAGAMENTO",
+                    "TPAG",
+                    "NUAUTORIZACAO"
+                ORDER BY
+                    "TPAG" DESC
+            `;
+            //return queryPagamentos;
+            var lstPagamentos = api.sqlQuery(queryPagamentos,1);
+        
             for(var j = 0; j < lstPagamentos.length; j++){
                 var regPagamento = lstPagamentos[j];
                 var numParcelas = 1
@@ -271,7 +363,7 @@ function obterJsonVendaPagamento(byId) {
                 var resultadoDiferenca = parseFloat(regPagamento.VALORRECEBIDO) - parseFloat(vlParcela * numParcelas);
                  
                 
-                var queryCreditCard = 'SELECT "U_IS_CARTAO" from SBO_GTO_PRD."@IV_ITV_FORMAPAG" where 1 = ? and "Code" = '+regPagamento.TPAG;
+                var queryCreditCard = 'SELECT "U_IS_CARTAO" from SBO_GTO_TESTE4."@IV_ITV_FORMAPAG" where 1 = ? and "Code" = '+regPagamento.TPAG;
                 var lstCreditCard = api.sqlQuery(queryCreditCard,1);
                 
                 var numCreditCard = 0;
@@ -305,7 +397,7 @@ function obterJsonVendaPagamento(byId) {
                     if(numParcelas > 1){
                         Str_Json = Str_Json + ',"AdditionalPaymentSum":' + parseFloat(vlParcela).toFixed(2); // valor das demais parcelas
                     }
-                var querySomaVlrTotalCartao = 'SELECT SUM("VALORRECEBIDO") as VALORRECEBIDO  FROM VAR_DB_NAME.VENDAPAGAMENTO WHERE 1=? and  (STCANCELADO=\'\' OR STCANCELADO IS NULL OR STCANCELADO=\'False\') AND DSTIPOPAGAMENTO=\''+regPagamento.DSTIPOPAGAMENTO+'\' AND IDVENDA=\''+registro.IDVENDA+'\' AND NUAUTORIZACAO=\''+regPagamento.NUAUTORIZACAO+'\' GROUP BY DSTIPOPAGAMENTO';
+                var querySomaVlrTotalCartao = 'SELECT SUM("VALORRECEBIDO") as VALORRECEBIDO  FROM "VAR_DB_NAME".VENDAPAGAMENTO WHERE 1=? and  (STCANCELADO=\'\' OR STCANCELADO IS NULL OR STCANCELADO=\'False\') AND DSTIPOPAGAMENTO=\''+regPagamento.DSTIPOPAGAMENTO+'\' AND IDVENDA=\''+registro.IDVENDA+'\' AND NUAUTORIZACAO=\''+regPagamento.NUAUTORIZACAO+'\' GROUP BY DSTIPOPAGAMENTO';
                 //return querySomaVlrTotalCartao;
                 var resValorTotalPago = api.sqlQuery(querySomaVlrTotalCartao, 1);
                 var valorTotalPago = 0;
@@ -324,7 +416,7 @@ function obterJsonVendaPagamento(byId) {
             }
             
             //VALE FUNCIONÁRIO//Vale Funcionário//VOUCHER//Voucher//Parceiros de Apoio
-            var queryPagamentosConveniosVouchers = 'SELECT "VALORRECEBIDO","DSTIPOPAGAMENTO" FROM VAR_DB_NAME.VENDAPAGAMENTO WHERE 1=? and  (STCANCELADO=\'\' OR STCANCELADO IS NULL OR STCANCELADO=\'False\') AND UPPER(DSTIPOPAGAMENTO) IN (\'VOUCHER\',\'VALE FUNCIONÁRIO\',\'PARCEIROS DE APOIO\') AND IDVENDA=\''+registro.IDVENDA+'\' ';
+            var queryPagamentosConveniosVouchers = 'SELECT "VALORRECEBIDO","DSTIPOPAGAMENTO" FROM "VAR_DB_NAME".VENDAPAGAMENTO WHERE 1=? and  (STCANCELADO=\'\' OR STCANCELADO IS NULL OR STCANCELADO=\'False\') AND UPPER(DSTIPOPAGAMENTO) IN (\'VOUCHER\',\'VALE FUNCIONÁRIO\',\'PARCEIROS DE APOIO\') AND IDVENDA=\''+registro.IDVENDA+'\' ';
     		
     		var lstPagamentosConveniosVouchers = api.sqlQuery(queryPagamentosConveniosVouchers,1);
     		
@@ -340,7 +432,7 @@ function obterJsonVendaPagamento(byId) {
                     ',"DueDate": "'+ registro.DTHORAFECHAMENTO+'"'; // DATA DO PAGAMENTO
                     
                     if(parseFloat(registro.VRRECCONVENIO) > 0){
-                        var queryConvenio = 'SELECT "IDDETLACCONVENIO" FROM VAR_DB_NAME.DETLANCCONVENIO WHERE 1=? and IDRESUMOVENDAWEB=\''+registro.IDVENDA+'\'';
+                        var queryConvenio = 'SELECT "IDDETLACCONVENIO" FROM "VAR_DB_NAME".DETLANCCONVENIO WHERE 1=? and IDRESUMOVENDAWEB=\''+registro.IDVENDA+'\'';
     		            var lstConvenio = api.sqlQuery(queryConvenio,1);
     		            if(lstConvenio.length > 0){
                             Str_Json = Str_Json +',"CheckNumber":"'+lstConvenio[0].IDDETLACCONVENIO +'"'+ // NUMERO DO VOUCHER OU CONVENIO
@@ -349,7 +441,7 @@ function obterJsonVendaPagamento(byId) {
                     }
                     
                     if(parseFloat(registro.VRRECVOUCHER) > 0){
-                        var queryVoucher = 'SELECT "NUVOUCHER" FROM VAR_DB_NAME.RESUMOVOUCHER WHERE 1=? and  IDRESUMOVENDAWEBDESTINO=\''+registro.IDVENDA+'\'';
+                        var queryVoucher = 'SELECT "NUVOUCHER" FROM "VAR_DB_NAME".RESUMOVOUCHER WHERE 1=? and  IDRESUMOVENDAWEBDESTINO=\''+registro.IDVENDA+'\'';
     		            var lstVoucher = api.sqlQuery(queryVoucher,1);
     		            if(lstVoucher.length > 0){
                             Str_Json = Str_Json +',"CheckNumber":"'+ lstVoucher[0].NUVOUCHER +'"';// NUMERO DO VOUCHER OU CONVENIO
@@ -375,6 +467,8 @@ function obterJsonVendaPagamento(byId) {
              
            
            Str_Json = Str_Json + '}';
+           
+           //return Str_Json;
     	   return JSON.parse(Str_Json);
     	//	data.push(JSON.parse(Str_Json));
     		//data.push(Str_Json);
@@ -390,64 +484,85 @@ function obterJsonVendaPagamento(byId) {
 	//return data;
 }
 
-function excutePagamentoNaoIntegrado(byId){
+function excutePagamentoNaoIntegrado(byId, dataInicioVenda = '01.01.2025', dataFimVenda = '31.12.2025'){
     
-    var query = ' SELECT TOP 150' +      
-        '    G.IDVENDA' +
-        ' FROM' +
-        '    SBO_GTO_PRD.OINV A' +
-        '    INNER JOIN SBO_GTO_PRD.INV12 B ON' +
-        '        A."DocEntry" = B."DocEntry"' +
-        '    INNER JOIN SBO_GTO_PRD.OUSG C ON' +
-        '        B."MainUsage" = C.ID' +
-        '    INNER JOIN SBO_GTO_PRD.OBPL D ON' +
-        '        A."BPLId" = D."BPLId"' +
-        '    LEFT JOIN SBO_GTO_PRD.RCT2 E ON' +
-        '        A."DocEntry" = E."DocEntry"' +
-        '        AND A."ObjType" = E."InvType"' +
-        '    LEFT JOIN SBO_GTO_PRD.ORCT F ON' +
-        '        E."DocNum" = F."DocEntry"' +
-        '    INNER JOIN VAR_DB_NAME.VENDA G ON' +
-        '        A."U_ChaveAcesso" = G.PROTNFE_INFPROT_CHNFE' +
-        ' WHERE' +
-        '    1 = ?' +
-        '    AND B."MainUsage" = 38' +
-        '    and IFNULL(CAST(F."TransId" AS VARCHAR), \'Sem ID\') = \'Sem ID\'' +
-        '    AND A."CANCELED" = \'N\'' +
-//        '    AND A."DocDate" >= \'01.11.2023\'' +
-//        '    AND A."DocDate" <= \'27.04.2025\'' +
-        '    AND (TO_DATE(A."DocDate") >= \'01.01.2025\' AND TO_DATE(A."DocDate") <= ADD_DAYS(CURRENT_DATE, -2)) '+
-        '    AND IFNULL(G."ERRORLOGSAPPAGAMENTO",\'\') = \'\'' +
-        '    AND IFNULL(G."IDVENDA", \'\') <> \'\'' +
-        '    AND G.stcancelado = \'False\' ' ;
-        
+    var query = `
+        SELECT TOP 200      
+            G.IDVENDA
+        FROM
+            SBO_GTO_TESTE4.OINV A
+        INNER JOIN SBO_GTO_TESTE4.INV12 B ON
+            A."DocEntry" = B."DocEntry" AND IFNULL(A."U_ChaveAcesso", '') <> ''
+        INNER JOIN SBO_GTO_TESTE4.OUSG C ON
+            B."MainUsage" = C.ID
+        INNER JOIN SBO_GTO_TESTE4.OBPL D ON
+            A."BPLId" = D."BPLId"
+        LEFT JOIN SBO_GTO_TESTE4.RCT2 E ON
+            A."DocEntry" = E."DocEntry" AND A."ObjType" = E."InvType"
+        LEFT JOIN SBO_GTO_TESTE4.ORCT F ON
+            E."DocNum" = F."DocEntry"
+        INNER JOIN "VAR_DB_NAME".VENDA G ON
+            G.IDVENDA = A.U_ID_VENDA_PDV AND A."U_ChaveAcesso" = G.PROTNFE_INFPROT_CHNFE AND IFNULL(G.PROTNFE_INFPROT_CHNFE, '') <> ''
+        WHERE
+            1 = ?
+            AND B."MainUsage" = 38
+            AND A."Model" = 54
+            --AND IFNULL(CAST(F."TransId" AS VARCHAR), 'Sem ID') = 'Sem ID'
+            AND A."CANCELED" = 'N'
+            /*AND A."DocDate" >= '01.11.2023'
+            AND A."DocDate" <= '27.04.2025'
+            AND (TO_DATE(A."DocDate") >= '01.01.2025' AND TO_DATE(A."DocDate") <= ADD_DAYS(CURRENT_DATE, -2)) 
+            */AND TO_DATE(A."DocDate") >= '01.01.2025'
+            AND (TO_DATE(A."DocDate") >= '${dataInicioVenda}' AND TO_DATE(A."DocDate") <= '${dataFimVenda}')
+            AND IFNULL(G."ERRORLOGSAPPAGAMENTO",'') = ''
+            AND IFNULL(G."IDVENDA", '') <> ''
+            AND G."STCANCELADO" = 'False'
+    `;
+    
     if (byId) {
-        query += ` And  G.IDVENDA = '${byId}' `;
+        query += ` AND G.IDVENDA = '${byId}' `;
     }
     
     query += ' ORDER BY A."DocDate" ';
-        //return query;
+
     var response = api.sqlQuery(query, 1);
+    
     var session = '';
-    for (var i = 0; i < response.length; i++) {
-	    var retJson = '';
-        var det = response[i];
+    
+    conn = $.db.getConnection();
+    for (let det of response) {
+        //let stIntegrarPgto = validarIntegracao(det.IDVENDA, false) == 'False'
         
-        retJson = obterJsonVendaPagamento(det.IDVENDA);
-        
-        if(i === 0){
-		    session = slApi.loginServiceLayer(true);
-		    slApi.loginServiceLayer(true);
-		} 
-	
-   		var retSl = postSl(retJson,session);
-		
-	    if(retSl !== 'True'){
-		    //return retSl;
-		   errorLogPagamento(det.IDVENDA, retSl.error.message.value);
-		  // return retSl.error.message.value;
-		}
+        //if(stIntegrarPgto){
+            if(!session){
+                session = slApi.loginServiceLayer(true);
+                
+                slApi.loginServiceLayer(true);
+            }
+            
+            try{
+                
+                let retJson = obterJsonVendaPagamento(det.IDVENDA);
+                return retJson
+                if(isEmptyObj(retJson)){
+                    errorLogPagamento(det.IDVENDA, 'Venda Sem Forma de Pagamento, Verifique a Tabela VENDAPAGAMENTO');
+                    continue;
+                }
+                
+                //postSl(retJson, session, det.IDVENDA);
+            } catch(error){
+                errorLogPagamento(det.IDVENDA, erros.message || 'Erro durante o processo');
+            }
+            /*var retSl = postSl(retJson, session, det.IDVENDA);
+            
+            if(retSl !== 'True'){
+                //return retSl;
+                errorLogPagamento(det.IDVENDA, retSl.error.message.value);
+                // return retSl.error.message.value;
+            }*/
+        //}
 	}
+	
 	return 'Migração pagamento realizado com sucesso!';
 }
 
@@ -461,8 +576,10 @@ if($.response) {
             //Handle your GET calls here
             case $.net.http.POST:
                 let byId = $.request.parameters.get("id");
+                let dataInicioVenda = $.request.parameters.get("dataInicioVenda");
+                let dataFimVenda = $.request.parameters.get("dataFimVenda");
                 
-                var doc = excutePagamentoNaoIntegrado(byId);
+                var doc = excutePagamentoNaoIntegrado(byId, dataInicioVenda, dataFimVenda);
                  $.response.setBody(JSON.stringify({ result : doc }));
                 break;
                 

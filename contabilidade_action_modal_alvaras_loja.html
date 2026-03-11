@@ -1,0 +1,122 @@
+<section class="w-100 panel">
+  <div class="panel-container show">
+    <div class="panel-content">
+      <header class="mb-3">
+        <h3 class="fw-500 text-muted">
+          <i class="fal fa-building mr-2"></i> Dados da Empresa
+        </h3>
+      </header>
+
+      <div class="row mb-3">
+        <div class="col-xl-1 col-sm-4">
+          <label for="idEmpresaModal" class="form-label">ID</label>
+          <input id="idEmpresaModal" class="form-control" readonly>
+        </div>
+
+        <div class="col-xl-2 col-sm-4">
+          <label for="statusEmpresaModal" class="form-label">Status</label>
+          <select id="statusEmpresaModal" class="form-control" disabled>
+            <option value="True">Ativo</option>
+            <option value="False">Inativo</option>
+          </select>
+        </div>
+
+        <div class="col-xl-3 col-sm-4">
+          <label for="idGrupoEmpresarialModal" class="form-label">Grupo Empresarial</label>
+          <select id="idGrupoEmpresarialModal" class="form-control" disabled></select>
+        </div>
+
+        <div class="col-xl-2 col-sm-4">
+          <label for="inscEstadualEmpresaModal" class="form-label">Insc. Estadual</label>
+          <input id="inscEstadualEmpresaModal" class="form-control" readonly>
+        </div>
+
+        <div class="col-xl-2 col-sm-4">
+          <label for="inscMunicipalEmpresaModal" class="form-label">Insc. Municipal</label>
+          <input id="inscMunicipalEmpresaModal" class="form-control" readonly>
+        </div>
+
+        <div class="col-xl-2 col-sm-4">
+          <label for="cnpjEmpresaModal" class="form-label">CNPJ</label>
+          <input id="cnpjEmpresaModal" class="form-control" readonly>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-xl-6 col-sm-12">
+          <label for="razaoSocialModal" class="form-label">Razão Social</label>
+          <input id="razaoSocialModal" class="form-control" readonly>
+        </div>
+
+        <div class="col-xl-6 col-sm-12">
+          <label for="noFantasiaModal" class="form-label">Nome Fantasia</label>
+          <input id="noFantasiaModal" class="form-control" readonly>
+        </div>
+      </div>
+
+      <hr>
+      <section class="mt-4">
+        <h4 class="fw-500 text-muted">
+          <i class="fal fa-home"></i> Endereço
+        </h4>
+
+        <div class="row mb-3">
+          <div class="col-xl-12 col-sm-12">
+            <label for="enderecoEmpresaModal" class="form-label">Endereço</label>
+            <input id="enderecoEmpresaModal" class="form-control" readonly>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-xl-6 col-sm-12">
+            <label for="complementoEmpresaModal" class="form-label">Complemento</label>
+            <input id="complementoEmpresaModal" class="form-control" readonly>
+          </div>
+
+          <div class="col-xl-4 col-sm-6">
+            <label for="bairroEmpresaModal" class="form-label">Bairro</label>
+            <input id="bairroEmpresaModal" class="form-control" readonly>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-xl-3 col-sm-6">
+            <label for="cidadeEmpresaModal" class="form-label">Cidade</label>
+            <input id="cidadeEmpresaModal" class="form-control" readonly>
+          </div>
+
+          <div class="col-xl-1 col-sm-6">
+            <label for="ufEmpresaModal" class="form-label">UF</label>
+            <input id="ufEmpresaModal" class="form-control" readonly>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-xl-2 col-sm-12">
+            <label for="cepEmpresaModal" class="form-label">CEP</label>
+            <input id="cepEmpresaModal" class="form-control" readonly>
+          </div>
+        </div>
+      </section>
+
+      <hr>
+      
+      <section class="mt-4">
+        <h4 class="fw-500 text-muted mb-3">
+          <i class="fal fa-phone"></i> Contatos
+        </h4>
+
+        <div id="lista-contatos-loja-modal"></div>
+      </section>
+
+      <hr>
+
+      <section class="mt-4">
+        <h4 class="fw-500 text-muted">
+          <i class="fal fa-file-alt"></i> Alvarás
+        </h4>
+        <div id="lista-alvaras-loja-modal"></div>
+      </section>
+
+    </div>
+  </div>
+</section>

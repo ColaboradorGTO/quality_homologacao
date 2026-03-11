@@ -2899,7 +2899,7 @@ function retornoListaPagamentoPOSSelect(respostaListaDSPagamentoPOS) {
 
 function alterar_pagamentos() {
 
-    if(IDFuncionarioLogin == '2001' || IDFuncionarioLogin == '2024' || IDFuncionarioLogin == '5074' || IDFuncionarioLogin == '5025' || IDFuncionarioLogin == '30174'){
+    if(IDFuncionarioLogin == '30514' || IDFuncionarioLogin == '2001' || IDFuncionarioLogin == '2024' || IDFuncionarioLogin == '5074' || IDFuncionarioLogin == '5025' || IDFuncionarioLogin == '30174'){
         document.getElementById("idpag").style.display = 'block';
         document.getElementById("buttonpag").style.display = 'block';
         document.getElementById("idbuttonalterar").style.display = 'none';

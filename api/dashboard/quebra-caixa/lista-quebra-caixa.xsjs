@@ -26,53 +26,59 @@ function setIntOrNull(stmt, fieldId, value) {
 }
 
 function fnHandleGet(byId) {
+    let idMarca = $.request.parameters.get("idMarca");
+    let IdEmpresa = $.request.parameters.get("idEmpresa");
+    let cpfquebraop = $.request.parameters.get("cpfquebraop");
+    let dataPesquisaInic = $.request.parameters.get("dataPesquisaInic"); 
+    let dataPesquisaFim = $.request.parameters.get("dataPesquisaFim"); 
+    let stQuebraPositivaNegativa = $.request.parameters.get("stQuebraPositivaNegativa");
     
-    var idMarca = $.request.parameters.get("idMarca");
-    var IdEmpresa = $.request.parameters.get("idEmpresa");
-    var cpfquebraop = $.request.parameters.get("cpfquebraop");
-    var dataPesquisaInic = $.request.parameters.get("dataPesquisaInic"); 
-    var dataPesquisaFim = $.request.parameters.get("dataPesquisaFim"); 
-    var stQuebraPositivaNegativa = $.request.parameters.get("stQuebraPositivaNegativa");
-    
-    
-    var query = ' SELECT ' +  
-    '   tbqc.IDQUEBRACAIXA, ' +
-    '   tbemp.NOFANTASIA, ' +
-	'   tbqc.IDCAIXAWEB, ' +
-	'   tbqc.IDMOVIMENTOCAIXA, ' +
-	'   tbqc.IDGERENTE, ' +
-	'   tbqc.IDFUNCIONARIO, ' +
-	'   TO_VARCHAR(tbqc.DTLANCAMENTO,\'DD-MM-YYYY\') AS DTLANCAMENTO, ' +
-	'   tbqc.VRQUEBRASISTEMA, ' +
-	'   tbqc.VRQUEBRAEFETIVADO, ' +
-	'   tbqc.TXTHISTORICO, ' +
-	'   tbqc.STATIVO, ' +
-    '   tbf.NOFUNCIONARIO AS NOMEOPERADOR,' +
-    '   tbf.DSFUNCAO,' +
-    '   tbf.NUCPF AS CPFOPERADOR,' +
-    '   tbf1.NOFUNCIONARIO AS NOMEGERENTE' +
-    ' FROM ' + 
-    '   "VAR_DB_NAME".QUEBRACAIXA tbqc' +
-    '   LEFT JOIN "VAR_DB_NAME".MOVIMENTOCAIXA tbmc ON tbqc.IDMOVIMENTOCAIXA = tbmc.ID' +
-    '   LEFT JOIN "VAR_DB_NAME".EMPRESA tbemp ON tbmc.IDEMPRESA = tbemp.IDEMPRESA' +
-    '   LEFT JOIN "VAR_DB_NAME".FUNCIONARIO tbf ON tbqc.IDFUNCIONARIO = tbf.IDFUNCIONARIO' +
-    '   LEFT JOIN "VAR_DB_NAME".FUNCIONARIO tbf1 ON tbqc.IDGERENTE = tbf1.IDFUNCIONARIO' +
-    ' WHERE ' +
-        '	1 = ? ';
+    let query = `
+        SELECT  
+            TBQC.IDQUEBRACAIXA, 
+            TBE.NOFANTASIA, 
+            TBQC.IDCAIXAWEB, 
+            TBQC.IDMOVIMENTOCAIXA, 
+            TBQC.IDGERENTE, 
+            TBQC.IDFUNCIONARIO, 
+            TO_VARCHAR(TBQC.DTLANCAMENTO,'DD-MM-YYYY') AS DTLANCAMENTO, 
+            TBQC.VRQUEBRASISTEMA, 
+            TBQC.VRQUEBRAEFETIVADO, 
+            TBQC.TXTHISTORICO, 
+            TBQC.STATIVO, 
+            TBQC.STCONFERIDO,
+            TBQC.IDUSRCONFERENCIA,
+            TBF.NOFUNCIONARIO AS NOMEOPERADOR,
+            TBF.DSFUNCAO,
+            TBF.NUCPF AS CPFOPERADOR,
+            TBF1.NOFUNCIONARIO AS NOMEGERENTE
+        FROM 
+            "VAR_DB_NAME".QUEBRACAIXA TBQC
+        LEFT JOIN "VAR_DB_NAME".MOVIMENTOCAIXA TBMC ON 
+            TBQC.IDMOVIMENTOCAIXA = TBMC.ID
+        LEFT JOIN "VAR_DB_NAME".EMPRESA TBE ON 
+            TBMC.IDEMPRESA = TBE.IDEMPRESA
+        LEFT JOIN "VAR_DB_NAME".FUNCIONARIO TBF ON 
+            TBQC.IDFUNCIONARIO = TBF.IDFUNCIONARIO
+        LEFT JOIN "VAR_DB_NAME".FUNCIONARIO TBF1 ON 
+            TBQC.IDGERENTE = TBF1.IDFUNCIONARIO
+        WHERE
+            1 = ?
+    `;
     
     if ( byId ) {
         query = query + ' And tbqc.IDMOVIMENTOCAIXA = \'' + byId + '\' '; 
     }
     
     if ( idMarca >0) {
-        query = query + ' And tbemp.IDGRUPOEMPRESARIAL IN (' + idMarca + ') ';
+        query = query + ' And TBE.IDGRUPOEMPRESARIAL IN (' + idMarca + ') ';
     }
     
     if ( IdEmpresa >0 ) {
         query = query + ' And tbmc.IDEMPRESA IN (' + IdEmpresa + ') ';
     }
     
-    if ( cpfquebraop >0 ) {
+    if ( cpfquebraop.length > 0 ) {
         query = query + ' And tbf.NUCPF = \'' + cpfquebraop + '\' ';
     }
     
@@ -80,6 +86,7 @@ function fnHandleGet(byId) {
         query = query + ' AND (tbqc.DTLANCAMENTO BETWEEN \'' + dataPesquisaInic + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\')';
         
     }
+    
     if(stQuebraPositivaNegativa){
         if(stQuebraPositivaNegativa == "Positiva"){
                 query = query + ' And tbqc.VRQUEBRASISTEMA >= 0.0  ';
@@ -87,8 +94,8 @@ function fnHandleGet(byId) {
              query = query + ' And tbqc.VRQUEBRASISTEMA < 0.0  ';
         }
     }
-        
-    var request = { 
+  
+    let request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")
     };

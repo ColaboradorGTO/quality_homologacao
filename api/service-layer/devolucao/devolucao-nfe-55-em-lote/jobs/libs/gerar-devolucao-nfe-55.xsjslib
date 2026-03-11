@@ -1,6 +1,6 @@
 let dbNameSAP = "SBO_GTO_TESTE4";
 let filePathEnviroment = "quality.concentrador_homologacao.api";
-let filePathLibs = `${filePathEnviroment}.service-layer.devolucao.devolucao-nfe-55.jobs.libs`;
+let filePathLibs = `${filePathEnviroment}.service-layer.devolucao.devolucao-nfe-55-em-lote.jobs.libs`;
 
 let api = $.import(`${filePathEnviroment}.apiResponse`, "int_api");
 let slApi = $.import(`${filePathEnviroment}.service-layer.devolucao`, "api");
@@ -317,7 +317,7 @@ function getVendas (idvendasFormatados) {
             INNER JOIN "VAR_DB_NAME".EMPRESA tbe ON 
                 tbe.IDEMPRESA = tbv.IDEMPRESA
             INNER JOIN ${dbNameSAP}.OINV TBO ON 
-                TBV.IDVENDA = TBO."U_ID_VENDA_PDV" AND TBV.SAP_DOCENTRY_CORRETO = TBO."DocEntry"
+                TBV.IDVENDA = TBO."U_ID_VENDA_PDV" /*AND TBV.SAP_DOCENTRY_CORRETO = TBO."DocEntry"*/
             WHERE 
             	1 = ? 
             	AND TBO."CANCELED" = 'N' 
@@ -461,29 +461,15 @@ function executeGerarDevolucao(connDB, session, idvendas){
         
         if(dadosDevolucao["DocumentLines"].length == 0){
             errorLogDevolucaoNFE(registro.IDVENDA, 'Devolucao não realizada, venda sem produtos!');
-            
-            if(stMsgRetorno) {
-                return {
-                    msg: 'Devolucao não realizada, venda sem produtos!'
-                }
-            }
-            
         } else {
             if(fnGeraDevolucaoNoSap(registro.IDVENDA, dadosDevolucao, session, registro.CHAVENFE)){
-                
                 if(!fnReferenciarDevolucaoNoSap(registro.IDVENDA, session)){
-                    if(stMsgRetorno) {
-                        return {
-                            msg: 'Devolucao não referenciada no SAP, não foi possivel gerar a devolução da venda no SAP, verifique o campo ERRORLOGSAP!'
-                        }
-                    }
+                    //errorLogDevolucaoNFE(registro.IDVENDA, 'Devolucao não referenciada no SAP, não foi possivel gerar a devolução da venda no SAP!');
+                    return false;
                 }
             } else {
-                if(stMsgRetorno) {
-                    return {
-                        msg: 'Devolucao não realizada, não foi possivel gerar a devolução da venda no SAP, verifique o campo ERRORLOGSAP!'
-                    } 
-                }
+                //errorLogDevolucaoNFE(registro.IDVENDA, 'Devolucao não realizada, não foi possivel gerar a devolução da venda no SAP!');
+                return false;
             } 
         }
     }

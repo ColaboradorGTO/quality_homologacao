@@ -1,4 +1,4 @@
-let api = $.import("quality.concentrador_homologacao.pi.apiResponse", "int_api");
+let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function setIntOrNull(stmt, fieldId, value) {
 	if (!value) {

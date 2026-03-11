@@ -254,6 +254,49 @@ function ValidaCPF(){
     }
 }
 
+function ValidCpf(cpf) {
+    cpf = cpf.replace(/[^\d]+/g, '');
+    if (cpf == '') return false;
+    // Elimina CPFs invalidos conhecidos	
+    if (cpf.length != 11 ||
+        cpf == "00000000000" ||
+        cpf == "11111111111" ||
+        cpf == "22222222222" ||
+        cpf == "33333333333" ||
+        cpf == "44444444444" ||
+        cpf == "55555555555" ||
+        cpf == "66666666666" ||
+        cpf == "77777777777" ||
+        cpf == "88888888888" ||
+        cpf == "99999999999"){
+        
+        return false;
+      }
+   
+    // Valida 1o digito
+    add = 0;
+    for (i = 0; i < 9; i++)
+        add += parseInt(cpf.charAt(i)) * (10 - i);
+    rev = 11 - (add % 11);
+    if (rev == 10 || rev == 11)
+        rev = 0;
+    if (rev != parseInt(cpf.charAt(9))){
+      return false;
+    }
+    // Valida 2o digito	
+    add = 0;
+    for (i = 0; i < 10; i++)
+        add += parseInt(cpf.charAt(i)) * (11 - i);
+    rev = 11 - (add % 11);
+    if (rev == 10 || rev == 11)
+        rev = 0;
+    if (rev != parseInt(cpf.charAt(10))){
+
+      return false;
+    }
+    return true;
+}
+
 function isValidCPF(cpf) {
     if (typeof cpf !== "string") return false
     cpf = cpf.replace(/[\s.-]*/igm, '')
@@ -1855,7 +1898,7 @@ function pesq_funcionarios_loja() {
     var IDEmpresaPesqVenda = $("#idloja").val();
     var DSNomeFunc = $("#dsNomeFunc").val();
     
-    if(DSNomeFunc.length == 11 || DSNomeFunc.length == 14){
+    if (!/[a-zA-Z]/.test(DSNomeFunc)) {
         DSNomeFunc = DSNomeFunc.replace(/\D/g, '');
     }
     
@@ -1876,7 +1919,7 @@ function pesq_funcionarios_loja() {
 
             $('.dataAtual').text(dataAtual);
 
-            ajaxGet('api/informatica/funcionario-loja.xsjs?pagesize=1000&idEmpresa=' + IDEmpresaPesqVenda + '&dsNomeFunc=' + DSNomeFunc)
+            ajaxGetAllData('api/informatica/funcionario-loja.xsjs?pagesize=1000&idEmpresa=' + IDEmpresaPesqVenda + '&dsNomeFunc=' + DSNomeFunc)
                 .then(retornoListaFuncionariosLoja)
                 .catch(funcError);
         }
@@ -1889,6 +1932,11 @@ function pesq_funcionarios_loja() {
 function chamarProximaListaFuncionario(numPage){
     var IDEmpresaPesqVenda = $("#idloja").val();
     var DSNomeFunc = $("#dsNomeFunc").val();
+    
+    if (!/[a-zA-Z]/.test(DSNomeFunc)) {
+        DSNomeFunc = DSNomeFunc.replace(/\D/g, '');
+    }
+    
     ajaxGet('api/informatica/funcionario-loja.xsjs?page='+numPage+'&pagesize=1000&idEmpresa=' + IDEmpresaPesqVenda + '&dsNomeFunc=' + DSNomeFunc)
                 .then(retornoListaFuncionariosLoja)
                 .catch(funcError);
@@ -1910,16 +1958,20 @@ function retornoListaFuncionariosLoja(respostaListaFuncionariosLoja) {
         for (var i = 0; i < respostaListaFuncionariosLoja.data.length; i++) {
             registroFuncionario = respostaListaFuncionariosLoja.data[i];
     
+            let indice = i + 1;
             idFuncionario = registroFuncionario['ID'];
             noFuncionario = registroFuncionario['NOFUNCIONARIO'];
             matricula = registroFuncionario['IDFUNCIONARIO'];
             noLogin = registroFuncionario['NOLOGIN'];
-            noFuncao = registroFuncionario['DSFUNCAO'];
+            noFuncao = registroFuncionario?.DSFUNCAO ? (registroFuncionario?.DSFUNCAO).toUpperCase() : '';
             DTDemissao = registroFuncionario['DTDEMISSAO'];
             SituacaoFunc = registroFuncionario['STATIVO'];
             TipoFunc = registroFuncionario['DSTIPO'];
-            PercDescFunc = registroFuncionario['PERC'];
-            cpf = registroFuncionario['NUCPF']; 
+            PercDescFunc = parseFloat(registroFuncionario['PERC']);
+            cpf = registroFuncionario['NUCPF'];
+            let telefoneFuncionario = registroFuncionario['TELEFONE'];
+            let stLoja = registroFuncionario.STLOJA || '';
+            let tpContratacao = registroFuncionario.STCONVENIO || '';
             
             if(DTDemissao == null){
                 DTDemissao = '';
@@ -1928,19 +1980,28 @@ function retornoListaFuncionariosLoja(respostaListaFuncionariosLoja) {
             if(TipoFunc == 'PN'){
                 TipoFunc = 'PARCEIRO DE NEGÓCIOS';
             }
+            
+            if(stLoja){
+                stLoja = stLoja == 'True' ? 'LOJA' : 'ESCRITORIO';
+            }
+            
+            if(tpContratacao){
+                tpContratacao = tpContratacao == 'True' ? 'CLT' : 'PJ';
+            }
+            
             if(TipoFunc == 'PNC'){
                 TipoFunc = 'PARCEIRO DE NEGÓCIOS CONVÊNIO';
                 if (SituacaoFunc == 'True') {
-        			STFuncionario = `<label style="color: blue;">Ativo</label>`;
-        			htmlOpcao =   ``;
+        			STFuncionario = `<label class="text-info fw-700">ATIVO</label>`;
+        			//htmlOpcao =   ``;
         		} else {
-        			STFuncionario = `<label style="color: red;">Inativo</label>`;
+        			STFuncionario = `<label class="text-danger fw-700">INATIVO</label>`;
         			htmlOpcao =   ``;
         		}
-            }else{
+            }else{ 
             
         		if (SituacaoFunc == 'True') {
-        			STFuncionario = `<label style="color: blue;">Ativo</label>`;
+        			STFuncionario = `<label class="text-info fw-700">ATIVO</label>`;
         			htmlOpcao =   `<div class="btn-group btn-group-xs">
         			                    <button type="button" class="btn btn-success btn-xs" title="Alterar" id="` +idFuncionario + `" onclick="modal_funcionario_loja(this.id)" >Alterar</button>
         			                    <button type="button" class="btn btn-primary btn-xs" title="Alterar Desconto Autorizado" id="` +idFuncionario + `" onclick="modal_funcionario_Desconto(this.id)" >Desconto</button>
@@ -1949,39 +2010,48 @@ function retornoListaFuncionariosLoja(respostaListaFuncionariosLoja) {
                                         <button type="button" class="btn btn-warning btn-xs" title="Desligar" id="` +idFuncionario + `" onclick="desligar_funcionario(this.id)" >Desligar</button>
                                   </div>`;
         		} else {
-        			STFuncionario = `<label style="color: red;">Inativo</label>`;
+        			STFuncionario = `<label class="text-danger fw-700">INATIVO</label>`;
         			htmlOpcao =   `<div class="btn-group btn-group-xs">
                                         <button type="button" class="btn btn-danger btn-xs" title="Inativar" id="` +idFuncionario + `" onclick="mudar_status_funcionario(this.id,\'True\')" >Ativar</button>
                                   </div>`;
         		}
             }
     		dataRetornoFuncionario.push( [
+    		                    indice,
     		                    cpf,
+                            telefoneFuncionario,
     		                    noFuncionario,
-                                noLogin,
-                                noFuncao,
-                                TipoFunc,
-                                PercDescFunc,
-                                STFuncionario,
-                                DTDemissao,
-                                htmlOpcao
-                                ]);
+                            noLogin,
+                            noFuncao,
+                            stLoja,
+                            tpContratacao,
+                            TipoFunc,
+                            mascaraValor(PercDescFunc.toFixed(2)),
+                            STFuncionario,
+                            DTDemissao,
+                            htmlOpcao
+                            ]);
         }
-        chamarProximaListaFuncionario(numPageAtual+1);
-    }else{
+       // chamarProximaListaFuncionario(numPageAtual+1);
+    }
+    
         $('#resultado').html(
-            `<table id="dt-basic-funcionario-loja" class="table table-bordered table-hover table-striped w-100">
+            `<table id="dt-basic-funcionario-loja" class="table table-bordered table-hover table-striped table-responsive w-100">
                     <thead class="bg-primary-600">
                         <tr>
-                            <th width="10%">CPF</th>
-                            <th width="30%">Funcionário</th>
-                            <th width="10%">Login</th>
-                            <th width="15%">Função</th>
-                            <th width="10%">Tipo</th>
-                            <th width="10%">% Desc.</th>
-                            <th width="10%">Situação</th>
-                            <th width="10%">DT Desl.</th>
-                            <th width="15%"></th>
+                            <th class="text-center" width="10%">#</th>
+                            <th class="text-center" width="10%">CPF</th>
+                            <th class="text-center" width="10%">TELEFONE</th>
+                            <th class="text-center" width="30%">Funcionário</th>
+                            <th class="text-center" width="10%">Login</th>
+                            <th class="text-center" width="15%">Função</th>
+                            <th class="text-center" width="15%">Localização</th>
+                            <th class="text-center" width="15%">Tp.Contratação</th>
+                            <th class="text-center" width="10%">Tipo</th>
+                            <th class="text-center" width="10%">% Desc.</th>
+                            <th class="text-center" width="10%">Situação</th>
+                            <th class="text-center" width="10%">DT Desl.</th>
+                            <th class="text-center" width="15%"></th>
                         </tr>
                     </thead>
                     <tbody id="resultadoListFuncionario">
@@ -2023,90 +2093,67 @@ function retornoListaFuncionariosLoja(respostaListaFuncionariosLoja) {
                     ]
         } );
         
-    }
+    
+    
+    $('#resultadoListFuncionario tr').on('click', (event)=>{
+        let element = event.currentTarget;
+        
+        if($(element).hasClass('selected')){
+            $(element).removeClass('selected').removeAttr('style');
+        } else {
+            $('#resultadoListFuncionario tr').removeClass('selected').removeAttr('style')
+            $(element).addClass('selected').css("opacity", 0.9).css("font-weight", 'bold')
+        }
+    })
     
 }
 
 //
 
-function ValidaCpf(cpf) {
-  cpf = cpf.replace(/[^\d]+/g,'');	
-	if(cpf == '') return false;	
-	// Elimina CPFs invalidos conhecidos	
-	if (cpf.length != 11 || 
-		cpf == "00000000000" || 
-		cpf == "11111111111" || 
-		cpf == "22222222222" || 
-		cpf == "33333333333" || 
-		cpf == "44444444444" || 
-		cpf == "55555555555" || 
-		cpf == "66666666666" || 
-		cpf == "77777777777" || 
-		cpf == "88888888888" || 
-		cpf == "99999999999")
-    Swal.fire({
-      type: 'error',
-      title: 'CPF Inválido, verifique o CPF digitado e tente novamente',
-      timer: 15000
-    })	
-    $("#cpfFuncionario").focus();				
-	// Valida 1o digito	
-	add = 0;	
-	for (i=0; i < 9; i ++)		
-		add += parseInt(cpf.charAt(i)) * (10 - i);	
-		rev = 11 - (add % 11);	
-		if (rev == 10 || rev == 11)		
-			rev = 0;	
-		if (rev != parseInt(cpf.charAt(9)))		
-    Swal.fire({
-      type: 'error',
-      title: 'CPF Inválido, verifique o CPF digitado e tente novamente',
-      timer: 15000
-    })
-    $("#cpfFuncionario").focus();	
-	// Valida 2o digito	
-	add = 0;	
-	for (i = 0; i < 10; i ++)		
-		add += parseInt(cpf.charAt(i)) * (11 - i);	
-	rev = 11 - (add % 11);	
-	if (rev == 10 || rev == 11)	
-		rev = 0;	
-	if (rev != parseInt(cpf.charAt(10)))
-  Swal.fire({
-    type: 'error',
-    title: 'CPF Inválido, verifique o CPF digitado e tente novamente',
-    timer: 15000
-  })
-  $("#cpfFuncionario").focus();			
-	return true;   
-}
+async function modal_funcionario_loja(id) {
 
-function modal_funcionario_loja(id) {
+    await $.get('informatica_action_updatefuncionariomodal.html', async function(res) {
 
-    $.get('informatica_action_updatefuncionariomodal.html', function(res) {
- 
-    $('#resulmodalfuncionario').html(res);
-    $('#cadFuncionario').modal({
-      backdrop: 'static',
-      keyboard: false
-    });
-
-    $("#cadFuncionario").modal('show');
-    $('#cadFuncionario').on('shown.bs.modal', function () { });
-
-    $('#cadFuncionario').on('shown.bs.modal', function () {
-      $(document).off('focusin.modal');
-    })
+        $('#resulmodalfuncionario').html(res);
+        // $('#cadFuncionario').modal({
+        //     backdrop: 'static',
+        //     keyboard: false
+        // });
         
-        for (var i = 0; i < listaEmpresas.length; i++) {
-
-            IDEmpresa = listaEmpresas[i]['IDEMPRESA'];
-            DSEmpresa = listaEmpresas[i]['NOFANTASIA'];
-
-            $('#empresaFuncionario').append(
-                `<option value="` + IDEmpresa + `"> ` + DSEmpresa + `</option>`
-            );
-        }
+        $("#cadFuncionario").modal('show');
+        $('#cadFuncionario').on('shown.bs.modal', function() {});
+        
+         $('#cadFuncionario').on('shown.bs.modal', function() {
+          $(document).off('focusin.modal');
+        });
+        
+        await ajaxGet('api/informatica/empresa.xsjs')
+            .then(async (resp)=>{
+                listaEmpresas = resp?.data;
+                
+                if(listaEmpresas?.length){
+                    $('#empresaFuncionario').html('');
+                    
+                    $('#empresaFuncionario').append(
+                        `<option value="" title="Selecione">Selecione</option>`
+                    );
+                    
+                    for (var i = 0; i < listaEmpresas.length; i++) {
+                        
+                        let IDEmpresa = listaEmpresas[i]['IDEMPRESA'];
+                        let DSEmpresa = listaEmpresas[i]['NOFANTASIA'];
+                        let idSubGrupoEmpresa = listaEmpresas[i]['IDSUBGRUPOEMPRESARIAL'];
+                        
+                        $('#empresaFuncionario').append(
+                            `<option value="${IDEmpresa}" title="${idSubGrupoEmpresa}">${DSEmpresa}</option>`
+                        );
+                    }
+                }
+                
+                return true
+                
+            })
+            .catch(funcErrorListaEmpresasSelect);
 
         $("#empresaFuncionario").select2({
             dropdownParent: $("#cadFuncionario")
@@ -2115,76 +2162,133 @@ function modal_funcionario_loja(id) {
         $("#tipoFuncionario").select2({
             dropdownParent: $("#cadFuncionario")
         });
+        
         $("#funcaoFuncionario").select2({
             dropdownParent: $("#cadFuncionario")
         });
-
+        
+        $("#tpLocalizacaoFunc").select2()
+        
         if (id > 0) {
             $("#footerfuncionario").html(`<button type="button" class="btn btn-success" onclick="update_funcionario()">Atualizar</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`);
 
             ajaxGet('api/informatica/funcionario-loja.xsjs?pagesize=1000&id=' + id)
+            
                 .then(retornoAtualizaFuncionario)
                 .catch(funcError);
+               
         } else {
-            // $("#footerfuncionario").html(`<button type="button" class="btn btn-success" onclick="validar_cadastrar_funcionario()">Cadastrar</button>
-            // <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`);
+            /*$("#spcSenha").html(`
+                <div class="col-sm-4 col-xl-4"><label class="form-label" for="stativofuncionario">Situação</label>
+                    <div class="input-group">
+                        <select class="select2 form-control" name="stativofunc" id="stativofunc">
+                            <option value="True">ATIVO</option>
+                            <option value="False">INATIVO</option>
+                        </select>
+                    </div>
+                </div>`);*/
+                
+            $('.senhaFuncionario').addClass('d-none');
+            $('.repeteSenhaFuncionario').addClass('d-none');
             
-             $('.senhaFuncionario').addClass('d-none');
-              $('.repeteSenhaFuncionario').addClass('d-none');
-              $('#dataAdmissao').val(dataAdmissao);
-              $("#footerfuncionario").html(`<button type="button" class="btn btn-success" onclick="validar_cadastrar_funcionario()">Cadastrar</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`);
-        
-              ajaxGet('api/informatica/funcionario-ultimoID.xsjs?pagesize=1000&id=')
+            $("#footerfuncionario").html(`<button type="button" class="btn btn-success" onclick="validar_cadastrar_funcionario()">Cadastrar</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`);
+            
+            ajaxGet('api/informatica/funcionario-ultimoID.xsjs?pagesize=1000&id=')
                 .then(retornoUltimoIDFuncionario)
-                .catch(funcError);
+                // .catch(funcError);
+            
         }
+        
+        // $("#NotificacaoModalFuncionario").html('');
 
     })
 
 }
 
-function retornoUltimoIDFuncionario(respostaUltimoIDFuncionario) {
-      // 1. Obter a data de admissão original (data atual)
-      let dataAdmissaoOriginal = new Date();
-      let dataFormatadaOriginal = dataAdmissaoOriginal.toISOString().split('T')[0];
-  
-      // 2. Calcular intervalo permitido (últimos 45 dias)
-      const hoje = new Date();
-      const primeiroDiaPermitido = new Date();
-      primeiroDiaPermitido.setDate(hoje.getDate() - 45);
-      
-      // 3. Formatar datas para input[type="date"]
-      const formatarData = (date) => date.toISOString().split('T')[0];
-  
-      // 4. Definir valores mínimos e máximos no input
-      $("#dataAdmissao")
-        .val(dataFormatadaOriginal)
-        .attr("min", formatarData(primeiroDiaPermitido))
-        .attr("max", formatarData(hoje))
-        .prop('disabled', false);
-  
-      // 5. Validar data selecionada pelo usuário
-      $("#dataAdmissao").on('change', function () {
-        const dataSelecionada = new Date(this.value);
+function buscaCPF(numCPF){
+    if(!$('#cpfFuncionario').attr('readonly')){
+        let cpfFormatado = numCPF.replace(/\D/g, "");
         
-        if (dataSelecionada < primeiroDiaPermitido || dataSelecionada > hoje) {
-          alert("Só é permitido alterar para datas dentro dos últimos 45 dias.");
-          this.value = dataFormatadaOriginal;
+        ValidaCpfFuncionario(cpfFormatado);
+        
+        if(cpfFormatado.length >= 9){
+        
+            ajaxGet('api/informatica/funcionario-loja.xsjs?pagesize=1000&nuCPF=' + cpfFormatado)
+                        .then(retornoAtualizaFuncionario)
+                        .catch(funcError);
         }
-      });
-  
-  id = respostaUltimoIDFuncionario.data[0]['ID'];
-  $("#IDFuncionarioAtualizar").val(id);
+    }
 }
 
-function carregaDadosFuncionario(cpf) {
-  let cpfFormatado = cpf.replace(/\D/g, '').trim();
-
-  ajaxGet('api/informatica/funcionario-loja.xsjs?pagesize=1000&nuCPF=' + cpfFormatado)
-    .then(retornoAtualizaFuncionario)
-    .catch(funcError);
+function ValidaCpfFuncionario(cpf) {
+  cpf = cpf.replace(/[^\d]+/g,'');	
+	if(cpf == '') return false;	
+	// Elimina CPFs invalidos conhecidos	
+	if (cpf.length != 11 || 
+		cpf == "00000000000" || 
+		cpf == "11111111111" || 
+		cpf == "22222222222" || 
+		cpf == "33333333333" ||   
+		cpf == "44444444444" || 
+		cpf == "55555555555" || 
+		cpf == "66666666666" || 
+		cpf == "77777777777" || 
+		cpf == "88888888888" || 
+		cpf == "99999999999") {
+        $("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> CPF Inválido, verifique e tente novamente</div>"
+		);
+		
+		return false;
+        $("#cpfFuncionario").val('');
+        $("#cpfFuncionario").focus();		
+	}
+	// Valida 1o digito	
+	add = 0;	
+	for (i=0; i < 9; i ++)		
+		add += parseInt(cpf.charAt(i)) * (10 - i);	
+		rev = 11 - (add % 11);	
+		if (rev == 10 || rev == 11)		
+			rev = 0;	
+		if (rev != parseInt(cpf.charAt(9)))	{	
+            $("#NotificacaoModalFuncionario").html(
+    			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+    			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+    			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+    			"</button>" +
+    			"<strong>Atenção!</strong> CPF Inválido, verifique e tente novamente</div>"
+		    );
+            return false;
+            $("#cpfFuncionario").val('');
+            $("#cpfFuncionario").focus();		
+		}
+	// Valida 2o digito	
+	add = 0;	
+	for (i = 0; i < 10; i ++)		
+		add += parseInt(cpf.charAt(i)) * (11 - i);	
+	rev = 11 - (add % 11);	
+	if (rev == 10 || rev == 11)	
+		rev = 0;	
+	if (rev != parseInt(cpf.charAt(10))){
+        $("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> CPF Inválido, verifique e tente novamente</div>"
+	    );
+        return false;
+        $("#cpfFuncionario").val('');
+        $("#cpfFuncionario").focus();	
+	}
+	$("#NotificacaoModalFuncionario").html('')
+	return true;   
 }
 
 function modal_funcionario_Desconto(id) {
@@ -2202,9 +2306,10 @@ function modal_funcionario_Desconto(id) {
 
             IDEmpresa = listaEmpresas[i]['IDEMPRESA'];
             DSEmpresa = listaEmpresas[i]['NOFANTASIA'];
+            let idSubGrupoEmpresa = listaEmpresas[i]['IDSUBGRUPOEMPRESARIAL'];
 
-            $('#empresaFuncionarioDesc').append(
-                ` + DSEmpresa + `
+            $('#empresaFuncionario').append(
+                `<option value="${IDEmpresa}" title="${idSubGrupoEmpresa}">${DSEmpresa}</option>`
             );
         }
 
@@ -2221,63 +2326,143 @@ function modal_funcionario_Desconto(id) {
 
 }
 
+// function retornoUltimoIDFuncionario(respostaUltimoIDFuncionario) {
+//     // 1. Obter a data de admissão original (data atual)
+//       let dataAdmissaoOriginal = new Date();
+//       let dataFormatadaOriginal = dataAdmissaoOriginal.toISOString().split('T')[0];
+  
+//     // //   2. Calcular intervalo permitido (últimos 45 dias)
+//       const hoje = new Date();
+//       const primeiroDiaPermitido = new Date();
+//       primeiroDiaPermitido.setDate(hoje.getDate() - 45);
+      
+//     // //   3. Formatar datas para input[type="date"]
+//       const formatarData = (date) => date.toISOString().split('T')[0];
+  
+//     // //   4. Definir valores mínimos e máximos no input
+//       $("#dataAdmissao")
+//         .val(dataFormatadaOriginal)
+//         .attr("min", formatarData(primeiroDiaPermitido))
+//         .attr("max", formatarData(hoje))
+//         .prop('disabled', false);
+  
+//     //   5. Validar data selecionada pelo usuário
+//       $("#dataAdmissao").on('change', function () {
+//         const dataSelecionada = new Date(this.value);
+        
+//         if (dataSelecionada < primeiroDiaPermitido || dataSelecionada > hoje) {
+//           alert("Só é permitido alterar para datas dentro dos últimos 45 dias.");
+//           this.value = dataFormatadaOriginal;
+//         }
+//       });
+      
+//     id = respostaUltimoIDFuncionario.data[0]['ID'];
+//     $("#IDFuncionarioAtualizar").val(id);
+// }
+
+function retornoUltimoIDFuncionario(respostaUltimoIDFuncionario) {
+    // 1. Obter a data de admissão original (data atual)
+      let dataAdmissaoOriginal = new Date();
+      let dataFormatadaOriginal = dataAdmissaoOriginal.toISOString().split('T')[0];
+  
+    // //   2. Calcular intervalo permitido (últimos 45 dias)
+      const hoje = new Date();
+      const primeiroDiaPermitido = new Date();
+      primeiroDiaPermitido.setDate(hoje.getDate() - 45);
+      
+    // //   3. Formatar datas para input[type="date"]
+      const formatarData = (date) => date.toISOString().split('T')[0];
+  
+    // //   4. Definir valores mínimos e máximos no input
+      // Calcular intervalo permitido (30 dias para trás e 30 dias para frente)
+      const maximoDiaPermitido = new Date();
+      maximoDiaPermitido.setDate(hoje.getDate() + 30);
+      
+      $("#dataAdmissao")
+        .val(dataFormatadaOriginal)
+        .attr("min", formatarData(primeiroDiaPermitido))
+        .prop('disabled', false);
+  
+    //   5. Validar data selecionada pelo usuário
+      $("#dataAdmissao").on('change', function () {
+        const dataSelecionada = new Date(this.value);
+        
+        if (dataSelecionada < primeiroDiaPermitido) {
+          alert("Só é permitido alterar para datas dentro dos últimos 45 dias.");
+          this.value = dataFormatadaOriginal;
+        }
+      });
+      
+    id = respostaUltimoIDFuncionario.data[0]['ID'];
+    $("#IDFuncionarioAtualizar").val(id);
+}
+
+function maskCPF(CPF) {
+  return CPF.substring(0, 3) + "." + CPF.substring(3, 6) + "." + CPF.substring(6, 9) + "-" + CPF.substring(9, 11);
+}
+
 function retornoAtualizaFuncionario(respostaAtualizaFuncionario) {
 
   if (respostaAtualizaFuncionario.data.length) {
     for (var i = 0; i < respostaAtualizaFuncionario.data.length; i++) {
 
-      if (respostaAtualizaFuncionario.data[i]['STATIVO'] == "True") {
+      //if (respostaAtualizaFuncionario.data[i]['STATIVO'] == "True") {
 
         id = respostaAtualizaFuncionario.data[i]['ID'];
         idFuncionario = respostaAtualizaFuncionario.data[i]['IDFUNCIONARIO']
         nomeFuncionario = respostaAtualizaFuncionario.data[i]['NOFUNCIONARIO']
         nomeEmpresa = respostaAtualizaFuncionario.data[i]['NOFANTASIA']
         loginFunc = respostaAtualizaFuncionario.data[i]['NOLOGIN']
-
         let idEmpresaFuncionario = respostaAtualizaFuncionario.data[i]['IDEMPRESA']
         funcao = respostaAtualizaFuncionario.data[i]['DSFUNCAO']
         tipo = respostaAtualizaFuncionario.data[i]['DSTIPO']
         cpf = respostaAtualizaFuncionario.data[i]['NUCPF']
+        let telefone = respostaAtualizaFuncionario.data[i]['TELEFONE']
         valorSalario = respostaAtualizaFuncionario.data[i]['VALORSALARIO']
         valorPerc = respostaAtualizaFuncionario.data[i]['PERC']
         valorDisponivel = respostaAtualizaFuncionario.data[i]['VALORDISPONIVEL']
-        // 1. Obter a data de admissão original
-       let dataAdmissaoOriginal = new Date(respostaAtualizaFuncionario.data[i]['DATA_ADMISSAO']);
-       let dataFormatadaOriginal = dataAdmissaoOriginal.toISOString().split('T')[0];
+        dataAdmissao = respostaAtualizaFuncionario.data[i]['DATA_ADMISSAO']
+      
+        let stConvenio = respostaAtualizaFuncionario.data[i]['STCONVENIO'];
+        let stDescontoFolha = respostaAtualizaFuncionario.data[i]['STDESCONTOFOLHA'];
+        let stLoja = respostaAtualizaFuncionario.data[i]?.STLOJA || "";
+
+        pass = respostaAtualizaFuncionario.data[i]['PWSENHA']
+        stAtivo = respostaAtualizaFuncionario.data[i]['STATIVO']
+        
+          // 1. Obter a data de admissão original
+        let dataAdmissaoOriginal = new Date(respostaAtualizaFuncionario.data[i]['DATA_ADMISSAO']);
+        let dataFormatadaOriginal = dataAdmissaoOriginal.toISOString().split('T')[0];
        
        // 2. Configurar o campo (SEMPRE habilitado)
-       $("#dataAdmissao").val(dataFormatadaOriginal).prop('disabled', false);
+        $("#dataAdmissao").val(dataFormatadaOriginal).prop('disabled', false);
        
        // 3. Calcular intervalo do mês atual
-       const hoje = new Date();
-       const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 45);
-       const ultimoDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+        const hoje = new Date();
+        const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 45);
+        const ultimoDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
        
       
-       const formatarData = (date) => date.toISOString().split('T')[0];
+        const formatarData = (date) => date.toISOString().split('T')[0];
        
       
-       $("#dataAdmissao").on('change', function() {
-           const dataSelecionada = new Date(this.value);
+      $("#dataAdmissao").on('change', function() {
+          const dataSelecionada = new Date(this.value);
            
            
-           if (dataSelecionada < primeiroDiaMes || dataSelecionada > ultimoDiaMes) {
-               alert("Só é permitido alterar para datas dos últimos 45 dias.");
+          if (dataSelecionada < primeiroDiaMes) {
+              alert("Só é permitido alterar para datas dos últimos 45 dias.");
         
-               this.value = dataFormatadaOriginal;
-           }
-       });
+              this.value = dataFormatadaOriginal;
+          }
+      });
 
 
       $("#dataAdmissao").on('click', function() {
         this.setAttribute('min', formatarData(primeiroDiaMes));
-        this.setAttribute('max', formatarData(ultimoDiaMes));
+        // this.setAttribute('max', formatarData(ultimoDiaMes));
       });
-      
-        pass = respostaAtualizaFuncionario.data[i]['PWSENHA']
-        stAtivo = respostaAtualizaFuncionario.data[i]['STATIVO']
-       
-        for (var i = 0; i < listaEmpresas.length; i++) {
+      /* for (var i = 0; i < listaEmpresas.length; i++) {
 
           IDEmpresa = listaEmpresas[i]['IDEMPRESA'];
           DSEmpresa = listaEmpresas[i]['NOFANTASIA'];
@@ -2285,18 +2470,13 @@ function retornoAtualizaFuncionario(respostaAtualizaFuncionario) {
           $('#empresaFuncionario').append(
             `<option value="` + IDEmpresa + `"> ` + DSEmpresa + `</option>`
           );
-        }
-
+        }*/
+        
         $("#IDFuncionarioAtualizar").val(id);
         $("#nomefuncionario").val(nomeFuncionario);
 
         $("#codigoFuncionario").val(idFuncionario);
-        if (dataAdmissao) {
-          let date = new Date(dataAdmissao);
-          let formattedDate = date.toISOString().split('T')[0];
-          $('#dataAdmissao').val(formattedDate);
-        }
-        
+
         $('#empresaFuncionario').val(idEmpresaFuncionario);
         $('#empresaFuncionario').trigger('change');
         $("#loginFuncionario").val(loginFunc);
@@ -2309,26 +2489,44 @@ function retornoAtualizaFuncionario(respostaAtualizaFuncionario) {
 
         $("#tipoFuncionario").val(tipo);
         $('#tipoFuncionario').trigger('change');
+        
+        $('.senhaFuncionario').removeClass('d-none');
+        $('.repeteSenhaFuncionario').removeClass('d-none');
 
         $('#stativofunc').val(stAtivo)
         $('#stativofunc').trigger('change');
 
-        $("#cpfFuncionario").val(cpf);
+        $("#cpfFuncionario").val(maskCPF(cpf));
+        $('#telefoneFuncionario').val(mascaraTelefone(telefone));
         $("#CPFCadastrado").val(cpf);
         $("#valorSalFunc").val(valorSalario);
         $("#percDescFunc").val(valorPerc);
         $("#valorDescFunc").val(valorDisponivel);
-
+        
+        if (dataAdmissao) {
+          let date = new Date(dataAdmissao);
+          let formattedDate = date.toISOString().split('T')[0];
+          $('#dataAdmissao').val(formattedDate);
+        }
+        
         $('#nomefuncionario').attr('readonly', false);
         $('#empresaFuncionario').attr('disabled', false);
-        $('#cpfFuncionario').attr('readonly', true);
+        cpf.length == 11 && $('#cpfFuncionario').attr('readonly', true);
         $('#funcaoFuncionario').attr('disabled', false);
 
         $("#footerfuncionario").html(`<button type="button" class="btn btn-success" onclick="update_funcionario()">Atualizar</button>
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>`);
         
+        $('#tpLocalizacaoFunc').val(stLoja).trigger('change');
+        
+        if(stConvenio == 'True' && stDescontoFolha == 'True'){
+            $('#radioCLT').attr('checked', true);
+        }else if(stConvenio == 'False' && stDescontoFolha == 'False'){
+            $('#radioPJ').attr('checked', true);
+        }
+        
         break
-      }
+      //}
     }
   }
 }
@@ -2337,23 +2535,24 @@ function retornoAtualizaFuncionarioDesconto(respostaAtualizaFuncionarioDesc) {
 
     for (var i = 0; i < respostaAtualizaFuncionarioDesc.data.length; i++) {
         idDesc = respostaAtualizaFuncionarioDesc.data[i]['ID'];
-        idFuncionarioDesc = respostaAtualizaFuncionarioDesc.data[i]['IDFUNCIONARIO']
-        nomeFuncionarioDesc = respostaAtualizaFuncionarioDesc.data[i]['NOFUNCIONARIO']
-        nomeEmpresaDesc = respostaAtualizaFuncionarioDesc.data[i]['NOFANTASIA']
+        idFuncionarioDesc = respostaAtualizaFuncionarioDesc.data[i]['IDFUNCIONARIO'];
+        nomeFuncionarioDesc = respostaAtualizaFuncionarioDesc.data[i]['NOFUNCIONARIO'];
+        nomeEmpresaDesc = respostaAtualizaFuncionarioDesc.data[i]['NOFANTASIA'];
 
-        let idEmpresaFuncionarioDesc = respostaAtualizaFuncionarioDesc.data[i]['IDEMPRESA']
-        cpfDesc = respostaAtualizaFuncionarioDesc.data[i]['NUCPF']
-        valorPercAutorizado = respostaAtualizaFuncionarioDesc.data[i]['PERCDESCUSUAUTORIZADO']
-        dtIniDesc = respostaAtualizaFuncionarioDesc.data[i]['DTINICIODESC']
-        dtFimDesc = respostaAtualizaFuncionarioDesc.data[i]['DTFIMDESC']
+        let idEmpresaFuncionarioDesc = respostaAtualizaFuncionarioDesc.data[i]['IDEMPRESA'];
+        cpfDesc = respostaAtualizaFuncionarioDesc.data[i]['NUCPF'];
+        valorPercAutorizado = parseFloat(respostaAtualizaFuncionarioDesc.data[i]['PERCDESCUSUAUTORIZADO']);
+        dtIniDesc = respostaAtualizaFuncionarioDesc.data[i]['DTINICIODESC'];
+        dtFimDesc = respostaAtualizaFuncionarioDesc.data[i]['DTFIMDESC'];
 
         for (var i = 0; i < listaEmpresas.length; i++) {
 
             IDEmpresa = listaEmpresas[i]['IDEMPRESA'];
             DSEmpresa = listaEmpresas[i]['NOFANTASIA'];
+            let idSubGrupoEmpresa = listaEmpresas[i]['IDSUBGRUPOEMPRESARIAL'];
 
-            $('#empresaFuncionarioDesc').append( 
-                ` + DSEmpresa + `
+            $('#empresaFuncionario').append(
+                `<option value="${IDEmpresa}" title="${idSubGrupoEmpresa}">${DSEmpresa}</option>`
             );
         }
 
@@ -2363,215 +2562,130 @@ function retornoAtualizaFuncionarioDesconto(respostaAtualizaFuncionarioDesc) {
         $('#empresaFuncionarioDesc').val(idEmpresaFuncionarioDesc);
 
         $("#cpfFuncionarioDesc").val(cpfDesc);
-        $("#percDescFuncAlt").val(valorPercAutorizado);
+        $("#percDescFuncAlt").val(mascaraValor(valorPercAutorizado.toFixed(2)));
         
         $('#dtInicioDesc').val(dtIniDesc);
         $('#dtFimDesc').val(dtFimDesc);
     }
 }
 
-// function retornoCadastrarFuncionario(respostaCadastroFuncionario) {
+function validar_cadastrar_funcionario() {
 
-//     idFuncionario = 0;
-//     nomeFuncionario = '';
-//     matricula = '';
-//     cpf = 0;
-
-//     id = $("#IDFuncionarioAtualizar").val();
-//     var NLoginAtualizar = $("#loginFuncionario").val();
-//     var NSenhaAtualizar = $("#repeteSenhaFuncionario").val();
-//     var SenhaAtualizar = $("#senhaFuncionario").val();
-//     var nomefuncionario = $("#nomefuncionario").val();
-//     var cpfFuncionario = $("#cpfFuncionario").val().replace(/\D/g, '').trim();
-//     var cpfCadastrado = $("#CPFCadastrado").val();
-//     var funcaoFuncionario = $("#funcaoFuncionario").val();
-//     var TipoFuncionario = $("#tipoFuncionario").val();
-//     var vrsalarioFuncionario = $("#valorSalFunc").val().replace(".", "").replace(",", ".");
-//     var vrdesconto = $("#percDescFunc").val().replace(".", "").replace(",", ".");
-//     var vrdisponivel = $("#valorDescFunc").val().replace(".", "").replace(",", "."); 
-//     var empresaFuncionario = $("#empresaFuncionario").val();
-//     var idfuncionarioNovo = $("#codigoFuncionario").val();
-//     var STAtivo = $("#stativofunc").val();
-//     var cpfFuncionarioSemMask = cpfFuncionario;
-//     cpfFuncionarioSemMask = cpfFuncionarioSemMask.replace(/\D/g, '').trim();
-//     idNovo = parseFloat(id) + 1;
-
-//     if(respostaCadastroFuncionario.data.length){ 
-//             idFuncionario = respostaCadastroFuncionario.data[0]['IDFUNCIONARIO'];
-//             nomeFuncionario = respostaCadastroFuncionario.data[0]['NOFUNCIONARIO'];
-//             matricula = respostaCadastroFuncionario.data[0]['NOLOGIN'];
-//             cpf = respostaCadastroFuncionario.data[0]['NUCPF'];
-//     }
-
-//         if(cpf == cpfFuncionarioSemMask && respostaCadastroFuncionario.data.length){
-//             $("#cadFuncionario").modal('hide');
-//             Swal.fire({
-//                 type: "error",
-//                 title: 'Já existe um Colaborador cadastrado com esse CPF! Nome: '+nomeFuncionario+' - Matrícula: '+matricula + " , Porém, está INATIVO ou foi DESLIGADO, Ative o Funcionário e tente novamente",
-//                 showConfirmButton: false,
-//                 timer: 10000
-//             });
-//         }else{
-//             if(!empresaFuncionario){
-//             	$("#NotificacaoModalFuncionario").html(
-//         			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-//         			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-//         			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-//         			"</button>" +
-//         			"<strong>Atenção!</strong> Informe a Empresa do Funcionário!</div>"
-//         		);
-//         		$("#empresaFuncionario").focus();
-//         		return false;
-//             }
-//             if(!funcaoFuncionario){
-//             	$("#NotificacaoModalFuncionario").html(
-//         			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-//         			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-//         			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-//         			"</button>" +
-//         			"<strong>Atenção!</strong> Informe a Função do Funcionário!</div>"
-//         		);
-//         		$("#funcaoFuncionario").focus();
-//         		return false;
-//             }
-//             if(!TipoFuncionario){
-//             	$("#NotificacaoModalFuncionario").html(
-//         			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-//         			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-//         			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-//         			"</button>" +
-//         			"<strong>Atenção!</strong> Informe o Tipo do Funcionário!</div>"
-//         		);
-//         		$("#tipoFuncionario").focus();
-//         		return false;
-//             }
-//             if(!cpfFuncionario){
-//             	$("#NotificacaoModalFuncionario").html(
-//         			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-//         			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-//         			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-//         			"</button>" +
-//         			"<strong>Atenção!</strong> Informe CPF do Funcionário!</div>"
-//         		);
-//         		$("#cpfFuncionario").focus();
-//         		return false;
-//             }
-            
-            
-            
-//             if(ValidaCPF()== false){
-//             	$("#NotificacaoModalFuncionario").html(
-//         			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-//         			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-//         			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-//         			"</button>" +
-//         			"<strong>Atenção!</strong> CPF do Funcionário Inválido!</div>"
-//         		);
-//         		$("#cpfFuncionario").focus();
-//         		return false;
-//             }
-            
-//             if(!nomefuncionario){
-//             	$("#NotificacaoModalFuncionario").html(
-//         			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-//         			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-//         			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-//         			"</button>" +
-//         			"<strong>Atenção!</strong> Informe Nome do Funcionário!</div>"
-//         		);
-//         		$("#nomefuncionario").focus();
-//         		return false;
-//             }
-            
-//             if(!vrdesconto){
-//             	$("#NotificacaoModalFuncionario").html(
-//         			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-//         			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-//         			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-//         			"</button>" +
-//         			"<strong>Atenção!</strong> Informe o Desconto do Funcionário!</div>"
-//         		);
-//         		$("#percDescFunc").focus();
-//         		return false;
-//             }
-            
-//             if(!SenhaAtualizar || !NSenhaAtualizar){
-//             	$("#NotificacaoModalFuncionario").html(
-//         			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-//         			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-//         			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-//         			"</button>" +
-//         			"<strong>Atenção!</strong> Informe corretamente os campos da senha do Funcionário!</div>"
-//         		);
-//         		$("#senhaFuncionario").focus();
-//         		return false;
-//             }
-            
-//             //  var dados = [{ 
-//             //     "IDFUNCIONARIO": parseInt(idNovo),
-//             //     "IDSUBGRUPOEMPRESARIAL": parseInt(idSubGrupoEmpresarial),
-//             //     "IDEMPRESA": parseInt(empresaFuncionario),
-//             //     "NOFUNCIONARIO": nomefuncionario,
-//             //     "NUCPF": cpfFuncionarioSemMask,
-//             //     "NOLOGIN": idNovo.toString(),
-//             //     "PWSENHA": NSenhaAtualizar,
-//             //     "DSFUNCAO": funcaoFuncionario,
-//             //     "VALORSALARIO": parseFloat(vrsalarioFuncionario),
-//             //     "PERC": parseFloat(vrdesconto),
-//             //     "STATIVO":'True',
-//             //     "DSTIPO": TipoFuncionario,
-//             //     "VALORDISPONIVEL": parseFloat(vrdisponivel),
-//             //     STCONVENIO,
-//             //     STDESCONTOFOLHA
-//             // }];
-            
-//             var dados = [{ 
-//                 "IDEMPRESA": parseInt(empresaFuncionario),
-//                 "NOFUNCIONARIO": nomefuncionario.toUpperCase(),
-//                 "NUCPF": cpfFuncionario,
-//                 "NOLOGIN": idNovo.toString(),
-//                 "PWSENHA": NSenhaAtualizar,
-//                 "DSFUNCAO": funcaoFuncionario,
-//                 "VALORSALARIO": parseFloat(vrsalarioFuncionario),
-//                 "PERC": parseFloat(vrdesconto),
-//                 "STATIVO":'True',
-//                 "DSTIPO": TipoFuncionario,
-//                 "VALORDISPONIVEL": parseFloat(vrdisponivel)
-//             }];
+    let cpfFuncionario = $("#cpfFuncionario").val();
+    cpfFuncionario = cpfFuncionario.replace(/\D/g, '');
+    let empresaFuncionario = $("#empresaFuncionario").val();
+    let funcaoFuncionario = $("#funcaoFuncionario").val();
+    let tipoFuncionario = $("#tipoFuncionario").val();
+    let nomefuncionario = $("#nomefuncionario").val();
+    let stLoja = $('#tpLocalizacaoFunc').val() || null;
+    let tipoContracao = $('#radioCLT:checked')?.length ? 'True' : $('#radioPJ:checked')?.length ? 'False' : null;
+    let dataAdmissao = $("#dataAdmissao").val();
+    let telefoneFuncionario = $("#telefoneFuncionario").val(); 
     
-//             if (SenhaAtualizar == NSenhaAtualizar && !respostaCadastroFuncionario.data.length) {
-             
+    if(empresaFuncionario==0){
+    	$("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> Informe a Empresa do Funcionário!</div>"
+		);
+		$("#empresaFuncionario").focus();
+		return false;
+    }
+    
+    if(funcaoFuncionario==0){
+    	$("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> Informe a Função do Funcionário!</div>"
+		);
+		$("#funcaoFuncionario").focus();
+		return false;
+    }
+    
+    if(cpfFuncionario=='' || cpfFuncionario < 14){
+    	$("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> Informe o CPF do Funcionário!</div>"
+		);
+		$("#cpfFuncionario").focus();
+		
+		ValidaCpf(cpfFuncionario)
+		return false;
+    }
+    
+    if(nomefuncionario==''){
+    	$("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> Informe o Nome do Funcionário!</div>"
+		);
+		$("#nomefuncionario").focus();
+		return false;
+    }
+    
+    if(tipoFuncionario==0){
+    	$("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> Informe o Tipo do Funcionário!</div>"
+		);
+		$("#tipoFuncionario").focus();
+		return false;
+    }
+    
+    if(!stLoja){
+        $("#NotificacaoModalFuncionario").html(
+            "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+            "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+            "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+            "</button>" +
+            "<strong>Atenção!</strong> Informe a Localização do Funcionário!</div>"
+        );
+        $("#tpLocalizacaoFunc").focus();
+        $("#tpLocalizacaoFunc").select2('open');
+        return false;
+    }
+    
+    if(!tipoContracao){
+        $("#NotificacaoModalFuncionario").html(
+            "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+            "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+            "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+            "</button>" +
+            "<strong>Atenção!</strong> Informe a Categoria de Contrataçao do Funcionário!</div>"
+        );
+        $("#tipoContratacao").focus();
+        return false;
+    }
 
-//                     ajaxPost("api/informatica/funcionario-loja.xsjs", dados)
-//                         .then(funcSucessPostFuncionario)
-//                         .catch(funcError);
-                        
-//                     	const textdados = JSON.stringify(dados);
-                    
-//                     	textoFuncao = 'INFORMATICA/CADASTRO DE FUNCIONARIOS';
-                    
-//                         var dadosCadFunc = [{
-                            
-//                             "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-//                             "PATHFUNCAO":textoFuncao,
-//                             "DADOS":textdados,
-//                             "IP":ipCliente
-//                         }];
-                    
-//                       	ajaxPost("api/log-web.xsjs", dadosCadFunc)
-//                     		.then(funcSucessLog)
-//                     		.catch(funcError);
-
-//             }else{
-//                 Swal.fire({
-//                     type: "error",
-//                     title: 'Campo Senha não confere com o campo Repete Senha!',
-//                     showConfirmButton: false,
-//                     timer: 15000
-//                 });
-//             }
-//         }
-// }
+    if(!telefoneFuncionario || telefoneFuncionario.length < 14){
+        $("#NotificacaoModalFuncionario").html(
+            "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+            "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+            "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+            "</button>" +
+            "<strong>Atenção!</strong> Telefone inválido ou não informado!</div>"
+        );
+        $("#telefoneFuncionario").focus();
+        return false;
+    }
+    
+    ajaxGet('api/informatica/funcionario-loja.xsjs?pagesize=1000&nuCPF=' + cpfFuncionario)
+        .then(retornoCadastrarFuncionario)
+        .catch(funcSucess);
+        
+}
 
 function abrirModalLogin() {
   Swal.fire({
@@ -2613,16 +2727,16 @@ function abrirModalLogin() {
                   throw new Error("Matrícula ou Senha inválidos! Tente novamente");
               }
 
-              const idFuncionario = response.data[0]["IDFUNCIONARIO"];
+              const funcao = response.data[0]["DSFUNCAO"];
 
-              // Implemente a lógica de autorização aqui se necessário
 
               return true;
           } catch (error) {
               Swal.showValidationMessage(error);
           }
       },
-      allowOutsideClick: () => !Swal.isLoading()
+    //   allowOutsideClick: () => !Swal.isLoading()
+     allowOutsideClick: false
   }).then((result) => {
       if (result.dismiss == 'timer') {
           Swal.fire({
@@ -2632,288 +2746,404 @@ function abrirModalLogin() {
           });
       } else if (result.dismiss == 'cancel') {
           return false;
-      } else {
-          // Se o login for bem-sucedido, mostrar a div para inserir o percentual de desconto
-          $('#percDescFuncDiv').css('display', 'block');
-          // $('#percDescFunc').css('display', 'none')
+      } else {        
+        $('#percDescFuncDiv').css('display', 'block');
       }
   });
 }
 
 function retornoCadastrarFuncionario(respostaCadastroFuncionario) {
-  let idFuncionario = 0;
-  let nomeFuncionario = '';
-  let matricula = '';
-  let cpf = 0;
+    
+    let idFuncionario = 0;
+    let nomeFuncionario = '';
+    let matricula = '';
+    let cpf = 0;
+    
+    let tipoContracao = $('#radioCLT:checked')?.length ? 'True' : $('#radioPJ:checked')?.length ? 'False' : null;
+    
+    let id = $("#IDFuncionarioAtualizar").val();
+    let NLoginAtualizar = $("#loginFuncionario").val();
+    
+    let SenhaAtualizar = $("#senhaFuncionario").val();
+    let nomefuncionario = $("#nomefuncionario").val();
+    let cpfFuncionario = $("#cpfFuncionario").val();
+    let telefoneFuncionario = limparMascara($("#telefoneFuncionario").val());
+   // let cpfCadastrado = $("#CPFCadastrado").val();
+    let funcaoFuncionario = $("#funcaoFuncionario").val();
+    let stLoja = $("#tpLocalizacaoFunc").val() || null;
+    let TipoFuncionario = $("#tipoFuncionario").val();
+    let vrsalarioFuncionario = $("#valorSalFunc").val() ? $("#valorSalFunc").val().replace(".", "").replace(",", ".") : 0;
+    // let vrdesconto = $("#percDescFunc").val() ? $("#percDescFunc").val().replace(".", "").replace(",", ".") : 0;     
+    let vrdesconto = $("#percDescFunc").val().replace(".", "").replace(",", ".");
+    let vrdisponivel = $("#valorDescFunc").val() ? $("#valorDescFunc").val().replace(".", "").replace(",", ".") : 0; 
+    let idSubGrupoEmpresarial = $("#empresaFuncionario").select2('data')[0]['title'];
+    let empresaFuncionario = $("#empresaFuncionario").val();
+    let idfuncionarioNovo = $("#codigoFuncionario").val();
+    let STAtivo = $("#stativofunc").val();
+    let cpfFuncionarioSemMask = cpfFuncionario.replace(/\D/g, '');
+    
+    let NSenhaAtualizar = cpfFuncionarioSemMask.substring(0, 5);
+    let idNovo = parseFloat(id) + 1;
+    let idNovoNologin = parseFloat(id) + 1;
+    
+    let stconvenio = tipoContracao;
+    let stdescontofolha = tipoContracao;
+    
+    let dataAdmissao = $("#dataAdmissao").val();
+ 
+    if(respostaCadastroFuncionario.data.length > 0){ 
+            idFuncionario = respostaCadastroFuncionario.data[0]['IDFUNCIONARIO'];
+            nomeFuncionario = respostaCadastroFuncionario.data[0]['NOFUNCIONARIO'];
+            matricula = respostaCadastroFuncionario.data[0]['NOLOGIN'];
+            cpf = respostaCadastroFuncionario.data[0]['NUCPF'];
+    }
 
-  let id = $("#IDFuncionarioAtualizar").val();
-  let NLoginAtualizar = $("#loginFuncionario").val();
-  let NSenhaAtualizar = $("#repeteSenhaFuncionario").val();
-  let SenhaAtualizar = $("#senhaFuncionario").val();
-  let nomefuncionario = $("#nomefuncionario").val();
-  let cpfFuncionario = $("#cpfFuncionario").val().replace(/\D/g, '').trim();
-  let cpfCadastrado = $("#CPFCadastrado").val();
-  let funcaoFuncionario = $("#funcaoFuncionario").val();
-  let TipoFuncionario = $("#tipoFuncionario").val();
-  let vrsalarioFuncionario = $("#valorSalFunc").val().replace(".", "").replace(",", ".");
-  let vrdesconto = $("#percDescFunc").val().replace(".", "").replace(",", ".");
-  let vrdisponivel = $("#valorDescFunc").val().replace(".", "").replace(",", ".");
-  let empresaFuncionario = $("#empresaFuncionario").val();
-  let idfuncionarioNovo = $("#codigoFuncionario").val();
-  let STAtivo = $("#stativofunc").val();
-  let cpfFuncionarioSemMask = cpfFuncionario.replace(/\D/g, '').trim();
-  let idNovo = parseFloat(id) + 1;
+        if(cpf == cpfFuncionarioSemMask){
+            $("#cadFuncionario").modal('hide');
+            Swal.fire({
+                type: "error",
+                title: 'Já existe um Colaborador cadastrado com esse CPF! Nome: '+nomeFuncionario+' - Matrícula: '+matricula,
+                showConfirmButton: false,
+                timer: 10000
+            });
+        }else{
+            if(empresaFuncionario=='0'){
+            	$("#NotificacaoModalFuncionario").html(
+        			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+        			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+        			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+        			"</button>" +
+        			"<strong>Atenção!</strong> Informe a Empresa do Funcionário!</div>"
+        		);
+        		$("#empresaFuncionario").focus();
+        		return false;
+            }
+            if(funcaoFuncionario=='0'){
+            	$("#NotificacaoModalFuncionario").html(
+        			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+        			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+        			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+        			"</button>" +
+        			"<strong>Atenção!</strong> Informe a Função do Funcionário!</div>"
+        		);
+        		$("#funcaoFuncionario").focus();
+        		return false;
+            }
+            if(TipoFuncionario=='0'){
+            	$("#NotificacaoModalFuncionario").html(
+        			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+        			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+        			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+        			"</button>" +
+        			"<strong>Atenção!</strong> Informe o Tipo do Funcionário!</div>"
+        		);
+        		$("#tipoFuncionario").focus();
+        		return false;
+            }
+            
+            if(cpfFuncionario==''){
+            	$("#NotificacaoModalFuncionario").html(
+        			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+        			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+        			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+        			"</button>" +
+        			"<strong>Atenção!</strong> Informe CPF do Funcionário!</div>"
+        		);
+        		$("#cpfFuncionario").focus();
+        		return false;
+            }
+            
+            if(!ValidCpf(cpfFuncionario)){
+            	$("#NotificacaoModalFuncionario").html(
+        			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+        			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+        			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+        			"</button>" +
+        			"<strong>Atenção!</strong> CPF do Funcionário Inválido!</div>"
+        		);
+        		$("#cpfFuncionario").focus();
+        		return false;
+            }
+            
+           // cpfFuncionario = cpfFuncionario.replace(/\D/g, '');
+            
+            if(nomefuncionario == ''){
+            	$("#NotificacaoModalFuncionario").html(
+        			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+        			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+        			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+        			"</button>" +
+        			"<strong>Atenção!</strong> Informe Nome do Funcionário!</div>"
+        		);
+        		$("#nomefuncionario").focus();
+        		return false;
+            }
+            
+            if(vrdesconto==''){
+            	$("#NotificacaoModalFuncionario").html(
+        			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+        			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+        			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+        			"</button>" +
+        			"<strong>Atenção!</strong> Informe o Desconto do Funcionário!</div>"
+        		);
+        		$("#percDescFunc").focus();
+        		return false;
+            }
+            
+            if(!stLoja){
+                $("#NotificacaoModalFuncionario").html(
+                    "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+                    "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+                    "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+                    "</button>" +
+                    "<strong>Atenção!</strong> Informe a Localização do Funcionário!</div>"
+                );
+                $("#tpLocalizacaoFunc").focus();
+                $("#tpLocalizacaoFunc").select2('open');
+                return false;
+            }
+            
+            if(!tipoContracao){
+                $("#NotificacaoModalFuncionario").html(
+                    "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+                    "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+                    "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+                    "</button>" +
+                    "<strong>Atenção!</strong> Informe o Tipo de Contrataçao do Funcionário!</div>"
+                );
+                $("#tipoContratacao").focus();
+                return false;
+            }
 
-  let dataAdmissao = $("#dataAdmissao").val();
-  let dataBase = new Date('2024-08-01');
-  let diferencaDias = Math.floor((dataBase - new Date(dataAdmissao)) / (1000 * 60 * 60 * 24));
+            if(!dataAdmissao){
+                $("#NotificacaoModalFuncionario").html(
+                    "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+                    "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+                    "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+                    "</button>" +
+                    "<strong>Atenção!</strong> Informe a Data de Criação </div>"
+                );
+                $("#dataAdmissao").focus();
+                return false;
+            }
+            
+            /*if(SenhaAtualizar == '' || NSenhaAtualizar == ''){
+            	$("#NotificacaoModalFuncionario").html(
+        			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+        			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+        			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+        			"</button>" +
+        			"<strong>Atenção!</strong> Informe corretamente os campos da senha do Funcionário!</div>"
+        		);
+        		$("#senhaFuncionario").focus();
+        		return false;
+            }*/
+            
+            // var dados = [{ 
+            //     "IDFUNCIONARIO": parseInt(idNovo),
+            //     "IDSUBGRUPOEMPRESARIAL": parseInt(idSubGrupoEmpresarial),
+            //     "IDEMPRESA": parseInt(empresaFuncionario),
+            //     "NOFUNCIONARIO": nomefuncionario,
+            //     "NUCPF": cpfFuncionarioSemMask,
+            //     "NOLOGIN": idNovo.toString(),
+            //     "PWSENHA": NSenhaAtualizar,
+            //     "DSFUNCAO": funcaoFuncionario,
+            //     "VALORSALARIO": parseFloat(vrsalarioFuncionario),
+            //     "PERC": parseFloat(vrdesconto),
+            //     "STATIVO":'True',
+            //     "DSTIPO": TipoFuncionario,
+            //     "VALORDISPONIVEL": parseFloat(vrdisponivel),
+            //     STCONVENIO,
+            //     STDESCONTOFOLHA,
+            //     "STLOJA": stLoja,
+            //     "DATA_ADMISSAO": dataAdmissao,
+            // }];
+            
+            // ajaxPost("api/informatica/funcionario-loja.xsjs", dados)
+            //     .then(funcSucessPostFuncionario)
+            //     .catch(funcError);
+                
+            // 	const textdados = JSON.stringify(dados);
+            
+            // 	textoFuncao = 'INFORMATICA/CADASTRO DE FUNCIONARIOS';
+            
+            //     var dadosCadFunc = [{
+                    
+            //         "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+            //         "PATHFUNCAO":textoFuncao,
+            //         "DADOS":textdados,
+            //         "IP":ipCliente
+            //     }];
+            
+            //   	ajaxPost("api/log-web.xsjs", dadosCadFunc)
+            // 		.then(funcSucessLog)
+            // 		.catch(funcError);
 
-  let maxDesconto = 0;
-  if (diferencaDias < 90) {
-      maxDesconto = 10;
-  } else if (diferencaDias >= 90 && diferencaDias < 365) {
-      maxDesconto = 15;
-  } else if (diferencaDias >= 365 && diferencaDias < 730) {
-      maxDesconto = 20;
-  }
+            
+        
+        const isAuthorized =  funcaoFuncionario == 'TI';
 
-  if (respostaCadastroFuncionario.data.length) {
-      idFuncionario = respostaCadastroFuncionario.data[0]['IDFUNCIONARIO'];
-      funcao = respostaCadastroFuncionario.data[0]['DSFUNCAO'];
-      nomeFuncionario = respostaCadastroFuncionario.data[0]['NOFUNCIONARIO'];
-      matricula = respostaCadastroFuncionario.data[0]['NOLOGIN'];
-      cpf = respostaCadastroFuncionario.data[0]['NUCPF'];
-  }
-
-  if (cpf == cpfFuncionarioSemMask && respostaCadastroFuncionario.data.length) {
-      $("#cadFuncionario").modal('hide');
-      Swal.fire({
-          icon: "error",
-          title: `Já existe um Colaborador cadastrado com esse CPF! Nome: ${nomeFuncionario} - Matrícula: ${matricula}, Porém, está INATIVO ou foi DESLIGADO. Ative o Funcionário e tente novamente`,
-          showConfirmButton: false,
-          timer: 10000
-      });
-  } else {
-      if (!empresaFuncionario) {
-          $("#NotificacaoModalFuncionario").html(`
-              <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                      <span aria-hidden="true"><i class="fal fa-times"></i></span>
-                  </button>
-                  <strong>Atenção!</strong> Informe a Empresa do Funcionário!
-              </div>
-          `);
-          $("#empresaFuncionario").focus();
-          return false;
-      }
-
-      const isAuthorized = funcaoFuncionario == 'TI';
-
-      if (parseFloat(vrdesconto) > maxDesconto) {
-          Swal.fire({
-              title: 'Autorização',
-              html: `
-                  <div>
-                      <label class="form-label" for="matricula">Matrícula</label>
-                      <div class="input-group">
-                          <input type="text" id="matricula" class="swal2-input" placeholder="Matrícula" style="text-align: center;" onkeypress="mascaraMulti(this, onlyNum)">
-                      </div>
-                      <label class="form-label" for="senha">Senha</label>
-                      <div class="input-group">
-                          <input type="password" id="senha" class="swal2-input" placeholder="Senha" style="text-align: center;">
-                      </div>
+        if (parseFloat(vrdesconto) > 20) {
+            Swal.fire({
+          title: 'Autorização',
+          html: `
+              <div>
+                  <label class="form-label" for="matricula">Matrícula</label>
+                  <div class="input-group">
+                      <input type="text" id="matricula" class="swal2-input" placeholder="Matrícula" style="text-align: center;" onkeypress="mascaraMulti(this, onlyNum)">
                   </div>
-              `,
-              width: '20rem',
-              focusConfirm: false,
-              showCancelButton: true,
-              confirmButtonText: 'Confirmar',
-              cancelButtonText: 'Voltar',
-              cancelButtonColor: '#3085d6',
-              showLoaderOnConfirm: true,
-              preConfirm: async () => {
-                  let matricula = $('#matricula').val().replace(/\D/g, "").trim();
-                  let senha = $('#senha').val();
+                  <label class="form-label" for="senha">Senha</label>
+                  <div class="input-group">
+                      <input type="password" id="senha" class="swal2-input" placeholder="Senha" style="text-align: center;">
+                  </div>
+              </div>
+          `,
+          width: '20rem',
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: 'Confirmar',
+          cancelButtonText: 'Voltar',
+          cancelButtonColor: '#3085d6',
+          showLoaderOnConfirm: true,
+          preConfirm: async () => {
+            let matricula = $('#matricula').val().replace(/\D/g, "").trim();
+            let senha = $('#senha').val();
 
-                  if (!matricula || !senha) {
-                      Swal.showValidationMessage('Campo de Matrícula ou senha vazio');
-                      return false;
-                  }
+            if (!matricula || !senha) {
+              Swal.showValidationMessage('Campo de Matrícula ou senha vazio');
+              return false;
+            }
 
-                  try {
-                      const response = await ajaxGet(`api/funcionario/todos.xsjs?matricula=${matricula}&senha=${senha}`);
+            try {
+              const response = await ajaxGet(`api/funcionario/todos.xsjs?matricula=${matricula}&senha=${senha}`);
 
-                      if (!response.data.length) {
-                          $('#matricula').val("").focus();
-                          $('#senha').val("");
-                          throw new Error("Matrícula ou Senha inválidos! Tente novamente");
-                      }
+              if (!response.data.length) {
+                  $('#matricula').val("").focus();
+                  $('#senha').val("");
+                  throw new Error("Matrícula ou Senha inválidos! Tente novamente");
+              }
 
-                      const funcao = response.data[0]["DSFUNCAO"];
+              const funcao = response.data[0]["DSFUNCAO"];
 
-                      if (funcao !== 'TI') {
-                          throw new Error("Acesso não autorizado para modificar PERC maior que 20!");
-                      }
+              if (funcao !== 'TI') {
+                  throw new Error("Acesso não autorizado para modificar PERC maior que 20!");
+              }
 
-                      if (parseFloat(vrdesconto) > 50) {
-                          throw new Error("Valor desconto maior que permitido!");
-                      }
+              if (parseFloat(vrdesconto) > 50) {
+                  throw new Error("Valor desconto maior que permitido!");
+              }
 
-                      return true;
-                  } catch (error) {
-                      Swal.showValidationMessage(error);
-                  }
-              },
-              allowOutsideClick: () => !Swal.isLoading()
-          }).then((result) => {
+              return true;
+            } catch (error) {
+              Swal.showValidationMessage(error);
+            }
+        },
+        // allowOutsideClick: () => !Swal.isLoading()
+        allowOutsideClick: false
+         }).then((result) => {
               if (result.dismiss == 'timer') {
-                  Swal.fire({
-                      icon: 'error',
-                      title: `Tempo de resposta ou inatividade atingido`,
-                      timer: 10000,
-                  });
+                Swal.fire({
+                  icon: 'error',
+                  title: `Tempo de resposta ou inatividade atingido`,
+                  timer: 10000,
+                });
               } else if (result.dismiss == 'cancel') {
-                  return false;
+                return false;
               } else {
-                  // Prosseguir com o salvamento dos dados
-                  salvarDadosFuncionario({
-                    idNovo,
-                    empresaFuncionario,
-                    nomefuncionario,
-                    cpfFuncionario,
-                    NSenhaAtualizar,
-                    funcaoFuncionario,
-                    vrsalarioFuncionario,
-                    vrdesconto,
-                    STAtivo,
-                    TipoFuncionario,
-                    vrdisponivel,
-                    dataAdmissao
-                  });
+                
+                salvarDadosFuncionario({
+                  idNovo,
+                  idSubGrupoEmpresarial,
+                  empresaFuncionario,
+                  nomefuncionario,
+                  cpfFuncionarioSemMask,
+                  idNovoNologin,
+                  NSenhaAtualizar,
+                  funcaoFuncionario,
+                  vrsalarioFuncionario,
+                  vrdesconto,
+                  TipoFuncionario,
+                  stconvenio,
+                  stdescontofolha,
+                  vrdisponivel,
+                  stLoja,
+                  dataAdmissao,
+                  telefoneFuncionario
+                });
               }
           });
 
-          return false; // prevent form submission
-      }
+        return false; 
+        }
 
-      
-      salvarDadosFuncionario({
-        idNovo,
-        empresaFuncionario,
-        nomefuncionario,
-        cpfFuncionario,
-        NSenhaAtualizar,
-        funcaoFuncionario,
-        vrsalarioFuncionario,
-        vrdesconto,
-        STAtivo,
-        TipoFuncionario,
-        vrdisponivel,
-        dataAdmissao
-      });
-  }
+    
+        salvarDadosFuncionario({
+          idNovo,
+          idSubGrupoEmpresarial,
+          empresaFuncionario,
+          nomefuncionario,
+          cpfFuncionarioSemMask,
+          idNovoNologin,
+          NSenhaAtualizar,
+          funcaoFuncionario,
+          vrsalarioFuncionario,
+          vrdesconto,
+          TipoFuncionario,
+          stconvenio,
+          stdescontofolha,
+          vrdisponivel,
+          stLoja,
+          dataAdmissao,
+          telefoneFuncionario
+        });
+        
+    }
+        
 }
 
 function salvarDadosFuncionario(dados) {
-  
+    
   var dadosFuncionario = [{
     "IDFUNCIONARIO": parseInt(dados.idNovo),
+    "IDSUBGRUPOEMPRESARIAL": parseInt(dados.idSubGrupoEmpresarial),
     "IDEMPRESA": parseInt(dados.empresaFuncionario),
     "NOFUNCIONARIO": dados.nomefuncionario,
-    "NUCPF": dados.cpfFuncionario,
-    "NOLOGIN": dados.idNovo,
+    "NUCPF": dados.cpfFuncionarioSemMask,
+    "NOLOGIN": dados.idNovoNologin.toString(),
     "PWSENHA": dados.NSenhaAtualizar,
     "DSFUNCAO": dados.funcaoFuncionario,
-    "VALORSALARIO": parseFloat(dados.vrsalarioFuncionario || 0),
+    "VALORSALARIO": parseFloat(dados.vrsalarioFuncionario) || 0,
     "PERC": parseFloat(dados.vrdesconto || 0),
     "STATIVO": 'True',
     "DSTIPO": dados.TipoFuncionario,
-    "VALORDISPONIVEL": parseFloat(dados.vrdisponivel || 0),
+    "STCONVENIO": dados.stconvenio,
+    "STDESCONTOFOLHA": dados.stdescontofolha,
+    "VALORDISPONIVEL": parseFloat(dados.vrdisponivel) || 0,
     "STLOJA": dados.stLoja,
     "DATA_ADMISSAO": dados.dataAdmissao,
+    "TELEFONE": dados.telefoneFuncionario
   }];
-
+  
   ajaxPost("api/informatica/funcionario-loja.xsjs", dadosFuncionario)
-      .then(funcSucessPostFuncionario)
-      .catch(funcError);
 
+    .then(funcSucessPostFuncionario)
+    .catch(funcError)
+
+    console.log(dadosFuncionario, 'dadosFuncionario, salvos')
   const textDados = JSON.stringify(dadosFuncionario);
   const textoFuncao = 'INFORMATICA/CADASTRO DE FUNCIONARIOS';
 
   var dadosLogFunc = [{
-      "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
-      "PATHFUNCAO": textoFuncao,
-      "DADOS": textDados,
-      "IP": ipCliente
+    "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+    "PATHFUNCAO": textoFuncao,
+    "DADOS": textDados,
+    "IP": ipCliente
   }];
 
   ajaxPost("api/log-web.xsjs", dadosLogFunc)
-      .then(funcSucessLog)
-      .catch(funcError);
-}
-
-function validar_cadastrar_funcionario() {
-
-    cpfFuncionario = $("#cpfFuncionario").val().replace(/\D/g, '').trim();
-    
-    empresaFuncionario = $("#empresaFuncionario").val();
-    funcaoFuncionario = $("#funcaoFuncionario").val();
-    tipoFuncionario = $("#tipoFuncionario").val();
-    
-    if(!empresaFuncionario){
-    	$("#NotificacaoModalFuncionario").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe a Empresa do Funcionário!</div>"
-		);
-		$("#empresaFuncionario").focus();
-		return false;
-    }
-    
-    if(!funcaoFuncionario){
-    	$("#NotificacaoModalFuncionario").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe a Função do Funcionário!</div>"
-		);
-		$("#funcaoFuncionario").focus();
-		return false;
-    }
-    
-    if(!tipoFuncionario){
-    	$("#NotificacaoModalFuncionario").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe o Tipo do Funcionário!</div>"
-		);
-		$("#tipoFuncionario").focus();
-		return false;
-    }
-    
-     if(!cpfFuncionario.length){
-    	$("#NotificacaoModalFuncionario").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe o CPF do Funcionário!</div>"
-		);
-		$("#cpfFuncionario").focus();
-		
-      ValidaCpf(cpfFuncionario)
-      return false;
-    }
-      ajaxGet('api/informatica/funcionario-loja.xsjs?pagesize=1000&nuCPF=' + cpfFuncionario)
-      .then(retornoCadastrarFuncionario)
-      .catch(funcError);
-    
-   
+    .then(funcSucessLog)
+    .catch(funcError);
 }
 
 function formatInputValor(element){
@@ -2925,49 +3155,191 @@ function formatInputValor(element){
 }
 
 function update_funcionario() {
-  let tipoContratacao = $('#radioCLT:checked')?.length ? 'True' : $('#radioPJ:checked')?.length ? 'False' : null;
-  let id = $("#IDFuncionarioAtualizar").val();
-  let NLoginAtualizar = $("#loginFuncionario").val();
-  let NSenhaAtualizar = $("#repeteSenhaFuncionario").val();
-  let SenhaAtualizar = $("#senhaFuncionario").val();
-  let vrsalarioFuncionario = $("#valorSalFunc").val().replace(".", "").replace(",", ".");
-  let vrdisponivel = $("#valorDescFunc").val().replace(".", "").replace(",", ".");
-  let nomefuncionario = $("#nomefuncionario").val();
-  let cpfFuncionario = $("#cpfFuncionario").val();
-  let cpfCadastrado = $("#CPFCadastrado").val();
-  let funcaoFuncionario = $("#funcaoFuncionario").val();
-  let TipoFuncionario = $("#tipoFuncionario").val();
-  let idSubGrupoEmpresarial = $("#empresaFuncionario").select2('data')[0]['title'];
-  let empresaFuncionario = $("#empresaFuncionario").val();
-  let idFuncionario = $("#codigoFuncionario").val();
-  let STAtivo = $("#stativofunc").val();
-  let stLoja = $('#tpLocalizacaoFunc').val() || null;
-  let STCONVENIO = tipoContratacao;
-  let STDESCONTOFOLHA = tipoContratacao;
-  let vrdesconto = $("#percDescFunc").val();
-  let motivodesc = $("#descMotivoDesconto").val();
-  let idFuncAlteracao = IDFuncionarioLogin;
+    
+    let tipoContratacao = $('#radioCLT:checked')?.length ? 'True' : $('#radioPJ:checked')?.length ? 'False' : null; 
 
+    id = $("#IDFuncionarioAtualizar").val();
+    var NLoginAtualizar = $("#loginFuncionario").val();
+    var NSenhaAtualizar = $("#repeteSenhaFuncionario").val();
+    var SenhaAtualizar = $("#senhaFuncionario").val();
+    var vrsalarioFuncionario = $("#valorSalFunc").val() || 0;
+    var vrdesconto = $("#percDescFunc").val().replace(/\D/g, '').replace(/(\d)(\d{2})$/, '$1.$2');
+    var vrdisponivel = $("#valorDescFunc").val().replace(".", "").replace(",", "."); 
+    var nomefuncionario = $("#nomefuncionario").val();
+    var cpfFuncionario = $("#cpfFuncionario").val().replace(/\D/g, '')
+    var cpfCadastrado = $("#CPFCadastrado").val().replace(/\D/g, '');
+    let telefoneFuncionario = limparMascara($("#telefoneFuncionario").val());
+    var funcaoFuncionario = $("#funcaoFuncionario").val();
+    var TipoFuncionario = $("#tipoFuncionario").val();
+    let idSubGrupoEmpresarial = $("#empresaFuncionario").select2('data')[0]['title'];
+    var empresaFuncionario = $("#empresaFuncionario").val();
+    var idfuncionario = $("#codigoFuncionario").val();
+    var STAtivo = $("#stativofunc").val();
+    var stLoja = $('#tpLocalizacaoFunc').val() || null;
+    let stconvenio = tipoContratacao;
+    let stdescontofolha = tipoContratacao;
+    
+    var motivodesc = $("#descMotivoDesconto").val();
+    var idFuncAlteracao = IDFuncionarioLogin;
 
-  if (NLoginAtualizar > 0) {
-    NLoginAtualizar = NLoginAtualizar;
-  } else {
-    NLoginAtualizar = idFuncionario;
-  }
-  let dataAdmissao = $("#dataAdmissao").val();
-  let dataBase = new Date('2024-08-01');
-  let diferencaDias = Math.floor((new Date(dataAdmissao)) / (1000 * 60 * 60 * 24));
+    if(NLoginAtualizar>0){
+        NLoginAtualizar = NLoginAtualizar;
+    }else{
+        NLoginAtualizar = idfuncionario;
+    }
+    
+    let dataAdmissao = $("#dataAdmissao").val();
 
-  let maxDesconto = 0;
-  if (diferencaDias < 90) {
-      maxDesconto = 10;
-  } else if (diferencaDias >= 90 && diferencaDias < 365) {
-      maxDesconto = 15;
-  } else if (diferencaDias >= 365 && diferencaDias < 730) {
-      maxDesconto = 20;
-  }
+  
+    if(!stLoja){
+        $("#NotificacaoModalFuncionario").html(
+            "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+            "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+            "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+            "</button>" +
+            "<strong>Atenção!</strong> Informe a Localização do Funcionário!</div>"
+        );
+        $("#NotificacaoModalFuncionario").focus();
+        //$("#tpLocalizacaoFunc").select2('open');
+        return false;
+    }
+    
+    if(!funcaoFuncionario){
+        $("#NotificacaoModalFuncionario").html(
+            "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+            "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+            "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+            "</button>" +
+            "<strong>Atenção!</strong> Informe a Função do Funcionário!</div>"
+        );
+        $("#NotificacaoModalFuncionario").focus();
+       // $("#funcaoFuncionario").select2('open');
+        return false;
+    }
+    
+    if(!tipoContratacao){
+    	$("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> Informe Informe a Categoria de Contrataçao do Funcionário!</div>"
+		);
+		$("#tipoContratacao").focus();
+		return false;
+    }
+    
+    if(vrdesconto > 50){
+        $("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> Desconto maior que o permitido!</div>"
+		);
+		$("#percDescFunc").focus();
+		return false;
+    }
+    
+    if((!SenhaAtualizar ||  !NSenhaAtualizar) || SenhaAtualizar !== NSenhaAtualizar){
+        $("#NotificacaoModalFuncionario").html(
+			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+			"</button>" +
+			"<strong>Atenção!</strong> A senha digitada não confere com a senha repetida!</div>"
+		);
+		$("#senhaFuncionario").focus();
+		return false;
+    }
+    
+    if(!dataAdmissao){
+        $("#NotificacaoModalFuncionario").html(
+            "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+            "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+            "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+            "</button>" +
+            "<strong>Atenção!</strong> Informe a Data de Criação </div>"
+        );
+        $("#dataAdmissao").focus();
+        return false;
+    }
 
-  if (parseFloat(vrdesconto) > maxDesconto) {
+    if(!telefoneFuncionario || telefoneFuncionario.length < 10){
+        $("#NotificacaoModalFuncionario").html(
+            "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+            "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+            "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+            "</button>" +
+            "<strong>Atenção!</strong> Telefone inválido ou não informado!</div>"
+        );
+        $("#telefoneFuncionario").focus();
+        return false;
+    }
+    
+    // if (SenhaAtualizar == NSenhaAtualizar) {
+    //     var dados = [{
+    //         "ID": parseInt(id),
+    //         "IDFUNCIONARIO": parseInt(idfuncionario),
+    //         "IDSUBGRUPOEMPRESARIAL": parseInt(idSubGrupoEmpresarial),
+    //         "IDEMPRESA": parseInt(empresaFuncionario),
+    //         "NOFUNCIONARIO": nomefuncionario,
+    //         "NUCPF": cpfFuncionario,
+    //         "NOLOGIN": NLoginAtualizar,
+    //         "PWSENHA": NSenhaAtualizar,
+    //         "DSFUNCAO": funcaoFuncionario,
+    //         "VALORSALARIO": parseFloat(vrsalarioFuncionario),
+    //         "PERC": parseFloat(vrdesconto),
+    //         "STATIVO":STAtivo,
+    //         "DSTIPO": TipoFuncionario,
+    //         "VALORDISPONIVEL": parseFloat(vrdisponivel || 0),
+    //         "MOTIVODESC": motivodesc,
+    //         "IDFUNCALTERACAO": parseInt(idFuncAlteracao),
+    //         "STCONVENIO": STCONVENIO,
+    //         "STDESCONTOFOLHA": STDESCONTOFOLHA,
+    //         "STLOJA": stLoja
+    //     }];
+        
+    //     ajaxPut("api/informatica/funcionario-loja.xsjs", dados)
+    //         .then(async (resp) =>{
+    //                 await msgSuccess('Funcionario Atualizado com sucesso').then(()=>{
+    //                     $("#cadFuncionario").modal('hide');
+                        
+    //                     $('#dsNomeFunc').val($('#cpfFuncionario').val());
+    //                     pesq_funcionarios_loja();
+    //                 })
+                    
+    //                 const textdados = JSON.stringify(dados);
+                    
+    //              	textoFuncao = 'INFORMATICA/EDIÇÃO DE FUNCIONARIOS';
+                 
+    //                 var dadosEditFunc = [{
+                        
+    //                     "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+    //                     "PATHFUNCAO":textoFuncao,
+    //                     "DADOS":textdados,
+    //                     "IP":ipCliente
+    //                 }];
+                 
+    //               	ajaxPost("api/log-web.xsjs", dadosEditFunc)
+    //              		.then(funcSucessLog)
+    //              		.catch(funcError);
+    //         })
+    //         .catch(funcError);
+    // }else{
+    //     Swal.fire({
+    //         type: "error",
+    //         title: 'Campo Senha não confere com o campo Repete Senha!',
+    //         showConfirmButton: false,
+    //         timer: 15000
+    //     });
+    // }
+    
+   
+  
+   
+    
+    if (parseFloat(vrdesconto) > 20 ) {
       Swal.fire({
           title: 'Autorização',
           html: `
@@ -3022,7 +3394,8 @@ function update_funcionario() {
                   Swal.showValidationMessage(error);
               }
           },
-          allowOutsideClick: () => !Swal.isLoading()
+        //   allowOutsideClick: () => !Swal.isLoading()
+        allowOutsideClick: false
       }).then((result) => {
           if (result.dismiss == 'timer') {
               Swal.fire({
@@ -3035,18 +3408,24 @@ function update_funcionario() {
           } else {
               // Prosseguir com o salvamento dos dados
               atualizarDadosFuncionario({
+                nomefuncionario,
+                cpfFuncionario,
+                NLoginAtualizar,
+                NSenhaAtualizar,
                 empresaFuncionario,
-                  nomefuncionario,
-                  cpfFuncionario,
-                  NSenhaAtualizar,
-                  funcaoFuncionario,
-                  vrsalarioFuncionario,
-                  vrdesconto,
-                  TipoFuncionario,
-                  STAtivo,
-                  id,
-                  dataAdmissao: $("#dataAdmissao").val(),
-  
+                funcaoFuncionario,
+                idFuncionario,
+                TipoFuncionario,
+                vrdesconto,
+                vrsalarioFuncionario,
+                vrdisponivel,
+                stconvenio,
+                stdescontofolha,
+                stLoja,
+                idFuncAlteracao,
+                id,
+                dataAdmissao: $("#dataAdmissao").val(),
+                telefoneFuncionario
               });
           }
       });
@@ -3054,40 +3433,54 @@ function update_funcionario() {
       return false; // prevent form submission
   }
 
-  atualizarDadosFuncionario({
+
+    atualizarDadosFuncionario({
+        nomefuncionario,
+        cpfFuncionario,
+        NLoginAtualizar,
+        NSenhaAtualizar,
         empresaFuncionario,
-      nomefuncionario,
-      cpfFuncionario,
-      NSenhaAtualizar,
-      funcaoFuncionario,
-      vrsalarioFuncionario,
-      vrdesconto,
-      TipoFuncionario,
-      STAtivo,
-      id,
-      dataAdmissao: $("#dataAdmissao").val(),
-  });
+        funcaoFuncionario,
+        idFuncionario,
+        TipoFuncionario,
+        vrdesconto,
+        vrsalarioFuncionario,
+        vrdisponivel,
+        stconvenio,
+        stdescontofolha,
+        stLoja,
+        idFuncAlteracao,
+        id,
+        dataAdmissao: $("#dataAdmissao").val(),
+        telefoneFuncionario
+    });
+   
 }
 
 function atualizarDadosFuncionario(dados) {
   var dadosFuncionario = [{
-    "IDEMPRESA": parseInt(dados.empresaFuncionario),
     "NOFUNCIONARIO": dados.nomefuncionario,
     "NUCPF": dados.cpfFuncionario,
     "NOLOGIN": dados.NLoginAtualizar,
     "PWSENHA": dados.NSenhaAtualizar,
+    "IDEMPRESA": parseInt(dados.empresaFuncionario),
     "DSFUNCAO": dados.funcaoFuncionario,
-    "VALORSALARIO": parseFloat(dados.vrsalarioFuncionario || 0),
-    "PERC": parseFloat(dados.vrdesconto || 0),
-    "STATIVO": dados.STAtivo,
+    "IDFUNCIONARIO": parseInt(dados.idFuncionario),
     "DSTIPO": dados.TipoFuncionario,
+    "PERC": parseFloat(dados.vrdesconto || 0),
+    "VALORSALARIO": parseFloat(dados.vrsalarioFuncionario || 0),
     "VALORDISPONIVEL": parseFloat(dados.vrdisponivel) || 0,
+    "STCONVENIO": dados.stconvenio,
+    "STDESCONTOFOLHA": dados.stdescontofolha,
+    "STLOJA": dados.stLoja,
+    "IDFUNCIONARIOULTALTERACAO": parseInt(dados.idFuncAlteracao),
     "ID": parseInt(dados.id),
     "DATA_ADMISSAO": dados.dataAdmissao,
+    "TELEFONE": dados.telefoneFuncionario
   }];
   
   ajaxPut("api/informatica/funcionario-loja.xsjs", dadosFuncionario)
-  .then(funcSucessPostFuncionario)
+  .then(funcSucessUpdateFuncionario)
   .catch(funcError);
   console.log(dadosFuncionario, 'dados')
 
@@ -3106,6 +3499,330 @@ function atualizarDadosFuncionario(dados) {
       .catch(funcError);
 }
 
+// function update_funcionario() {
+
+//   let tipoContratacao = $('#radioCLT:checked')?.length ? 'True' : $('#radioPJ:checked')?.length ? 'False' : null;
+
+//   id = $("#IDFuncionarioAtualizar").val();
+//   var NLoginAtualizar = $("#loginFuncionario").val();
+//   var NSenhaAtualizar = $("#repeteSenhaFuncionario").val();
+//   var SenhaAtualizar = $("#senhaFuncionario").val();
+//   var vrsalarioFuncionario = $("#valorSalFunc").val() || 0;
+//   var vrdesconto = $("#percDescFunc").val().replace(/\D/g, '').replace(/(\d)(\d{2})$/, '$1.$2');
+//   var vrdisponivel = $("#valorDescFunc").val().replace(".", "").replace(",", ".");
+//   var nomefuncionario = $("#nomefuncionario").val();
+//   var cpfFuncionario = $("#cpfFuncionario").val().replace(/\D/g, '')
+//   var cpfCadastrado = $("#CPFCadastrado").val().replace(/\D/g, '');
+//   var funcaoFuncionario = $("#funcaoFuncionario").val();
+//   var TipoFuncionario = $("#tipoFuncionario").val();
+//   let idSubGrupoEmpresarial = $("#empresaFuncionario").select2('data')[0]['title'];
+//   var empresaFuncionario = $("#empresaFuncionario").val();
+//   var idfuncionario = $("#codigoFuncionario").val();
+//   var STAtivo = $("#stativofunc").val();
+//   var stLoja = $('#tpLocalizacaoFunc').val() || null;
+//   var STCONVENIO = tipoContratacao;
+//   var STDESCONTOFOLHA = tipoContratacao;
+
+//   var motivodesc = $("#descMotivoDesconto").val();
+//   var idFuncAlteracao = IDFuncionarioLogin;
+
+//   if (NLoginAtualizar > 0) {
+//     NLoginAtualizar = NLoginAtualizar;
+//   } else {
+//     NLoginAtualizar = idfuncionario;
+//   }
+
+//   if (!stLoja) {
+//     $("#NotificacaoModalFuncionario").html(
+//       "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+//       "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+//       "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+//       "</button>" +
+//       "<strong>Atenção!</strong> Informe a Localização do Funcionário!</div>"
+//     );
+//     $("#NotificacaoModalFuncionario").focus();
+//     //$("#tpLocalizacaoFunc").select2('open');
+//     return false;
+//   }
+
+//   if (!funcaoFuncionario) {
+//     $("#NotificacaoModalFuncionario").html(
+//       "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+//       "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+//       "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+//       "</button>" +
+//       "<strong>Atenção!</strong> Informe a Função do Funcionário!</div>"
+//     );
+//     $("#NotificacaoModalFuncionario").focus();
+//     // $("#funcaoFuncionario").select2('open');
+//     return false;
+//   }
+
+//   if (!tipoContratacao) {
+//     $("#NotificacaoModalFuncionario").html(
+//       "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+//       "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+//       "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+//       "</button>" +
+//       "<strong>Atenção!</strong> Informe Informe a Categoria de Contrataçao do Funcionário!</div>"
+//     );
+//     $("#tipoContratacao").focus();
+//     return false;
+//   }
+
+//   if (vrdesconto > 50) {
+//     $("#NotificacaoModalFuncionario").html(
+//       "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+//       "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+//       "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+//       "</button>" +
+//       "<strong>Atenção!</strong> Desconto maior que o permitido!</div>"
+//     );
+//     $("#percDescFunc").focus();
+//     return false;
+//   }
+
+//   if ((!SenhaAtualizar || !NSenhaAtualizar) || SenhaAtualizar !== NSenhaAtualizar) {
+//     $("#NotificacaoModalFuncionario").html(
+//       "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
+//       "<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
+//       "<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
+//       "</button>" +
+//       "<strong>Atenção!</strong> A senha digitada não confere com a senha repetida!</div>"
+//     );
+//     $("#senhaFuncionario").focus();
+//     return false;
+//   }
+
+//   // if (SenhaAtualizar == NSenhaAtualizar) {
+//   //     var dados = [{
+//   //         "ID": parseInt(id),
+//   //         "IDFUNCIONARIO": parseInt(idfuncionario),
+//   //         "IDSUBGRUPOEMPRESARIAL": parseInt(idSubGrupoEmpresarial),
+//   //         "IDEMPRESA": parseInt(empresaFuncionario),
+//   //         "NOFUNCIONARIO": nomefuncionario,
+//   //         "NUCPF": cpfFuncionario,
+//   //         "NOLOGIN": NLoginAtualizar,
+//   //         "PWSENHA": NSenhaAtualizar,
+//   //         "DSFUNCAO": funcaoFuncionario,
+//   //         "VALORSALARIO": parseFloat(vrsalarioFuncionario),
+//   //         "PERC": parseFloat(vrdesconto),
+//   //         "STATIVO":STAtivo,
+//   //         "DSTIPO": TipoFuncionario,
+//   //         "VALORDISPONIVEL": parseFloat(vrdisponivel || 0),
+//   //         "MOTIVODESC": motivodesc,
+//   //         "IDFUNCALTERACAO": parseInt(idFuncAlteracao),
+//   //         "STCONVENIO": STCONVENIO,
+//   //         "STDESCONTOFOLHA": STDESCONTOFOLHA,
+//   //         "STLOJA": stLoja
+//   //     }];
+
+//   //     ajaxPut("api/informatica/funcionario-loja.xsjs", dados)
+//   //         .then(async (resp) =>{
+//   //                 await msgSuccess('Funcionario Atualizado com sucesso').then(()=>{
+//   //                     $("#cadFuncionario").modal('hide');
+
+//   //                     $('#dsNomeFunc').val($('#cpfFuncionario').val());
+//   //                     pesq_funcionarios_loja();
+//   //                 })
+
+//   //                 const textdados = JSON.stringify(dados);
+
+//   //              	textoFuncao = 'INFORMATICA/EDIÇÃO DE FUNCIONARIOS';
+
+//   //                 var dadosEditFunc = [{
+
+//   //                     "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+//   //                     "PATHFUNCAO":textoFuncao,
+//   //                     "DADOS":textdados,
+//   //                     "IP":ipCliente
+//   //                 }];
+
+//   //               	ajaxPost("api/log-web.xsjs", dadosEditFunc)
+//   //              		.then(funcSucessLog)
+//   //              		.catch(funcError);
+//   //         })
+//   //         .catch(funcError);
+//   // }else{
+//   //     Swal.fire({
+//   //         type: "error",
+//   //         title: 'Campo Senha não confere com o campo Repete Senha!',
+//   //         showConfirmButton: false,
+//   //         timer: 15000
+//   //     });
+//   // }
+
+//   if (parseFloat(vrdesconto) > 20) {
+
+
+//     Swal.fire({
+//       title: 'Autorização',
+//       html: `
+//         <div id="">
+//           <label class="form-label" for="matricula">Matricula</label>
+//           <div class="input-group">
+//             <input type="text" id="matricula" class="swal2-input bg-black" placeholder="Matrícula" style="text-align: center;">
+//           </div>
+//           <label class="form-label" for="senha">Senha</label>
+//           <div class="input-group">
+//             <input type="password" id="senha" class="swal2-input" placeholder="Senha" style="text-align: center;">
+//           </div>
+//         </div>
+//       `,
+//       width: '20rem',
+//       focusConfirm: false,
+//       showCancelButton: true,
+//       confirmButtonText: 'Confirmar',
+//       cancelButtonText: 'Voltar',
+//       cancelButtonColor: '#3085d6',
+//       showLoaderOnConfirm: true,
+
+//       backdrop: false,
+
+//       didOpen: () => {
+
+//         const matriculaInput = document.getElementById('matricula');
+//         const senhaInput = document.getElementById('senha');
+//         matriculaInput.addEventListener('focus', () => {
+//           matriculaInput.removeAttribute('readonly');
+//         });
+//         senhaInput.addEventListener('focus', () => {
+//           senhaInput.removeAttribute('readonly');
+//         });
+//       },
+//       preConfirm: () => {
+//         let matricula = $('#matricula').val()
+//         let senha = $('#senha').val();
+
+//         if (!matricula || !senha) {
+//           Swal.showValidationMessage('Campo de Matrícula ou senha vazio');
+//           return false;
+//         }
+
+//         return ajaxGet(`api/funcionario/todos.xsjs?matricula=${matricula}&senha=${senha}`)
+//           .then((response) => {
+//             if (!response.data.length) {
+//               $('#matricula').val("").focus();
+//               $('#senha').val("");
+//               throw new Error("Matricula ou Senha inválidos! Tente novamente");
+//             }
+
+//             var idFuncionario = response.data[0]["IDFUNCIONARIO"];
+
+//             if (idFuncionario !== 30514) {
+//               throw new Error("Acesso não autorizado para modificar PERC maior que 20!");
+//             }
+
+//             if (parseFloat(vrdesconto) > 50) {
+//               throw new Error("Valor desconto maior que permitido!");
+//             }
+
+//             return true;
+//           })
+//           .catch((erro) => {
+//             Swal.showValidationMessage(erro.message);
+//           });
+//       },
+//       allowOutsideClick: () => !Swal.isLoading()
+//     }).then((result) => {
+//       if (result.dismiss === Swal.DismissReason.timer) {
+//         Swal.fire({
+//           icon: 'error',
+//           title: `Tempo de resposta ou inatividade atingido`,
+//           timer: 10000,
+//         });
+//       } else if (result.dismiss === Swal.DismissReason.cancel) {
+//         return false;
+//       } else {
+
+//         atualizarDadosFuncionario({
+//           id,
+//           idNovo,
+//           idSubGrupoEmpresarial,
+//           empresaFuncionario,
+//           nomefuncionario,
+//           cpfFuncionarioSemMask,
+//           NLoginAtualizar,
+//           NSenhaAtualizar,
+//           funcaoFuncionario,
+//           vrsalarioFuncionario,
+//           vrdesconto,
+//           STAtivo,
+//           TipoFuncionario,
+//           vrdisponivel,
+//           STCONVENIO,
+//           STDESCONTOFOLHA,
+//           stLoja,
+//           dataAdmissao,
+
+//         });
+//       }
+//     });
+//   } else {
+//     atualizarDadosFuncionario({
+//       id,
+//       idNovo,
+//       idSubGrupoEmpresarial,
+//       empresaFuncionario,
+//       nomefuncionario,
+//       cpfFuncionarioSemMask,
+//       NLoginAtualizar,
+//       NSenhaAtualizar,
+//       funcaoFuncionario,
+//       vrsalarioFuncionario,
+//       vrdesconto,
+//       STAtivo,
+//       TipoFuncionario,
+//       vrdisponivel,
+//       STCONVENIO,
+//       STDESCONTOFOLHA,
+//       stLoja,
+//       dataAdmissao,
+//     });
+//   }
+
+// }
+
+// function atualizarDadosFuncionario(dados) {
+
+//   var dadosFuncionario = [{
+//     "IDFUNCIONARIO": parseInt(dados.idNovo),
+//     "IDSUBGRUPOEMPRESARIAL": parseInt(dados.idSubGrupoEmpresarial),
+//     "IDEMPRESA": parseInt(dados.empresaFuncionario),
+//     "NOFUNCIONARIO": dados.nomefuncionario,
+//     "NUCPF": dados.cpfFuncionarioSemMask,
+//     "NOLOGIN": dados.idNovo.toString(),
+//     "PWSENHA": dados.NSenhaAtualizar,
+//     "DSFUNCAO": dados.funcaoFuncionario,
+//     "VALORSALARIO": dados.parseFloat(vrsalarioFuncionario),
+//     "PERC": dados.parseFloat(vrdesconto),
+//     "STATIVO": dados.STAtivo,
+//     "DSTIPO": dados.TipoFuncionario,
+//     "VALORDISPONIVEL": parseFloat(dados.vrdisponivel) || 0,
+//     STCONVENIO,
+//     STDESCONTOFOLHA,
+//     "STLOJA": dados.stLoja,
+//     "DATA_ADMISSAO": dados.dataAdmissao,
+//   }];
+
+//   ajaxPost("api/informatica/funcionario-loja.xsjs", dadosFuncionario)
+//     .then(funcSucessPostFuncionario)
+//     .catch(funcError);
+
+//   const textDados = JSON.stringify(dadosFuncionario);
+//   const textoFuncao = 'INFORMATICA/ATUALIZAR/CADASTRO DE FUNCIONARIOS';
+
+//   var dadosLogFunc = [{
+//     "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+//     "PATHFUNCAO": textoFuncao,
+//     "DADOS": textDados,
+//     "IP": ipCliente
+//   }];
+
+//   ajaxPost("api/log-web.xsjs", dadosLogFunc)
+//     .then(funcSucessLog)
+//     .catch(funcError);
+// }
 
 function update_funcionario_desc() {
     
@@ -3115,7 +3832,7 @@ function update_funcionario_desc() {
     var dtfimdesc = $("#dtFimDesc").val();
     var motivodesc = $("#descMotivoDesconto").val();
     var idFuncAlteracao = IDFuncionarioLogin;
-
+    
     if(vrdescontoauto > 100) {
         Swal.fire({
             type: "error",
@@ -3139,10 +3856,15 @@ function update_funcionario_desc() {
     console.log(dados);
 
             ajaxPut("api/informatica/funcionario-desconto.xsjs", dados)
-                .then(funcSucessUpdateFuncionario)
-                .catch(funcError);
-                
-                    	const textdados = JSON.stringify(dados);
+                .then(async (resp) =>{
+                    await msgSuccess('Funcionario Atualizado com sucesso').then(()=>{
+                        $("#cadFuncionario").modal('hide');
+                        
+                        $('#dsNomeFunc').val($('#cpfFuncionario').val());
+                        pesq_funcionarios_loja();
+                    })
+                    
+                    const textdados = JSON.stringify(dados);
                     
                     	textoFuncao = 'INFORMATICA/EDIÇÃO DE DESCONTO DE FUNCIONARIOS';
                     
@@ -3157,6 +3879,8 @@ function update_funcionario_desc() {
                       	ajaxPost("api/log-web.xsjs", dadosEditFuncDesc)
                     		.then(funcSucessLog)
                     		.catch(funcError);
+                })
+                .catch(funcError);
 
 }
 
@@ -3889,6 +4613,11 @@ function retornoTableListVendasContingencia(vendascontingencia) {
             `<label style="color: blue;">` + PROTNFE_INFPROT_XMOTIVO + `</label>`,
         ]).draw(false);
 	}
+}
+
+function funcSucess(data) {
+  alerta_atualizado_sucesso();
+  pesq_funcionarios_loja();
 }
 
 function funcError(data) {
@@ -4739,7 +5468,7 @@ function ListaEmpresas() {
     }
   };
 
-  xmlhttp.open("GET", "informatica_action_listaempresas_old.html", true);
+  xmlhttp.open("GET", "informatica_action_listaempresas.html", true);
   xmlhttp.send();
 }
 
@@ -4807,7 +5536,7 @@ function pesq_empresas() {
         .catch(funcError);
     }
   };
-  xmlhttp.open("GET", "informatica_action_pesqempresas_old.html", true);
+  xmlhttp.open("GET", "informatica_action_pesqempresas.html", true);
   xmlhttp.send();
 }
 

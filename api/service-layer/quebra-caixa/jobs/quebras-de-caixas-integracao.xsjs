@@ -13,6 +13,19 @@ function setIntOrNull(stmt, fieldId, value) {
 	stmt.setInt(fieldId, value);
 }
 
+function getIdsQuebrasCaixas(dados){
+    let ids = '';
+    
+    for (var i = 0; i < dados.length; i++) {
+        let { IDQUEBRACAIXA } = dados[i];
+        
+        ids += IDQUEBRACAIXA;
+        ids += i < (dados.length - 1) ? ', ' : '';
+    }
+    
+    return ids;
+}
+
 function fnGetContaCaixaEmpresa(idEmpresa){
     let query = `
         SELECT
@@ -77,35 +90,77 @@ function fnGetDocEntryContasReceberSAP(idQuebraCaixa, JrnlMemo){
     return null;
 }
 
-function fnValidarIntegracaoContasPagarSAP(idQuebraCaixa, JrnlMemo, StAtualizarComError = true){
+function getQuebrasCaixa(dadosEnviados){
+    let idFuncionarioMigracao = dadosEnviados[0].IDFUNCIONARIO;
+    let idsQuebrasCaixas = getIdsQuebrasCaixas(dadosEnviados);
+    
+    let query = ` 
+        SELECT
+            TBQ.IDQUEBRACAIXA,
+            TBM.IDEMPRESA, 
+            ${idFuncionarioMigracao} AS IDUSRMIGRACAO,
+            TO_VARCHAR(TBQ.DTLANCAMENTO, 'YYYY-MM-DD') AS DTLANCAMENTO, 
+            TO_VARCHAR(TBQ.TXTHISTORICO) AS TXTHISTORICO,
+            TO_VARCHAR(TBQ.VRQUEBRAEFETIVADO) AS VRQUEBRAEFETIVADO,
+            TRIM(TBF.NOFUNCIONARIO) AS NOFUNCIONARIO,
+            TRIM(TBF.NUCPF) AS NUCPF,
+            TBF2.NUCPF AS CPF_USER
+        FROM
+            "VAR_DB_NAME".QUEBRACAIXA TBQ
+        INNER JOIN "VAR_DB_NAME".MOVIMENTOCAIXA TBM ON
+            TBQ.IDMOVIMENTOCAIXA = TBM.ID 
+        INNER JOIN "VAR_DB_NAME".FUNCIONARIO TBF ON 
+            TBQ.IDFUNCIONARIO = TBF.IDFUNCIONARIO
+        INNER JOIN "VAR_DB_NAME".FUNCIONARIO TBF2 ON 
+            TBQ.IDGERENTE = TBF2.IDFUNCIONARIO
+        WHERE
+            1 = ?
+            AND TBQ.STATIVO = 'True'
+            AND TBQ.STATUS_BLOQUEIO_ATUALIZACAO = 'False'
+            AND IFNULL(TO_VARCHAR(TBQ.ERROR_LOG_SAP), '') = ''
+            AND (
+                    (TBQ.VRQUEBRAEFETIVADO < 0 AND IFNULL(TBQ.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) = 0)
+                OR 
+                    (TBQ.VRQUEBRAEFETIVADO > 0 AND IFNULL(TBQ.DOCENTRY_SAP_CONTAS_A_RECEBER, 0) = 0)
+            )
+            AND TBQ.IDQUEBRACAIXA IN (${idsQuebrasCaixas})
+        ORDER BY 
+            TBQ.DTLANCAMENTO, 
+            TBQ.IDQUEBRACAIXA
+    `;
+
+    return api.sqlQuery(query, 1) || [];
+}
+
+function fnValidarIntegracaoContasPagarSAP(idQuebraCaixa, JrnlMemo, idUserMigracao, StAtualizarComError = true){
     let docEntryContasPagarSAP = fnGetDocEntryContasPagarSAP(idQuebraCaixa, JrnlMemo);
     
     if(docEntryContasPagarSAP){
-        return fnGravarLogSucessoContasPagarSAP(idQuebraCaixa, docEntryContasPagarSAP);
+        return fnGravarLogSucessoContasPagarSAP(idQuebraCaixa, docEntryContasPagarSAP, idUserMigracao);
     } else {
         if(StAtualizarComError){
-            fnGravarLogError(idQuebraCaixa, 'Erro ao tentar integra o contas a pagar');
+            fnGravarLogError(idQuebraCaixa, 'Erro ao tentar integra o contas a pagar', idUserMigracao);
         }
     }
     
     return false;
 }
 
-function fnValidarIntegracaoContasReceberSAP(idQuebraCaixa, JrnlMemo, StAtualizarComError = true){
+function fnValidarIntegracaoContasReceberSAP(idQuebraCaixa, JrnlMemo, idUserMigracao, StAtualizarComError = true){
     let docEntryContasReceberSAP = fnGetDocEntryContasReceberSAP(idQuebraCaixa, JrnlMemo);
     
     if(docEntryContasReceberSAP){
-        return fnGravarLogSucessoContasReceber(idQuebraCaixa, docEntryContasReceberSAP);
+        return fnGravarLogSucessoContasReceber(idQuebraCaixa, docEntryContasReceberSAP, idUserMigracao);
     } else {
         if(StAtualizarComError){
-            fnGravarLogError(idQuebraCaixa, 'Erro ao tentar integra o contas a receber');
+            fnGravarLogError(idQuebraCaixa, 'Erro ao tentar integra o contas a receber', idUserMigracao);
         }
     }
     
     return false;
 }
 
-function fnGravarLogSucessoContasPagarSAP(idQuebraCaixa, docEntryContasPagarSAP){
+function fnGravarLogSucessoContasPagarSAP(idQuebraCaixa, docEntryContasPagarSAP, idUserMigracao){
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."QUEBRACAIXA" 
@@ -113,6 +168,7 @@ function fnGravarLogSucessoContasPagarSAP(idQuebraCaixa, docEntryContasPagarSAP)
             ERROR_LOG_SAP = NULL,
             DT_HORA_INTEGRACAO_CONTAS_A_PAGAR = CURRENT_TIMESTAMP,
             STATUS_BLOQUEIO_ATUALIZACAO = 'False',
+            IDUSRMIGRACAO = ?,
             DOCENTRY_SAP_CONTAS_A_PAGAR = ?
         WHERE 
             IDQUEBRACAIXA = ? 
@@ -120,8 +176,9 @@ function fnGravarLogSucessoContasPagarSAP(idQuebraCaixa, docEntryContasPagarSAP)
     
 	let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
     
-    pStmtUpdate.setInt(1, docEntryContasPagarSAP);
-	pStmtUpdate.setInt(2, Number(idQuebraCaixa));
+    pStmtUpdate.setInt(1, idUserMigracao);
+    pStmtUpdate.setInt(2, docEntryContasPagarSAP);
+	pStmtUpdate.setInt(3, Number(idQuebraCaixa));
 	pStmtUpdate.execute();
 	
 	pStmtUpdate.close();
@@ -130,7 +187,7 @@ function fnGravarLogSucessoContasPagarSAP(idQuebraCaixa, docEntryContasPagarSAP)
 	return true;
 }
 
-function fnGravarLogSucessoContasReceber(idQuebraCaixa, docEntryContasReceberSAP){
+function fnGravarLogSucessoContasReceber(idQuebraCaixa, docEntryContasReceberSAP, idUserMigracao){
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."QUEBRACAIXA" 
@@ -138,6 +195,7 @@ function fnGravarLogSucessoContasReceber(idQuebraCaixa, docEntryContasReceberSAP
             ERROR_LOG_SAP = NULL,
             DT_HORA_INTEGRACAO_CONTAS_A_RECEBER = CURRENT_TIMESTAMP,
             STATUS_BLOQUEIO_ATUALIZACAO = 'False',
+            IDUSRMIGRACAO = ?,
             DOCENTRY_SAP_CONTAS_A_RECEBER = ?
         WHERE 
             IDQUEBRACAIXA = ? 
@@ -145,9 +203,10 @@ function fnGravarLogSucessoContasReceber(idQuebraCaixa, docEntryContasReceberSAP
     
 	let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
     
-    pStmtUpdate.setInt(1, docEntryContasReceberSAP);
-	pStmtUpdate.setInt(2, Number(idQuebraCaixa));
-	pStmtUpdate.execute();
+    pStmtUpdate.setInt(1, idUserMigracao);
+    pStmtUpdate.setInt(2, docEntryContasReceberSAP);
+	pStmtUpdate.setInt(3, Number(idQuebraCaixa));
+	pStmtUpdate.executeUpdate();
 	
 	pStmtUpdate.close();
 	conn.commit();
@@ -155,13 +214,14 @@ function fnGravarLogSucessoContasReceber(idQuebraCaixa, docEntryContasReceberSAP
 	return true;
 }
 
-function fnGravarLogError(idQuebraCaixa, p_Error){
+function fnGravarLogError(idQuebraCaixa, p_Error, idUserMigracao){
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."QUEBRACAIXA" 
         SET 
             STATUS_BLOQUEIO_ATUALIZACAO = 'False',
-            ERROR_LOG_SAP = ? 
+            ERROR_LOG_SAP = ?, 
+            IDUSRMIGRACAO = ?
         WHERE 
             IDQUEBRACAIXA = ? 
     `;
@@ -169,8 +229,10 @@ function fnGravarLogError(idQuebraCaixa, p_Error){
 	let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
 
 	pStmtUpdate.setString(1, p_Error);
-	pStmtUpdate.setInt(2, Number(idQuebraCaixa));
-	pStmtUpdate.execute();
+	pStmtUpdate.setInt(2, Number(idUserMigracao));
+	pStmtUpdate.setInt(3, Number(idQuebraCaixa));
+	
+	pStmtUpdate.executeUpdate();
 	
 	pStmtUpdate.close();
 	conn.commit();
@@ -178,28 +240,37 @@ function fnGravarLogError(idQuebraCaixa, p_Error){
 	return false;
 }
 
-function fnBloquearLinhaEnquantoAtualiza(dados){
-    let ids = '';
-    
-    for (var i = 0; i < dados.length; i++) {
-        let { IDQUEBRACAIXA } = dados[i];
-        
-        ids += IDQUEBRACAIXA;
-        ids += i < (dados.length - 1) ? ', ' : '';
-    }
-    
+function fnBloquearLinhaEnquantoAtualiza(idsQuebrasCaixas){
     let queryUpdate = `
         UPDATE 
             "VAR_DB_NAME"."QUEBRACAIXA" 
         SET 
             STATUS_BLOQUEIO_ATUALIZACAO = 'True'
         WHERE 
-            IDQUEBRACAIXA IN (${ids}) 
+            IDQUEBRACAIXA IN (${idsQuebrasCaixas}) 
     `;
     
     let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
     
-    pStmtUpdate.execute();
+    pStmtUpdate.executeUpdate();
+    pStmtUpdate.close();
+    
+    conn.commit();
+}
+
+function fnDesbloquearLinhaEnquantoAtualiza(idsQuebrasCaixas){
+    let queryUpdate = `
+        UPDATE 
+            "VAR_DB_NAME"."QUEBRACAIXA" 
+        SET 
+            STATUS_BLOQUEIO_ATUALIZACAO = 'False'
+        WHERE 
+            IDQUEBRACAIXA IN (${idsQuebrasCaixas}) 
+    `;
+    
+    let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdate));
+    
+    pStmtUpdate.executeUpdate();
     pStmtUpdate.close();
     
     conn.commit();
@@ -285,122 +356,89 @@ function fnMontarJsonContasReceber(dados){
     };
 }
 
-function postSlContasPagar(data, JrnlMemo) {
+function postSlContasPagar(data, idUserMigracao) {
+    if(!session){
+        session = slApi.loginServiceLayer(true);
+    }
+    
     let response = slApi.post('/VendorPayments', data, session);
     
     if (response.status !== 204) {
         response =  JSON.parse(response.body.asString());
-        return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o Contas a Pagar'));
+        
+        return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o Contas a Pagar'), idUserMigracao);
     }
 
-    return fnValidarIntegracaoContasPagarSAP(Number(data.U_IS_ID_QUALITY), JrnlMemo);
+    return fnValidarIntegracaoContasPagarSAP(Number(data.U_IS_ID_QUALITY), data.JournalRemarks, idUserMigracao);
 }
 
-function postSlContasReceber(data, JrnlMemo) {
+function postSlContasReceber(data, idUserMigracao) {
+    if(!session){
+        session = slApi.loginServiceLayer(true);
+    }
+    
     let response = slApi.post('/IncomingPayments', data, session);
     
     if (response.status !== 204) {
         response =  JSON.parse(response.body.asString());
-        return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o Contas a Receber'));
+        
+        return fnGravarLogError(Number(data.U_IS_ID_QUALITY), (response.error.message.value || 'Erro ao tentar integra o Contas a Receber'), idUserMigracao);
     }
     
-    return fnValidarIntegracaoContasReceberSAP(Number(data.U_IS_ID_QUALITY), JrnlMemo);
+    return fnValidarIntegracaoContasReceberSAP(Number(data.U_IS_ID_QUALITY), data.JournalRemarks, idUserMigracao);
 }
 
 function integrarQuebrasDeCaixasNoSAP(byId) {
-    let query = ` 
-        SELECT
-            TBQ.IDQUEBRACAIXA,
-            TO_VARCHAR(TBQ.DTLANCAMENTO, 'YYYY-MM-DD') AS DTLANCAMENTO, 
-            TO_VARCHAR(TBQ.TXTHISTORICO) AS TXTHISTORICO,
-            TO_VARCHAR(TBQ.VRQUEBRAEFETIVADO) AS VRQUEBRAEFETIVADO,
-            TBF.NOFUNCIONARIO,
-            TBF.NUCPF,
-            TBF2.NUCPF AS CPF_USER,
-            TBM.IDEMPRESA
-        FROM
-            QUEBRACAIXA TBQ
-        INNER JOIN FUNCIONARIO TBF ON 
-            TBQ.IDFUNCIONARIO = TBF.IDFUNCIONARIO
-        INNER JOIN FUNCIONARIO TBF2 ON 
-            TBQ.IDGERENTE = TBF2.IDFUNCIONARIO
-        INNER JOIN MOVIMENTOCAIXA TBM ON
-            TBQ.IDMOVIMENTOCAIXA = TBM.ID 
-        WHERE
-            1 = ?
-            AND TBQ.STATIVO = 'True'
-            AND TBQ.STATUS_BLOQUEIO_ATUALIZACAO = 'False'
-            --AND IFNULL(TO_VARCHAR(TBQ.ERROR_LOG_SAP), '') = ''
-            AND (
-                    (TBQ.VRQUEBRAEFETIVADO < 0 AND IFNULL(TBQ.DOCENTRY_SAP_CONTAS_A_PAGAR, 0) = 0)
-                OR 
-                    (TBQ.VRQUEBRAEFETIVADO > 0 AND IFNULL(TBQ.DOCENTRY_SAP_CONTAS_A_RECEBER, 0) = 0)
-            )
-    `;
-	
-	var bodyJson = JSON.parse($.request.body.asString()); 
+	let bodyJson = JSON.parse($.request.body.asString());
 
     if(bodyJson.length > 0){
-        let ids = '';
         
-        for (let i = 0; i < bodyJson.length; i++) {
-            let registro = bodyJson[i];
-            ids += registro.IDQUEBRACAIXA;
-            ids += i < (bodyJson.length - 1) ? ', ' : '';
+        let dadosQuebrasCaixa = getQuebrasCaixa(bodyJson);
+        
+        if(dadosQuebrasCaixa.length === 0){
+            return { msg: "QUEBRAS DE CAIXA JÁ INTEGRADAS OU CANCELADAS OU NÃO EXISTEM!" };
         }
-        
-        query += `AND TBQ.IDQUEBRACAIXA IN (${ids})`;
-        
-        //return {query}
-        
-        let resultQuery = ids.length > 0 ? api.sqlQuery(query, 1) : '';
-        
-        if(resultQuery.length === 0){
-            return { msg: "QUEBRA DE CAIXA JÁ INTEGRADA OU CANCELADA OU NÃO EXISTE!" };
-        }
-        
-        // return {resultQuery}
         
         conn = $.db.getConnection();
         
-        fnBloquearLinhaEnquantoAtualiza(resultQuery);
+        let idsQuebraCaixasValidados = getIdsQuebrasCaixas(dadosQuebrasCaixa);
         
-        session = slApi.loginServiceLayer(true);
-        slApi.loginServiceLayer(true);
+        fnBloquearLinhaEnquantoAtualiza(idsQuebraCaixasValidados);
         
-        for (let i = 0; i < resultQuery.length; i++) {
-            let registro = resultQuery[i];
+        for (let registro of dadosQuebrasCaixa) {
             let {
                 IDQUEBRACAIXA,
                 VRQUEBRAEFETIVADO,
                 NOFUNCIONARIO,
-                NUCPF
+                NUCPF,
+                IDUSRMIGRACAO
             } = registro || '';
             
             let JrnlMemo = (`${NOFUNCIONARIO} ${NUCPF}`).trim();
             
-            if(Number(VRQUEBRAEFETIVADO) < 0){
-                let stIntegrar = !fnValidarIntegracaoContasPagarSAP(IDQUEBRACAIXA, JrnlMemo, false);
-                
-                if(stIntegrar){
-                    let dadosJsonContasPagar = fnMontarJsonContasPagar(registro);
-                    //return {dadosJsonContasPagar}
-                    postSlContasPagar(dadosJsonContasPagar, JrnlMemo);
-                }
-            } else {
-                let stIntegrar = !fnValidarIntegracaoContasReceberSAP(IDQUEBRACAIXA, JrnlMemo, false);
+            if(Number(VRQUEBRAEFETIVADO) >= 0){
+                let stIntegrar = !fnValidarIntegracaoContasReceberSAP(IDQUEBRACAIXA, JrnlMemo, IDUSRMIGRACAO, false);
                 
                 if(stIntegrar){
                     let dadosJsonContasReceber = fnMontarJsonContasReceber(registro);
                     //return {dadosJsonContasReceber}
-                    postSlContasReceber(dadosJsonContasReceber, JrnlMemo);
+                    postSlContasReceber(dadosJsonContasReceber, IDUSRMIGRACAO);
                 }
-            }
+            } else {
+                let stIntegrar = !fnValidarIntegracaoContasPagarSAP(IDQUEBRACAIXA, JrnlMemo, IDUSRMIGRACAO, false);
+                
+                if(stIntegrar){
+                    let dadosJsonContasPagar = fnMontarJsonContasPagar(registro);
+                    //return {dadosJsonContasPagar}
+                    postSlContasPagar(dadosJsonContasPagar, IDUSRMIGRACAO);
+                }
+            } 
         }
         
+        fnDesbloquearLinhaEnquantoAtualiza(idsQuebraCaixasValidados);
     }
 	
-	return 'Migração depositos realizada com sucesso!';
+	return 'Migração quebras de caixa realizada com sucesso!';
 }
 
 if($.response) {

@@ -12,9 +12,11 @@ function fnHandleGet(byId) {
 	'   tbt.VRTOKEN,' +
     '   tbt.STATIVO,' +
     '   tbt.IDPROMOCAOTOKENCREDSYSTEM,' + 
-    '   tbt.IDPOS' +
+    '   tbt.IDPOS,' +
+    '   tbp.DSPOS' +
     ' FROM ' + 
     '   "VAR_DB_NAME".TOKENCREDSYSTEM tbt' +
+     '  INNER JOIN "VAR_DB_NAME".POS tbp on tbp.IDPOS = tbt.IDPOS' +
     ' WHERE ' +
         '	1 = ? and tbt.STATIVO = \'True\'';
 

@@ -8,7 +8,7 @@ function fnHandlePut() {
         
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
     var registro = JSON.parse($.request.body.asString()); 
-
+    
     pStmt.setString(1, registro.STATIVO);
     pStmt.setInt(2, registro.IDADIANTAMENTOSALARIO);
     

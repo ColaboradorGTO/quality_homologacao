@@ -41,6 +41,7 @@ function fnHandleGet(byId) {
                var tipodatapesq = "d.DTMOVIMENTOCAIXA";
                var datapesqini = dataMovInicio;
                var datapesqfin = dataMovFim;
+               
         }
 
 

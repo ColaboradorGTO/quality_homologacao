@@ -1,0 +1,64 @@
+<ol class="breadcrumb page-breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+    <li class="breadcrumb-item active">Lista de Imagens dos Produtos</li>
+    <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+    <h1 class="subheader-title">
+        <i class='subheader-icon fal fa-chart-area'></i> Imagens dos Produtos
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+
+                <div class="panel-tag">
+                            <div class="row">
+                                <div class="col-sm-6 col-xl-2">
+                                    <label class="form-label" for="refnum">Por Pedido</label>
+                                    <input class="form-control" id="idPedido" type="text" name="idPedido" value="">
+                                </div>
+                                <div class="col-sm-6 col-xl-2">
+                                    <label class="form-label" for="refnum">Por Referência</label>
+                                    <input class="form-control" id="numrefimgprod" type="text" name="numrefimgprod" value="">
+                                </div>
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpfornec">Por Fabricante</label>
+                                    <div class="input-group">
+                                        <select class="select2" data-width="100%" id="idfabselect"
+                                                name="idfabselect"
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-xl-3">
+                                    <label class="form-label" for="tpcor">Por Estrutura</label>
+                                    <div class="input-group">
+                                        <select class="select2" data-width="100%" id="idsubgrupoestrutura"
+                                                name="idsubgrupoestrutura"
+                                                data-live-search="true" data-live-search-placeholder="Pesquisar"
+                                                data-actions-box="true">
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
+                                </div>  
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12 col-xl-12 mt-3">
+                                    <button class="btn btn-primary" type="button" onclick="pesq_imagensprod(1)"><span class="fal fa-search mr-1"></span>Pesquisar</button>
+                                    <button class="btn btn-danger" type="button" onclick="modal_cadastrar_imagens()"><span class="fal fa-plus mr-1"></span>Cadastrar Imagens</button>
+                                </div>
+                            </div>
+                    </div>
+                            
+                    <div id="resultadoimgprod">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

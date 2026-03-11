@@ -179,6 +179,7 @@ function fnDetalheOT(pIdResumoOT, aDetalheOT, conn){
 
 function fnHandlePost() {
     let bodyJson = JSON.parse($.request.body.asString());
+    //if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
     let conn = $.db.getConnection();
 
     let queryInsert = `
@@ -247,7 +248,7 @@ function fnHandlePut(){
     var conn = $.db.getConnection();
 
     var bodyJson = JSON.parse($.request.body.asString());
-
+   // if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
     var pIdEmpresaOrigem = parseInt(bodyJson[0].IDEMPRESAORIGEM);
     var pIdStatusOT = parseInt(bodyJson[0].IDSTATUSOT);
     var pIdResumoOT = parseInt(bodyJson[0].IDRESUMOOT);

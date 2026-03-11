@@ -32,6 +32,12 @@ function obterCodigoDeRetorno(modulo, user) {
         'OPERADOR(A) DE CAIXA'
     ]
     
+    let dsFuncao = user['DSFUNCAO'];
+    
+    if(dsFuncao.substring(0,20) == 'Analista De Rh Pleno' || dsFuncao.substring(0,16) == 'Assistente De Rh' || dsFuncao.substring(0,14) == 'Analista De Rh') {
+        dsFuncao = 'RH';
+    }
+    
     switch(modulo.toUpperCase()) {
         case 'INFORMATICA' :
             
@@ -51,7 +57,7 @@ function obterCodigoDeRetorno(modulo, user) {
             
         case 'FINANCEIRO' :
             
-            if(user['DSFUNCAO'].substring(0,10) == 'Financeiro' || user['DSFUNCAO'].substring(0,2)  == 'TI')
+            if(user['DSFUNCAO'].substring(0,10) == 'Financeiro' || user['DSFUNCAO'].substring(0,2)  == 'TI' || dsFuncao.substring(0,2)  == 'RH')
             {
                 return 300;
             }
@@ -60,7 +66,7 @@ function obterCodigoDeRetorno(modulo, user) {
             
         case 'ADMINISTRATIVO' :
             
-            if(user['DSFUNCAO'].substring(0,10) == 'Financeiro' || user['DSFUNCAO'].substring(0,9) == 'Prevencao' || user['DSFUNCAO'].substring(0,10)  == 'Supervisor' || user['DSFUNCAO'].substring(0,2)  == 'TI'|| user['DSFUNCAO'].substring(0,23)  == 'Coordenador Dept Fiscal'|| user['DSFUNCAO'].substring(0,22)  == 'Assistente Dept Fiscal' || user['DSFUNCAO'].substring(0,14)  == 'Pedido Compras')
+            if(user['DSFUNCAO'].substring(0,10) == 'Financeiro' || user['DSFUNCAO'].substring(0,9) == 'Prevencao' || user['DSFUNCAO'].substring(0,10)  == 'Supervisor' || user['DSFUNCAO'].substring(0,2)  == 'TI'|| user['DSFUNCAO'].substring(0,23)  == 'Coordenador Dept Fiscal'|| user['DSFUNCAO'].substring(0,22)  == 'Assistente Dept Fiscal' || user['DSFUNCAO'].substring(0,14)  == 'Pedido Compras' || dsFuncao.substring(0,2)  == 'RH')
             {
                 return 500;
             }

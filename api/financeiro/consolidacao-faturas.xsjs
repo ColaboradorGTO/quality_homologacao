@@ -32,6 +32,24 @@ function adicionarRelacaoDetalheFatura(idConsolidacaoFatura, registro, conn){
     pStmt.close();
 }
 
+function removerRelacaoDetalheFatura(idConsolidacaoFatura, conn){
+    let query = `
+        UPDATE
+            "VAR_DB_NAME".DETALHEFATURA
+        SET
+            IDCONSOLIDACAOFATURA = NULL
+        WHERE
+            IDCONSOLIDACAOFATURA = ?
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+
+    pStmt.setInt(1, idConsolidacaoFatura);
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
 function fnHandleGet(byId) {
     let idEmpresa = $.request.parameters.get("idEmpresa");
     let dtInicio = $.request.parameters.get("dtInicio");
@@ -51,7 +69,7 @@ function fnHandleGet(byId) {
             TBCF.STCANCELADO,
             TBCF.IDUSRCANCELAMENTO,
             TBF_CANCELAMENTO.NOFUNCIONARIO AS NOUSRCANCELAMENTO,
-            TBCF.TXTMOTIVOCANCELAMENTO,
+            TO_VARCHAR(TBCF.TXTMOTIVOCANCELAMENTO) AS TXTMOTIVOCANCELAMENTO,
             TBCF.IDUSRMIGRACAO,
             TBCF.DOCENTRY_SAP_CONTAS_A_RECEBER,
             TBCF.DT_HORA_INTEGRACAO_CONTAS_A_RECEBER,
@@ -107,7 +125,7 @@ function fnHandlePut() {
     let conn = $.db.getConnection();
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
     let bodyJson = JSON.parse($.request.body.asString()); 
-
+    if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
 	for(let registro of bodyJson){
         
         pStmt.setInt(1, registro.IDFUNCIONARIO);
@@ -117,6 +135,8 @@ function fnHandlePut() {
         
         pStmt.execute();
         pStmt.close();
+        
+        removerRelacaoDetalheFatura(registro.IDCONSOLIDACAOFATURA, conn);
 	}
 
 	conn.commit();
@@ -144,7 +164,9 @@ function fnHandlePost() {
     let conn = $.db.getConnection();
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
     let bodyJson = JSON.parse($.request.body.asString()); 
-
+    
+    if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
+    
 	for(let registro of bodyJson){
         let newId = Number(api.executeScalar('SELECT "VAR_DB_NAME"."SEQ_CONSOLIDACAOFATURA".NEXTVAL FROM DUMMY WHERE 1 = ?', 1));
         
@@ -156,10 +178,11 @@ function fnHandlePost() {
         pStmt.setInt(6, registro.IDFUNCIONARIO);
         
         pStmt.execute();
-        pStmt.close();
         
         adicionarRelacaoDetalheFatura(newId, registro, conn);
 	}
+    
+    pStmt.close();
 
 	conn.commit();
 	

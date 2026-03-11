@@ -12,7 +12,7 @@ function fnHandlePut() {
     let bodyJson = JSON.parse($.request.body.asString());
     let registro = bodyJson;
 	let idsFaturas = registro.IDS_FATURAS.replace("'", "");
-    
+
     let query = `
         UPDATE 
             "VAR_DB_NAME"."DETALHEFATURA" 
@@ -35,7 +35,8 @@ function fnHandlePut() {
 	conn.commit();
 	
 	return {
-	    msg : "Atualização realizada com sucesso!"
+	    msg : "Atualização realizada com sucesso!",
+	    data: bodyJson
 	};
 }
 

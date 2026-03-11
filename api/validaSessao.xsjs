@@ -4,8 +4,25 @@ var common = $.import("quality.concentrador_homologacao.api.common", "common");
 function obterCodigoDeRetorno(modulo, user) {
     let arrayIdsEtiquetagem = [
         1457,
-        1586
-    ]
+        1586,
+        30440,
+        30073,
+        32686
+    ];
+    
+    let arrayIdsComprasADM = [
+        632,
+        1459,
+        22076,
+        23065,
+        2002,
+        22894,
+        2006,
+        1492,
+        30142,
+        30514,
+        1537
+    ];
     
     let arrayDsFuncVouchers = [
         'TI',
@@ -13,8 +30,15 @@ function obterCodigoDeRetorno(modulo, user) {
         'SUB GERENTE',
         'FISCAL DE CAIXA',
         'OPERADORA DE CAIXA',
-        'OPERADOR DE CAIXA'
+        'OPERADOR DE CAIXA',
+        'OPERADOR(A) DE CAIXA'
     ]
+    
+    let dsFuncao = user['DSFUNCAO'];
+    
+    if(dsFuncao.substring(0,20) == 'Analista De Rh Pleno' || dsFuncao.substring(0,16) == 'Assistente De Rh' || dsFuncao.substring(0,14) == 'Analista De Rh') {
+        dsFuncao = 'RH';
+    }
     
     switch(modulo.toUpperCase()) {
         case 'INFORMATICA' :
@@ -35,7 +59,7 @@ function obterCodigoDeRetorno(modulo, user) {
             
         case 'FINANCEIRO' :
             
-            if(user['DSFUNCAO'].substring(0,10) == 'Financeiro' || user['DSFUNCAO'].substring(0,2)  == 'TI')
+            if(user['DSFUNCAO'].substring(0,10) == 'Financeiro' || user['DSFUNCAO'].substring(0,2)  == 'TI' || dsFuncao.substring(0,2)  == 'RH')
             {
                 return true;
             }
@@ -44,7 +68,7 @@ function obterCodigoDeRetorno(modulo, user) {
             
         case 'ADMINISTRATIVO' :
             
-            if(user['DSFUNCAO'].substring(0,10) == 'Financeiro' || user['DSFUNCAO'].substring(0,9) == 'Prevencao' || user['DSFUNCAO'].substring(0,10)  == 'Supervisor' || user['DSFUNCAO'].substring(0,2)  == 'TI'|| user['DSFUNCAO'].substring(0,23)  == 'Coordenador Dept Fiscal'|| user['DSFUNCAO'].substring(0,22)  == 'Assistente Dept Fiscal' || user['DSFUNCAO'].substring(0,14)  == 'Pedido Compras')
+            if(user['DSFUNCAO'].substring(0,10) == 'Financeiro' || user['DSFUNCAO'].substring(0,9) == 'Prevencao' || user['DSFUNCAO'].substring(0,10)  == 'Supervisor' || user['DSFUNCAO'].substring(0,2)  == 'TI'|| user['DSFUNCAO'].substring(0,23)  == 'Coordenador Dept Fiscal'|| user['DSFUNCAO'].substring(0,22)  == 'Assistente Dept Fiscal' || user['DSFUNCAO'].substring(0,14)  == 'Pedido Compras' || dsFuncao.substring(0,2)  == 'RH')
             {
                 return true;
             }
@@ -89,7 +113,7 @@ function obterCodigoDeRetorno(modulo, user) {
 
         case 'CADASTROS' :
             
-            if(user['DSFUNCAO'].substring(0,2)  == 'TI' || user['DSFUNCAO'].substring(0,23)  == 'Pedido Compras' || user['DSFUNCAO'] == 'Etiquetagem')
+            if(user['DSFUNCAO'].substring(0,2)  == 'TI' || user['DSFUNCAO'].substring(0,23)  == 'Pedido Compras')
             {
                 return true;
             }
@@ -97,17 +121,18 @@ function obterCodigoDeRetorno(modulo, user) {
             break;
             
         case 'EXPEDICAO' :
-            return true;
-            /*if(user['DSFUNCAO'].substring(0,2)  == 'TI')
+            
+            if(user['DSFUNCAO'].substring(0,2)  == 'TI')
             {
                 return true;
-            }*/
+            }
             
-           // break;
+            break;
 
         case 'COMPRASADM' :
             
-            if(user['DSFUNCAO'].substring(0,2)  == 'TI' || user['DSFUNCAO'].substring(0,23)  == 'Pedido Compras')
+            //if(user['DSFUNCAO'].substring(0,2)  == 'TI' ||(user['DSFUNCAO'].substring(0,23)  == 'Pedido Compras' && user['id'] == 632))
+            if(arrayIdsComprasADM.includes(user['IDFUNCIONARIO']))
             {
                 return true;
             }
@@ -136,29 +161,19 @@ function obterCodigoDeRetorno(modulo, user) {
             
            if(arrayDsFuncVouchers.includes(user.DSFUNCAO.toUpperCase().trim()))
             {
-                return 1400;
+                return true;
             }
             
             break; 
         
-        case 'ETIQUETAGEMFORNECEDOR' :
-            
-            if(user['DSFUNCAO'].substring(0,2)  == 'TI')
-            {
-                return 1500;
-            }
-            
-            break;
-            
          case 'RECEPCAOMALOTES' :
             
-            if(user['DSFUNCAO'].substring(0,2)  == 'TI')
+            if(user['DSFUNCAO'].substring(0,2)  == 'TI' || user['DSFUNCAO'].trim()  == 'FINANCEIRO')
             {
-                return 1600;
+                return true;
             }
             
             break;
-        
     }
     
     return false;
@@ -168,8 +183,8 @@ function obterCodigoDeRetorno(modulo, user) {
 function validaUsuario(modulo, user){
     let query = "SELECT tbf.IDSUBGRUPOEMPRESARIAL, tbf.DSFUNCAO, tbf.IDFUNCIONARIO FROM FUNCIONARIO tbf WHERE tbf.STATIVO=\'True\' AND tbf.IDFUNCIONARIO = ?";
     let dadosFunc = hdb.sqlQuery(query, user.id);
-
-    if(dadosFunc.length) {
+    
+    if(dadosFunc.length > 0) {
         return obterCodigoDeRetorno(modulo, dadosFunc[0]);
     }
     return false;
@@ -183,7 +198,8 @@ function fnHandlePost() {
     var codigoDeRetorno = validaUsuario(bodyJson.modulo, user);
     
     return {
-        "auth": codigoDeRetorno
+        "auth": codigoDeRetorno,
+        "obj": bodyJson
     };
 }
 

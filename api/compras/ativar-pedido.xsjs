@@ -460,9 +460,9 @@ function gerarDetalhePedidoQuandoMigradoSAP(idResumoPedido, idPedidoNovo){
                 A.IDRESPCANCELAMENTO,
                 A.TXTOBSCANCELAMENTO,
                 'True' AS STREPOSICAO,
-                B.CODBARRAS AS NUCODBARRAS,
+                IFNULL(TBDP_SECUNDARIO.CODBARRAS, B.CODBARRAS) AS NUCODBARRAS,
                 A.DTCANCELAMENTO,
-                B.IDPRODCADASTRO AS IDPRODUTO,
+                IFNULL(TBDP_SECUNDARIO.IDPRODCADASTRO, B.IDPRODCADASTRO) AS IDPRODUTO,
                 A.DTATUALIZACAO,
                 A.IDRESPATUALIZACAO,
                 A.IDRESPCADASTRO,
@@ -475,7 +475,9 @@ function gerarDetalhePedidoQuandoMigradoSAP(idResumoPedido, idPedidoNovo){
             INNER JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO B ON 
                 A.IDDETALHEPEDIDO = B.IDDETALHEPEDIDO
             LEFT JOIN "VAR_DB_NAME".DETALHEPEDIDO C ON
-                A.IDDETALHEPEDIDOPRIMARIO = C.IDDETALHEPEDIDOORIGEM
+                A.IDDETALHEPEDIDOPRIMARIO = C.IDDETALHEPEDIDOORIGEM AND C.DTCANCELAMENTO IS NULL
+            LEFT JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP_SECUNDARIO ON 
+            	B.IDDETALHEPRODUTOPEDIDO = TBDP_SECUNDARIO.IDDETALHEPRODUTOPEDIDOPRIMARIO
             WHERE 
                 A.DTCANCELAMENTO IS NULL
                 AND A.IDRESUMOPEDIDO = ?
@@ -869,12 +871,12 @@ function fnHandlePut() {
     let registro = JSON.parse($.request.body.asString());
     let idResumoPedido = Number(registro.IDRESUMOPEDIDO);
     let idResumoPedidoSecundario = getIdResumoPedidoSecundario(idResumoPedido);
-    let stMigradoSAP = validarSePedidoEstaCanceladoSAP(idResumoPedido);
+    let stCanceladoSAP = validarSePedidoEstaCanceladoSAP(idResumoPedido);
     let stPedidoPrimario = idResumoPedidoSecundario > 0;
     
     conn = $.db.getConnection();
 
-    if(stMigradoSAP){
+    if(stCanceladoSAP){
        fnGerarDadosPedidoMigrado(idResumoPedido, registro);
        atualizarResumoPedido(idResumoPedido, registro);
        

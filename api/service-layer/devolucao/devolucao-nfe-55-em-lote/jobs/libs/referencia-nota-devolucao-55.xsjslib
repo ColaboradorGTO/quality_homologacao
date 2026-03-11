@@ -40,9 +40,6 @@ function successLogRefDevolucao(idVenda, CHAVENFE){
             "VAR_DB_NAME"."VENDA"
         SET 
             ERRORLOGSAP = null,
-            SAP_DOCENTRY_CORRETO = null,
-            SAP_DOCENTRY = null,
-            SAP_DOCENTRY_PAGAMENTO = null,
             TXTDEVOLUCAO = 'DEVOLUCAO E REFERENCIACAO GERADA NO SAP, MOTIVO NO CAMPO: TXTOBSCORRECAOCONTINGENCIA',
             TXTOBSCORRECAOCONTINGENCIA = (
                 SELECT 
@@ -126,7 +123,7 @@ function referenciarDevolucao(idVenda, session, connDB) {
         INNER JOIN "VAR_DB_NAME".EMPRESA TBE ON 
             TBE.IDEMPRESA = TBV.IDEMPRESA
         INNER JOIN ${dbNameSAP}.OINV TBO ON 
-            TBV.IDVENDA = TBO."U_ID_VENDA_PDV" AND TBV.SAP_DOCENTRY_CORRETO = TBO."DocEntry"
+            TBV.IDVENDA = TBO."U_ID_VENDA_PDV" /*AND TBV.SAP_DOCENTRY_CORRETO = TBO."DocEntry"*/
         WHERE 
             TBV.IDVENDA = '${idVenda}'
             AND TBO."CANCELED" = 'N'

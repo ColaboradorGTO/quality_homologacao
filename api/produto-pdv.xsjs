@@ -48,8 +48,8 @@ function fnHandleGet(byId) {
     '   tbp.GRP_MATERIAIS,' +
     '   (tbn.ImpEstadual * 10) AS PerICMS, '+
     '   \'\' as "GRUPO", '+
-	'   0 as "IDSUBGRUPO", '+
-	'   \'\' as "SUBGRUPO", '+
+	'   IFNULL(tbp.IDSUBGRUPO,0) as "IDSUBGRUPO", '+
+	'   tbse.DSSUBGRUPOESTRUTURA as "SUBGRUPO", '+
 	'   0 as "IDMARCA", '+
 	'   \'\' as "MARCA", '+
 	'   0 as "IDRAZAO_SOCIAL_FORNECEDOR", '+
@@ -72,6 +72,7 @@ function fnHandleGet(byId) {
     query = query  +
     '   INNER JOIN "VAR_DB_NAME".NCM tbn on tbp.NUNCM = tbn.NUNCM AND tbe.SGUF = tbn.SGUF ' +
     '   LEFT JOIN "VAR_DB_NAME".PRODUTO_PRECO tbpp on tbpp.IDPRODUTO = tbp.IDPRODUTO AND tbpp.IDEMPRESA =\''+idEmpresa+ '\' '+
+    '   LEFT JOIN "VAR_DB_NAME".SUBGRUPOESTRUTURA tbse on tbse.IDSUBGRUPOESTRUTURA = tbp.IDSUBGRUPO '+
     //'   INNER JOIN "QUALITY_CONC".VW_PRODUTO_ESTRUTURA_MERCADOLOGICA TBPEM on TBPEM.IDPRODUTO = tbp.IDPRODUTO ' +
     ' WHERE ' +
         '	1 = ?'+
@@ -101,7 +102,7 @@ function fnHandleGet(byId) {
     
     query = query + ' ORDER BY  tbp.IDPRODUTO ';
     
-   /* $.response.contentType = 'application/json';
+    /*$.response.contentType = 'application/json';
 		$.response.setBody(JSON.stringify(query));
 		$.response.status = $.net.http.OK;
 		return;*/

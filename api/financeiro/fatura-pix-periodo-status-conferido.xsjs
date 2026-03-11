@@ -28,7 +28,8 @@ function fnHandlePut() {
 
   var pStmt = conn.prepareStatement(api.replaceDbName(query));
   var bodyJson = JSON.parse($.request.body.asString());
-  var updatedData = []; 
+  if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
+//   var updatedData = []; 
   for (var i = 0; i < bodyJson.length; i++) {
     var registro = bodyJson[i];
     pStmt.setString(1, registro.STCONFERIDO);
@@ -38,7 +39,7 @@ function fnHandlePut() {
     pStmt.execute();
     
     
-    updatedData.push(registro);
+    // updatedData.push(registro);
   }
   pStmt.close();
 
@@ -46,7 +47,7 @@ function fnHandlePut() {
 
   return {
     message: "Registro atualizado com sucesso!",
-    updatedData: updatedData 
+    data: bodyJson 
   };
   
 }

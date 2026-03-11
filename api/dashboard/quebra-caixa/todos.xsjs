@@ -55,7 +55,7 @@ function fnHandlePut() {
         
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
     var bodyJson = JSON.parse($.request.body.asString()); 
-
+    //if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
     for (var i = 0; i < bodyJson.length; i++) {
 
 		var registro = bodyJson[i];
@@ -104,7 +104,7 @@ function fnHandlePost()
 		
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());
-
+   // if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
 	for (var i = 0; i < bodyJson.length; i++) {
         
 		var registro = bodyJson[i];

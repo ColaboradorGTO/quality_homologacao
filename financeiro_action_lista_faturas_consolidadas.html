@@ -37,27 +37,32 @@
               <div class="col-sm-6 col-xl-6">
                 <br>
                 <button class="btn btn-primary" type="button" onclick="pesquisarPreviaFaturasConsolidadas()">
-                  <span class="fal fa-search mr-1"></span>Pesquisar
+                  <span class="fal fa-search mr-1"></span>Prévias Consolidações
                 </button>
                 <button class="btn btn-info" type="button" onclick="pesquisarFaturasConsolidadas()">
-                  <span class="fal fa-search mr-1"></span>Consolidado
+                  <span class="fal fa-search mr-1"></span>Consolidações
                 </button>
               </div>
               <div class="col-sm-6 col-xl-6">
                 <br>
 
-                <div id="btnIntegrarTodasConsolidacoesFaturas" class="d-none justify-content-end">
-                  <button class="btn btn-warning fw-900" type="button"
-                    onclick="modalIntegrarTodasConsolidacoesFaturas()">
+                <div" class="justify-content-end d-flex">
+                  <button id="btnConfirmarTodasConsolidacoesFaturasSelecionadas" class="btn btn-warning fw-900"
+                    type="button" onclick="modalConfirmarTodasConsolidacoesFaturas()">
+                    <span class="fal fa-check fw-900 mr-1"></span>Confirmar Todos</button>
+                  <button id="btnConferirTodasConsolidacoesFaturasSelecionadas" class="btn btn-warning fw-900"
+                    type="button" onclick="modalIntegrarTodasConsolidacoesFaturas()">
                     <span class="fal fa-cloud-upload fw-900 mr-1"></span>Integrar Todos</button>
-                </div>
               </div>
             </div>
-          </div>
-          <div id="resultado">
+
           </div>
         </div>
       </div>
+      <div id="resultado">
+      </div>
     </div>
   </div>
+</div>
+</div>
 </div>

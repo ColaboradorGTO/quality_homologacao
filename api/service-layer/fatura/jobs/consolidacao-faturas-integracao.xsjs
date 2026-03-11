@@ -223,7 +223,8 @@ function postSlContasReceber(data) {
 
 function integrarFaturasNoSAP(byId) {
 	let bodyJson = JSON.parse($.request.body.asString()); 
-
+	if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
+    // return bodyJson;
     if(bodyJson.length > 0){
         for (let registro of bodyJson) {
             let ids = registro.IDS_CONSOLIDACOES.replace(/\'/g, '');

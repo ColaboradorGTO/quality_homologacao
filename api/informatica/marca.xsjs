@@ -62,7 +62,7 @@ function fnHandlePost()
 		' "DSGRUPOEMPRESARIAL", ' +
         ' "STATIVO" ' +
     	' ) ' +
-		' VALUES(QUALITY_CONC_HML.SEQ_GRUPOEMPRESARIAL.NEXTVAL,?,?) ';
+		' VALUES(QUALITY_CONC.SEQ_GRUPOEMPRESARIAL.NEXTVAL,?,?) ';
 		
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());

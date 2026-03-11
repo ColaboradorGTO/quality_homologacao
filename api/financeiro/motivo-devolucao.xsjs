@@ -76,6 +76,7 @@ function fnHandleGet(byId) {
 function fnHandlePut(){
     let conn = $.db.getConnection();
     let bodyJson = JSON.parse($.request.body.asString());
+    if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
     let IDMOTIVODEVOLUCAO;
     
     bodyJson.map((dados, indice)=>{
@@ -115,6 +116,7 @@ function fnHandlePut(){
 function fnHandlePost() {
     var conn = $.db.getConnection();
     var bodyJson = JSON.parse($.request.body.asString());
+    if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
     var IDMOTIVODEVOLUCAO;
     
     var queryExistMotivo = `

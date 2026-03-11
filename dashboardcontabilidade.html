@@ -31,8 +31,11 @@
     </head>
     <style>
         .caixaAlta{text-transform: uppercase}
+        .select2-container {
+            z-index: 999999 !important;
+        }
         .swal2-container {
-            z-index: 21000  !important
+            z-index: 20000 !important;
         }
     </style>
     <body class="mod-bg-1 ">
@@ -123,11 +126,10 @@
                             <img src="img/demo/avatars/avatar-admin.png" class="profile-image rounded-circle" alt="">
                             <div class="info-card-text">
                                 <a href="#" class="d-flex align-items-center text-white">
-                                    <span class="text-truncate text-truncate-sm d-inline-block">
+                                    <span class="text-truncate text-truncate-sm d-inline-block NoFuncionarioTitulo">
                                         
                                     </span>
                                 </a>
-                                <span class="d-inline-block text-truncate text-truncate-sm"></span>
                             </div>
                             <img src="img/card-backgrounds/cover-2-lg.png" class="cover" alt="cover">
                             <a href="#" onclick="return false;" class="pull-trigger-btn" data-action="toggle" data-class="list-filter-active" data-target=".page-sidebar" data-focus="nav_filter_input">
@@ -171,6 +173,13 @@
                                   <a href="javascript:ListaProdutoPreco();" title="Consultar Produtos/Preços"
                                     data-filter-tags="visualizar_produto_preco" class=" waves-effect waves-themed">
                                     <span class="nav-link-text" data-i18n="nav.visualizar_produto_preco">Produtos / Preços</span>
+                                  </a>
+                                </li>
+
+                                <li>
+                                  <a href="javascript:TelaConfiguracaoAlvarasEmpresas();" title="Consultar/Editar Dados de Alvarás de Empresas"
+                                    data-filter-tags="visualizar_alvaras_empresas" class=" waves-effect waves-themed">
+                                    <span class="nav-link-text" data-i18n="nav.visualizar_alvaras_empresas">Alvarás de Empresas</span>
                                   </a>
                                 </li>
                                 
@@ -472,7 +481,7 @@
                     <!-- BEGIN Page Footer -->
                     <footer class="page-footer" role="contentinfo">
                         <div class="d-flex align-items-center flex-1 text-muted">
-                            <span class="hidden-md-down fw-700">2019 © MettaGroup by&nbsp;<a href='https://mettagroup.com.br' class='text-primary fw-500' title='mettagroup.com.br' target='_blank'>mettagroup.com.br</a></span>
+                            <span class="hidden-md-down fw-700">2019 Â© MettaGroup by&nbsp;<a href='https://mettagroup.com.br' class='text-primary fw-500' title='mettagroup.com.br' target='_blank'>mettagroup.com.br</a></span>
                         </div>
                     </footer>
                     <!-- END Page Footer -->
@@ -662,24 +671,20 @@
             NOTE: 	The file size is pretty big, but you can always use the
 			build.json file to deselect any components you do not need under "export" -->
         <script src="js/datagrid/datatables/datatables.export.js"></script>
+        <script src="js/utils/general-masks.js"></script>
+        <script src="js/utils/dataTable-especial-orders.js"></script>
+        <script src="js/utils/masks-values-decimals.js"></script>
+        <script src="js/funcResponseSweetAlert.js"></script>
         <script src="js/funcRequest.js"></script>
         <script src="js/contabilidade/functionPrincipalContabilidade.js"></script>
-        <script src="js/funcResponseSweetAlert.js"></script>
         <script src="js/FileSaver.js"></script>
-        <script type="module">
-        import { DANFe, DANFCe, DAV55 } from 'https://cdn.jsdelivr.net/npm/node-sped-pdf@1.0.60/+esm';
-        
-        window.DANFe = DANFe;
-        window.DANFCe = DANFCe;
-        window.DAV55 = DAV55;
-      </script>
         
         <script>
 
             javascript:window.history.forward(1);
             $(document).ready(function(){
 
-                $("#conteudo-modal").load("modalfinanceiro.html");
+                $("#conteudo-modal").load("modalcontabilidade.html");
 
                 window.onkeypress = function(e) {
                     if (e.which == 13) {

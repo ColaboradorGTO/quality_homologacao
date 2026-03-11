@@ -496,3 +496,62 @@
   </div>
 </div>
 
+<!-- Modal Edita Fatura Caixa-->
+<div class="modal fade" id="editeFatura" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Faturas dos Caixas
+                    <small class="m-0 text-muted">
+                        Editar Fatura de Caixa da Loja
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formEditeFaturaLoja" name="formEditeFaturaLoja" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaleditefatura">
+
+                    </div>
+                    <div class="modal-footer" id="footereditefatura">
+                        <button id="buttoneditefatura" type="button" class="btn btn-success" onclick="editar_fatura()">Confirmar Alteração</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>
+
+<!-- Modal Update Despesas-->
+<div class="modal fade" id="editDespesa" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">
+                    Dados da Despesa da Loja
+                    <small class="m-0 text-muted">
+                        Editar Despesas da Loja
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <form id="formEditDespesaLoja" name="formEditDespesaLoja" method="post" enctype="multipart/form-data" onsubmit="return false;">
+                <fieldset>
+                    <div class="modal-body" id="resulmodaleditdespesa">
+
+                    </div>
+                    <div class="modal-footer" id="footerdespesa">
+                        <button id="buttoneditdespesa" type="button" class="btn btn-success" onclick="ajustar_despesa()">Editar Despesa</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </fieldset>
+            </form> 
+        </div>
+    </div>
+</div>

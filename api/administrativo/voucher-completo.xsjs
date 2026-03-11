@@ -1,10 +1,5 @@
-/*let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-let DB_SAP = 'SBO_GTO_TESTE4';*/
-/**/let api = $.import("quality.concentrador.api.apiResponse", "int_api");
-let DB_SAP = 'SBO_GTO_PRD';/*
-CONTINUAR A MELHORIA DESSA QUERY
-
-*/
+let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let DB_SAP = 'SBO_GTO_TESTE4';
 
 function padLeft(number, length, character) {
 	if(character == null) {

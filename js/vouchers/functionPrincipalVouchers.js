@@ -571,7 +571,11 @@ function msgWarningCadastroCliente(element = $('#notificacaoModalCadastroCliente
     if ($(element).hasClass('select2')) {
         setTimeout(() => $(element).select2('open').focus(), 1000);
     } else {
-        setTimeout(() => $(element).focus(), 1000);
+        setTimeout(() => {
+            let vlElement = $(element).val()?.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "") || "";
+            
+            $(element).val(vlElement).focus();
+        }, 1000);
     }
 }
 
@@ -2276,298 +2280,222 @@ async function imprimirVoucher(idVoucher) {
         .catch((error) => { throw error });
 }
 
-function retornoImprimirVoucher(dadosRetornoImprimrVoucher) {
-    let data = new Date();
-    let dia = data.getDate(); // 1-31
-    let dia_sem = data.getDay(); // 0-6 (zero=domingo)
-    let mes = data.getMonth(); // 0-11 (zero=janeiro)
-    let ano2 = data.getYear(); // 2 dígitos
-    let ano4 = data.getFullYear(); // 4 dígitos
-    let hora = data.getHours();          // 0-23
-    let min = data.getMinutes();        // 0-59
-    let seg = data.getSeconds();
+function montarConteudoVoucher(dadosVoucher){
+  let { data } = dadosVoucher || [];
 
-    let dtAtual = `${("" + dia).padStart(2, '0')}/${("" + (mes + 1)).padStart(2, '0')}/${("" + ano4)}`;
-    let hrAtual = `${("" + hora).padStart(2, '0')}:${("" + min).padStart(2, '0')}:${("" + seg).padStart(2, '0')}`;
+  if (!data || data.length === 0) return '';
 
-    $(document).off("keydown");
+  let now = new Date();
+  let pad = (v) => String(v).padStart(2, '0');
 
-    if (dadosRetornoImprimrVoucher.data) {
-        let dados = dadosRetornoImprimrVoucher.data[0].voucher;
-        let noFantasia = dados.EMPORIGEM;
-        let razaoSocial = dados.RAZAOEMPORIGEM;
-        let cnpjEmp = maskCNPJ(dados.CNPJEMPORIGEM);
-        let endEmp = dados.ENDEMPORIGEM;
-        let bairroEmp = dados.BAIRROEMPORIGEM;
-        let cidadeEmp = dados.CIDADEEMPORIGEM;
-        let sgufEmp = dados.SGUFEMPORIGEM;
-        let dtCreate = dados.DTINVOUCHERFORMATADO.replace('-', '/').replace('-', '/');
-        let dtValidade = dados.DTINVOUCHERFORMATADO
-        let vrVoucher = maskValor(dados.VRVOUCHER);
-        let vrExtenso = vrVoucher.extenso(true);
-        let idVendaOrigem = dados.IDRESUMOVENDAWEB;
-        let nuVoucher = dados.NUVOUCHER;
-        let noCliente = dados.DSNOMERAZAOSOCIAL;
-        let cpfCnpjCliente = dados.NUCPFCNPJ ? dados.NUCPFCNPJ : "";
-        let idCaixa = "" + dados.IDCAIXAORIGEM;
-        let idVendedor = "" + (dados.IDVENDEDOR || 0);
-        let idResumoDev = "" + dados.IDNFEDEVOLUCAO;
-        let idOperador = "" + dados.IDUSRLIBERACAOCRIACAO;
+  let dia = pad(now.getDate()); // 1-31
+  let mes = pad(now.getMonth()); // 0-11 (zero=janeiro)
+  let ano = now.getFullYear(); // 4 dígitos
+  let hora = pad(now.getHours());          // 0-23
+  let min = pad(now.getMinutes());        // 0-59
+  let seg = pad(now.getSeconds());
 
-        if (cpfCnpjCliente.length == 11) {
-            maskCPF(dados.NUCPFCNPJ);
-        } else if (cpfCnpjCliente.length == 14) {
-            maskCNPJ(dados.NUCPFCNPJ);
+  let dtAtual = `${dia}/${mes}/${ano}`;
+  let hrAtual = `${hora}:${min}:${seg}`;
 
-            noCliente = !noCliente ? dados.DSAPELIDONOMEFANTASIA : noCliente;
+  let dados = data[0].voucher;
+  let noFantasia = dados.EMPORIGEM;
+  let razaoSocial = dados.RAZAOEMPORIGEM;
+  let cnpjEmp = maskCNPJ(dados.CNPJEMPORIGEM);
+  let endEmp = dados.ENDEMPORIGEM;
+  let bairroEmp = dados.BAIRROEMPORIGEM;
+  let cidadeEmp = dados.CIDADEEMPORIGEM;
+  let sgufEmp = dados.SGUFEMPORIGEM;
+  let dtCreate = dados.DTINVOUCHERFORMATADO.replaceAll('-', '/');
+  let vrVoucher = maskValor(dados.VRVOUCHER);
+  let vrExtenso = vrVoucher.extenso(true);
+  let idVendaOrigem = dados.IDRESUMOVENDAWEB;
+  let nuVoucher = dados.NUVOUCHER;
+  let noCliente = dados.DSNOMERAZAOSOCIAL;
+  let cpfCnpjCliente = dados.NUCPFCNPJ ? dados.NUCPFCNPJ : "";
+  let idCaixa = String(dados.IDCAIXAORIGEM);
+  let idVendedor = String((dados.IDVENDEDOR || 0));
+  let idResumoDev = String(dados.IDNFEDEVOLUCAO);
+  let idOperador = String(dados.IDUSRLIBERACAOCRIACAO);
+
+  if (cpfCnpjCliente.length == 14) {
+    noCliente = !noCliente ? dados.DSAPELIDONOMEFANTASIA : noCliente;
+  }
+
+  return (`
+    <style>
+      hr {
+        margin: 5px;
+      }
+
+      #contentModalVoucher{
+        width: 400px !important; 
+      }
+
+      .voucher {
+        font-size: 16px !important;
+        color: black;
+        width: 400px !important;
+        margin-left: 30px;
+        max-width: 400px !important;
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+      }
+
+      .detalhesVoucher p {
+        text-align: left !important ;
+        align-content: left !important;
+        margin: 0 !important;
+        margin-top: 10px !important;
+        padding: 0 !important;
+      }
+
+      .codBarras {
+        width: 100% !important;
+      }
+
+      .center {
+        font-size: 16px !important;
+        text-align: center !important ;
+        align-content: center !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+      }
+
+      .msg p {
+        font-size: 12px !important;
+        text-align: left !important ;
+        align-content: left !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      @media print {
+      body {
+          font-size: 10px;
+          margin: 0 !important;
+      }
+
+      @page {
+          margin: 0.5cm !important;
+      }
+      
+        .hidden-print {
+          display: none !important;
         }
-
-        htmlVoucher = `
-          <style>
-            hr {
-              margin: 5px;
-            }
-
-            #contentModalVoucher{
-              width: 400px !important; 
-            }
-      
-            .voucher {
-              font-size: 16px !important;
-              color: black;
-              width: 400px !important;
-              margin-left: 30px;
-              max-width: 400px !important;
-              padding-left: 5px !important;
-              padding-right: 5px !important;
-            }
-      
-            .detalhesVoucher p {
-              text-align: left !important ;
-              align-content: left !important;
-              margin: 0 !important;
-              margin-top: 10px !important;
-              padding: 0 !important;
-            }
-      
-            .codBarras {
-              /* margin: 3px !important;; */
-              /* padding-right: 10px !important;; */
-              width: 100% !important;
-              /* height: 50px !important;; */
-            }
-      
-            .center {
-              font-size: 16px !important;
-              text-align: center !important ;
-              align-content: center !important;
-              margin-top: 0 !important;
-              margin-bottom: 0 !important;
-            }
-      
-            .msg p {
-              font-size: 12px !important;
-              text-align: left !important ;
-              align-content: left !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-            
-            @media print {
-            body {
-                font-size: 10px;
-                margin: 0 !important;
-            }
-
-            @page {
-                margin: 0.5cm !important;
-            }
-            
-              .hidden-print {
-                display: none !important;
-              }
-          
-              .voucher {
-                font-size: 14px !important;
-                font-family: "Roboto", "Helvetica Neue", Helvetica, Arial !important;
-                color: black !important;
-                width: 400px !important;
-                margin-left: 30px;
-                max-width: 400px !important;
-                padding-left: 5px !important;
-                padding-right: 5px !important;
-              }
-        
-              .detalhesVoucher p {
-                font-family: "Roboto", "Helvetica Neue", Helvetica, Arial !important;
-                text-align: left !important ;
-                align-content: left !important;
-                margin: 0 !important;
-                margin-top: 10px !important;
-                padding: 0 !important;
-              }
-        
-              .codBarras {
-                /* margin: 3px !important;; */
-                /* padding-right: 10px !important;; */
-                width: 90% !important;
-                /* height: 50px !important;; */
-              }
-        
-              .center {
-                font-family: "Roboto", "Helvetica Neue", Helvetica, Arial !important;
-                font-size: 10px !important;
-                text-align: center !important ;
-                align-content: center !important;
-                margin-top: 0 !important;
-                margin-bottom: 0 !important;
-              }
-        
-              .msg p {
-                font-family: "Roboto", "Helvetica Neue", Helvetica, Arial !important;
-                font-size: 9px !important;
-                text-align: left !important ;
-                align-content: left !important;
-                margin: 0 !important;
-                padding: 0 !important;
-              }
-            }
-      
-          </style>
-          <style id="mediaPrintVoucher">
-          </style>
-          <p class="center" style="padding: 0;">
-              <b class="center">${noFantasia}</b>
-            <br />
-              ${razaoSocial}
-            <br />
-              CNPJ Nº<b class="center">${cnpjEmp}</b>
-          </p>
-          <p style="margin-top: 10px; margin-bottom: 5px;">
-             <b>${endEmp}</b>
-            <br />
-             <b>${bairroEmp}</b>
-            <br />
-             <b>${cidadeEmp} - ${sgufEmp}</b>
-          </p>
-
-          <p style="margin-bottom: 0">${dtAtual.replace('-', '/').replace('-', '/')} - ${hrAtual}</p>
-
-          <p class="center alinhamentoDuplo pt-1">
-            <b>** COMPROVANTE NÃO FISCAL **</b>
-          </p>
-
-          <div class="linhaPontilhadaVoucher">
-            <hr style="border: 1px dashed" />
-          </div> 
-        <div>
-          <p class="center alinhamentoDuplo">
-            ORDEM DE TROCA
-            <br />
-            CUPOM VALE TROCA
-          </p>
-        </div>
-          <div class="detalhesVoucher">
-            <p>
-                DATA DA OPERACAO.....: ${dtCreate}
-              <br />
-                CAIXA..............................: ${idCaixa.padStart(4, '0')}
-              <br />
-                VENDEDOR.....................: ${idVendedor.padStart(4, '0')}
-                
-                <p style="margin: 0 !important; padding: 0 !important;">Nº VALE TROCA..............: <b>${nuVoucher}</b></p>
-                
-                <p style="margin: 0 !important; padding: 0 !important;">Nº VENDA WEB..............: <b>${idVendaOrigem}</b></p>
-                
-                NSU:${idResumoDev.padStart(9, '0')} - OPER: ${idOperador.padStart(4, '0')}
-              <br />
-                NOME: <b id="nomeVoucher" value="${noCliente}" class="detalhesVoucher">${noCliente}</b>
-              <br />
-                CPF/CNPJ: <b class="detalhesVoucher">${maskCPF(cpfCnpjCliente)}</b>
-              <br />
-            </p>
-          </div>
-          
-          <div class="linhaPontilhadaVoucher">
-            <hr style="border: 1px dashed" />
-          </div> 
-          
-          <div>
-            <p class="center alinhamentoDuplo">VALE TROCA DE <b class="center alinhamentoDuplo">${vrVoucher}</b></p>
-            <p class="center alinhamentoDuplo">(${vrExtenso})</p>
-            <p class="center alinhamentoDuplo"><b>Válido por 30 dias.</b></p>
-          </div> 
-          
-          <div class="linhaPontilhadaVoucher">
-            <hr style="border: 1px dashed" />
-          </div> 
-          
-          <div  id="codVoucher" class="center p-1">
-            <svg id="svgVoucher"
-              class="codBarras"
-              jsbarcode-value="${nuVoucher}"
-              jsbarcode-height="40"
-              jsbarcode-margin="0"
-              jsbarcode-fontSize="15"
-              value="${nuVoucher}">
-            </svg>
-          </div>
-          
-          <div class="linhaPontilhadaVoucher">
-            <hr style="border: 1px dashed" />
-          </div> 
-          
-          <div class="msg">
-            <p>Este vale troca é pessoal e instranferível.</p>
-            <p>
-              Para sua utilizacao será solicitado a apresentacao de
-              documento de identidade e CPF.
-            </p>
-            <p>
-              Não poderá ser utilizado para pagamento de prestacoes e
-              compras de produtos FINANCEIROS.
-            </p>
-            <p>
-              As lojas do GRUPO GTO não se responsabilizam pela perda ou
-              extravio deste vale troca.
-            </p>
-            <p>Este comprovante é impresso em papel termossensível.</p>
-            <p>
-              Não exponha o papel a luz solar, fontes de calor e umidade
-              excessiva.
-            </p>
-
-            <div class="linhaPontilhadaVoucher">
-                <hr style="border: 1px dashed" />
-            </div> 
-
-            <p>
-              <b>Válido por 30 dias.</b>
-            </p>
-          </div>
-
-          <div class="linhaPontilhadaVoucher">
-            <hr style="border: 1px dashed" />
-          </div> 
-        `;
-        $("#VoucherImp").html(htmlVoucher);
-    }
-    JsBarcode('#svgVoucher').init();
-    // $('#js-page-content').addClass('hidden-print');
-    $("#impVoucher").modal('show');
-
-    $(document).on("keydown", function (event) {
-        if ($("#impVoucher").is(":visible") && event.ctrlKey && event.key === "p") {
-            event.preventDefault();
-            impVoucher();
+    
+        .voucher {
+          font-size: 14px !important;
+          font-family: "Roboto", "Helvetica Neue", Helvetica, Arial !important;
+          color: black !important;
+          width: 400px !important;
+          margin-left: 30px;
+          max-width: 400px !important;
+          padding-left: 5px !important;
+          padding-right: 5px !important;
         }
-    });
-}
+  
+        .detalhesVoucher p {
+          font-family: "Roboto", "Helvetica Neue", Helvetica, Arial !important;
+          text-align: left !important ;
+          align-content: left !important;
+          margin: 0 !important;
+          margin-top: 10px !important;
+          padding: 0 !important;
+        }
+  
+        .codBarras {
+          width: 90% !important;
+        }
+  
+        .center {
+          font-family: "Roboto", "Helvetica Neue", Helvetica, Arial !important;
+          font-size: 10px !important;
+          text-align: center !important ;
+          align-content: center !important;
+          margin-top: 0 !important;
+          margin-bottom: 0 !important;
+        }
+  
+        .msg p {
+          font-family: "Roboto", "Helvetica Neue", Helvetica, Arial !important;
+          font-size: 9px !important;
+          text-align: left !important ;
+          align-content: left !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+      }
 
-function impVoucher() {
-    let nuVoucher = $('#svgVoucher').attr('value');
+    </style>
+    <style id="mediaPrintVoucher"></style>
+    <p class="center" style="padding: 0;">
+        <b class="center">${noFantasia}</b>
+      <br />
+        ${razaoSocial}
+      <br />
+        CNPJ Nº<b class="center">${cnpjEmp}</b>
+    </p>
+    <p style="margin-top: 10px; margin-bottom: 5px;">
+        <b>${endEmp}</b>
+      <br />
+        <b>${bairroEmp}</b>
+      <br />
+        <b>${cidadeEmp} - ${sgufEmp}</b>
+    </p>
 
-    $('#codVoucher').html(`
+    <p style="margin-bottom: 0">${dtAtual.replace('-', '/').replace('-', '/')} - ${hrAtual}</p>
+
+    <p class="center alinhamentoDuplo pt-1">
+      <b>** COMPROVANTE NÃO FISCAL **</b>
+    </p>
+
+    <div class="linhaPontilhadaVoucher">
+      <hr style="border: 1px dashed" />
+    </div> 
+    <div>
+      <p class="center alinhamentoDuplo">
+        ORDEM DE TROCA
+        <br />
+        CUPOM VALE TROCA
+      </p>
+    </div>
+    <div class="detalhesVoucher">
+      <p>
+          DATA DA OPERACAO.....: ${dtCreate}
+        <br />
+          CAIXA..............................: ${idCaixa.padStart(4, '0')}
+        <br />
+          VENDEDOR.....................: ${idVendedor.padStart(4, '0')}
+          
+          <p style="margin: 0 !important; padding: 0 !important;">Nº VALE TROCA..............: <b>${nuVoucher}</b></p>
+          
+          <p style="margin: 0 !important; padding: 0 !important;">Nº VENDA WEB..............: <b>${idVendaOrigem}</b></p>
+          
+          NSU:${idResumoDev.padStart(9, '0')} - OPER: ${idOperador.padStart(4, '0')}
+        <br />
+          NOME: <b id="nomeVoucher" value="${noCliente}" class="detalhesVoucher">${noCliente}</b>
+        <br />
+          CPF/CNPJ: <b class="detalhesVoucher">${maskCPF(cpfCnpjCliente)}</b>
+        <br />
+      </p>
+    </div>
+    
+    <div class="linhaPontilhadaVoucher">
+      <hr style="border: 1px dashed" />
+    </div> 
+    
+    <div>
+      <p class="center alinhamentoDuplo">VALE TROCA DE <b class="center alinhamentoDuplo">${vrVoucher}</b></p>
+      <p class="center alinhamentoDuplo">(${vrExtenso})</p>
+      <p class="center alinhamentoDuplo"><b>Válido por 30 dias.</b></p>
+    </div> 
+    
+    <div class="linhaPontilhadaVoucher">
+      <hr style="border: 1px dashed" />
+    </div> 
+    
+    <div  id="codVoucher" class="center p-1">
       <svg id="svgVoucher"
         class="codBarras"
         jsbarcode-value="${nuVoucher}"
@@ -2576,20 +2504,113 @@ function impVoucher() {
         jsbarcode-fontSize="15"
         value="${nuVoucher}">
       </svg>
+    </div>
+    
+    <div class="linhaPontilhadaVoucher">
+      <hr style="border: 1px dashed" />
+    </div> 
+    
+    <div class="msg">
+      <p>Este vale troca é pessoal e instranferível.</p>
+      <p>
+        Para sua utilizacao será solicitado a apresentacao de
+        documento de identidade e CPF.
+      </p>
+      <p>
+        Não poderá ser utilizado para pagamento de prestacoes e
+        compras de produtos FINANCEIROS.
+      </p>
+      <p>
+        As lojas do GRUPO GTO não se responsabilizam pela perda ou
+        extravio deste vale troca.
+      </p>
+      <p>Este comprovante é impresso em papel termossensível.</p>
+      <p>
+        Não exponha o papel a luz solar, fontes de calor e umidade
+        excessiva.
+      </p>
+
+      <div class="linhaPontilhadaVoucher">
+          <hr style="border: 1px dashed" />
+      </div> 
+
+      <p>
+        <b>Válido por 30 dias.</b>
+      </p>
+    </div>
+
+    <div class="linhaPontilhadaVoucher">
+      <hr style="border: 1px dashed" />
+    </div> 
+  `);
+}
+
+function retornoImprimirVoucher(dadosRetornoImprimrVoucher) {
+  
+  $(document).off("keydown");
+  let htmlVoucher = montarConteudoVoucher(dadosRetornoImprimrVoucher);
+  
+  $("#VoucherImp").html(htmlVoucher);
+
+  JsBarcode('#svgVoucher').init();
+
+  $("#impVoucher").modal({
+    show: true,
+    backdrop: 'static'
+  });
+
+  $(document).on("keydown", function (event) {
+    if ($("#impVoucher").is(":visible") && event.ctrlKey && event.key === "p") {
+      event.preventDefault();
+      impVoucher();
+    }
+  });
+}
+
+function impVoucher() {
+  let nuVoucher = $('#svgVoucher').attr('value');
+
+  $('#codVoucher').html(`
+    <svg id="svgVoucher"
+      class="codBarras"
+      jsbarcode-value="${nuVoucher}"
+      jsbarcode-height="40"
+      jsbarcode-margin="0"
+      jsbarcode-fontSize="15"
+      value="${nuVoucher}">
+    </svg>
   `);
 
-    JsBarcode('#svgVoucher').init();
+  JsBarcode('#svgVoucher').init();
 
-    let janelaImpressao = window.open('', '', '');
+  let htmlVoucher = $('#contentModalVoucher').html();
+  let janelaImpressao = window.open('', '', '');
 
-    janelaImpressao.document.open();
-    janelaImpressao.document.write(`<html><head><title>Impressão</title><style> button{display: none !important;}<style/></head><body>`);
-    janelaImpressao.document.write(document.getElementById('contentModalVoucher').innerHTML);
-    janelaImpressao.document.write('</body></html>');
-    janelaImpressao.document.close();
-    janelaImpressao.print();
-    janelaImpressao.close();
+  let conteudo = `
+    <html>
+      <head>
+        <title>Impressão</title>
+        <style> button{display: none !important;}</style>
+      </head>
+      <body>
+        ${htmlVoucher}
+        <script>
+          window.onload = () => {
+            setTimeout(() => {
+              window.focus();
+              window.print();
+            }, 300)
+          };
 
+          window.onafterprint = () => setTimeout(() => window.close(), 500);
+        </script>
+      </body>
+    </html>
+  `;
+
+  janelaImpressao.document.open();
+  janelaImpressao.document.write(conteudo);
+  janelaImpressao.document.close();
 }
 
 function exportPDF() {
@@ -3395,153 +3416,179 @@ async function modalCadastroCliente(cpfOrCnpj, stUltimaInstancia = false) {
 }
 
 async function validaDadosDoFormCliente(stUltimaInstancia = false) {
-    try {
-        let userLogado = await getCurrentUser()?.user;
-        let idFuncionario = userLogado?.id;
-        let cpfCnpj = $('#CPFCNPJ').val().replace(/\D/g, "");
-        let IDCLIENTE = Number($("#idClienteEmpresa").val());
-        let IDEMPRESA = Number($("#idEmpresa").val() || userLogado?.IDEMPRESA);
-        let tipo = $('#tipoClienteEmpresa').val();
-        let IE = $("#IE").val()?.toUpperCase()?.trim();
-        let IM = $("#IM").val()?.toUpperCase()?.trim() || null;
-        let razao = $("#NomeClienteRazao").val()?.trim()?.toUpperCase() || null;
-        let fantasia = $("#sobrenomeNomeFan").val()?.trim()?.toUpperCase() || null;
-        let dtNasc = $("#DataNascimentoCriacao").val() || null;
-        let nuCelular = $("#TelefoneCliente").val()?.replace(/\D/g, '') || "";
-        let nuComercial = $("#TelefoneClienteEmpresaComercial").val()?.replace(/\D/g, '') || nuCelular;
-        let email = $("#email").val()?.trim();
-        let idIndicacaoIE = Number($("#idIndicacaoIE").val());
-        let dsIndicacaoIE = $("#idIndicacaoIE").select2('data')[0]?.text?.toUpperCase();
-        let nuCep = $("#NuCEP").val()?.replace(/\D/g, "") || "";
-        let endereco = $("#Endereco").val()?.toUpperCase();
-        let nuEndereco = $("#NuEndereco").val()?.toUpperCase() || "SN";
-        let complemento = $("#Complemento").val()?.toUpperCase() || "";
-        let bairro = $("#Bairro").val();
-        let nuIbge = $("#NuIBGE").val();
-        let cidade = $("#Cidade").val();
-        let estado = $("#Estado").val();
+  try {
+    let userLogado = await getCurrentUser()?.user;
+    let idFuncionario = userLogado?.id;
+    let cpfCnpj = $('#CPFCNPJ').val().replace(/\D/g, "");
+    let IDCLIENTE = Number($("#idClienteEmpresa").val());
+    let IDEMPRESA = Number($("#idEmpresa").val() || userLogado?.IDEMPRESA);
+    let tipo = $('#tipoClienteEmpresa').val();
+    let IE = $("#IE").val()?.toUpperCase()?.trim();
+    let IM = $("#IM").val()?.toUpperCase()?.trim() || null;
+    let razao = $("#NomeClienteRazao").val()?.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "")?.toUpperCase() || null;
+    let fantasia = $("#sobrenomeNomeFan").val()?.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "")?.toUpperCase() || null;
+    let dtNasc = $("#DataNascimentoCriacao").val() || null;
+    let nuCelular = $("#TelefoneCliente").val()?.replace(/\D/g, '') || "";
+    let nuComercial = $("#TelefoneClienteEmpresaComercial").val()?.replace(/\D/g, '') || nuCelular;
+    let email = $("#email").val()?.trim() || '';
+    let idIndicacaoIE = Number($("#idIndicacaoIE").val());
+    let dsIndicacaoIE = $("#idIndicacaoIE").select2('data')[0]?.text?.toUpperCase();
+    let nuCep = $("#NuCEP").val()?.replace(/\D/g, "") || "";
+    let endereco = $("#Endereco").val()?.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "")?.toUpperCase() || "";
+    let nuEndereco = $("#NuEndereco").val()?.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "")?.toUpperCase() || "SN";
+    let complemento = $("#Complemento").val()?.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "")?.toUpperCase() || "";
+    let bairro = $("#Bairro").val()?.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "") || 'NI';
+    let nuIbge = $("#NuIBGE").val();
+    let cidade = $("#Cidade").val();
+    let estado = $("#Estado").val();
 
-        if (tipo == 'CPF') {
-            tipo = 'FISICA';
-            IE = 'ISENTO';
+    if (tipo == 'CPF') {
+      tipo = 'FISICA';
+      IE = 'ISENTO';
 
-        } else {
-            tipo = 'JURIDICA';
-        }
-
-        if (cpfCnpj.length) {
-            animationLoadingFormClient();
-            !stUltimaInstancia && animationLoadingStart('Validando Dados...', 1);
-
-            if (tipo == 'FISICA' && !validar_Cpf(cpfCnpj)) {
-                return msgWarningCadastroCliente($('#CPFCNPJ'), 'CPF Inválido, verifique o número e tente novamente!', stUltimaInstancia);
-            }
-
-            if (tipo !== 'FISICA' && !validar_Cnpj(cpfCnpj)) {
-                return msgWarningCadastroCliente($('#CPFCNPJ'), 'CNPJ Inválido, verifique o número e tente novamente!', stUltimaInstancia);
-            }
-
-        } else {
-            return msgWarningCadastroCliente($('#CPFCNPJ'), 'CPF/CNPJ Vazio, verifique o número e tente novamente!', stUltimaInstancia);
-        }
-
-        if (!razao || !fantasia) {
-
-            if(!razao) return msgWarningCadastroCliente($("#NomeClienteRazao"), 'Nome ou Razão Social Vazio, favor preencher e tentar novamente!', stUltimaInstancia);
-
-            return msgWarningCadastroCliente($("#sobrenomeNomeFan"), 'Sobrenome ou Nome Fantasia Vazio, favor preencher e tentar novamente!', stUltimaInstancia);
-        } 
-        
-        if (!await validaCEP(nuCep, true)) {
-            return msgWarningCadastroCliente($('#NuCEP'), 'CEP Inválido, verifique o CEP e tente novamente!', stUltimaInstancia);
-        }
-
-        if (tipo == "JURIDICA"){
-
-            if (!idIndicacaoIE) {
-                return msgWarningCadastroCliente($("#idIndicacaoIE"), 'Selecione o tipo da Indicação da Inscrição Estadual e tentar novamente!', stUltimaInstancia);
-            }
-            
-            if (idIndicacaoIE == 1) {
-                IE = IE?.replace(/\D/g, '');
-
-                if (!IE) {
-                    return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Vazia ou Divergente do Tipo de Indicação, favor preencher e tentar novamente!', stUltimaInstancia);
-                }
-
-                if (!await validarInscricaoEstadual(IE, estado)) {
-                    return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Incorreta, verifique e tente novamente!', stUltimaInstancia);
-                }
-            } else if (idIndicacaoIE == 2) {
-
-                if (IE && IE !== 'ISENTO'){
-                    return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Divergente do Tipo de Indicação, verifique e tente novamente!', stUltimaInstancia);
-                }
-
-            } else {
-                IE = IE?.replace(/\D/g, '');
-
-                 if (IE) {
-                    //     return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Vazia ou Divergente do Tipo de Indicação, favor preencher e tentar novamente!', stUltimaInstancia);
-                    // }
-                    if (!await validarInscricaoEstadual(IE, estado)) {
-                        return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Incorreta, verifique e tente novamente!', stUltimaInstancia);
-                    }
-                }
-            }
-        } else {
-            razao = razao + ' ' + fantasia;
-            fantasia = null;
-        }
-
-        if (!validaTelefoneOrCelular(nuCelular)){
-            return msgWarningCadastroCliente($('#TelefoneCliente'), 'Numero de Telefone Inválido, verifique o TELEFONE e tente novamente!', stUltimaInstancia);
-        }
-
-        if (!validaEmail(email)){
-            return msgWarningCadastroCliente($('#email'), 'E-mail Inválido, verifique o E-MAIL e tente novamente!', stUltimaInstancia);
-        }
-
-        IE = idIndicacaoIE == 2 ? 'ISENTO' : (IE || 'ISENTO');
-        
-        let dadosCliente = [{
-            IDCLIENTE,
-            IDEMPRESA,
-            "DSNOMERAZAOSOCIAL": razao,
-            "DSAPELIDONOMEFANTASIA": fantasia,
-            "TPCLIENTE": tipo,
-            "NUCPFCNPJ": cpfCnpj.replace(/\D/g, ""),
-            "NURGINSCESTADUAL": IE,
-            "NUINSCMUNICIPAL": IM,
-            "NUCEP": nuCep,
-            "NUIBGE": parseInt(nuIbge),
-            "EENDERECO": endereco,
-            "NUENDERECO": nuEndereco,
-            "ECOMPLEMENTO": complemento,
-            "EBAIRRO": bairro,
-            "ECIDADE": cidade,
-            "SGUF": estado,
-            "EEMAIL": email,
-            "NUTELCOMERCIAL": nuComercial,
-            "NUTELCELULAR": nuCelular,
-            "DTNASCFUNDACAO": dtNasc,
-            "IDINDICACAOIE": idIndicacaoIE,
-            "DSINDICACAOIE": dsIndicacaoIE,
-            "IDFUNCIONARIO": Number(idFuncionario),
-        }];
-
-        await ajaxGet(`api/gerencia/cliente.xsjs?numeroCpfCnpj=${cpfCnpj}`)
-            .then((resp) => {
-                registra_cliente(resp, dadosCliente, stUltimaInstancia);
-            })
-            .catch(e => { throw error })
-
-    } catch (error) {
-        console.log(error);
-        !stUltimaInstancia && msgError('Erro ao tentar registrar os dados, recarregue e tente novamente!', stUltimaInstancia);
-        msgWarningCadastroCliente($('#CPFCNPJ'), 'Erro ao tentar registrar os dados, recarregue e tente novamente!', stUltimaInstancia);
+    } else {
+      tipo = 'JURIDICA';
     }
-    
+
+    if (cpfCnpj.length) {
+      animationLoadingFormClient();
+      !stUltimaInstancia && animationLoadingStart('Validando Dados...', 1);
+
+      if (tipo == 'FISICA' && !validar_Cpf(cpfCnpj)) {
+        return msgWarningCadastroCliente($('#CPFCNPJ'), 'CPF Inválido, verifique o número e tente novamente!', stUltimaInstancia);
+      }
+
+      if (tipo !== 'FISICA' && !validar_Cnpj(cpfCnpj)) {
+        return msgWarningCadastroCliente($('#CPFCNPJ'), 'CNPJ Inválido, verifique o número e tente novamente!', stUltimaInstancia);
+      }
+
+    } else {
+      return msgWarningCadastroCliente($('#CPFCNPJ'), 'CPF/CNPJ Vazio, verifique o número e tente novamente!', stUltimaInstancia);
+    }
+
+    let regexNomeSobreNome = /^[A-Za-zÀ-ÿ\s]+$/;
+
+    if (!razao || razao?.length < 3 || !fantasia || fantasia?.length < 2) {
+
+      if (!razao || razao?.length < 3) return msgWarningCadastroCliente($("#NomeClienteRazao"), 'Nome ou Razão Social Vazio Ou Muito Curto, favor preencher e tentar novamente!', stUltimaInstancia);
+
+      if (!fantasia || fantasia?.length < 2) return msgWarningCadastroCliente($("#sobrenomeNomeFan"), 'Sobrenome ou Nome Fantasia Vazio Ou Muito Curto, favor preencher e tentar novamente!', stUltimaInstancia);
+    }
+
+    if (!regexNomeSobreNome.test(razao)) {
+      return msgWarningCadastroCliente($("#NomeClienteRazao"), 'Nome ou Razão Social deve conter apenas letras e espaços, favor preencher e tentar novamente!', stUltimaInstancia);
+    }
+
+    if (!regexNomeSobreNome.test(fantasia)) {
+      return msgWarningCadastroCliente($("#sobrenomeNomeFan"), 'Sobrenome ou Nome Fantasia deve conter apenas letras e espaços, favor preencher e tentar novamente!', stUltimaInstancia);
+    }
+
+    if (!await validaCEP(nuCep, true)) {
+      return msgWarningCadastroCliente($('#NuCEP'), 'CEP Inválido, verifique o CEP e tente novamente!', stUltimaInstancia);
+    }
+
+    if (tipo == "JURIDICA") {
+
+      if (!idIndicacaoIE) {
+        return msgWarningCadastroCliente($("#idIndicacaoIE"), 'Selecione o tipo da Indicação da Inscrição Estadual e tentar novamente!', stUltimaInstancia);
+      }
+
+      if (idIndicacaoIE == 1) {
+        IE = IE?.replace(/\D/g, '');
+
+        if (!IE) {
+          return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Vazia ou Divergente do Tipo de Indicação, favor preencher e tentar novamente!', stUltimaInstancia);
+        }
+
+        if (!await validarInscricaoEstadual(IE, estado)) {
+          return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Incorreta, verifique e tente novamente!', stUltimaInstancia);
+        }
+      } else if (idIndicacaoIE == 2) {
+
+        if (IE && IE !== 'ISENTO') {
+          return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Divergente do Tipo de Indicação, verifique e tente novamente!', stUltimaInstancia);
+        }
+
+      } else {
+        IE = IE?.replace(/\D/g, '');
+
+        if (IE) {
+          //     return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Vazia ou Divergente do Tipo de Indicação, favor preencher e tentar novamente!', stUltimaInstancia);
+          // }
+          if (!await validarInscricaoEstadual(IE, estado)) {
+            return msgWarningCadastroCliente($("#IE"), 'Inscrição Estadual Incorreta, verifique e tente novamente!', stUltimaInstancia);
+          }
+        }
+      }
+    } else {
+      razao = razao + ' ' + fantasia;
+      fantasia = null;
+    }
+
+    if (!validaTelefoneOrCelular(nuCelular)) {
+      return msgWarningCadastroCliente($('#TelefoneCliente'), 'Numero de Telefone Inválido, verifique o TELEFONE e tente novamente!', stUltimaInstancia);
+    }
+
+    if (email?.length > 0 && !validaEmail(email)) {
+      return msgWarningCadastroCliente($('#email'), 'E-mail Inválido, verifique o E-MAIL e tente novamente!', stUltimaInstancia);
+    }
+
+    if (!bairro) {
+      //return msgWarningCadastroCliente($('#NuCEP'), 'O Bairro deve estar preenchido, reveja o CEP e tente novamente!', stUltimaInstancia);
+    }
+
+    if ((endereco?.length > 0 && endereco !== 'NI') && !(/^[A-Za-z0-9\s\-\/.,ºªÇçÁáÉéÍíÓóÚúÂâÊêÎîÔôÛûÀàÈèÌìÒòÙùÃãÕõÜü]*$/.test(endereco) && isNaN(Number(endereco))) || !endereco?.length) {
+      return msgWarningCadastroCliente($('#Endereco'), 'Endereço Inválido, verifique o endereço e tente novamente!', stUltimaInstancia);
+    }
+
+    if ((nuEndereco?.length > 0 && nuEndereco !== 'SN' && nuEndereco !== 'S/N') && (!/^\d+[A-Za-z\-\/]*$/.test(nuEndereco) || Number(nuEndereco) == 0)) {
+      return msgWarningCadastroCliente($('#NuEndereco'), 'Número de Endereço Inválido, verifique o endereço e tente novamente!', stUltimaInstancia);
+    }
+
+    if (complemento?.length > 0 && !(/^[A-Za-z0-9\s\-\/.,ºªÇçÁáÉéÍíÓóÚúÂâÊêÎîÔôÛûÀàÈèÌìÒòÙùÃãÕõÜü]*$/.test(complemento) && isNaN(Number(complemento)))) {
+      return msgWarningCadastroCliente($('#Complemento'), 'Complemento Inválido, verifique o endereço e tente novamente!', stUltimaInstancia);
+    }
+
+    IE = idIndicacaoIE == 2 ? 'ISENTO' : (IE || 'ISENTO');
+
+    let dadosCliente = [{
+      IDCLIENTE,
+      IDEMPRESA,
+      "DSNOMERAZAOSOCIAL": razao,
+      "DSAPELIDONOMEFANTASIA": fantasia,
+      "TPCLIENTE": tipo,
+      "NUCPFCNPJ": cpfCnpj.replace(/\D/g, ""),
+      "NURGINSCESTADUAL": IE,
+      "NUINSCMUNICIPAL": IM,
+      "NUCEP": nuCep,
+      "NUIBGE": parseInt(nuIbge),
+      "EENDERECO": endereco,
+      "NUENDERECO": nuEndereco,
+      "ECOMPLEMENTO": complemento,
+      "EBAIRRO": (bairro || 'NI'),
+      "ECIDADE": cidade,
+      "SGUF": estado,
+      "EEMAIL": email,
+      "NUTELCOMERCIAL": nuComercial,
+      "NUTELCELULAR": nuCelular,
+      "DTNASCFUNDACAO": dtNasc,
+      "IDINDICACAOIE": idIndicacaoIE,
+      "DSINDICACAOIE": dsIndicacaoIE,
+      "IDFUNCIONARIO": Number(idFuncionario),
+    }];
+
+    await ajaxGet(`api/gerencia/cliente.xsjs?numeroCpfCnpj=${cpfCnpj}`)
+      .then((resp) => {
+        registra_cliente(resp, dadosCliente, stUltimaInstancia);
+      })
+      .catch(e => { throw error })
+
+  } catch (error) {
+    console.log(error);
+    !stUltimaInstancia && msgError('Erro ao tentar registrar os dados, recarregue e tente novamente!', stUltimaInstancia);
+    msgWarningCadastroCliente($('#CPFCNPJ'), 'Erro ao tentar registrar os dados, recarregue e tente novamente!', stUltimaInstancia);
+  }
+
 }
 
 async function registra_cliente(retornoValidaCliente, dadosCliente, stUltimaInstancia) {

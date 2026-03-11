@@ -1,5 +1,6 @@
-var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var libEditProdutoPedido = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.por-codigo.inativar-alterar-produto.libs.alterar", "libEditProdutoPedido");
+var api = $.import("quality.concentrador_homologacao.api", "apiResponse");
+var libEditProduto = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.libs.alteracao-pedido.itens", "alterar-dados-produto-pedido");
+var libEditProdutoPedido = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.libs.alteracao-pedido.itens", "alterar-dados-item-pedido");
 
 let conn;
 
@@ -100,7 +101,9 @@ function getDadosDetalheProdutoPedido(idDetalheProdutoPedido){
             TBDPP.STCADASTRADO AS STCADASTRADO,
             TBDPP.STREPOSICAO AS STREPOSICAO,
             TBDPP.STECOMMERCE,
-            TBDPP.IDPRODCADASTRO
+            TBDPP.IDPRODCADASTRO,
+            TBDPP.IDTIPOPRODUTOFISCAL,
+            TBDPP.IDFONTEPRODUTOFISAL
         FROM
             "VAR_DB_NAME".DETALHEPRODUTOPEDIDO AS TBDPP
         INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO AS TBD ON
@@ -137,6 +140,8 @@ function fnAtualizarTabelaProduto(idDetalheProdutoPedido){
             "IDCATEGORIAS" = ?,
             "STECOMMERCE" = ?,
             "IDCATEGORIAPEDIDO" = ?,
+            "IDTIPOPRODUTOFISCAL" = ?,
+            "IDFONTEPRODUTOFISCAL" = ?,
             "DTULTALTERACAO" = CURRENT_TIMESTAMP
         WHERE 
             "IDPRODUTO" =  ?
@@ -160,7 +165,9 @@ function fnAtualizarTabelaProduto(idDetalheProdutoPedido){
         pStmt.setInt(11, parseInt(dados.IDCATEGORIAS) || 0);
         pStmt.setString(12, (dados.STECOMMERCE || 'False'));
         pStmt.setInt(13, parseInt(dados.IDCATEGORIAPEDIDO) || 0);
-        pStmt.setInt(14, parseInt(dados.IDPRODCADASTRO));
+        pStmt.setInt(14, parseInt(dados.IDTIPOPRODUTOFISCAL));
+        pStmt.setInt(15, parseInt(dados.IDFONTEPRODUTOFISAL));
+        pStmt.setInt(16, parseInt(dados.IDPRODCADASTRO));
         
         pStmt.execute();
     }
@@ -190,6 +197,8 @@ function fnAtualizarTabelaProduto_RN(idDetalheProdutoPedido){
             "IDCATEGORIAS" = ?,
             "STECOMMERCE" = ?,
             "IDCATEGORIAPEDIDO" = ?,
+            "IDTIPOPRODUTOFISCAL" = ?,
+            "IDFONTEPRODUTOFISCAL" = ?,
             "DTULTALTERACAO" = CURRENT_TIMESTAMP
         WHERE 
             "IDPRODUTO" =  ?
@@ -213,7 +222,9 @@ function fnAtualizarTabelaProduto_RN(idDetalheProdutoPedido){
         pStmt.setInt(11, parseInt(dados.IDCATEGORIAS) || 0);
         pStmt.setString(12, (dados.STECOMMERCE || 'False'));
         pStmt.setInt(13, parseInt(dados.IDCATEGORIAPEDIDO) || 0);
-        pStmt.setInt(14, parseInt(dados.IDPRODCADASTRO));
+        pStmt.setInt(14, parseInt(dados.IDTIPOPRODUTOFISCAL));
+        pStmt.setInt(15, parseInt(dados.IDFONTEPRODUTOFISAL));
+        pStmt.setString(16, dados.IDPRODCADASTRO);
         
         pStmt.execute();
     }
@@ -325,11 +336,21 @@ function fnAtualizarDetalheProdutoPedido(idDetalheProdutoPedido, registro) {
             TBDPP."STECOMMERCE" = ?,
             TBDPP."STREDESOCIAL" = ?,
             TBDPP."STEDITADOCOMPRAS" = ?,
-            TBDPP."IDCATEGORIAPEDIDO" = ?
+            TBDPP."IDCATEGORIAPEDIDO" = ?,
+            TBDPP."STCADASTRADO" = (
+                CASE 
+                    WHEN IFNULL(TBP.IDPRODUTO, TBP_RN.IDPRODUTO) IS NOT NULL THEN 'True'
+                    ELSE 'False'
+                END
+            )
         FROM 
             "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" TBDPP
         INNER JOIN "VAR_DB_NAME"."RESUMOPEDIDO" TBR ON 
             TBDPP.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+        LEFT JOIN "VAR_DB_NAME"."PRODUTO" TBP ON 
+            TBDPP.IDPRODCADASTRO = TBP.IDPRODUTO
+        LEFT JOIN "VAR_DB_NAME"."PRODUTO_RN" TBP_RN ON 
+            TBDPP.IDPRODCADASTRO = TBP_RN.IDPRODUTO
         WHERE 
             TBDPP."IDDETALHEPRODUTOPEDIDO" =  ?
     `;
@@ -512,7 +533,7 @@ function fnHandlePut() {
         
         conn.commit();
         
-        libEditProdutoPedido.executeProduto(idDetalheProdutoPedido);
+        //libEditProdutoPedido.executeProduto(idDetalheProdutoPedido);
     }
 	
     return {

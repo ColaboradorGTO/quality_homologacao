@@ -1,50 +1,57 @@
-var api = $.import("quality.concentrador.api.apiResponse", "int_api");
+let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 try {
     
-    var idDaEmpresa = $.request.parameters.get("idEmpresa");
-    var idMarca = $.request.parameters.get("idMarca");
-
-    var dataPesquisaInic = $.request.parameters.get("dataPesquisaIni");
-    var dataPesquisaFim = $.request.parameters.get("dataPesquisaFim");
+    let idEmpresa = $.request.parameters.get("idEmpresa");
+    let idMarca = $.request.parameters.get("idMarca");
+    let dataPesquisaInicio = $.request.parameters.get("dataPesquisaIni");
+    let dataPesquisaFim = $.request.parameters.get("dataPesquisaFim");
     
-    var queryDeAdiantemento = ' SELECT ' +
-        '   tbas.IDEMPRESA, ' +
-        '   tbas.IDADIANTAMENTOSALARIO, ' +
-        '	tbas.IDFUNCIONARIO, ' +
-        '   TO_VARCHAR(tbas.DTLANCAMENTO,\'DD-MM-YYYY\') AS DTLANCAMENTO, ' +
-        '	tbas.TXTMOTIVO, ' +
-        '	tbas.VRVALORDESCONTO, ' +
-        '	tbas.STATIVO, ' +
-        '	tbf.NOFUNCIONARIO, ' +
-        '	tbf.NUCPF, ' +
-        '   tbe.NOFANTASIA' +
-        ' FROM ' +
-        '	"VAR_DB_NAME".ADIANTAMENTOSALARIAL tbas ' +
-        '   INNER JOIN "VAR_DB_NAME".FUNCIONARIO tbf ON tbas.IDFUNCIONARIO = tbf.IDFUNCIONARIO ' +
-        '   INNER JOIN "VAR_DB_NAME".EMPRESA tbe ON tbas.IDEMPRESA = tbe.IDEMPRESA ' +
-        ' WHERE ' +
-        '	1 = ?';
+    let query = `
+        SELECT
+            TBA.IDEMPRESA,
+            TBA.IDADIANTAMENTOSALARIO,
+            TBA.IDFUNCIONARIO,
+            TO_VARCHAR(TBA.DTLANCAMENTO,'DD-MM-YYYY') AS DTLANCAMENTO,
+            TBA.TXTMOTIVO,
+            TBA.VRVALORDESCONTO,
+            TBA.STATIVO,
+            TBF.NOFUNCIONARIO,
+            TBF.NUCPF,
+            TBE.NOFANTASIA,
+            TBA.STATUS_BLOQUEIO_ATUALIZACAO,
+            TBA.DOCENTRY_SAP_CONTAS_A_PAGAR,
+            REPLACE(TO_VARCHAR(TBA.ERROR_LOG_SAP), '''', '') AS ERROR_LOG_SAP
+        FROM
+            "VAR_DB_NAME".ADIANTAMENTOSALARIAL TBA
+        INNER JOIN "VAR_DB_NAME".FUNCIONARIO TBF ON 
+            TBA.IDFUNCIONARIO = TBF.IDFUNCIONARIO
+        INNER JOIN "VAR_DB_NAME".EMPRESA TBE ON 
+            TBA.IDEMPRESA = TBE.IDEMPRESA
+        WHERE
+            1 = ?
+    `;
     
     if ( idMarca >0) {
-        queryDeAdiantemento = queryDeAdiantemento + ' And tbe.IDGRUPOEMPRESARIAL IN (' + idMarca + ') '; 
+        query += ` AND TBE.IDGRUPOEMPRESARIAL IN ('${idMarca}') `; 
     }
     
-    if(idDaEmpresa>0) {
-        queryDeAdiantemento = queryDeAdiantemento + ' AND tbas.IDEMPRESA = \'' + idDaEmpresa + '\' ';
+    if(idEmpresa > 0) {
+        query += ` AND TBA.IDEMPRESA = '${idEmpresa}' `;
     }
     
-    if(dataPesquisaInic) {
-        queryDeAdiantemento = queryDeAdiantemento + ' AND (tbas.DTLANCAMENTO  BETWEEN \'' + dataPesquisaInic + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\')';
+    if(dataPesquisaInicio && dataPesquisaFim) {
+        query += ` AND (TO_DATE(TBA.DTLANCAMENTO)  BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}') `;
     }
     
+    query += 'ORDER BY TO_DATE(TBA.DTLANCAMENTO), TBA.IDEMPRESA, TBA.IDADIANTAMENTOSALARIO';
     
-   var request = { 
+   let request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")
     };
     
-    api.responseWithQuery(queryDeAdiantemento, request, 1);
+    api.responseWithQuery(query, request, 1);
     
 } catch(e) {
    
