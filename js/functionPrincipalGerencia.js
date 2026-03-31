@@ -18992,3 +18992,121 @@ function retornoListarClientes(dadosClientes) {
 
 }
 //? ============================= FIM ROTINA - CADASTRO DE CLIENTES =============================?//
+
+//================ ROTINA VENDAS DIGITAIS ==============================================
+//================ Gabriel Figueredo 25/03/2026 ==============================================
+
+async function listarVendasDigitais(){
+    try {
+      await $.get("financeiro_action_listvendasdigitalmarca.html", (respHtml) => {$("#js-page-content").html(respHtml)}); 
+
+      $('.dataAtual').text(dataAtual);
+      $('#dtconsultainicio').val(dataAtualCampo);
+      $('#dtconsultafim').val(dataAtualCampo);
+      $("#idgrupo").select2();
+      $('.DescTituloListaVendas').html(`<i class='subheader-icon fal fa-chart-area'></i> Lista das Vendas Digitais das Marcas - <span class='fw-300'></span>`);
+    } catch (error) {
+      funcError(error);
+    }
+}
+
+async function pesq_vendas_digitaisResumidoMarca(numPage){
+    
+    let datapesqinicio = $("#dtconsultainicio").val();
+    let datapesqfim = $("#dtconsultafim").val();
+    let idempresa = IDEmpresaLogin;
+
+    if(!datapesqinicio || !datapesqfim || !idempresa) return funcError('Favor preencher todos os campos.');
+
+    try {
+      await $.get("gerencia_action_lista_vendas_digitais_por_loja.html", (respHtml) => {$("#resultado").html(respHtml)}); 
+
+      const respVendas = await ajaxGet(`api/gerencia/vendas-digitais-por-loja.xsjs?pageSize=500&idEmpresa=${idempresa}&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}`)
+      retornoListaVendasDigitalResumidoMarca(respVendas);
+    } catch(error) {
+      funcError(error);
+    }
+} 
+
+function retornoListaVendasDigitalResumidoMarca(respostaListaVendasDigitalMarca) {
+
+    const {data} = respostaListaVendasDigitalMarca;
+    let retornoVendas = [];
+    let somaValorVenda = 0;
+    let somaQuantidade = 0;
+    
+    if(data.length != 0) {
+      for(let registro of data) {
+        let filial = registro.filial;
+        let idvenda = registro.idVenda;
+        let data = registro.dataVenda;
+        let quantidade = registro.totalQuantidadeDigital;
+        let valorVenda = registro.totalVenda;
+        let nome = registro.nomeVendedor;
+
+        somaQuantidade += quantidade;
+        somaValorVenda += parseFloat(valorVenda);
+
+        retornoVendas.push([
+          filial,
+          idvenda,
+          data,
+          quantidade,
+          valorVenda,
+          nome
+        ]);
+      }
+    }
+
+    criarDataTableVendasDigitais(retornoVendas, somaQuantidade, somaValorVenda);
+}
+
+function criarDataTableVendasDigitais(data, somaQuantidade, somaValorVenda) {
+  if ($.fn.DataTable.isDataTable('#dt-basic-vendasDigitais')) $('#dt-basic-vendasDigitais').DataTable().destroy();
+
+  $('#dt-basic-vendasDigitais').DataTable({
+    data: data,
+    deferRender: true,
+    columnDefs: [
+        { width: 25, targets: 0 },
+        { width: 200, targets: 1 },
+        { width: 200, targets: 2 },
+        { width: 200, targets: 3 },
+        { width: 100, targets: 4 }
+    ],
+    responsive: true,
+    language: {
+      emptyTable: "Nenhum registro encontrado",
+      zeroRecords: "Nenhum resultado para a pesquisa"
+    },
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Generate Excel',
+        className: 'btn-outline-success btn-sm mr-1'
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ]
+  });
+
+  if(data.length != 0) {
+    $('#totalQtd').html(somaQuantidade);
+    $('#totalValor').html(mascaraValor(somaValorVenda.toFixed(2)));
+  }
+}
+//================ FIM ROTINA VENDAS DIGITAIS ==============================================
