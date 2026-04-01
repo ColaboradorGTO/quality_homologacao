@@ -3827,6 +3827,8 @@ async function listarValeTransporteLoja() {
       const respHtml = await $.get("action_listvaletransploja.html"); 
       $("#js-page-content").html(respHtml);
 
+      $('#dtInicioValeTransporte').val(dataAtualCampo);
+      $('#dtFimValeTransporte').val(dataAtualCampo);
       $('.dataAtual').text(dataAtual);
       $('.DescTituloValeTransp').html(`<i class='subheader-icon fal fa-chart-area'></i> Vale Transporte - <span class='fw-300'> ${NOEmpresaLogin}</span>`);
     } catch(error) {
@@ -3847,9 +3849,8 @@ async function pesquisarValeTransporteLoja (){
   let dataFim = $('#dtFimValeTransporte').val();
 
   if(!dataInicio || !dataFim){
-    alerta_dados_pesquisa('Filtros não preenchidos, portanto será utilizada a data atual!'); 
-    dataInicio = dataAtualCampo;
-    dataFim = dataAtualCampo;
+    alerta_dados_pesquisa('Favor preencher os filtros de data!'); 
+    return false;
   }
 
   try {
