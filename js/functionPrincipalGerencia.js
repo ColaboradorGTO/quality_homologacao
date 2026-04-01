@@ -43,7 +43,7 @@ mesatual = (mes + 1);
 mesFormatado = String(mesatual);
 
 var dataAtual = diaFormatado.padStart(2, '0') + '/' + (mesFormatado.padStart(2, '0')) + '/' + ano4;
-
+let dataHojeCampo = diaFormatado.padStart(2, '0') + '-' + (mesFormatado.padStart(2, '0')) + '-' + ano4;
 let dataAtualCampo = ano4 + '-' + (mesFormatado.padStart(2, '0')) + '-' + diaFormatado.padStart(2, '0');
 let horaAtualCampo = hora + ':' + min + ':' + seg;
 
@@ -2527,6 +2527,18 @@ function modal_Detalhe_Recebimento(id) {
 
 }
 
+function imprimir_dados(){
+    let janelaImpressao = window.open('', '', '');
+  
+    janelaImpressao.document.open();
+    janelaImpressao.document.write(`<html><head><title>Impressão</title></head><body>`);
+    janelaImpressao.document.write(document.querySelector(".modal.show .modal-body").innerHTML);
+    janelaImpressao.document.write('</body></html>');
+    janelaImpressao.document.close();
+    janelaImpressao.print();
+    janelaImpressao.close(); 
+}
+
 //////////////////Adiantamento Salario////////////////////////////
 
 function ListaAdiantamentoLoja() {
@@ -3808,335 +3820,326 @@ function funcSucessUpdateDespesa(resposta) {
 }
 
 //////////////////Vale Transporte Loja////////////////////////////
+// Refatoração - Gabriel Figueredo - 01/04/2026
 
-function ListaValeTranspLoja() {
+async function listarValeTransporteLoja() {
+    try{
+      const respHtml = await $.get("action_listvaletransploja.html"); 
+      $("#js-page-content").html(respHtml);
 
-    /*if(flagConferidoData != ''){
-            Swal.fire({
-    			type: "warning",
-    			title: "Bloqueio de Dados",
-    			html: "Seus Dados estão bloqueado até que o(s) CAIXA(S) seja(am) CONFIRMADO(S)!",
-    			showConfirmButton: true,
-    			timer: 15000
-    		});
-    }else{ */
-    	if (window.XMLHttpRequest) {
-    		// code for IE7+, Firefox, Chrome, Opera, Safari
-    		xmlhttp = new XMLHttpRequest();
-    	} else {
-    		// code for IE6, IE5
-    		xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    	}
-    
-    	xmlhttp.onreadystatechange = function() {
-    		if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-    			document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
-    			newDataTable('valetransporte');
-    
-                $('.dataAtual').text(dataAtual);
-    
-    		    $('.DescTituloValeTransp').html(
-    			`<i class='subheader-icon fal fa-chart-area'></i> Vale Transporte - <span class='fw-300'>` + NOEmpresaLogin + `</span>`);
-    			
-    		    return  ajaxGet('api/despesa-loja/empresa.xsjs?idEmpresa=' + IDEmpresaLogin + '&dataPesquisa=' + dataAtualCampo)
-    				.then(retornoTableListValeTranspLoja)
-    				.catch(funcErrorValeTranspLoja);
-    
-    		}
-    	};
-    	xmlhttp.open("GET", "action_listvaletransploja.html", true);
-    	xmlhttp.send();
-    //}
+      $('.dataAtual').text(dataAtual);
+      $('.DescTituloValeTransp').html(`<i class='subheader-icon fal fa-chart-area'></i> Vale Transporte - <span class='fw-300'> ${NOEmpresaLogin}</span>`);
+    } catch(error) {
+      funcError(error);
+    };
+ 
+    try {
+      const respDespesas = await ajaxGet(`api/despesa-loja/empresa.xsjs?idEmpresa=${IDEmpresaLogin}&dataPesquisaInic=${dataAtualCampo}&dataPesquisaFim=${dataAtualCampo}`)
+      retornoTableListValeTranspLoja(respDespesas)
+    } catch(error) {
+      console.log(error)
+      funcError('Erro ao Carregar os Dados da tabela');
+    };
+}
+
+async function pesquisarValeTransporteLoja (){
+  let dataInicio = $('#dtInicioValeTransporte').val();
+  let dataFim = $('#dtFimValeTransporte').val();
+
+  if(!dataInicio || !dataFim){
+    alerta_dados_pesquisa('Filtros não preenchidos, portanto será utilizada a data atual!'); 
+    dataInicio = dataAtualCampo;
+    dataFim = dataAtualCampo;
+  }
+
+  try {
+    const respDespesas = await ajaxGet(`api/despesa-loja/empresa.xsjs?idEmpresa=${IDEmpresaLogin}&dataPesquisaInic=${dataInicio}&dataPesquisaFim=${dataFim}`);
+    retornoTableListValeTranspLoja(respDespesas);
+  } catch (error) {
+    funcError(error);
+  };
 }
 
 function retornoTableListValeTranspLoja(valeTranspLoja) {
+	let contadorValeTranspLoja = 0;
+	let TotalValeTranspLoja = 0;
+  let dados = [];
 
-	var contadorValeTranspLoja = 0;
-	var TotalValeTranspLoja = 0;
-
-	for (var i = 0; i < valeTranspLoja.data.length; i++) {
-
-		contadorValeTranspLoja = contadorValeTranspLoja + 1;
-
-		IDCategValeTranspLoja = valeTranspLoja.data[i]['IDCATEGORIARECDESP'];
+	for (let registro of valeTranspLoja.data) {
+		contadorValeTranspLoja += 1;
+		let IDCategValeTranspLoja = registro.IDCATEGORIARECDESP;
 
 		if (IDCategValeTranspLoja == '248') {
-
-			IDDespValeTranspLoja = valeTranspLoja.data[i]['IDDESPESASLOJA'];
-			DTMovValeTranspLoja = valeTranspLoja.data[i]['DTDESPESA'];
-			DescValeTranspLoja = valeTranspLoja.data[i]['DSCATEGORIA'];
-			VrValeTranspLoja = parseFloat(valeTranspLoja.data[i]['VRDESPESA']);
-			PagoAValeTranspLoja = valeTranspLoja.data[i]['NOFUNCVALE'];
-			TxtHistoricoValeTranspLoja = valeTranspLoja.data[i]['DSHISTORIO'];
-    		SituacaoValeTranspAtivoLoja = valeTranspLoja.data[i]['STATIVO'];
-    		SituacaoValeTranspLoja = valeTranspLoja.data[i]['STCANCELADO'];
-		    
-		    if(SituacaoValeTranspLoja=='False' && IDCategValeTranspLoja == '248'){
-		        TotalValeTranspLoja = TotalValeTranspLoja + VrValeTranspLoja;
-		    }
-			
-    	    if(SituacaoValeTranspLoja=='False' && IDCategValeTranspLoja == '248'){
+        let IDDespValeTranspLoja = registro.IDDESPESASLOJA;
+        let DTMovValeTranspLoja = registro.DTDESPESA;
+        let DescValeTranspLoja = registro.DSCATEGORIA;
+        let VrValeTranspLoja = parseFloat(registro.VRDESPESA);
+        let PagoAValeTranspLoja = registro.NOFUNCVALE
+        let TxtHistoricoValeTranspLoja = registro.DSHISTORIO;
+        let SituacaoValeTranspAtivoLoja = registro.STATIVO;
+        let SituacaoValeTranspLoja = registro.STCANCELADO;
+        let tagValeTranspAtivo;
+        let tagValeTranspAtivoBotao;
+          
+        if(SituacaoValeTranspLoja == 'False') TotalValeTranspLoja += VrValeTranspLoja;
+        
+        if(DTMovValeTranspLoja === dataHojeCampo){
+          if(SituacaoValeTranspLoja=='False'){
                 tagValeTranspAtivo='<label style="color: blue;">Ativo</label>';
-                tagValeTranspAtivoBotao='<div class="btn-group btn-group-xs"><button type="button" class="btn btn-danger btn-xs" title="Cancelar Vale Transporte" id="'+IDDespValeTranspLoja+'" onclick="status_ValeTransp_Loja(this.id,\'True\')" >Cancelar</button>'+
-                '<button type="button" class="btn btn-success btn-xs" title="Imprimir Vale Transporte" id="'+IDDespValeTranspLoja+'" onclick="modal_Imprimir_Vale_Transporte(this.id)" >Imprimir</button></div>';
-            }else{
-                tagValeTranspAtivo='<label style="color: red;">Cancelado</label>';
-                tagValeTranspAtivoBotao='<div class="btn-group btn-group-xs"><button type="button" class="btn btn-info btn-xs" title="Ativar Vale Transporte" id="'+IDDespValeTranspLoja+'" onclick="status_ValeTransp_Loja(this.id,\'False\')" >Ativar</button></div>';
-            }
+                tagValeTranspAtivoBotao = `<div class="btn-group btn-group-xs"><button type="button" class="btn btn-danger btn-xs" title="Cancelar Vale Transporte" 
+                id="${IDDespValeTranspLoja}" onclick="status_ValeTransp_Loja(this.id,'True')">Cancelar</button>
+                <button type="button" class="btn btn-success btn-xs" title="Imprimir Vale Transporte" id="${IDDespValeTranspLoja}" 
+                onclick="modal_Imprimir_Vale_Transporte(this.id)">Imprimir</button></div>`;
+          } else{
+              tagValeTranspAtivo='<label style="color: red;">Cancelado</label>';
+              tagValeTranspAtivoBotao=`<div class="btn-group btn-group-xs"><button type="button" class="btn btn-info btn-xs" title="Ativar Vale Transporte" 
+              id="${IDDespValeTranspLoja}" onclick="status_ValeTransp_Loja(this.id,'False')">Ativar</button></div>`;
+          }
+        }else{
+          if(SituacaoValeTranspLoja=='False'){
+            tagValeTranspAtivo='<label style="color: blue;">Ativo</label>';
+            tagValeTranspAtivoBotao=`<div class="btn-group btn-group-xs"><button type="button" class="btn btn-success btn-xs" title="Imprimir Vale Transporte" 
+            id="${IDDespValeTranspLoja}" onclick="modal_Imprimir_Vale_Transporte(this.id)" >Imprimir</button></div>`;
+          }else{
+            tagValeTranspAtivo='<label style="color: red;">Cancelado</label>';
+            tagValeTranspAtivoBotao='<div class="btn-group btn-group-xs"></div>';
+          }
+      }
 
-			var tableValeTranspLoja = $('#dt-basic-valetransporte').DataTable();
-
-			tableValeTranspLoja.row.add([
-                    `<label style="color: blue;">` + contadorValeTranspLoja + `</label>`,
-                    `<label style="color: blue;">` + DTMovValeTranspLoja + `</label>`,
-                    `<label style="color: blue;">` + DescValeTranspLoja + `</label>`,
-                    `<label style="color: blue;">` + mascaraValor(VrValeTranspLoja.toFixed(2)) + `</label>`,
-                    `<label style="color: blue;">` + PagoAValeTranspLoja + `</label>`,
-                    `<label style="color: blue;">` + TxtHistoricoValeTranspLoja + `</label>`,
-                    tagValeTranspAtivo,
-                    tagValeTranspAtivoBotao,
-            ]).draw(false);
-		}
-
-	}
-
-	$('.totalValeTranspLoja').html(
-		`<tr>
-            <th colspan="3" style="text-align: center;">Total Lançamentos</th>
-            <th style="text-align: right;">${mascaraValor(TotalValeTranspLoja.toFixed(2))}</th>
-            <th colspan="4"></th>
-        </tr>`
-	);
-
-}
-			
-function funcErrorValeTranspLoja(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do retornoTableListValeTranspLoja',
-		showConfirmButton: false,
-		timer: 15000
-	});
+      dados.push([
+        contadorValeTranspLoja,
+        DTMovValeTranspLoja,
+        DescValeTranspLoja,
+        VrValeTranspLoja,
+        PagoAValeTranspLoja,
+        TxtHistoricoValeTranspLoja,
+        tagValeTranspAtivo,
+        tagValeTranspAtivoBotao
+      ]);
+    }
+  } 
+  
+  montarDataTableListaTransp(dados, TotalValeTranspLoja);
 }
 
-function modal_Cad_Vale_Transporte() {
+function montarDataTableListaTransp(data, TotalValeTranspLoja) {
+  if ($.fn.DataTable.isDataTable('#dt-basic-valetransporte')) $('#dt-basic-valetransporte').DataTable().destroy();
 
-	$.get('action_cadvaletranspmodal.html', function(res) {
+  $('#dt-basic-valetransporte').DataTable({
+    data: data,
+    deferRender: true,
+    columnDefs: [
+        { width: 25, targets: 0 },
+        { width: 200, targets: 1 },
+        { width: 200, targets: 2 },
+        { width: 200, targets: 3 },
+        { width: 100, targets: 4 }
+    ],
+    responsive: true,
+    language: {
+      emptyTable: "Nenhum registro encontrado",
+      zeroRecords: "Nenhum resultado para a pesquisa"
+    },
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible:not(.no-export)'
+        }
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Generate Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible:not(.no-export)'
+        }
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm',
+        exportOptions: {
+          columns: ':visible:not(.no-export)'
+        }
+      }
+    ]
+  });
 
-		$('#resulmodalvaletransp').html(res);
+  if(data) {
+    $('#totalValeTranspLoja').html(mascaraValor(TotalValeTranspLoja.toFixed(2)));
+  }
+};
+
+async function modal_Cad_Vale_Transporte() {
+
+  try {
+    const respHtml = await $.get('action_cadvaletranspmodal.html');
+
+    $('#resulmodalvaletransp').html(respHtml);
 		$("#cadValeTransp").modal('show');
 		$('#cadValeTransp').on('shown.bs.modal', function() {});
-
-		$('#IDEmpresaDespesaValeTransp').val(IDEmpresaLogin);
+    $('#IDEmpresaDespesaValeTransp').val(IDEmpresaLogin);
 		$('#nomeempValeTransp').val(NOEmpresaLogin);
 		$('#IDFuncDespesaValeTransp').val(IDFuncionarioLogin);
-
-		$("#IDFuncionario").select2({
+	  $('#DTDespesaValeTransp').val(dataAtualCampo);
+		$('#HRDespesaValeTransp').val(horaAtual);
+    $("#IDFuncionario").select2({
 			dropdownParent: $("#cadValeTransp")
 		});
+  } catch (error) {
+    funcError(error);
+  }
 
-		return ajaxGet('api/funcionario/todos.xsjs?empresa=' + IDEmpresaLogin)
-			.then(retornoListaFuncionario)
-			.catch(funcErrorFuncionario);
-	})
-
+  try {
+    const resp = await ajaxGet(`api/funcionario/todos.xsjs?empresa=${IDEmpresaLogin}`)
+    retornoListaFuncionario(resp)
+  } catch (error) {
+    funcError('Erro ao Carregar os Dados do retornoListaFuncionario')
+  };
 }
 
-function cadastrar_vale_transporte() {
-
-	var idempresadespvaletransp = $("#IDEmpresaDespesaValeTransp").val();
-	var idfuncdespvaletransp = $("#IDFuncDespesaValeTransp").val();
-	var dtlancdespvaletransp = $("#DTDespesaValeTransp").val();
-	var hrlancdespvaletransp = $("#HRDespesaValeTransp").val();
-	var idcategdespvaletransp = $("#IDCategoriaReceitaDespesaValeTransp").val();
-	var historiodespvaletransp = $("#DsHistorioValeTransp").val();
-	var idfuncionariovaletransp = $("#IDFuncionario").val();
-	var pagoAdespvaletransp = '';
-	var tpnotadespvaletransp = '';
-	var nunotadespvaletransp = '';
-	var vrdespesavaletransp = $("#VrDespesaValeTransp").val().replace(".", "").replace(",", ".");
-	var stativodespvaletransp = $("#STAtivoDespesaValeTransp").val();
-	var stcanceladespvaletransp = $("#STCancelaDespesaValeTransp").val();
-
-	var DTValeTransLoja = dtlancdespvaletransp+' '+hrlancdespvaletransp;
+async function cadastrar_vale_transporte() {
+  let idempresadespvaletransp = $("#IDEmpresaDespesaValeTransp").val();
+  let idfuncdespvaletransp = $("#IDFuncDespesaValeTransp").val();
+  let dtlancdespvaletransp = $("#DTDespesaValeTransp").val();
+  let hrlancdespvaletransp = $("#HRDespesaValeTransp").val();
+  let idcategdespvaletransp = $("#IDCategoriaReceitaDespesaValeTransp").val();
+  let historiodespvaletransp = $("#DsHistorioValeTransp").val();
+  let idfuncionariovaletransp = $("#IDFuncionario").val();
+  let pagoAdespvaletransp = '';
+  let tpnotadespvaletransp = '';
+  let nunotadespvaletransp = '';
+  let vrdespesavaletransp = $("#VrDespesaValeTransp").val().replace(".", "").replace(",", ".");
+  let stativodespvaletransp = $("#STAtivoDespesaValeTransp").val();
+  let stcanceladespvaletransp = $("#STCancelaDespesaValeTransp").val();
+  let DTValeTransLoja = `${dtlancdespvaletransp} ${hrlancdespvaletransp}`;
     
-    if(dtlancdespvaletransp==''){
-    	$("#resultadodespesa").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe a Data do Vale Transporte.</div>"
-		);
-		$("#DTDespesaValeTransp").focus();
-		return false;
-    }
+  if(!dtlancdespvaletransp || !hrlancdespvaletransp){ 
+    alerta_dados_pesquisa('Data ou hora inválida.');
+    return false;
+  }
+  
+  if (!vrdespesavaletransp || vrdespesavaletransp == 0) {
+    alerta_dados_pesquisa('Informe o Valor do Vale Transporte');
+    $("#VrDespesaValeTransp").focus();
+    return false;
+  }
 
-    if(hrlancdespvaletransp==''){
-    	$("#resultadodespesa").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe a Hora do Vale Transporte.</div>"
-		);
-		$("#HRDespesaValeTransp").focus();
-		return false;
-    }
-    
-	if ($("#VrDespesaValeTransp").val() == 0 || $("#VrDespesaValeTransp").val() == "") {
+  let dados = [{
+    "IDEMPRESA": parseInt(idempresadespvaletransp),
+    "IDUSR": parseInt(idfuncdespvaletransp),
+    "DTDESPESA": DTValeTransLoja,
+    "IDCATEGORIARECEITADESPESA": parseInt(idcategdespvaletransp),
+    "DSHISTORIO": historiodespvaletransp,
+    "DSPAGOA": pagoAdespvaletransp,
+    "IDFUNCIONARIO": parseInt(idfuncionariovaletransp),
+    "TPNOTA": tpnotadespvaletransp,
+    "NUNOTAFISCAL": nunotadespvaletransp,
+    "VRDESPESA": parseFloat(vrdespesavaletransp),
+    "STATIVO": stativodespvaletransp,
+    "STCANCELADO": stcanceladespvaletransp 
+  }];
 
-		$("#resultadodespesa").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe o Valor do Vale Transporte</div>"
-		);
+  try {
+    await ajaxPost(`api/despesa-loja/todos.xsjs`, dados);
 
-		$("#VrDespesaValeTransp").focus();
-		return false;
-	}
-
-	var dados = [{
-
-		"IDEMPRESA": parseInt(idempresadespvaletransp),
-		"IDUSR": parseInt(idfuncdespvaletransp),
-		"DTDESPESA": DTValeTransLoja,
-		"IDCATEGORIARECEITADESPESA": parseInt(idcategdespvaletransp),
-		"DSHISTORIO": historiodespvaletransp,
-		"DSPAGOA": pagoAdespvaletransp,
-		"IDFUNCIONARIO": parseInt(idfuncionariovaletransp),
-		"TPNOTA": tpnotadespvaletransp,
-		"NUNOTAFISCAL": nunotadespvaletransp,
-		"VRDESPESA": parseFloat(vrdespesavaletransp),
-		"STATIVO": stativodespvaletransp,
-		"STCANCELADO": stcanceladespvaletransp 
-
-	}];
-
-	console.table(dados);
-
-	ajaxPost("api/despesa-loja/todos.xsjs", dados)
-		.then(funcSucessDespesaValeTransp)
-		.catch(funcErrorDespesaValeTransp);
-
+    alerta_cadastrado_sucesso();
+    $("#cadValeTransp").modal('hide');
+    listarValeTransporteLoja();
+  } catch (error) {
+    funcError('Erro ao cadastrar o vale transporte!');
+  }
 }
 
-function funcSucessDespesaValeTransp(resposta) {
+async function status_ValeTransp_Loja(id,status) {
+  let dados = {
+    "IDDESPESASLOJA": parseInt(id),
+    "STCANCELADO":status
+  };
 
-	alerta_cadastrado_sucesso();
-	$("#cadValeTransp").modal('hide');
-	ListaValeTranspLoja();
+  try {
+    await ajaxPut(`api/despesa-loja/atualizacao-status.xsjs`, dados);
+    alerta_cancel_ativa_despesa();
+    listarValeTransporteLoja();
+  } catch (error) {
+    funcError ('Erro ao Atualizar o status do vale transporte.');
+  }
 }
 
-function funcErrorDespesaValeTransp(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do funcSucessDespesaValeTransp',
-		showConfirmButton: false,
-		timer: 15000
-	});
-}
+async function modal_Imprimir_Vale_Transporte(id) {
 
-function status_ValeTransp_Loja(id,status) {
-
-    var dados = {
-      "IDDESPESASLOJA": parseInt(id),
-      "STCANCELADO":status
-    };
-
-  	ajaxPut("api/despesa-loja/atualizacao-status.xsjs", dados)
-		.then(funcSucessUpdateDespesaValeTransp)
-		.catch(funcErrorUpdateDespesaValeTransp);
-
-}
-
-function funcSucessUpdateDespesaValeTransp(resposta) {
-
-	alerta_cancel_ativa_despesa();
-	ListaValeTranspLoja();
-
-}
-
-function funcErrorUpdateDespesaValeTransp(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do funcSucessUpdateDespesaValeTransp',
-		showConfirmButton: false,
-		timer: 15000
-	});
-}
-
-function modal_Imprimir_Vale_Transporte(id) {
-
-	$.get('action_imprimirmodal.html', function(res) {
-
-		$('#resulmodalimprimir').html(res);
+  try {
+    const respHtml = await $.get(`action_imprimirmodal.html`);
+    $('#resulmodalimprimir').html(respHtml);
 		$("#imprimiDados").modal('show');
 		$('#imprimiDados').on('shown.bs.modal', function() {});
+  } catch (error) {
+    funcError(error);
+  };
 
-	    return	ajaxGet('api/despesa-loja/todos.xsjs?id=' + id)
-			.then(retornoTableImprimeValeLoja)
-			.catch(funcErrorImprimeValeLoja);
-	})
-
+  try {
+    const resp = await ajaxGet(`api/despesa-loja/todos.xsjs?id=${id}`);
+    retornoTableImprimeValeLoja(resp);
+  } catch (error) {
+    funcError(error);
+  };
 }
 
 function retornoTableImprimeValeLoja(imprimeValeTranspLoja) {
+  let VrValeTranspLoja = parseFloat(imprimeValeTranspLoja.data[0]['VRDESPESA']);
+  let TxtHistValeTranspLoja = imprimeValeTranspLoja.data[0]['DSHISTORICO'];
+  let RazaoEmpresa = imprimeValeTranspLoja.data[0]['NORAZAOSOCIAL'];
+  let NoFantasiaEmpresa = imprimeValeTranspLoja.data[0]['NOFANTASIA'];
+  let CNPJEmpresa = imprimeValeTranspLoja.data[0]['NUCNPJ'];
+  let NoFuncionario = imprimeValeTranspLoja.data[0]['NOFUNCIONARIO'];
+  let CPFFuncionario = imprimeValeTranspLoja.data[0]['NUCPF'];
+  let NoGerente = imprimeValeTranspLoja.data[0]['NOMEGERENTE'];
+  
+  $('.TituloModalImprimir').html(
+    `Impressão de Recibos <small class="m-0 text-muted">Imprimir Vale Transporte</small>`
+  );
 
-			IDDespValeTranspLoja = imprimeValeTranspLoja.data[0]['IDDESPESASLOJA'];
-			IDEmpresaValeTranspLoja = imprimeValeTranspLoja.data[0]['IDEMPRESA'];
-			IDFuncionarioValeTranspLoja = imprimeValeTranspLoja.data[0]['IDFUNCIONARIO'];
-			DTMovValeTranspLoja = imprimeValeTranspLoja.data[0]['DTDESPESA'];
-			VrValeTranspLoja = parseFloat(imprimeValeTranspLoja.data[0]['VRDESPESA']);
-			TxtHistValeTranspLoja = imprimeValeTranspLoja.data[0]['DSHISTORICO'];
-		    RazaoEmpresa = imprimeValeTranspLoja.data[0]['NORAZAOSOCIAL'];
-			NoFantasiaEmpresa = imprimeValeTranspLoja.data[0]['NOFANTASIA'];
-			CNPJEmpresa = imprimeValeTranspLoja.data[0]['NUCNPJ'];
-			NoFuncionario = imprimeValeTranspLoja.data[0]['NOFUNCIONARIO'];
-			CPFFuncionario = imprimeValeTranspLoja.data[0]['NUCPF'];
-			NoGerente = imprimeValeTranspLoja.data[0]['NOMEGERENTE'];
-			
-        	$('.TituloModalImprimir').html(
-        		`Impressão de Recibos <small class="m-0 text-muted">Imprimir Vale Transporte</small>`
-        	);
+  $('.TituloRecibo').html(
+    `<h3 style="text-align: center;">VALE TRANSPORTE</h3>`
+  );
 
-        	$('.TituloRecibo').html(
-        		`<h3 style="text-align: center;">VALE TRANSPORTE</h3>`
-        	);
-
-        	$('.CorpoRecibo1').html(
-        		`<div class="col-sm-12" style="text-align: justify;">O(a) ` + NoFuncionario + `, CPF: ` + CPFFuncionario + `. Declara a empresa ` + RazaoEmpresa + `, CNPJ: ` + CNPJEmpresa + `
-        		- ( ` + NoFantasiaEmpresa + `) - ter recebido a importância de R$ ` + mascaraValor(VrValeTranspLoja.toFixed(2)) + `(), referente ao VALE TRANSPORTE, pago(s) em espécie.</div>
-                `
-        	);
-        	
-        	$('.CorpoRecibo2').html(
-        		`<div class="col-sm-12" style="text-align: justify;">Histórico: ` + TxtHistValeTranspLoja + ` </div>`
-        	);
-        	
-        	$('.CorpoRecibo3').html(
-        		`<div class="col-sm-12" style="text-align: justify;">Conforme Código Civil Lei nº 10.406, Art. 219, o recebimento dos créditos confirmam-se verdadeiras em relação ao Signatário.</div>`
-        	);
-        	
-        	$('.CorpoRecibo4').html(
-        		`<div class="col-sm-12">Brasília, ` + dataAtual + `.</div>`
-        	);
-        	
-        	$('.CorpoRecibo5').html(
-        		`<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
-    			    <div class="col-sm-12" style="text-align: center;">` + NoFuncionario + ` - CPF: ` + CPFFuncionario + `</div>`
-        	);
-        	
-        	$('.CorpoRecibo6').html(
-        		`<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
-    			    <div class="col-sm-12" style="text-align: center;">` + NoFantasiaEmpresa + ` - ` + NoGerente + `</div>`
-        	);
-        	
-
-        	
-        	
+  $('.CorpoRecibo1').html(
+    `<div class="col-sm-12" style="text-align: justify;">O(a) ${NoFuncionario}, CPF: ${CPFFuncionario}. 
+    Declara a empresa ${RazaoEmpresa}, CNPJ: ${CNPJEmpresa} - (${NoFantasiaEmpresa}) - 
+    ter recebido a importância de R$${mascaraValor(VrValeTranspLoja.toFixed(2))}, referente ao VALE TRANSPORTE, pago(s) em espécie.</div>
+    `
+  );
+  
+  $('.CorpoRecibo2').html(
+    `<div class="col-sm-12" style="text-align: justify;">Histórico: ${TxtHistValeTranspLoja}</div>`
+  );
+  
+  $('.CorpoRecibo3').html(
+    `<div class="col-sm-12" style="text-align: justify;">Conforme Código Civil Lei nº 10.406, Art. 219, o recebimento dos créditos confirmam-se verdadeiras em relação ao Signatário.</div>`
+  );
+  
+  $('.CorpoRecibo4').html(
+    `<div class="col-sm-12">Brasília, ${dataAtual}.</div>`
+  );
+  
+  $('.CorpoRecibo5').html(
+    `<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
+      <div class="col-sm-12" style="text-align: center;">${NoFuncionario} - CPF: ${CPFFuncionario}</div>`
+  );
+  
+  $('.CorpoRecibo6').html(
+    `<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
+      <div class="col-sm-12" style="text-align: center;"> ${NoFantasiaEmpresa} - ${NoGerente}</div>`
+  );	
 }
 
 //////////////////Quebra de Caixa da Loja////////////////////////////
@@ -5587,11 +5590,11 @@ function alerta_cadastrado_sucesso() {
 	});
 }
 
-function alerta_dados_pesquisa() {
+function alerta_dados_pesquisa(data = 'Informe o período da Pesquisa!') {
 	Swal.fire({
 		type: "warning",
-		title: "Informe o período da Pesquisa!",
-		showConfirmButton: false,
+		title: data,
+		showConfirmButton: true,
 		timer: 2500
 	});
 }
@@ -5726,10 +5729,10 @@ function retornoTableImprimeAjusteCaixa(imprimeAjusteCaixa) {
 	
 }
 
-function funcError(data) {
+function funcError(data = 'Erro ao Carregar os Dados') {
 	Swal.fire({
 		type: "error",
-		title: 'Erro ao Carregar os Dados',
+		title: data,
 		showConfirmButton: false,
 		timer: 15000
 	});
