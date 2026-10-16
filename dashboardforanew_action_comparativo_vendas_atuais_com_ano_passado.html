@@ -1,0 +1,127 @@
+<div>
+  <div class="subheader">
+    <h1 class="subheader-title">
+      <div class="row">
+        <div class="col-sm-6 col-xl-6">
+          <i class='subheader-icon fal fa-chart-area'></i> GTO <span class='fw-400'>Dashboard Vendas do Dia - <label
+              class="parametro_dia"></label>
+        </div>
+      </div>
+    </h1>
+    <div>
+      <button type="button" class="btn btn-sm btn-outline-secondary mr-1" title="Atualizar Dashboard"
+        onclick="carregarDadosDashboardComparativoVendasAnoAtualComAnoPassado()">
+        <i class='fal fa-redo'></i>
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" title="Configurar Atualização Automática"
+        onclick="alterarTempoRefreshAutomatico()">
+        <i class='fal fa-cog'></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <div class="p-3 bg-info-300 rounded overflow-hidden position-relative text-white mb-g">
+        <div class="vrTotalVendaMes">
+
+        </div>
+        <div class="vrTotalVendaMesAnoPassado">
+
+        </div>
+        <i class="percTotalVendaMes position-absolute pos-right pos-top"></i>
+        <i class="fal fa-globe position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n4"
+          style="font-size: 4rem;"></i>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <div class="p-3 bg-info-300 rounded overflow-hidden position-relative text-white mb-g">
+        <div class="vrTotal">
+
+        </div>
+        <div class="vrTotal2 text-warning">
+
+        </div>
+        <i class="percTotalVendaDia position-absolute pos-right pos-top"></i>
+        <i class="fal fa-globe position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n4"
+          style="font-size: 4rem;"></i>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <div class="p-3 bg-warning-600 rounded overflow-hidden position-relative text-white mb-g">
+        <div class="vrTotalPos">
+
+        </div>
+        <div class="vrTotalPos2">
+
+        </div>
+        <i class="percTotalPOS position-absolute pos-right pos-top"></i>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <div class="p-3 bg-warning-600 rounded overflow-hidden position-relative text-white mb-g">
+        <div class="vrTotalCartao">
+
+        </div>
+        <div class="vrTotalCartao2">
+
+        </div>
+        <i class="percTotalCartao position-absolute pos-right pos-top"></i>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <div class="p-3 bg-success-500 rounded overflow-hidden position-relative text-white mb-g">
+        <div class="vrTotalDinheiro">
+
+        </div>
+        <div class="vrTotalDinheiro2">
+
+        </div>
+        <i class="percTotalDinheiro position-absolute pos-right pos-top"></i>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <div class="p-3 bg-success-500 rounded overflow-hidden position-relative text-white mb-g">
+        <div class="vrTotalConvenio">
+
+        </div>
+        <div class="vrTotalConvenio2">
+
+        </div>
+        <i class="percTotalConvenio position-absolute pos-right pos-top"></i>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6 col-xl-6">
+      <div class="p-3 bg-primary-500 rounded overflow-hidden position-relative text-white mb-g">
+        <div class="vrTotalFatura">
+
+        </div>
+        <div class="vrTotalFatura2 text-white">
+
+        </div>
+        <i class="percTotalFatura position-absolute pos-right pos-top"></i>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <div class="p-3 bg-primary-500 rounded overflow-hidden position-relative text-white mb-g" style="height: 84%">
+        <div class="vrTotalCredSystem">
+
+        </div>
+        <div class="vrTotalCredSystem2 text-white">
+
+        </div>
+        <i class="percTotalCredSystem position-absolute pos-right pos-top"></i>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabelasTop3LojasMaisVendas" class="row">
+  </div>
+
+</div>

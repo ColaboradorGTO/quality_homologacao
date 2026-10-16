@@ -43,7 +43,7 @@ mesatual = (mes + 1);
 mesFormatado = String(mesatual);
 
 var dataAtual = diaFormatado.padStart(2, '0') + '/' + (mesFormatado.padStart(2, '0')) + '/' + ano4;
-
+let dataHojeCampo = diaFormatado.padStart(2, '0') + '-' + (mesFormatado.padStart(2, '0')) + '-' + ano4;
 let dataAtualCampo = ano4 + '-' + (mesFormatado.padStart(2, '0')) + '-' + diaFormatado.padStart(2, '0');
 let horaAtualCampo = hora + ':' + min + ':' + seg;
 
@@ -63,6 +63,60 @@ var nConferir = 0;
 // Fim Ordem Transferência
 
 //////////////// Funções Globais ///////////////////////////////////
+
+async function ajaxGetComAnimacaoDeCarregamento(request, mensagem = 'Carregando Dados...', funcaoRetorno, msgErro = '') {
+
+  let barraCarregamento = `<div id="BarraCarregamento" class="progress">
+                              <div  class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div>
+                          </div>`
+
+  Swal.fire({
+    html: barraCarregamento,
+    type: 'info',
+    title: mensagem,
+    timer: 190000,
+    backdrop: false,
+    allowEscapeKey: false,
+    allowOutsideClick: false,
+    onOpen: async () => {
+      Swal.showLoading();
+
+      await ajaxGet(request)
+        .then(funcaoRetorno)
+        .catch(() => {
+          funcError(msgErro)
+          clearInterval(animacaoBarra);
+        });
+
+    }
+  }).then((result) => {
+    if (result.dismiss == "timer") {
+      Swal.close();
+
+      Swal.fire({
+        type: 'error',
+        title: "Erro ao carregar os dados, recarregue a página e tente novamente",
+        timer: 15000,
+      });
+      return false;
+    }
+  })
+
+  let animacaoBarra = setInterval(() => {
+    let barra = $($('.pace-progress')[0]).attr('data-progress')
+    let barra2 = $($('.pace-progress')[0]).attr('data-progress-text')
+
+    $('#BarraCarregamento').html(`
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="${barra}" aria-valuemin="0" aria-valuemax="100" style="width: ${barra}%">${barra}%</div>
+          `)
+
+    if (barra > 98 && barra2 == "100%") {
+      Swal.close();
+      clearInterval(animacaoBarra);
+    }
+  }, 700)
+
+}
 
 function Onlynumbers(e) {
 	var tecla = (window.event) ? event.keyCode : e.which;
@@ -2527,6 +2581,18 @@ function modal_Detalhe_Recebimento(id) {
 
 }
 
+function imprimir_dados(){
+    let janelaImpressao = window.open('', '', '');
+  
+    janelaImpressao.document.open();
+    janelaImpressao.document.write(`<html><head><title>Impressão</title></head><body>`);
+    janelaImpressao.document.write(document.querySelector(".modal.show .modal-body").innerHTML);
+    janelaImpressao.document.write('</body></html>');
+    janelaImpressao.document.close();
+    janelaImpressao.print();
+    janelaImpressao.close(); 
+}
+
 //////////////////Adiantamento Salario////////////////////////////
 
 function ListaAdiantamentoLoja() {
@@ -3808,335 +3874,327 @@ function funcSucessUpdateDespesa(resposta) {
 }
 
 //////////////////Vale Transporte Loja////////////////////////////
+// Refatoração - Gabriel Figueredo - 01/04/2026
 
-function ListaValeTranspLoja() {
+async function listarValeTransporteLoja() {
+    try{
+      const respHtml = await $.get("action_listvaletransploja.html"); 
+      $("#js-page-content").html(respHtml);
 
-    /*if(flagConferidoData != ''){
-            Swal.fire({
-    			type: "warning",
-    			title: "Bloqueio de Dados",
-    			html: "Seus Dados estão bloqueado até que o(s) CAIXA(S) seja(am) CONFIRMADO(S)!",
-    			showConfirmButton: true,
-    			timer: 15000
-    		});
-    }else{ */
-    	if (window.XMLHttpRequest) {
-    		// code for IE7+, Firefox, Chrome, Opera, Safari
-    		xmlhttp = new XMLHttpRequest();
-    	} else {
-    		// code for IE6, IE5
-    		xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    	}
-    
-    	xmlhttp.onreadystatechange = function() {
-    		if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-    			document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
-    			newDataTable('valetransporte');
-    
-                $('.dataAtual').text(dataAtual);
-    
-    		    $('.DescTituloValeTransp').html(
-    			`<i class='subheader-icon fal fa-chart-area'></i> Vale Transporte - <span class='fw-300'>` + NOEmpresaLogin + `</span>`);
-    			
-    		    return  ajaxGet('api/despesa-loja/empresa.xsjs?idEmpresa=' + IDEmpresaLogin + '&dataPesquisa=' + dataAtualCampo)
-    				.then(retornoTableListValeTranspLoja)
-    				.catch(funcErrorValeTranspLoja);
-    
-    		}
-    	};
-    	xmlhttp.open("GET", "action_listvaletransploja.html", true);
-    	xmlhttp.send();
-    //}
+      $('#dtInicioValeTransporte').val(dataAtualCampo);
+      $('#dtFimValeTransporte').val(dataAtualCampo);
+      $('.dataAtual').text(dataAtual);
+      $('.DescTituloValeTransp').html(`<i class='subheader-icon fal fa-chart-area'></i> Vale Transporte - <span class='fw-300'> ${NOEmpresaLogin}</span>`);
+    } catch(error) {
+      funcError(error);
+    };
+ 
+    try {
+      const respDespesas = await ajaxGet(`api/despesa-loja/empresa.xsjs?idEmpresa=${IDEmpresaLogin}&dataPesquisaInic=${dataAtualCampo}&dataPesquisaFim=${dataAtualCampo}`)
+      retornoTableListValeTranspLoja(respDespesas)
+    } catch(error) {
+      console.log(error)
+      funcError('Erro ao Carregar os Dados da tabela');
+    };
+}
+
+async function pesquisarValeTransporteLoja (){
+  let dataInicio = $('#dtInicioValeTransporte').val();
+  let dataFim = $('#dtFimValeTransporte').val();
+
+  if(!dataInicio || !dataFim){
+    alerta_dados_pesquisa('Favor preencher os filtros de data!'); 
+    return false;
+  }
+
+  try {
+    const respDespesas = await ajaxGet(`api/despesa-loja/empresa.xsjs?idEmpresa=${IDEmpresaLogin}&dataPesquisaInic=${dataInicio}&dataPesquisaFim=${dataFim}`);
+    retornoTableListValeTranspLoja(respDespesas);
+  } catch (error) {
+    funcError(error);
+  };
 }
 
 function retornoTableListValeTranspLoja(valeTranspLoja) {
+	let contadorValeTranspLoja = 0;
+	let TotalValeTranspLoja = 0;
+  let dados = [];
 
-	var contadorValeTranspLoja = 0;
-	var TotalValeTranspLoja = 0;
-
-	for (var i = 0; i < valeTranspLoja.data.length; i++) {
-
-		contadorValeTranspLoja = contadorValeTranspLoja + 1;
-
-		IDCategValeTranspLoja = valeTranspLoja.data[i]['IDCATEGORIARECDESP'];
+	for (let registro of valeTranspLoja.data) {
+		contadorValeTranspLoja += 1;
+		let IDCategValeTranspLoja = registro.IDCATEGORIARECDESP;
 
 		if (IDCategValeTranspLoja == '248') {
-
-			IDDespValeTranspLoja = valeTranspLoja.data[i]['IDDESPESASLOJA'];
-			DTMovValeTranspLoja = valeTranspLoja.data[i]['DTDESPESA'];
-			DescValeTranspLoja = valeTranspLoja.data[i]['DSCATEGORIA'];
-			VrValeTranspLoja = parseFloat(valeTranspLoja.data[i]['VRDESPESA']);
-			PagoAValeTranspLoja = valeTranspLoja.data[i]['NOFUNCVALE'];
-			TxtHistoricoValeTranspLoja = valeTranspLoja.data[i]['DSHISTORIO'];
-    		SituacaoValeTranspAtivoLoja = valeTranspLoja.data[i]['STATIVO'];
-    		SituacaoValeTranspLoja = valeTranspLoja.data[i]['STCANCELADO'];
-		    
-		    if(SituacaoValeTranspLoja=='False' && IDCategValeTranspLoja == '248'){
-		        TotalValeTranspLoja = TotalValeTranspLoja + VrValeTranspLoja;
-		    }
-			
-    	    if(SituacaoValeTranspLoja=='False' && IDCategValeTranspLoja == '248'){
+        let IDDespValeTranspLoja = registro.IDDESPESASLOJA;
+        let DTMovValeTranspLoja = registro.DTDESPESA;
+        let DescValeTranspLoja = registro.DSCATEGORIA;
+        let VrValeTranspLoja = parseFloat(registro.VRDESPESA);
+        let PagoAValeTranspLoja = registro.NOFUNCVALE
+        let TxtHistoricoValeTranspLoja = registro.DSHISTORIO;
+        let SituacaoValeTranspAtivoLoja = registro.STATIVO;
+        let SituacaoValeTranspLoja = registro.STCANCELADO;
+        let tagValeTranspAtivo;
+        let tagValeTranspAtivoBotao;
+          
+        if(SituacaoValeTranspLoja == 'False') TotalValeTranspLoja += VrValeTranspLoja;
+        
+        if(DTMovValeTranspLoja === dataHojeCampo){
+          if(SituacaoValeTranspLoja=='False'){
                 tagValeTranspAtivo='<label style="color: blue;">Ativo</label>';
-                tagValeTranspAtivoBotao='<div class="btn-group btn-group-xs"><button type="button" class="btn btn-danger btn-xs" title="Cancelar Vale Transporte" id="'+IDDespValeTranspLoja+'" onclick="status_ValeTransp_Loja(this.id,\'True\')" >Cancelar</button>'+
-                '<button type="button" class="btn btn-success btn-xs" title="Imprimir Vale Transporte" id="'+IDDespValeTranspLoja+'" onclick="modal_Imprimir_Vale_Transporte(this.id)" >Imprimir</button></div>';
-            }else{
-                tagValeTranspAtivo='<label style="color: red;">Cancelado</label>';
-                tagValeTranspAtivoBotao='<div class="btn-group btn-group-xs"><button type="button" class="btn btn-info btn-xs" title="Ativar Vale Transporte" id="'+IDDespValeTranspLoja+'" onclick="status_ValeTransp_Loja(this.id,\'False\')" >Ativar</button></div>';
-            }
+                tagValeTranspAtivoBotao = `<div class="btn-group btn-group-xs"><button type="button" class="btn btn-danger btn-xs" title="Cancelar Vale Transporte" 
+                id="${IDDespValeTranspLoja}" onclick="status_ValeTransp_Loja(this.id,'True')">Cancelar</button>
+                <button type="button" class="btn btn-success btn-xs" title="Imprimir Vale Transporte" id="${IDDespValeTranspLoja}" 
+                onclick="modal_Imprimir_Vale_Transporte(this.id)">Imprimir</button></div>`;
+          } else{
+              tagValeTranspAtivo='<label style="color: red;">Cancelado</label>';
+              tagValeTranspAtivoBotao=`<div class="btn-group btn-group-xs"><button type="button" class="btn btn-info btn-xs" title="Ativar Vale Transporte" 
+              id="${IDDespValeTranspLoja}" onclick="status_ValeTransp_Loja(this.id,'False')">Ativar</button></div>`;
+          }
+        }else{
+          if(SituacaoValeTranspLoja=='False'){
+            tagValeTranspAtivo='<label style="color: blue;">Ativo</label>';
+            tagValeTranspAtivoBotao=`<div class="btn-group btn-group-xs"><button type="button" class="btn btn-success btn-xs" title="Imprimir Vale Transporte" 
+            id="${IDDespValeTranspLoja}" onclick="modal_Imprimir_Vale_Transporte(this.id)" >Imprimir</button></div>`;
+          }else{
+            tagValeTranspAtivo='<label style="color: red;">Cancelado</label>';
+            tagValeTranspAtivoBotao='<div class="btn-group btn-group-xs"></div>';
+          }
+      }
 
-			var tableValeTranspLoja = $('#dt-basic-valetransporte').DataTable();
-
-			tableValeTranspLoja.row.add([
-                    `<label style="color: blue;">` + contadorValeTranspLoja + `</label>`,
-                    `<label style="color: blue;">` + DTMovValeTranspLoja + `</label>`,
-                    `<label style="color: blue;">` + DescValeTranspLoja + `</label>`,
-                    `<label style="color: blue;">` + mascaraValor(VrValeTranspLoja.toFixed(2)) + `</label>`,
-                    `<label style="color: blue;">` + PagoAValeTranspLoja + `</label>`,
-                    `<label style="color: blue;">` + TxtHistoricoValeTranspLoja + `</label>`,
-                    tagValeTranspAtivo,
-                    tagValeTranspAtivoBotao,
-            ]).draw(false);
-		}
-
-	}
-
-	$('.totalValeTranspLoja').html(
-		`<tr>
-            <th colspan="3" style="text-align: center;">Total Lançamentos</th>
-            <th style="text-align: right;">${mascaraValor(TotalValeTranspLoja.toFixed(2))}</th>
-            <th colspan="4"></th>
-        </tr>`
-	);
-
-}
-			
-function funcErrorValeTranspLoja(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do retornoTableListValeTranspLoja',
-		showConfirmButton: false,
-		timer: 15000
-	});
+      dados.push([
+        contadorValeTranspLoja,
+        DTMovValeTranspLoja,
+        DescValeTranspLoja,
+        VrValeTranspLoja,
+        PagoAValeTranspLoja,
+        TxtHistoricoValeTranspLoja,
+        tagValeTranspAtivo,
+        tagValeTranspAtivoBotao
+      ]);
+    }
+  } 
+  
+  montarDataTableListaTransp(dados, TotalValeTranspLoja);
 }
 
-function modal_Cad_Vale_Transporte() {
+function montarDataTableListaTransp(data, TotalValeTranspLoja) {
+  if ($.fn.DataTable.isDataTable('#dt-basic-valetransporte')) $('#dt-basic-valetransporte').DataTable().destroy();
 
-	$.get('action_cadvaletranspmodal.html', function(res) {
+  $('#dt-basic-valetransporte').DataTable({
+    data: data,
+    deferRender: true,
+    columnDefs: [
+        { width: 25, targets: 0 },
+        { width: 200, targets: 1 },
+        { width: 200, targets: 2 },
+        { width: 200, targets: 3 },
+        { width: 100, targets: 4 }
+    ],
+    responsive: true,
+    language: {
+      emptyTable: "Nenhum registro encontrado",
+      zeroRecords: "Nenhum resultado para a pesquisa"
+    },
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible:not(.no-export)'
+        }
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Generate Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible:not(.no-export)'
+        }
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm',
+        exportOptions: {
+          columns: ':visible:not(.no-export)'
+        }
+      }
+    ]
+  });
 
-		$('#resulmodalvaletransp').html(res);
+  if(data) {
+    $('#totalValeTranspLoja').html(mascaraValor(TotalValeTranspLoja.toFixed(2)));
+  }
+};
+
+async function modal_Cad_Vale_Transporte() {
+
+  try {
+    const respHtml = await $.get('action_cadvaletranspmodal.html');
+
+    $('#resulmodalvaletransp').html(respHtml);
 		$("#cadValeTransp").modal('show');
 		$('#cadValeTransp').on('shown.bs.modal', function() {});
-
-		$('#IDEmpresaDespesaValeTransp').val(IDEmpresaLogin);
+    $('#IDEmpresaDespesaValeTransp').val(IDEmpresaLogin);
 		$('#nomeempValeTransp').val(NOEmpresaLogin);
 		$('#IDFuncDespesaValeTransp').val(IDFuncionarioLogin);
-
-		$("#IDFuncionario").select2({
+	  $('#DTDespesaValeTransp').val(dataAtualCampo);
+		$('#HRDespesaValeTransp').val(horaAtual);
+    $("#IDFuncionario").select2({
 			dropdownParent: $("#cadValeTransp")
 		});
+  } catch (error) {
+    funcError(error);
+  }
 
-		return ajaxGet('api/funcionario/todos.xsjs?empresa=' + IDEmpresaLogin)
-			.then(retornoListaFuncionario)
-			.catch(funcErrorFuncionario);
-	})
-
+  try {
+    const resp = await ajaxGet(`api/funcionario/todos.xsjs?empresa=${IDEmpresaLogin}`)
+    retornoListaFuncionario(resp)
+  } catch (error) {
+    funcError('Erro ao Carregar os Dados do retornoListaFuncionario')
+  };
 }
 
-function cadastrar_vale_transporte() {
-
-	var idempresadespvaletransp = $("#IDEmpresaDespesaValeTransp").val();
-	var idfuncdespvaletransp = $("#IDFuncDespesaValeTransp").val();
-	var dtlancdespvaletransp = $("#DTDespesaValeTransp").val();
-	var hrlancdespvaletransp = $("#HRDespesaValeTransp").val();
-	var idcategdespvaletransp = $("#IDCategoriaReceitaDespesaValeTransp").val();
-	var historiodespvaletransp = $("#DsHistorioValeTransp").val();
-	var idfuncionariovaletransp = $("#IDFuncionario").val();
-	var pagoAdespvaletransp = '';
-	var tpnotadespvaletransp = '';
-	var nunotadespvaletransp = '';
-	var vrdespesavaletransp = $("#VrDespesaValeTransp").val().replace(".", "").replace(",", ".");
-	var stativodespvaletransp = $("#STAtivoDespesaValeTransp").val();
-	var stcanceladespvaletransp = $("#STCancelaDespesaValeTransp").val();
-
-	var DTValeTransLoja = dtlancdespvaletransp+' '+hrlancdespvaletransp;
+async function cadastrar_vale_transporte() {
+  let idempresadespvaletransp = $("#IDEmpresaDespesaValeTransp").val();
+  let idfuncdespvaletransp = $("#IDFuncDespesaValeTransp").val();
+  let dtlancdespvaletransp = $("#DTDespesaValeTransp").val();
+  let hrlancdespvaletransp = $("#HRDespesaValeTransp").val();
+  let idcategdespvaletransp = $("#IDCategoriaReceitaDespesaValeTransp").val();
+  let historiodespvaletransp = $("#DsHistorioValeTransp").val();
+  let idfuncionariovaletransp = $("#IDFuncionario").val();
+  let pagoAdespvaletransp = '';
+  let tpnotadespvaletransp = '';
+  let nunotadespvaletransp = '';
+  let vrdespesavaletransp = $("#VrDespesaValeTransp").val().replace(".", "").replace(",", ".");
+  let stativodespvaletransp = $("#STAtivoDespesaValeTransp").val();
+  let stcanceladespvaletransp = $("#STCancelaDespesaValeTransp").val();
+  let DTValeTransLoja = `${dtlancdespvaletransp} ${hrlancdespvaletransp}`;
     
-    if(dtlancdespvaletransp==''){
-    	$("#resultadodespesa").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe a Data do Vale Transporte.</div>"
-		);
-		$("#DTDespesaValeTransp").focus();
-		return false;
-    }
+  if(!dtlancdespvaletransp || !hrlancdespvaletransp){ 
+    alerta_dados_pesquisa('Data ou hora inválida.');
+    return false;
+  }
+  
+  if (!vrdespesavaletransp || vrdespesavaletransp == 0) {
+    alerta_dados_pesquisa('Informe o Valor do Vale Transporte');
+    $("#VrDespesaValeTransp").focus();
+    return false;
+  }
 
-    if(hrlancdespvaletransp==''){
-    	$("#resultadodespesa").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe a Hora do Vale Transporte.</div>"
-		);
-		$("#HRDespesaValeTransp").focus();
-		return false;
-    }
-    
-	if ($("#VrDespesaValeTransp").val() == 0 || $("#VrDespesaValeTransp").val() == "") {
+  let dados = [{
+    "IDEMPRESA": parseInt(idempresadespvaletransp),
+    "IDUSR": parseInt(idfuncdespvaletransp),
+    "DTDESPESA": DTValeTransLoja,
+    "IDCATEGORIARECEITADESPESA": parseInt(idcategdespvaletransp),
+    "DSHISTORIO": historiodespvaletransp,
+    "DSPAGOA": pagoAdespvaletransp,
+    "IDFUNCIONARIO": parseInt(idfuncionariovaletransp),
+    "TPNOTA": tpnotadespvaletransp,
+    "NUNOTAFISCAL": nunotadespvaletransp,
+    "VRDESPESA": parseFloat(vrdespesavaletransp),
+    "STATIVO": stativodespvaletransp,
+    "STCANCELADO": stcanceladespvaletransp 
+  }];
 
-		$("#resultadodespesa").html(
-			"<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">" +
-			"<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\">" +
-			"<span aria-hidden=\"true\"><i class=\"fal fa-times\"></i></span>" +
-			"</button>" +
-			"<strong>Atenção!</strong> Informe o Valor do Vale Transporte</div>"
-		);
+  try {
+    await ajaxPost(`api/despesa-loja/todos.xsjs`, dados);
 
-		$("#VrDespesaValeTransp").focus();
-		return false;
-	}
-
-	var dados = [{
-
-		"IDEMPRESA": parseInt(idempresadespvaletransp),
-		"IDUSR": parseInt(idfuncdespvaletransp),
-		"DTDESPESA": DTValeTransLoja,
-		"IDCATEGORIARECEITADESPESA": parseInt(idcategdespvaletransp),
-		"DSHISTORIO": historiodespvaletransp,
-		"DSPAGOA": pagoAdespvaletransp,
-		"IDFUNCIONARIO": parseInt(idfuncionariovaletransp),
-		"TPNOTA": tpnotadespvaletransp,
-		"NUNOTAFISCAL": nunotadespvaletransp,
-		"VRDESPESA": parseFloat(vrdespesavaletransp),
-		"STATIVO": stativodespvaletransp,
-		"STCANCELADO": stcanceladespvaletransp 
-
-	}];
-
-	console.table(dados);
-
-	ajaxPost("api/despesa-loja/todos.xsjs", dados)
-		.then(funcSucessDespesaValeTransp)
-		.catch(funcErrorDespesaValeTransp);
-
+    alerta_cadastrado_sucesso();
+    $("#cadValeTransp").modal('hide');
+    listarValeTransporteLoja();
+  } catch (error) {
+    funcError('Erro ao cadastrar o vale transporte!');
+  }
 }
 
-function funcSucessDespesaValeTransp(resposta) {
+async function status_ValeTransp_Loja(id,status) {
+  let dados = {
+    "IDDESPESASLOJA": parseInt(id),
+    "STCANCELADO":status
+  };
 
-	alerta_cadastrado_sucesso();
-	$("#cadValeTransp").modal('hide');
-	ListaValeTranspLoja();
+  try {
+    await ajaxPut(`api/despesa-loja/atualizacao-status.xsjs`, dados);
+    alerta_cancel_ativa_despesa();
+    listarValeTransporteLoja();
+  } catch (error) {
+    funcError ('Erro ao Atualizar o status do vale transporte.');
+  }
 }
 
-function funcErrorDespesaValeTransp(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do funcSucessDespesaValeTransp',
-		showConfirmButton: false,
-		timer: 15000
-	});
-}
+async function modal_Imprimir_Vale_Transporte(id) {
 
-function status_ValeTransp_Loja(id,status) {
-
-    var dados = {
-      "IDDESPESASLOJA": parseInt(id),
-      "STCANCELADO":status
-    };
-
-  	ajaxPut("api/despesa-loja/atualizacao-status.xsjs", dados)
-		.then(funcSucessUpdateDespesaValeTransp)
-		.catch(funcErrorUpdateDespesaValeTransp);
-
-}
-
-function funcSucessUpdateDespesaValeTransp(resposta) {
-
-	alerta_cancel_ativa_despesa();
-	ListaValeTranspLoja();
-
-}
-
-function funcErrorUpdateDespesaValeTransp(data) {
-	Swal.fire({
-		type: "error",
-		title: 'Erro ao Carregar os Dados do funcSucessUpdateDespesaValeTransp',
-		showConfirmButton: false,
-		timer: 15000
-	});
-}
-
-function modal_Imprimir_Vale_Transporte(id) {
-
-	$.get('action_imprimirmodal.html', function(res) {
-
-		$('#resulmodalimprimir').html(res);
+  try {
+    const respHtml = await $.get(`action_imprimirmodal.html`);
+    $('#resulmodalimprimir').html(respHtml);
 		$("#imprimiDados").modal('show');
 		$('#imprimiDados').on('shown.bs.modal', function() {});
+  } catch (error) {
+    funcError(error);
+  };
 
-	    return	ajaxGet('api/despesa-loja/todos.xsjs?id=' + id)
-			.then(retornoTableImprimeValeLoja)
-			.catch(funcErrorImprimeValeLoja);
-	})
-
+  try {
+    const resp = await ajaxGet(`api/despesa-loja/todos.xsjs?id=${id}`);
+    retornoTableImprimeValeLoja(resp);
+  } catch (error) {
+    funcError(error);
+  };
 }
 
 function retornoTableImprimeValeLoja(imprimeValeTranspLoja) {
+  let VrValeTranspLoja = parseFloat(imprimeValeTranspLoja.data[0]['VRDESPESA']);
+  let TxtHistValeTranspLoja = imprimeValeTranspLoja.data[0]['DSHISTORICO'];
+  let RazaoEmpresa = imprimeValeTranspLoja.data[0]['NORAZAOSOCIAL'];
+  let NoFantasiaEmpresa = imprimeValeTranspLoja.data[0]['NOFANTASIA'];
+  let CNPJEmpresa = imprimeValeTranspLoja.data[0]['NUCNPJ'];
+  let NoFuncionario = imprimeValeTranspLoja.data[0]['NOFUNCIONARIO'];
+  let CPFFuncionario = imprimeValeTranspLoja.data[0]['NUCPF'];
+  let NoGerente = imprimeValeTranspLoja.data[0]['NOMEGERENTE'];
+  
+  $('.TituloModalImprimir').html(
+    `Impressão de Recibos <small class="m-0 text-muted">Imprimir Vale Transporte</small>`
+  );
 
-			IDDespValeTranspLoja = imprimeValeTranspLoja.data[0]['IDDESPESASLOJA'];
-			IDEmpresaValeTranspLoja = imprimeValeTranspLoja.data[0]['IDEMPRESA'];
-			IDFuncionarioValeTranspLoja = imprimeValeTranspLoja.data[0]['IDFUNCIONARIO'];
-			DTMovValeTranspLoja = imprimeValeTranspLoja.data[0]['DTDESPESA'];
-			VrValeTranspLoja = parseFloat(imprimeValeTranspLoja.data[0]['VRDESPESA']);
-			TxtHistValeTranspLoja = imprimeValeTranspLoja.data[0]['DSHISTORICO'];
-		    RazaoEmpresa = imprimeValeTranspLoja.data[0]['NORAZAOSOCIAL'];
-			NoFantasiaEmpresa = imprimeValeTranspLoja.data[0]['NOFANTASIA'];
-			CNPJEmpresa = imprimeValeTranspLoja.data[0]['NUCNPJ'];
-			NoFuncionario = imprimeValeTranspLoja.data[0]['NOFUNCIONARIO'];
-			CPFFuncionario = imprimeValeTranspLoja.data[0]['NUCPF'];
-			NoGerente = imprimeValeTranspLoja.data[0]['NOMEGERENTE'];
-			
-        	$('.TituloModalImprimir').html(
-        		`Impressão de Recibos <small class="m-0 text-muted">Imprimir Vale Transporte</small>`
-        	);
+  $('.TituloRecibo').html(
+    `<h3 style="text-align: center;">VALE TRANSPORTE</h3>`
+  );
 
-        	$('.TituloRecibo').html(
-        		`<h3 style="text-align: center;">VALE TRANSPORTE</h3>`
-        	);
-
-        	$('.CorpoRecibo1').html(
-        		`<div class="col-sm-12" style="text-align: justify;">O(a) ` + NoFuncionario + `, CPF: ` + CPFFuncionario + `. Declara a empresa ` + RazaoEmpresa + `, CNPJ: ` + CNPJEmpresa + `
-        		- ( ` + NoFantasiaEmpresa + `) - ter recebido a importância de R$ ` + mascaraValor(VrValeTranspLoja.toFixed(2)) + `(), referente ao VALE TRANSPORTE, pago(s) em espécie.</div>
-                `
-        	);
-        	
-        	$('.CorpoRecibo2').html(
-        		`<div class="col-sm-12" style="text-align: justify;">Histórico: ` + TxtHistValeTranspLoja + ` </div>`
-        	);
-        	
-        	$('.CorpoRecibo3').html(
-        		`<div class="col-sm-12" style="text-align: justify;">Conforme Código Civil Lei nº 10.406, Art. 219, o recebimento dos créditos confirmam-se verdadeiras em relação ao Signatário.</div>`
-        	);
-        	
-        	$('.CorpoRecibo4').html(
-        		`<div class="col-sm-12">Brasília, ` + dataAtual + `.</div>`
-        	);
-        	
-        	$('.CorpoRecibo5').html(
-        		`<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
-    			    <div class="col-sm-12" style="text-align: center;">` + NoFuncionario + ` - CPF: ` + CPFFuncionario + `</div>`
-        	);
-        	
-        	$('.CorpoRecibo6').html(
-        		`<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
-    			    <div class="col-sm-12" style="text-align: center;">` + NoFantasiaEmpresa + ` - ` + NoGerente + `</div>`
-        	);
-        	
-
-        	
-        	
+  $('.CorpoRecibo1').html(
+    `<div class="col-sm-12" style="text-align: justify;">O(a) ${NoFuncionario}, CPF: ${CPFFuncionario}. 
+    Declara a empresa ${RazaoEmpresa}, CNPJ: ${CNPJEmpresa} - (${NoFantasiaEmpresa}) - 
+    ter recebido a importância de R$${mascaraValor(VrValeTranspLoja.toFixed(2))}, referente ao VALE TRANSPORTE, pago(s) em espécie.</div>
+    `
+  );
+  
+  $('.CorpoRecibo2').html(
+    `<div class="col-sm-12" style="text-align: justify;">Histórico: ${TxtHistValeTranspLoja}</div>`
+  );
+  
+  $('.CorpoRecibo3').html(
+    `<div class="col-sm-12" style="text-align: justify;">Conforme Código Civil Lei nº 10.406, Art. 219, o recebimento dos créditos confirmam-se verdadeiras em relação ao Signatário.</div>`
+  );
+  
+  $('.CorpoRecibo4').html(
+    `<div class="col-sm-12">Brasília, ${dataAtual}.</div>`
+  );
+  
+  $('.CorpoRecibo5').html(
+    `<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
+      <div class="col-sm-12" style="text-align: center;">${NoFuncionario} - CPF: ${CPFFuncionario}</div>`
+  );
+  
+  $('.CorpoRecibo6').html(
+    `<div class="col-sm-12" style="text-align: center;">--------------------------------------------------------------------------------------------------------------------</div>
+      <div class="col-sm-12" style="text-align: center;"> ${NoFantasiaEmpresa} - ${NoGerente}</div>`
+  );	
 }
 
 //////////////////Quebra de Caixa da Loja////////////////////////////
@@ -5587,11 +5645,11 @@ function alerta_cadastrado_sucesso() {
 	});
 }
 
-function alerta_dados_pesquisa() {
+function alerta_dados_pesquisa(data = 'Informe o período da Pesquisa!') {
 	Swal.fire({
 		type: "warning",
-		title: "Informe o período da Pesquisa!",
-		showConfirmButton: false,
+		title: data,
+		showConfirmButton: true,
 		timer: 2500
 	});
 }
@@ -5726,10 +5784,10 @@ function retornoTableImprimeAjusteCaixa(imprimeAjusteCaixa) {
 	
 }
 
-function funcError(data) {
+function funcError(data = 'Erro ao Carregar os Dados') {
 	Swal.fire({
 		type: "error",
-		title: 'Erro ao Carregar os Dados',
+		title: data,
 		showConfirmButton: false,
 		timer: 15000
 	});
@@ -11104,7 +11162,7 @@ async function finalizarot(id) {
 // Autor: Hendryw Deyvison
 // E-mail: hendryw.deyvison@gmail.com
 // Data: 15/07/2024
-// Data Atualizacao: 29/09/2024
+// Data Atualizacao: 24/08/2026
 
 //---Variaveis Globais das funçoes da rotina---//
 var id = 0;
@@ -11123,459 +11181,459 @@ var vendaDetalheVoucher = [];
 //----------INICIO Funcoes Globais da Rotina----------//
 
 function mascaraMulti(dados, funcao) {
-    v_obj = dados
-    v_fun = funcao
-    setTimeout('execmascara()', 1)
+  v_obj = dados
+  v_fun = funcao
+  setTimeout('execmascara()', 1)
 }
 
 function mascaraMultiAutomatica(dados) {
-    v_obj = dados;
-    setTimeout('execmascaraAutomatica()', 1)
+  v_obj = dados;
+  setTimeout('execmascaraAutomatica()', 1)
 }
 
 function execmascaraAutomatica() {
-    v_obj.value = v_obj.value.length > 15 ? Cnpj(v_obj.value) : Cpf(v_obj.value)
+  v_obj.value = v_obj.value.length > 15 ? Cnpj(v_obj.value) : Cpf(v_obj.value)
 }
 
 function execmascara() {
-    v_obj.value = v_fun(v_obj.value)
+  v_obj.value = v_fun(v_obj.value)
 }
 
 function onlyNum(valor) {
-    valor = String(valor).replace(/\D/g, "")
-    return valor;
+  valor = String(valor).replace(/\D/g, "")
+  return valor;
 }
 
 // Mascara do CPF
 function Cpf(valor) {
-    valor = String(valor).replace(/\D/g, "");
+  valor = String(valor).replace(/\D/g, "");
 
-    if (valor) {
-        valor = valor.replace(/(\d{3})(\d)/, "$1.$2")
+  if (valor) {
+    valor = valor.replace(/(\d{3})(\d)/, "$1.$2")
 
-        valor = valor.replace(/(\d{3})(\d)/, "$1.$2")
+    valor = valor.replace(/(\d{3})(\d)/, "$1.$2")
 
-        valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2")
-    }
+    valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+  }
 
-    return valor
+  return valor
 }
 
 // Mascara do CNPJ
 function Cnpj(valor) {
-    valor = String(valor).replace(/\D/g, "")
+  valor = String(valor).replace(/\D/g, "")
 
-    if(valor){
-        valor = valor.replace(/^(\d{2})(\d)/, "$1.$2")
+  if (valor) {
+    valor = valor.replace(/^(\d{2})(\d)/, "$1.$2")
 
-        valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
 
-        valor = valor.replace(/\.(\d{3})(\d)/, ".$1/$2")
+    valor = valor.replace(/\.(\d{3})(\d)/, ".$1/$2")
 
-        valor = valor.replace(/(\d{4})(\d)/, "$1-$2")
-    }
+    valor = valor.replace(/(\d{4})(\d)/, "$1-$2")
+  }
 
-    return valor
+  return valor
 }
 
 // Mascara do TELEFONE
 function Fone(valor) {
 
-    //Remove tudo o que não é dígito
-    valor = String(valor).replace(/\D/g, "")
+  //Remove tudo o que não é dígito
+  valor = String(valor).replace(/\D/g, "")
 
-    if (valor) {
-        valor = valor.replace(/^(\d{0})(\d)/, "$1($2")
+  if (valor) {
+    valor = valor.replace(/^(\d{0})(\d)/, "$1($2")
 
-        valor = valor.replace(/(\d{2})(\d)/, "$1) $2")
+    valor = valor.replace(/(\d{2})(\d)/, "$1) $2")
 
-        valor = valor.replace(/(\d{3})(\d)/, "$1$2-")
+    valor = valor.replace(/(\d{3})(\d)/, "$1$2-")
 
-        if (valor.length > 14) {
-            valor = valor.replace(/\D/g, '')
-            valor = valor.replace(/(\d{2})(\d)/, "($1) $2")
-            valor = valor.replace(/(\d)(\d{8})$/, "$1 $2")
-            valor = valor.replace(/(\d)(\d{4})$/, "$1-$2")
+    if (valor.length > 14) {
+      valor = valor.replace(/\D/g, '')
+      valor = valor.replace(/(\d{2})(\d)/, "($1) $2")
+      valor = valor.replace(/(\d)(\d{8})$/, "$1 $2")
+      valor = valor.replace(/(\d)(\d{4})$/, "$1-$2")
 
-        }
     }
+  }
 
-    return valor
+  return valor
 
 
 }
 
 // Mascara do CEP
 function Cep(valor) {
-    valor = String(valor).replace(/\D/g, "");
+  valor = String(valor).replace(/\D/g, "");
 
-    if (valor) {
-        valor = valor.replace(/^(\d{2})(\d)/, "$1.$2")
+  if (valor) {
+    valor = valor.replace(/^(\d{2})(\d)/, "$1.$2")
 
-        valor = valor.replace(/(\d{3})(\d)/, "$1-$2")
-    }
+    valor = valor.replace(/(\d{3})(\d)/, "$1-$2")
+  }
 
-    return valor
+  return valor
 }
 
 //	função que mascara o CPF
 function maskCPF(CPF) {
-    return CPF.substring(0, 3) + "." + CPF.substring(3, 6) + "." + CPF.substring(6, 9) + "-" + CPF.substring(9, 11);
+  return CPF.substring(0, 3) + "." + CPF.substring(3, 6) + "." + CPF.substring(6, 9) + "-" + CPF.substring(9, 11);
 }
 
 //	função que mascara o CNPJ
 function maskCNPJ(CNPJ) {
-    return CNPJ.substring(0, 2) + "." + CNPJ.substring(2, 5) + "." + CNPJ.substring(5, 8) + "/" + CNPJ.substring(8, 12) + "-" + CNPJ.substring(12, 14);
+  return CNPJ.substring(0, 2) + "." + CNPJ.substring(2, 5) + "." + CNPJ.substring(5, 8) + "/" + CNPJ.substring(8, 12) + "-" + CNPJ.substring(12, 14);
 }
 
 //	função que mascara o TELEFONE
 function maskFone(Fone) {
-    //Remove tudo o que não é dígito
-    let valor = Fone.replace(/\D/g, "")
-    
-    if(valor){
-        valor = valor.replace(/^(\d{0})(\d)/, "$1($2")
-        
-        valor = valor.replace(/(\d{2})(\d)/, "$1) $2")
-            
-        valor = valor.replace(/(\d{3})(\d)/, "$1$2-")
-        
-        if (valor.length > 14) {
-            valor = valor.replace(/\D/g, '')
-            valor = valor.replace(/(\d{2})(\d)/, "($1) $2")
-            valor = valor.replace(/(\d)(\d{8})$/, "$1 $2")
-            valor = valor.replace(/(\d)(\d{4})$/, "$1-$2")
-            
-        }
-    }
+  //Remove tudo o que não é dígito
+  let valor = Fone.replace(/\D/g, "")
 
-    return valor
+  if (valor) {
+    valor = valor.replace(/^(\d{0})(\d)/, "$1($2")
+
+    valor = valor.replace(/(\d{2})(\d)/, "$1) $2")
+
+    valor = valor.replace(/(\d{3})(\d)/, "$1$2-")
+
+    if (valor.length > 14) {
+      valor = valor.replace(/\D/g, '')
+      valor = valor.replace(/(\d{2})(\d)/, "($1) $2")
+      valor = valor.replace(/(\d)(\d{8})$/, "$1 $2")
+      valor = valor.replace(/(\d)(\d{4})$/, "$1-$2")
+
+    }
+  }
+
+  return valor
 }
 
 //	função que mascara o CEP
 function maskCEP(CEP) {
-    return CEP.substring(0, 2) + "." + CEP.substring(2, 5) + "-" + CEP.substring(5, 8);
+  return CEP.substring(0, 2) + "." + CEP.substring(2, 5) + "-" + CEP.substring(5, 8);
 }
 
 //	função que mascara o VALOR
 function maskValor(valor) {
-    return new Intl.NumberFormat('br-BR', { style: 'currency', currency: 'BRL' }).format(valor)
+  return new Intl.NumberFormat('br-BR', { style: 'currency', currency: 'BRL' }).format(valor)
 }
 
 //funcao OnlyNumbers
 function onlyNumberKey(event) {
-    var key = window.event ? event.keyCode : event.which;
+  var key = window.event ? event.keyCode : event.which;
 
-    if (event.keyCode === 8 || event.keyCode === 46) {
-        return true;
-    } else if (key < 48 || key > 57) {
-        return false;
-    } else {
-        return true;
-    }
+  if (event.keyCode === 8 || event.keyCode === 46) {
+    return true;
+  } else if (key < 48 || key > 57) {
+    return false;
+  } else {
+    return true;
+  }
 
 }
 
 function ValidaCpf(cpf) {
-    cpf = cpf.replace(/[^\d]+/g, '');
-    if (cpf == '') return false;
-    // Elimina CPFs invalidos conhecidos	
-    if (cpf.length != 11 ||
-        cpf == "00000000000" ||
-        cpf == "11111111111" ||
-        cpf == "22222222222" ||
-        cpf == "33333333333" ||
-        cpf == "44444444444" ||
-        cpf == "55555555555" ||
-        cpf == "66666666666" ||
-        cpf == "77777777777" ||
-        cpf == "88888888888" ||
-        cpf == "99999999999") {
-        Swal.fire({
-            type: 'error',
-            title: 'CPF Inválido, verifique o CPF digitado e tente novamente',
-            timer: 15000
-        })
-        $("#CPFCNPJ").val('');
-        $("#CPFCNPJ").focus();
-    }
-    // Valida 1o digito	
-    add = 0;
-    for (i = 0; i < 9; i++)
-        add += parseInt(cpf.charAt(i)) * (10 - i);
-    rev = 11 - (add % 11);
-    if (rev == 10 || rev == 11)
-        rev = 0;
-    if (rev != parseInt(cpf.charAt(9))) {
-        Swal.fire({
-            type: 'error',
-            title: 'CPF Inválido, verifique o CPF digitado e tente novamente',
-            timer: 15000
-        })
-        $("#CPFCNPJ").val('');
-        $("#CPFCNPJ").focus();
-    }
-    // Valida 2o digito	
-    add = 0;
-    for (i = 0; i < 10; i++)
-        add += parseInt(cpf.charAt(i)) * (11 - i);
-    rev = 11 - (add % 11);
-    if (rev == 10 || rev == 11)
-        rev = 0;
-    if (rev != parseInt(cpf.charAt(10))) {
-        Swal.fire({
-            type: 'error',
-            title: 'CPF Inválido, verifique o CPF digitado e tente novamente',
-            timer: 15000
-        })
-        $("#CPFCNPJ").val('');
-        $("#CPFCNPJ").focus();
-    }
-    return true;
+  cpf = cpf.replace(/[^\d]+/g, '');
+  if (cpf == '') return false;
+  // Elimina CPFs invalidos conhecidos	
+  if (cpf.length != 11 ||
+    cpf == "00000000000" ||
+    cpf == "11111111111" ||
+    cpf == "22222222222" ||
+    cpf == "33333333333" ||
+    cpf == "44444444444" ||
+    cpf == "55555555555" ||
+    cpf == "66666666666" ||
+    cpf == "77777777777" ||
+    cpf == "88888888888" ||
+    cpf == "99999999999") {
+    Swal.fire({
+      type: 'error',
+      title: 'CPF Inválido, verifique o CPF digitado e tente novamente',
+      timer: 15000
+    })
+    $("#CPFCNPJ").val('');
+    $("#CPFCNPJ").focus();
+  }
+  // Valida 1o digito	
+  add = 0;
+  for (i = 0; i < 9; i++)
+    add += parseInt(cpf.charAt(i)) * (10 - i);
+  rev = 11 - (add % 11);
+  if (rev == 10 || rev == 11)
+    rev = 0;
+  if (rev != parseInt(cpf.charAt(9))) {
+    Swal.fire({
+      type: 'error',
+      title: 'CPF Inválido, verifique o CPF digitado e tente novamente',
+      timer: 15000
+    })
+    $("#CPFCNPJ").val('');
+    $("#CPFCNPJ").focus();
+  }
+  // Valida 2o digito	
+  add = 0;
+  for (i = 0; i < 10; i++)
+    add += parseInt(cpf.charAt(i)) * (11 - i);
+  rev = 11 - (add % 11);
+  if (rev == 10 || rev == 11)
+    rev = 0;
+  if (rev != parseInt(cpf.charAt(10))) {
+    Swal.fire({
+      type: 'error',
+      title: 'CPF Inválido, verifique o CPF digitado e tente novamente',
+      timer: 15000
+    })
+    $("#CPFCNPJ").val('');
+    $("#CPFCNPJ").focus();
+  }
+  return true;
 }
 
 async function ValidaCNPJ(cnpj) {
-    let stCnpj = true;
-    cnpj = cnpj.replace(/[^\d]+/g, '');
+  let stCnpj = true;
+  cnpj = cnpj.replace(/[^\d]+/g, '');
 
-    if (cnpj == '') stCnpj = false;
+  if (cnpj == '') stCnpj = false;
 
-    if (cnpj.length != 14)
-        stCnpj = false;
+  if (cnpj.length != 14)
+    stCnpj = false;
 
-    // Elimina CNPJs invalidos conhecidos
-    if (cnpj == "00000000000000" ||
-        cnpj == "11111111111111" ||
-        cnpj == "22222222222222" ||
-        cnpj == "33333333333333" ||
-        cnpj == "44444444444444" ||
-        cnpj == "55555555555555" ||
-        cnpj == "66666666666666" ||
-        cnpj == "77777777777777" ||
-        cnpj == "88888888888888" ||
-        cnpj == "99999999999999") {
-        stCnpj = false;
-    }
-    // Valida DVs
-    tamanho = cnpj.length - 2
-    numeros = cnpj.substring(0, tamanho);
-    digitos = cnpj.substring(tamanho);
-    soma = 0;
-    pos = tamanho - 7;
-    for (i = tamanho; i >= 1; i--) {
-        soma += numeros.charAt(tamanho - i) * pos--;
-        if (pos < 2)
-            pos = 9;
-    }
-    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
-    if (resultado != digitos.charAt(0)) {
-        stCnpj = false;
-    }
-    tamanho = tamanho + 1;
-    numeros = cnpj.substring(0, tamanho);
-    soma = 0;
-    pos = tamanho - 7;
-    for (i = tamanho; i >= 1; i--) {
-        soma += numeros.charAt(tamanho - i) * pos--;
-        if (pos < 2)
-            pos = 9;
-    }
-    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
-    if (resultado != digitos.charAt(1)) {
-        stCnpj = false;
-    }
+  // Elimina CNPJs invalidos conhecidos
+  if (cnpj == "00000000000000" ||
+    cnpj == "11111111111111" ||
+    cnpj == "22222222222222" ||
+    cnpj == "33333333333333" ||
+    cnpj == "44444444444444" ||
+    cnpj == "55555555555555" ||
+    cnpj == "66666666666666" ||
+    cnpj == "77777777777777" ||
+    cnpj == "88888888888888" ||
+    cnpj == "99999999999999") {
+    stCnpj = false;
+  }
+  // Valida DVs
+  tamanho = cnpj.length - 2
+  numeros = cnpj.substring(0, tamanho);
+  digitos = cnpj.substring(tamanho);
+  soma = 0;
+  pos = tamanho - 7;
+  for (i = tamanho; i >= 1; i--) {
+    soma += numeros.charAt(tamanho - i) * pos--;
+    if (pos < 2)
+      pos = 9;
+  }
+  resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  if (resultado != digitos.charAt(0)) {
+    stCnpj = false;
+  }
+  tamanho = tamanho + 1;
+  numeros = cnpj.substring(0, tamanho);
+  soma = 0;
+  pos = tamanho - 7;
+  for (i = tamanho; i >= 1; i--) {
+    soma += numeros.charAt(tamanho - i) * pos--;
+    if (pos < 2)
+      pos = 9;
+  }
+  resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  if (resultado != digitos.charAt(1)) {
+    stCnpj = false;
+  }
 
-    if(!stCnpj){
-        return Swal.fire({
-            type: 'error',
-            title: 'CNPJ Inválido, verifique o CNPJ digitado e tente novamente',
-            timer: 15000
-        }).then(()=>{
-            $("#CPFCNPJ").val('').focus()
+  if (!stCnpj) {
+    return Swal.fire({
+      type: 'error',
+      title: 'CNPJ Inválido, verifique o CNPJ digitado e tente novamente',
+      timer: 15000
+    }).then(() => {
+      $("#CPFCNPJ").val('').focus()
 
-            return false;
-        })
-    }
+      return false;
+    })
+  }
 
-    return true;
+  return true;
 
 }
 
 async function validaCEP(cep, verificarNaApi = false) {
-    const regex = /^[0-9]{5}-?[0-9]{3}$/;
-    
-    if (!regex.test(cep)){
-        return false;
-    }
+  const regex = /^[0-9]{5}-?[0-9]{3}$/;
 
-    if(verificarNaApi){
-        let respCep = await getDadosEnderecoViaCep_API_externa(cep);
+  if (!regex.test(cep)) {
+    return false;
+  }
 
-        return !(respCep?.erro == 'true'); 
-    }
+  if (verificarNaApi) {
+    let respCep = await getDadosEnderecoViaCep_API_externa(cep);
 
-    return true;
+    return !(respCep?.erro == 'true');
+  }
+
+  return true;
 }
 
 function validaTelefoneOrCelular(telefoneOrCelular) {
-    telefoneOrCelular = String(telefoneOrCelular).replace(/\D/g, "");
+  telefoneOrCelular = String(telefoneOrCelular).replace(/\D/g, "");
 
-    if (telefoneOrCelular?.length < 10) return false;
+  if (telefoneOrCelular?.length < 10) return false;
 
-    const regex = /^(\(?\d{2}\)?\s?)?(\d{4,5}\-?\d{4})$/;
-    return regex.test(telefoneOrCelular);
+  const regex = /^(\(?\d{2}\)?\s?)?(\d{4,5}\-?\d{4})$/;
+  return regex.test(telefoneOrCelular);
 }
 
 function validaEmail(email) {
-    email = String(email);
+  email = String(email);
 
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
 }
 
 // Converter número no formato string para número por extenso.
 String.prototype.extenso = function (c) { // Função para converter número no formato string para número por extenso.
-    var ex = [
-        ["Zero", "Um", "Dois", "Três", "Quatro", "Cinco", "Seis", "Sete", "Oito", "Nove", "Dez", "Onze", "Doze", "Treze", "Quatorze", "Quinze", "Dezesseis", "Dezessete", "Dezoito", "Dezenove"],
-        ["Dez", "Vinte", "Trinta", "Quarenta", "Cinquenta", "Sessenta", "Setenta", "Oitenta", "Noventa"],
-        ["Cem", "Cento", "Duzentos", "Trezentos", "Quatrocentos", "Quinhentos", "Seiscentos", "Setecentos", "Oitocentos", "Novecentos"],
-        ["Mil", "Milhão", "Bilhão", "Trilhão", "Quadrilhão", "Quintilhão", "Sextilhão", "Setilhão", "Octilhão", "Nonilhão", "Decilhão", "Undecilhão", "Dodecilhão", "Tredecilhão", "Quatrodecilhão", "Quindecilhão", "Sedecilhão", "Septendecilhão", "Octencilhão", "Nonencilhão"]
-    ];
-    var a, n, v, i, n = this.replace(c ? /[^,\d]/g : /\D/g, "").split(","), e = " e ", $ = "Real", d = "Centavo", sl;
-    for (var f = n.length - 1, l, j = -1, r = [], s = [], t = ""; ++j <= f; s = []) {
-        j && (n[j] = (("." + n[j]) * 1).toFixed(2).slice(2));
-        if (!(a = (v = n[j]).slice((l = v.length) % 3).match(/\d{3}/g), v = l % 3 ? [v.slice(0, l % 3)] : [], v = a ? v.concat(a) : v).length) continue;
-        for (a = -1, l = v.length; ++a < l; t = "") {
-            if (!(i = v[a] * 1)) continue;
-            i % 100 < 20 && (t += ex[0][i % 100]) ||
-                i % 100 + 1 && (t += ex[1][(i % 100 / 10 >> 0) - 1] + (i % 10 ? e + ex[0][i % 10] : ""));
-            s.push((i < 100 ? t : !(i % 100) ? ex[2][i == 100 ? 0 : i / 100 >> 0] : (ex[2][i / 100 >> 0] + e + t)) +
-                ((t = l - a - 2) > -1 ? " " + (i > 1 && t > 0 ? ex[3][t].replace("ão", "ões") : ex[3][t]) : ""));
-        }
-        a = ((sl = s.length) > 1 ? (a = s.pop(), s.join(" ") + e + a) : s.join("") || ((!j && (n[j + 1] * 1 > 0) || r.length) ? "" : ex[0][0]));
-        a && r.push(a + (c ? (" " + (v.join("") * 1 > 1 ? j ? d + "s" : (/0{6,}$/.test(n[0]) ? "de " : "") + $.replace("l", "is") : j ? d : $)) : ""));
+  var ex = [
+    ["Zero", "Um", "Dois", "Três", "Quatro", "Cinco", "Seis", "Sete", "Oito", "Nove", "Dez", "Onze", "Doze", "Treze", "Quatorze", "Quinze", "Dezesseis", "Dezessete", "Dezoito", "Dezenove"],
+    ["Dez", "Vinte", "Trinta", "Quarenta", "Cinquenta", "Sessenta", "Setenta", "Oitenta", "Noventa"],
+    ["Cem", "Cento", "Duzentos", "Trezentos", "Quatrocentos", "Quinhentos", "Seiscentos", "Setecentos", "Oitocentos", "Novecentos"],
+    ["Mil", "Milhão", "Bilhão", "Trilhão", "Quadrilhão", "Quintilhão", "Sextilhão", "Setilhão", "Octilhão", "Nonilhão", "Decilhão", "Undecilhão", "Dodecilhão", "Tredecilhão", "Quatrodecilhão", "Quindecilhão", "Sedecilhão", "Septendecilhão", "Octencilhão", "Nonencilhão"]
+  ];
+  var a, n, v, i, n = this.replace(c ? /[^,\d]/g : /\D/g, "").split(","), e = " e ", $ = "Real", d = "Centavo", sl;
+  for (var f = n.length - 1, l, j = -1, r = [], s = [], t = ""; ++j <= f; s = []) {
+    j && (n[j] = (("." + n[j]) * 1).toFixed(2).slice(2));
+    if (!(a = (v = n[j]).slice((l = v.length) % 3).match(/\d{3}/g), v = l % 3 ? [v.slice(0, l % 3)] : [], v = a ? v.concat(a) : v).length) continue;
+    for (a = -1, l = v.length; ++a < l; t = "") {
+      if (!(i = v[a] * 1)) continue;
+      i % 100 < 20 && (t += ex[0][i % 100]) ||
+        i % 100 + 1 && (t += ex[1][(i % 100 / 10 >> 0) - 1] + (i % 10 ? e + ex[0][i % 10] : ""));
+      s.push((i < 100 ? t : !(i % 100) ? ex[2][i == 100 ? 0 : i / 100 >> 0] : (ex[2][i / 100 >> 0] + e + t)) +
+        ((t = l - a - 2) > -1 ? " " + (i > 1 && t > 0 ? ex[3][t].replace("ão", "ões") : ex[3][t]) : ""));
     }
-    return r.join(e);
+    a = ((sl = s.length) > 1 ? (a = s.pop(), s.join(" ") + e + a) : s.join("") || ((!j && (n[j + 1] * 1 > 0) || r.length) ? "" : ex[0][0]));
+    a && r.push(a + (c ? (" " + (v.join("") * 1 > 1 ? j ? d + "s" : (/0{6,}$/.test(n[0]) ? "de " : "") + $.replace("l", "is") : j ? d : $)) : ""));
+  }
+  return r.join(e);
 }
 
 function retornaDiasEntreDatas(dataHoraInicio = "", dataHoraFim = "", zerarHorario = true) {
-    dataHoraInicio = dataHoraInicio ? new Date(dataHoraInicio) : new Date();
-    dataHoraFim = dataHoraFim ? new Date(dataHoraFim) : new Date();
+  dataHoraInicio = dataHoraInicio ? new Date(dataHoraInicio) : new Date();
+  dataHoraFim = dataHoraFim ? new Date(dataHoraFim) : new Date();
 
-    if (zerarHorario) {
-        dataHoraInicio.setUTCHours(0, 0, 0, 0);
-        dataHoraFim.setUTCHours(0, 0, 0, 0);
-    }
+  if (zerarHorario) {
+    dataHoraInicio.setUTCHours(0, 0, 0, 0);
+    dataHoraFim.setUTCHours(0, 0, 0, 0);
+  }
 
-    return Math.ceil(Math.abs(dataHoraFim - dataHoraInicio) / (1000 * 60 * 60 * 24));
+  return Math.ceil(Math.abs(dataHoraFim - dataHoraInicio) / (1000 * 60 * 60 * 24));
 }
 
 function validar_Cpf(cpf) {
-    cpf = cpf.replace(/[^\d]+/g, '');
-    if (cpf == '') return false;
-    // Elimina CPFs invalidos conhecidos	
-    if (cpf.length != 11 ||
-        cpf == "00000000000" ||
-        cpf == "11111111111" ||
-        cpf == "22222222222" ||
-        cpf == "33333333333" ||
-        cpf == "44444444444" ||
-        cpf == "55555555555" ||
-        cpf == "66666666666" ||
-        cpf == "77777777777" ||
-        cpf == "88888888888" ||
-        cpf == "99999999999") {
+  cpf = cpf.replace(/[^\d]+/g, '');
+  if (cpf == '') return false;
+  // Elimina CPFs invalidos conhecidos	
+  if (cpf.length != 11 ||
+    cpf == "00000000000" ||
+    cpf == "11111111111" ||
+    cpf == "22222222222" ||
+    cpf == "33333333333" ||
+    cpf == "44444444444" ||
+    cpf == "55555555555" ||
+    cpf == "66666666666" ||
+    cpf == "77777777777" ||
+    cpf == "88888888888" ||
+    cpf == "99999999999") {
 
-        $("#nuCPFCNPJmodal").focus();
-        return false;
-    }
+    $("#nuCPFCNPJmodal").focus();
+    return false;
+  }
 
-    // Valida 1o digito
-    add = 0;
-    for (i = 0; i < 9; i++)
-        add += parseInt(cpf.charAt(i)) * (10 - i);
-    rev = 11 - (add % 11);
-    if (rev == 10 || rev == 11)
-        rev = 0;
-    if (rev != parseInt(cpf.charAt(9))) {
+  // Valida 1o digito
+  add = 0;
+  for (i = 0; i < 9; i++)
+    add += parseInt(cpf.charAt(i)) * (10 - i);
+  rev = 11 - (add % 11);
+  if (rev == 10 || rev == 11)
+    rev = 0;
+  if (rev != parseInt(cpf.charAt(9))) {
 
-        $("#nuCPFCNPJmodal").focus();
-        return false;
-    }
-    // Valida 2o digito	
-    add = 0;
-    for (i = 0; i < 10; i++)
-        add += parseInt(cpf.charAt(i)) * (11 - i);
-    rev = 11 - (add % 11);
-    if (rev == 10 || rev == 11)
-        rev = 0;
-    if (rev != parseInt(cpf.charAt(10))) {
+    $("#nuCPFCNPJmodal").focus();
+    return false;
+  }
+  // Valida 2o digito	
+  add = 0;
+  for (i = 0; i < 10; i++)
+    add += parseInt(cpf.charAt(i)) * (11 - i);
+  rev = 11 - (add % 11);
+  if (rev == 10 || rev == 11)
+    rev = 0;
+  if (rev != parseInt(cpf.charAt(10))) {
 
-        $("#nuCPFCNPJmodal").focus();
-        return false;
-    }
-    return true;
+    $("#nuCPFCNPJmodal").focus();
+    return false;
+  }
+  return true;
 }
 
 function validar_Cnpj(cnpj) {
 
-    cnpj = cnpj.replace(/[^\d]+/g, '');
+  cnpj = cnpj.replace(/[^\d]+/g, '');
 
-    if (cnpj == '') return false;
+  if (cnpj == '') return false;
 
-    if (cnpj.length != 14)
-        return false;
+  if (cnpj.length != 14)
+    return false;
 
-    // Elimina CNPJs invalidos conhecidos
-    if (cnpj == "00000000000000" ||
-        cnpj == "11111111111111" ||
-        cnpj == "22222222222222" ||
-        cnpj == "33333333333333" ||
-        cnpj == "44444444444444" ||
-        cnpj == "55555555555555" ||
-        cnpj == "66666666666666" ||
-        cnpj == "77777777777777" ||
-        cnpj == "88888888888888" ||
-        cnpj == "99999999999999")
-        return false;
-    $("#nuCPFCNPJmodal").focus();
+  // Elimina CNPJs invalidos conhecidos
+  if (cnpj == "00000000000000" ||
+    cnpj == "11111111111111" ||
+    cnpj == "22222222222222" ||
+    cnpj == "33333333333333" ||
+    cnpj == "44444444444444" ||
+    cnpj == "55555555555555" ||
+    cnpj == "66666666666666" ||
+    cnpj == "77777777777777" ||
+    cnpj == "88888888888888" ||
+    cnpj == "99999999999999")
+    return false;
+  $("#nuCPFCNPJmodal").focus();
 
-    // Valida DVs
-    tamanho = cnpj.length - 2
-    numeros = cnpj.substring(0, tamanho);
-    digitos = cnpj.substring(tamanho);
-    soma = 0;
-    pos = tamanho - 7;
-    for (i = tamanho; i >= 1; i--) {
-        soma += numeros.charAt(tamanho - i) * pos--;
-        if (pos < 2)
-            pos = 9;
-    }
-    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
-    if (resultado != digitos.charAt(0))
-        return false;
-    $("#nuCPFCNPJmodal").focus();
+  // Valida DVs
+  tamanho = cnpj.length - 2
+  numeros = cnpj.substring(0, tamanho);
+  digitos = cnpj.substring(tamanho);
+  soma = 0;
+  pos = tamanho - 7;
+  for (i = tamanho; i >= 1; i--) {
+    soma += numeros.charAt(tamanho - i) * pos--;
+    if (pos < 2)
+      pos = 9;
+  }
+  resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  if (resultado != digitos.charAt(0))
+    return false;
+  $("#nuCPFCNPJmodal").focus();
 
-    tamanho = tamanho + 1;
-    numeros = cnpj.substring(0, tamanho);
-    soma = 0;
-    pos = tamanho - 7;
-    for (i = tamanho; i >= 1; i--) {
-        soma += numeros.charAt(tamanho - i) * pos--;
-        if (pos < 2)
-            pos = 9;
-    }
-    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
-    if (resultado != digitos.charAt(1))
-        return false;
-    $("#nuCPFCNPJmodal").focus();
+  tamanho = tamanho + 1;
+  numeros = cnpj.substring(0, tamanho);
+  soma = 0;
+  pos = tamanho - 7;
+  for (i = tamanho; i >= 1; i--) {
+    soma += numeros.charAt(tamanho - i) * pos--;
+    if (pos < 2)
+      pos = 9;
+  }
+  resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  if (resultado != digitos.charAt(1))
+    return false;
+  $("#nuCPFCNPJmodal").focus();
 
-    return true;
+  return true;
 
 }
 
 function animationLoadingFormClient(msg = 'Enviando dados do Cliente, aguarde...') {
-    $('#notificacaoModalCadastroCliente').html(`
+  $('#notificacaoModalCadastroCliente').html(`
         <div class="alert alert-success alert-dismissible fade show text-center" role="alert" style="margin: auto !important; text-align: center !important">
           <button type="button" class="btn text-primary">
                 <span class="spinner-border spinner-border-sm text-primary"></span>
@@ -11586,7 +11644,7 @@ function animationLoadingFormClient(msg = 'Enviando dados do Cliente, aguarde...
 }
 
 function msgSuccessFormCliente(msgSuccess = 'Dados Carregados Com Sucesso') {
-    $('#notificacaoModalCadastroCliente').html(`
+  $('#notificacaoModalCadastroCliente').html(`
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true"><i class="fal fa-times"></i></span>
@@ -11595,11 +11653,11 @@ function msgSuccessFormCliente(msgSuccess = 'Dados Carregados Com Sucesso') {
       
     `);
 
-    $('#notificacaoModalCadastroCliente button').focus();
+  $('#notificacaoModalCadastroCliente button').focus();
 }
 
 function msgWarningCadastroCliente(element = $('#notificacaoModalCadastroCliente'), msgError, stUltimaInstancia = true) {
-    $('#notificacaoModalCadastroCliente').html(`
+  $('#notificacaoModalCadastroCliente').html(`
         <div class="alert alert-danger alert-dismissible h6 fade show" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">
@@ -11612,104 +11670,104 @@ function msgWarningCadastroCliente(element = $('#notificacaoModalCadastroCliente
         </div>
     `);
 
-    $('#notificacaoModalCadastroCliente button').focus();
+  $('#notificacaoModalCadastroCliente button').focus();
 
-    !stUltimaInstancia && animationLoadingStop();
+  !stUltimaInstancia && animationLoadingStop();
 
-    if ($(element).hasClass('select2')) {
-        setTimeout(() => $(element).select2('open').focus(), 1000);
-    } else {
-        setTimeout(() => {
-            let vlElement = $(element).val()?.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "") || "";
-            
-            $(element).val(vlElement).focus();
-        }, 1000);
-    }
+  if ($(element).hasClass('select2')) {
+    setTimeout(() => $(element).select2('open').focus(), 1000);
+  } else {
+    setTimeout(() => {
+      let vlElement = $(element).val()?.replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "") || "";
+
+      $(element).val(vlElement).focus();
+    }, 1000);
+  }
 }
 
 function returnMsgClientInsertOrUpdateSuccess(stUltimaInstancia, cpfOuCnpj) {
-    $('#detClienteVoucher, #detVoucherProdutos, #detVendaVoucher').modal('hide');
+  $('#detClienteVoucher, #detVoucherProdutos, #detVendaVoucher').modal('hide');
 
-    if (!stUltimaInstancia) {
-        return msgSuccess('Cliente Cadastrado/Atualizado com Sucesso!');
-    } else {
-        $('#nuCPFCNPJmodal').val(cpfOuCnpj.length > 11 ? maskCNPJ(cpfOuCnpj) : maskCPF(cpfOuCnpj))
-        
-        $('#swal2-validation-message').html(`
+  if (!stUltimaInstancia) {
+    return msgSuccess('Cliente Cadastrado/Atualizado com Sucesso!');
+  } else {
+    $('#nuCPFCNPJmodal').val(cpfOuCnpj.length > 11 ? maskCNPJ(cpfOuCnpj) : maskCPF(cpfOuCnpj))
+
+    $('#swal2-validation-message').html(`
             <h6 class="text-success fw-700" >CLIENTE CADASTRADO/ATUALIZADO COM SUCESSO, CONFIRME PARA GERAR O VOUCHER!</h6>
         `);
-    }
+  }
 
 }
 
-async function verificaSePrecisaAtualizarCadastroCliente(cliente){
-    let propsCliente = [
-        "TPCLIENTE",
-        "DSNOMERAZAOSOCIAL",
-        "DSAPELIDONOMEFANTASIA",
-        "NUCPFCNPJ",
-        "NURGINSCESTADUAL",
-        "NUCEP",
-        "NUIBGE",
-        "EENDERECO",
-        "EBAIRRO",
-        "ECIDADE",
-        "SGUF",
-        "EEMAIL",
-        "NUTELCOMERCIAL",
-        "NUTELCELULAR",
-        "IDINDICACAOIE",
-    ];
+async function verificaSePrecisaAtualizarCadastroCliente(cliente) {
+  let propsCliente = [
+    "TPCLIENTE",
+    "DSNOMERAZAOSOCIAL",
+    "DSAPELIDONOMEFANTASIA",
+    "NUCPFCNPJ",
+    "NURGINSCESTADUAL",
+    "NUCEP",
+    "NUIBGE",
+    "EENDERECO",
+    "EBAIRRO",
+    "ECIDADE",
+    "SGUF",
+    "EEMAIL",
+    "NUTELCOMERCIAL",
+    "NUTELCELULAR",
+    "IDINDICACAOIE",
+  ];
 
-    let stValido = true;
-    let regexCaracteresEspecias = /^[A-Za-zÀ-ÿ\s]+$/;
+  let stValido = true;
+  let regexCaracteresEspecias = /^[A-Za-zÀ-ÿ\s]+$/;
 
-    for (prop of propsCliente) {
-        if (prop == "DSAPELIDONOMEFANTASIA"){
-            if (cliente["TPCLIENTE"] !== 'JURIDICA'){
-                continue;
-                
-            } else {
-                if(cliente["DSAPELIDONOMEFANTASIA"]?.length < 3){
-                    stValido = false;
-                    break;
-                }
-                
-                if (!regexCaracteresEspecias.test(cliente["DSAPELIDONOMEFANTASIA"])) {
-                    stValido = false;
-                    break;
-                }
-            }
+  for (prop of propsCliente) {
+    if (prop == "DSAPELIDONOMEFANTASIA") {
+      if (cliente["TPCLIENTE"] !== 'JURIDICA') {
+        continue;
+
+      } else {
+        if (cliente["DSAPELIDONOMEFANTASIA"]?.length < 3) {
+          stValido = false;
+          break;
         }
-        
-        if(prop == "DSNOMERAZAOSOCIAL"){
-            
-            if(cliente["DSNOMERAZAOSOCIAL"]?.length < 5){
-                stValido = false;
-                break;
-            }
-            
-            if (!regexCaracteresEspecias.test(cliente["DSNOMERAZAOSOCIAL"])) {
-                stValido = false;
-                break;
-            }
+
+        if (!regexCaracteresEspecias.test(cliente["DSAPELIDONOMEFANTASIA"])) {
+          stValido = false;
+          break;
         }
-        
-        if (prop == "EBAIRRO" && !cliente["EBAIRRO"]){
-            continue;
-        }
-        
-        if (prop == "EEMAIL" && !cliente["EEMAIL"]){
-            continue;
-        }
-        
-        if ( !String(cliente[prop])?.trim()) {
-            stValido = false;
-            break;
-        }
+      }
     }
 
-    return stValido;
+    if (prop == "DSNOMERAZAOSOCIAL") {
+
+      if (cliente["DSNOMERAZAOSOCIAL"]?.length < 5) {
+        stValido = false;
+        break;
+      }
+
+      if (!regexCaracteresEspecias.test(cliente["DSNOMERAZAOSOCIAL"])) {
+        stValido = false;
+        break;
+      }
+    }
+
+    if (prop == "EBAIRRO" && !cliente["EBAIRRO"]) {
+      continue;
+    }
+
+    if (prop == "EEMAIL" && !cliente["EEMAIL"]) {
+      continue;
+    }
+
+    if (!String(cliente[prop])?.trim()) {
+      stValido = false;
+      break;
+    }
+  }
+
+  return stValido;
 }
 
 ///----------FIM Funcoes Globais da Rotina----------///
@@ -11720,345 +11778,383 @@ async function verificaSePrecisaAtualizarCadastroCliente(cliente){
 const URL_PUBLICAWS = 'https://publica.cnpj.ws/cnpj/{CNPJ}';
 const URL_MINHA_RECEITA = 'https://minhareceita.org/{CNPJ}';
 const URL_RECEITAWS = 'https://www.receitaws.com.br/v1/cnpj/{CNPJ}';
-const URL_VIA_CEP = 'https://viacep.com.br/ws/{CEP}/json/'
+const URL_VIA_CEP = 'https://viacep.com.br/ws/{CEP}/json/';
+const URL_VIA_CEP_REDUNDANCIA = 'https://opencep.com/v1/{CEP}.json';
+const URL_VIA_CEP_REDUNDANCIA2 = 'https://cep.awesomeapi.com.br/json/{CEP}';
 
 async function getDadosCNPJRedundancia_API_externa(cnpj) {
-    return $.get(URL_RECEITAWS.replace('{CNPJ}', cnpj))
-        .then((data) => {
-            let { status, message } = data || undefined;
+  return $.get(URL_RECEITAWS.replace('{CNPJ}', cnpj))
+    .then((data) => {
+      let { status, message } = data || undefined;
 
-            if (status == 'OK') {
-                status = 200;
-            }
+      if (status == 'OK') {
+        status = 200;
+      }
 
-            if (status !== 200) {
-                throw { status, message }
-            }
+      if (status !== 200) {
+        throw { status, message }
+      }
 
-            return { status, data }
-        })
-        .catch((respError) => {
-            let { status, message } = respError || undefined;
+      return { status, data }
+    })
+    .catch((respError) => {
+      let { status, message } = respError || undefined;
 
-            if (status == 'ERROR') {
-                status = 400;
-            }
+      if (status == 'ERROR') {
+        status = 400;
+      }
 
-            return { status, message }
-        }).done((data) => data.descApi = "API-receitaws");
+      return { status, message }
+    }).done((data) => data.descApi = "API-receitaws");
 }
 
 async function getDadosCNPJComIE_API_externa(cnpj) {
-    return $.get(URL_PUBLICAWS.replace('{CNPJ}', cnpj))
-        .then((data) => {
-            let status = data?.status || 200;
+  return $.get(URL_PUBLICAWS.replace('{CNPJ}', cnpj))
+    .then((data) => {
+      let status = data?.status || 200;
 
-            if (status == 'OK') {
-                status = 200;
-            }
+      if (status == 'OK') {
+        status = 200;
+      }
 
-            return { status, data }
-        })
-        .catch((respError) => {
-            let { status, message, responseJSON } = respError || undefined;
+      return { status, data }
+    })
+    .catch((respError) => {
+      let { status, message, responseJSON } = respError || undefined;
 
-            if (status == 'ERROR') {
-                status = 400;
-            }
+      if (status == 'ERROR') {
+        status = 400;
+      }
 
-            message = responseJSON?.detalhes || responseJSON?.message; 
+      message = responseJSON?.detalhes || responseJSON?.message;
 
-            return { status, message }
-        })
-        .done((data) => data.descApi = "API-publicaws");
+      return { status, message }
+    })
+    .done((data) => data.descApi = "API-publicaws");
 }
 
 async function getDadosExistenciaCNPJ_API_externa(cnpj) {
-    let data = await $.get(URL_MINHA_RECEITA.replace('{CNPJ}', cnpj))
-        .then((data) => { return { status: 200, data } })
-        .catch((respError) => { 
-            let { status, message } = respError || undefined;
+  let data = await $.get(URL_MINHA_RECEITA.replace('{CNPJ}', cnpj))
+    .then((data) => { return { status: 200, data } })
+    .catch((respError) => {
+      let { status, message } = respError || undefined;
 
-            if (status == 'ERROR') {
-                status = 400;
-            }
+      if (status == 'ERROR') {
+        status = 400;
+      }
 
-            message = respError?.responseText ? JSON.parse(respError?.responseText)?.message : undefined;
+      message = respError?.responseText ? JSON.parse(respError?.responseText)?.message : undefined;
 
-            return { status, message } 
-        }).done((data) => data.descApi = "API-minhareceita");
+      return { status, message }
+    }).done((data) => data.descApi = "API-minhareceita");
 
-    if (data?.status !== 200 && data?.status !== 400) {
-        return await getDadosCNPJRedundancia_API_externa(cnpj);
-    }
+  if (data?.status !== 200 && data?.status !== 400) {
+    return await getDadosCNPJRedundancia_API_externa(cnpj);
+  }
 
-    return data;
+  return data;
 }
 
 //--Traz o endereço de acordo com o CEP
+
+async function getDadosEnderecoViaCep_API_redundancia(cep) {
+  cep = cep.replace(/\D/g, "");
+
+  return $.get(URL_VIA_CEP_REDUNDANCIA.replace('{CEP}', cep))
+    .then((data) => {
+      let { erro, status } = data || undefined;
+
+      if (!erro) {
+        status = 200;
+      }
+
+      if (status !== 200) {
+        throw { status: 429, message: 'CEP INVÁLIDO OU NÃO ENCONTRADO, verifique e tente novamente!' }
+      }
+
+      return { status, data }
+    })
+    .catch((respError) => {
+      let { status, message, statusText } = respError || undefined;
+
+      message = statusText || message;
+
+      return { status, message }
+    })
+}
+
 async function getDadosEnderecoViaCep_API_externa(cep) {
-    cep = cep.replace(/\D/g, "");
+  cep = cep.replace(/\D/g, "");
 
-    return $.get(URL_VIA_CEP.replace('{CEP}', cep))
-        .then((data) => {
-            let { erro, status} = data || undefined;
+  return $.get(URL_VIA_CEP.replace('{CEP}', cep))
+    .then((data) => {
+      let { erro, status } = data || undefined;
 
-            if (!erro) {
-                status = 200;
-            }
+      if (!erro) {
+        status = 200;
+      }
 
-            if (status !== 200) {
-                throw { status: 429, message: 'CEP INVÁLIDO OU NÃO ENCONTRADO, verifique e tente novamente!' }
-            }
+      if (status !== 200) {
+        return { status: 429, message: 'CEP INVÁLIDO OU NÃO ENCONTRADO, verifique e tente novamente!' }
+      }
 
-            return { status, data}
-        })
-        .catch((respError) => {
-            let { status, message, statusText } = respError || undefined;
+      return { status, data }
+    })
+    .catch((respError) => {
+      let { status, message, statusText } = respError || undefined;
 
-            message = statusText || message;
+      message = statusText || message;
 
-            return { status, message }
-        })
+      return { status, message }
+    })
 }
 
 //--Traz todas as UFs
 function get_UFs() {
-    return $.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome&view=nivelado');
+  return $.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome&view=nivelado');
 }
 
 //--Traz todas as cidades da UF
 function get_Cidades_UF(idUF) {
-    return $.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${idUF}/municipios?view=nivelado`);
+  return $.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${idUF}/municipios?view=nivelado`);
 }
 
 //--Traz todos os bairros da cidade
 function get_Bairros_Cidade(idCidade) {
-    return $.get(`https://servicodados.ibge.gov.br/api/v1/localidades/municipios/${idCidade}/subdistritos?view=nivelado`)
+  return $.get(`https://servicodados.ibge.gov.br/api/v1/localidades/municipios/${idCidade}/subdistritos?view=nivelado`)
 }
 
-async function busca_e_valida_dados_empresa_com_API_externa(cnpjCliente, stUltimaInstancia = false){
-    cnpjCliente = cnpjCliente?.replace(/\D/g, "");
+async function busca_e_valida_dados_empresa_com_API_externa(cnpjCliente, stUltimaInstancia = false) {
+  cnpjCliente = cnpjCliente?.replace(/\D/g, "");
 
-    let objCliente = await getDadosExistenciaCNPJ_API_externa(cnpjCliente);
-    let inscricaoEstadual;
-    let razao;
-    let fantasia;
-    let cnae;
-    let dataCriacaoEmpresa;
-    let cep;
-    let endereco;
-    let numeroEndereco;
-    let complemento;
-    let email;
-    let tel1;
-    let tel2;
+  let objCliente = await getDadosExistenciaCNPJ_API_externa(cnpjCliente);
+  let inscricaoEstadual;
+  let razao;
+  let fantasia;
+  let cnae;
+  let dataCriacaoEmpresa;
+  let cep;
+  let endereco;
+  let numeroEndereco;
+  let complemento;
+  let email;
+  let tel1;
+  let tel2;
 
-    if (objCliente?.status == 200) {
-        const dadosComIE = await getDadosCNPJComIE_API_externa(cnpjCliente);
+  if (objCliente?.status == 200) {
+    const dadosComIE = await getDadosCNPJComIE_API_externa(cnpjCliente);
 
-        if (dadosComIE.status == 200){
-            objCliente = dadosComIE;
-        } 
-
-    } else {
-        !stUltimaInstancia && msgError(objCliente?.message || 'Erro ao tentar preencher os dados do cliente, recarregue e tente novamente!');
-        return msgWarningCadastroCliente($("#CPFCNPJ"), objCliente?.message || 'Erro ao tentar preencher os dados do cliente, recarregue e tente novamente!')
+    if (dadosComIE.status == 200) {
+      objCliente = dadosComIE;
     }
 
-    dadosCNPJ = objCliente.data;
-    razao = dadosCNPJ?.razao_social || dadosCNPJ?.nome || "";
-    fantasia = dadosCNPJ?.estabelecimento?.nome_fantasia || dadosCNPJ?.fantasia || dadosCNPJ?.nome_fantasia || razao;
-    inscricaoEstadual = dadosCNPJ?.estabelecimento?.inscricoes_estaduais[0]?.inscricao_estadual || "";
-    cnae = dadosCNPJ?.estabelecimento?.atividade_principal?.id || dadosCNPJ?.atividade_principal[0].code || dadosCNPJ?.cnae_fiscal || ""
-    dataCriacaoEmpresa = dadosCNPJ?.estabelecimento?.data_inicio_atividade || dadosCNPJ?.data_situacao || dadosCNPJ?.data_inicio_atividade || "";
-    tel1 = (dadosCNPJ?.estabelecimento?.ddd1 + dadosCNPJ?.estabelecimento?.telefone1) || dadosCNPJ?.telefone || (dadosCNPJ?.ddd_telefone || dadosCNPJ?.ddd_telefone_1) || "";
-    tel2 = (dadosCNPJ?.estabelecimento?.ddd2 + dadosCNPJ?.estabelecimento?.telefone2) || dadosCNPJ?.ddd_telefone_2 || "";
-    email = dadosCNPJ?.estabelecimento?.email || dadosCNPJ?.email || "";
-    cep = dadosCNPJ?.estabelecimento?.cep || dadosCNPJ?.cep || "";
-    endereco = dadosCNPJ?.estabelecimento?.logradouro || dadosCNPJ?.logradouro || "";
-    numeroEndereco = dadosCNPJ?.estabelecimento?.numero || dadosCNPJ?.numero || "";
-    complemento = dadosCNPJ?.estabelecimento?.complemento || dadosCNPJ?.complemento || "";
+  } else {
+    !stUltimaInstancia && msgError(objCliente?.message || 'Erro ao tentar preencher os dados do cliente, recarregue e tente novamente!');
+    return msgWarningCadastroCliente($("#CPFCNPJ"), objCliente?.message || 'Erro ao tentar preencher os dados do cliente, recarregue e tente novamente!')
+  }
 
-    return {
-        razao,
-        fantasia,
-        inscricaoEstadual,
-        cnae,
-        dataCriacaoEmpresa,
-        tel1,
-        tel2,
-        email,
-        cep,
-        endereco,
-        numeroEndereco,
-        complemento,
-    };
+  dadosCNPJ = objCliente.data;
+  razao = dadosCNPJ?.razao_social || dadosCNPJ?.nome || "";
+  fantasia = dadosCNPJ?.estabelecimento?.nome_fantasia || dadosCNPJ?.fantasia || dadosCNPJ?.nome_fantasia || razao;
+  inscricaoEstadual = dadosCNPJ?.estabelecimento?.inscricoes_estaduais[0]?.inscricao_estadual || "";
+  cnae = dadosCNPJ?.estabelecimento?.atividade_principal?.id || dadosCNPJ?.atividade_principal[0].code || dadosCNPJ?.cnae_fiscal || ""
+  dataCriacaoEmpresa = dadosCNPJ?.estabelecimento?.data_inicio_atividade || dadosCNPJ?.data_situacao || dadosCNPJ?.data_inicio_atividade || "";
+  tel1 = (dadosCNPJ?.estabelecimento?.ddd1 + dadosCNPJ?.estabelecimento?.telefone1) || dadosCNPJ?.telefone || (dadosCNPJ?.ddd_telefone || dadosCNPJ?.ddd_telefone_1) || "";
+  tel2 = (dadosCNPJ?.estabelecimento?.ddd2 + dadosCNPJ?.estabelecimento?.telefone2) || dadosCNPJ?.ddd_telefone_2 || "";
+  email = dadosCNPJ?.estabelecimento?.email || dadosCNPJ?.email || "";
+  cep = dadosCNPJ?.estabelecimento?.cep || dadosCNPJ?.cep || "";
+  endereco = dadosCNPJ?.estabelecimento?.logradouro || dadosCNPJ?.logradouro || "";
+  numeroEndereco = dadosCNPJ?.estabelecimento?.numero || dadosCNPJ?.numero || "";
+  complemento = dadosCNPJ?.estabelecimento?.complemento || dadosCNPJ?.complemento || "";
+
+  return {
+    razao,
+    fantasia,
+    inscricaoEstadual,
+    cnae,
+    dataCriacaoEmpresa,
+    tel1,
+    tel2,
+    email,
+    cep,
+    endereco,
+    numeroEndereco,
+    complemento,
+  };
 }
 
 async function preenche_cadastro_empresa_com_dados_de_API_externa(cnpjCliente, stUltimaInstancia = false) {
-    let {
-        razao,
-        fantasia,
-        inscricaoEstadual,
-        cnae,
-        dataCriacaoEmpresa,
-        tel1,
-        tel2,
-        email,
-        cep,
-        endereco,
-        numeroEndereco,
-        complemento,
-    } = await busca_e_valida_dados_empresa_com_API_externa(cnpjCliente, stUltimaInstancia) || "";
+  let {
+    razao,
+    fantasia,
+    inscricaoEstadual,
+    cnae,
+    dataCriacaoEmpresa,
+    tel1,
+    tel2,
+    email,
+    cep,
+    endereco,
+    numeroEndereco,
+    complemento,
+  } = await busca_e_valida_dados_empresa_com_API_externa(cnpjCliente, stUltimaInstancia) || "";
 
-    if (razao) {
+  if (razao) {
 
-        cnae = cnae?.replace(/\D/g, "") ? cnae : "";
-        tel1 = tel1 ? tel1?.replace(/\D/g, "") : "";
-        tel2 = tel2 ? tel2?.replace(/\D/g, "") : tel1;
-        cep = cep ? cep?.replace(/\D/g, "") : "";
+    cnae = cnae?.replace(/\D/g, "") ? cnae : "";
+    tel1 = tel1 ? tel1?.replace(/\D/g, "") : "";
+    tel2 = tel2 ? tel2?.replace(/\D/g, "") : tel1;
+    cep = cep ? cep?.replace(/\D/g, "") : "";
 
-        tel1 = tel1 ? maskFone(tel1) : "";
-        tel2 = tel2 ? maskFone(tel2) : "";
-        cep = cep ? maskCEP(cep) : "";
+    tel1 = tel1 ? maskFone(tel1) : "";
+    tel2 = tel2 ? maskFone(tel2) : "";
+    cep = cep ? maskCEP(cep) : "";
 
-        $("#IE").val(inscricaoEstadual)
-        $("#CNAE").val(cnae);
-        $("#DataNascimentoCriacao").val(dataCriacaoEmpresa);
-        $("#NomeClienteRazao").val(razao);
-        $('#sobrenomeNomeFan').val(fantasia)
-        $("#NuCEP").val(cep);
-        $("#Endereco").val(endereco);
-        $("#NuEndereco").val(numeroEndereco);
-        $("#Complemento").val(complemento);
-        $("#email").val(email);
-        $("#TelefoneCliente").val(tel1);
-        $('#TelefoneClienteEmpresaComercial').val(tel2);
+    $("#IE").val(inscricaoEstadual)
+    $("#CNAE").val(cnae);
+    $("#DataNascimentoCriacao").val(dataCriacaoEmpresa);
+    $("#NomeClienteRazao").val(razao);
+    $('#sobrenomeNomeFan').val(fantasia)
+    $("#NuCEP").val(cep);
+    $("#Endereco").val(endereco);
+    $("#NuEndereco").val(numeroEndereco);
+    $("#Complemento").val(complemento);
+    $("#email").val(email);
+    $("#TelefoneCliente").val(tel1);
+    $('#TelefoneClienteEmpresaComercial').val(tel2);
 
-        if(cep) {
-            await valida_e_preenche_cep_empresa_com_API_externa(cep, stUltimaInstancia);
-        }
-        
-        return true;
+    if (cep) {
+      await valida_e_preenche_cep_empresa_com_API_externa(cep, stUltimaInstancia);
     }
 
-    return false;
+    return true;
+  }
+
+  return false;
 }
 
 async function valida_dados_cliente_em_ultima_instancia(cpfOrCnpjCliente, stAtualizaCadastro = false) {
-    try {
-        $('#notificacaoModalCadastroCliente').html(``);
+  try {
+    $('#notificacaoModalCadastroCliente').html(``);
 
-        cpfOrCnpjCliente = cpfOrCnpjCliente?.replace(/\D/g, "");
+    cpfOrCnpjCliente = cpfOrCnpjCliente?.replace(/\D/g, "");
 
-        if(!stAtualizaCadastro){
-            if ($('#tipoClienteEmpresa').val() == 'CNPJ') {
-                animationLoadingFormClient('Carregando dados do Cliente direto da Receita Federal, aguarde...');
+    if (!stAtualizaCadastro) {
+      if ($('#tipoClienteEmpresa').val() == 'CNPJ') {
+        animationLoadingFormClient('Carregando dados do Cliente direto da Receita Federal, aguarde...');
 
-                let status_preenchimento = await preenche_cadastro_empresa_com_dados_de_API_externa(cpfOrCnpjCliente, true);
+        let status_preenchimento = await preenche_cadastro_empresa_com_dados_de_API_externa(cpfOrCnpjCliente, true);
 
-                $('#CadCliente').removeClass('d-none').attr('onclick', 'validaDadosDoFormCliente(true)');
+        $('#CadCliente').removeClass('d-none').attr('onclick', 'validaDadosDoFormCliente(true)');
 
-                if (status_preenchimento) {
-                    msgSuccessFormCliente('Preenchimento Realizado Com Sucesso!');
-                }
-
-            } else {
-                msgSuccessFormCliente('CPF Válido, prossiga com o restante do cadastro!');
-            }
-
-        } else {
-            modalCadastroCliente(cpfOrCnpjCliente, true);
+        if (status_preenchimento) {
+          msgSuccessFormCliente('Preenchimento Realizado Com Sucesso!');
         }
-    } catch (error) {
-        msgWarningCadastroCliente(undefined, 'Error ao Validar os dados, recarregue e tente novamente!');
-        console.log(error);
+
+      } else {
+        msgSuccessFormCliente('CPF Válido, prossiga com o restante do cadastro!');
+      }
+
+    } else {
+      modalCadastroCliente(cpfOrCnpjCliente, true);
     }
+  } catch (error) {
+    msgWarningCadastroCliente(undefined, 'Error ao Validar os dados, recarregue e tente novamente!');
+    console.log(error);
+  }
 }
 
 async function modal_Preenchimento_CNPJ(cnpjEmpresaVoucherSemFormato, stUltimaInstancia = false) {
-    let cnpjEmpresaVoucher = cnpjEmpresaVoucherSemFormato.replace(/\D/g, "")
+  let cnpjEmpresaVoucher = cnpjEmpresaVoucherSemFormato.replace(/\D/g, "")
 
-    if (validar_Cnpj(cnpjEmpresaVoucher)) {
-    
-        if (!stUltimaInstancia){
-            return Swal.fire({
-                title: 'Deseja Autocompletar ou Atualizar as Informações deste Cliente Automaticamente de Acordo Com o Cadastro na Receita Federal?',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sim',
-                cancelButtonText: 'Não',
-            }).then(async (result) => {
-                if (result.value == true) {
-                    animationLoadingStart("Carregando os dados do CNPJ... Por favor aguarde!");
+  if (validar_Cnpj(cnpjEmpresaVoucher)) {
+
+    if (!stUltimaInstancia) {
+      return Swal.fire({
+        title: 'Deseja Autocompletar ou Atualizar as Informações deste Cliente Automaticamente de Acordo Com o Cadastro na Receita Federal?',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sim',
+        cancelButtonText: 'Não',
+      }).then(async (result) => {
+        if (result.value == true) {
+          animationLoadingStart("Carregando os dados do CNPJ... Por favor aguarde!");
 
 
-                    let status = await preenche_cadastro_empresa_com_dados_de_API_externa(cnpjEmpresaVoucher);
+          let status = await preenche_cadastro_empresa_com_dados_de_API_externa(cnpjEmpresaVoucher);
 
-                    if (status) {
-                        await msgSuccess('Dados Preenchidos com Sucesso!');
-                    }
+          if (status) {
+            await msgSuccess('Dados Preenchidos com Sucesso!');
+          }
 
-                    $('#select2-idIndicacaoIE-container').focus();
-                }
-            })
+          $('#select2-idIndicacaoIE-container').focus();
         }
-
-        animationLoadingFormClient('Buscando Dados, aguarde...');
-
-        await preenche_cadastro_empresa_com_dados_de_API_externa(cnpjEmpresaVoucher, stUltimaInstancia);
-
-        $('#notificacaoModalCadastroCliente').html('');
-
-        return true;
-    } else {
-        msgWarningCadastroCliente(undefined, 'CNPJ Inválido, verifique e tente atualizar novamente!')
+      })
     }
+
+    animationLoadingFormClient('Buscando Dados, aguarde...');
+
+    await preenche_cadastro_empresa_com_dados_de_API_externa(cnpjEmpresaVoucher, stUltimaInstancia);
+
+    $('#notificacaoModalCadastroCliente').html('');
+
+    return true;
+  } else {
+    msgWarningCadastroCliente(undefined, 'CNPJ Inválido, verifique e tente atualizar novamente!')
+  }
 }
 
 async function valida_e_preenche_cep_empresa_com_API_externa(cepSemFormato, stUltimaInstancia = false) {
-    let cep = cepSemFormato?.replace(/\D/g, "");
+  let cep = cepSemFormato?.replace(/\D/g, "");
 
-    try{
+  try {
 
-        if(cep){
-            if (await validaCEP(cep)) {
-                let dadosCep = await getDadosEnderecoViaCep_API_externa(cep).then((resp)=>{ 
-                   if(resp.status !== 200){
-                        throw resp 
-                   }
+    if (cep) {
+      animationLoadingFormClient('Carregando dados do CEP, Aguarde...')
 
-                   return resp.data;
-                })
-                
+      if (await validaCEP(cep)) {
+        let dadosCep = await getDadosEnderecoViaCep_API_externa(cep).then(async (resp) => {
+          if (resp.status !== 200) {
+            return getDadosEnderecoViaCep_API_redundancia(cep).then(resp => resp.data);
+          }
 
-                $("#Endereco").val(dadosCep?.logradouro);
-                $("#Bairro").val(dadosCep?.bairro);
-                $("#Cidade").val(dadosCep?.localidade);
-                $("#Estado").val(dadosCep?.uf);
-                $("#NuIBGE").val(dadosCep?.ibge);
+          return resp.data;
+        })
 
-                if($('#tipoClienteEmpresa').val() == 'CPF'){
-                    $('#idIndicacaoIE').val((dadosCep?.uf == 'DF' ? 2 : 9)).trigger('change');
-                }
 
-            } else{
-                $("#Bairro, #NuIBGE, #Cidade, #Estado").val('');
+        $("#Endereco").val(dadosCep?.logradouro);
+        $("#Bairro").val(dadosCep?.bairro);
+        $("#Cidade").val(dadosCep?.localidade);
+        $("#Estado").val(dadosCep?.uf);
+        $("#NuIBGE").val(dadosCep?.ibge);
 
-                !stUltimaInstancia && msgError('CEP Inválido, verifique e tente novamente!');
-                return msgWarningCadastroCliente($('#NuCEP'), 'CEP Inválido, verifique e tente novamente!');
-            }
+        if ($('#tipoClienteEmpresa').val() == 'CPF') {
+          let newValueIdIE = 9;//(dadosCep?.uf == 'DF' ? 2 : 9);
+          $('#idIndicacaoIE').val(newValueIdIE).trigger('change');
         }
 
-    }catch (e) {
-        console.log("Erro ao retornar o autocomplete pelo CEP, ERROR: " + (e?.message || e));
+      } else {
+        $("#Bairro, #NuIBGE, #Cidade, #Estado").val('');
 
-        !stUltimaInstancia && msgError(e?.message || 'Erro ao tentar preencher os dados do cliente, recarregue e tente novamente!');
-        return msgWarningCadastroCliente(undefined, e?.message || 'Erro ao tentar preencher os dados do cliente, recarregue e tente novamente!')
+        $('#notificacaoModalCadastroCliente').html('');
 
+        !stUltimaInstancia && msgError('CEP Inválido, verifique e tente novamente!');
+        return msgWarningCadastroCliente($('#NuCEP'), 'CEP Inválido, verifique e tente novamente!');
+      }
+
+      $('#notificacaoModalCadastroCliente').html('');
     }
+
+  } catch (e) {
+    console.log("Erro ao retornar o autocomplete pelo CEP, ERROR: " + (e?.message || e));
+
+    $('#notificacaoModalCadastroCliente').html('');
+
+    !stUltimaInstancia && msgError(e?.message || 'Erro ao tentar preencher os dados do cliente, recarregue e tente novamente!');
+    return msgWarningCadastroCliente(undefined, e?.message || 'Erro ao tentar preencher os dados do cliente, recarregue e tente novamente!')
+
+  }
 
 }
 
@@ -12066,98 +12162,95 @@ async function valida_e_preenche_cep_empresa_com_API_externa(cepSemFormato, stUl
 
 ///----------INICIO Modais de Interação Com o Usuario----------///
 async function modalAuthUserCreateVoucher(idVenda, stTipoTroca) {
-    let dadosUser;
-    let dataUserLogado = await getCurrentUser()?.user;
-    let lojaLogada = dataUserLogado?.IDEMPRESA;
-    let grupoLojaLogada = dataUserLogado?.IDGRUPOEMPRESARIAL;
-    let htmlModalAuth = `
-        <div class="text-dark fw-900">
+  let dadosUser;
+  let dataUserLogado = await getCurrentUser()?.user;
+  let lojaLogada = dataUserLogado?.IDEMPRESA;
+  let grupoLojaLogada = dataUserLogado?.IDGRUPOEMPRESARIAL;
+  let htmlModalAuth = `
+    <div class="text-dark fw-900">
 
-            <label class="form-label" for="matricula">Matricula</label>
-            <div class="input-group">
-                <input id="matricula" class="swal2-input z-index-5 mt-0 w-75" type="text" autocomplete="off" placeholder="Digite sua Matrícula" style="text-align: center;" onkeypress="mascaraMulti(this, onlyNum)">
-            </div>
+      <label class="form-label" for="matricula">Matricula</label>
+      <div class="input-group">
+          <input id="matricula" class="swal2-input z-index-5 mt-0 w-75" type="text" autocomplete="off" placeholder="Digite sua Matrícula" style="text-align: center;" onkeypress="mascaraMulti(this, onlyNum)">
+      </div>
 
-            <label class="form-label" for="senha">Senha</label>
-            <div class="input-group">
-                <input id="senha" class="swal2-input mt-0 w-75" type="password" autocomplete="off" placeholder="Digite sua Senha" style="text-align: center;">
-            </div>
+      <label class="form-label" for="senha">Senha</label>
+      <div class="input-group">
+          <input id="senha" class="swal2-input mt-0 w-75" type="password" autocomplete="off" placeholder="Digite sua Senha" style="text-align: center;">
+      </div>
 
-        </div>
-    `;
+    </div>
+  `;
 
-    return Swal.fire({
-        title: 'Autorização',
-        html: htmlModalAuth,
-        width: '20rem',
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'Confirmar',
-        cancelButtonText: 'Voltar',
-        cancelButtonColor: '#3085d6',
-        showLoaderOnConfirm: true,
-        allowOutsideClick: false,
-        allowEscapeKey: true,
-        onOpen: () => {
-            $('#matricula').on('keypress', (e) => { if (e.keyCode == 13) $('#senha').val('').focus() });
-            $('#senha').on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() });
+  await Swal.fire({
+    title: 'Autorização',
+    html: htmlModalAuth,
+    width: '20rem',
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Voltar',
+    cancelButtonColor: '#3085d6',
+    showLoaderOnConfirm: true,
+    allowOutsideClick: false,
+    allowEscapeKey: true,
+    onOpen: () => {
+      $('#matricula').on('keypress', (e) => { if (e.keyCode == 13) $('#senha').val('').focus() });
+      $('#senha').on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() });
 
-            $('#swal2-validation-message').addClass('text-danger fw-700');
-        },
-        didOpen: () => {
-            $('#matricula').focus();
-        },
-        preConfirm: async () => {
-            let matricula = $('#matricula').val()?.trim();
-            let senha = $('#senha').val()?.trim();
-            let loginFunc;
+      $('#swal2-validation-message').addClass('text-danger fw-700');
+    },
+    didOpen: () => {
+      $('#matricula').focus();
+    },
+    preConfirm: async () => {
+      let matricula = $('#matricula').val()?.trim();
+      let senha = $('#senha').val()?.trim();
+      let loginFunc;
 
-            if (!matricula || !senha) {
-                !matricula ? $('#matricula').val('').focus() : $('#senha').val('').focus();
-                return Swal.showValidationMessage('Campo de Matrícula ou Senha vazio');
-            }
+      if (!matricula || !senha) {
+        !matricula ? $('#matricula').val('').focus() : $('#senha').val('').focus();
+        return Swal.showValidationMessage('Campo de Matrícula ou Senha vazio');
+      }
 
-            loginFunc = {
-                "MATRICULA": matricula,
-                "SENHA": senha,
-                "IDEMPRESALOGADA": lojaLogada,
-                "IDGRUPOEMPRESARIAL": grupoLojaLogada,
-                "IDVENDA": idVenda,
-                "STTIPOTROCA": stTipoTroca
-            };
+      loginFunc = {
+        "MATRICULA": matricula,
+        "SENHA": senha,
+        "IDEMPRESALOGADA": lojaLogada,
+        "IDGRUPOEMPRESARIAL": grupoLojaLogada,
+        "IDVENDA": idVenda,
+        "STTIPOTROCA": stTipoTroca
+      };
 
-            return ajaxPost(`api/resumo-voucher/auth-funcionario-create-voucher.xsjs`, loginFunc)
-                .then(async (response) => {
-                    let { data } = response;
+      try {
+        let { data } = await ajaxPost(`api/resumo-voucher/auth-funcionario-create-voucher.xsjs`, loginFunc) || [];
 
-                    dadosUser = data[0];
-                })
-                .catch((returnError) => {
-                    let { error } = returnError;
-
-                    Swal.hideLoading();
-
-                    console.log(returnError);
-                    $('#matricula').focus();
-
-                    return Swal.showValidationMessage(error || 'Erro ao tentar validar o usuário, recarregue e tente novamente!');
-                })
-        }
-    }).then(async (result) => {
-        if (result.value) {
-            return dadosUser;
+        if (!data || !data?.length || !data[0]?.IDFUNCIONARIO) {
+          throw { error: 'Erro ao tentar validar o usuário, recarregue e tente novamenteTESTE!' }
         }
 
-        return false;
-    })
+        dadosUser = data[0];
+      } catch (e) {
+        let { error } = e || undefined;
+
+        Swal.hideLoading();
+
+        $('#matricula').focus();
+
+        return Swal.showValidationMessage(error || 'Erro ao tentar validar o usuário, recarregue e tente novamente!');
+      }
+    }
+  });
+
+  return dadosUser;
 }
 
 async function modalAuthUserEditOrPrintVoucher(idVoucher = '', MODOPRINT = false) {
-    let dadosUser;
-    let dataUserLogado = await getCurrentUser()?.user;
-    let lojaLogada = dataUserLogado?.IDEMPRESA;
-    let grupoLojaLogada = dataUserLogado?.IDGRUPOEMPRESARIAL;
-    let htmlModalAuth = `
+  let dadosUser;
+  let dataUserLogado = await getCurrentUser()?.user;
+  let lojaLogada = dataUserLogado?.IDEMPRESA;
+  let grupoLojaLogada = dataUserLogado?.IDGRUPOEMPRESARIAL;
+  let htmlModalAuth = `
         <div class="text-dark fw-900">
 
             <label class="form-label" for="matricula">Matricula</label>
@@ -12173,245 +12266,255 @@ async function modalAuthUserEditOrPrintVoucher(idVoucher = '', MODOPRINT = false
         </div>
     `;
 
-    return Swal.fire({
-        title: 'Autorização',
-        html: htmlModalAuth,
-        width: '20rem',
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'Confirmar',
-        cancelButtonText: 'Voltar',
-        cancelButtonColor: '#3085d6',
-        showLoaderOnConfirm: true,
-        allowOutsideClick: false,
-        allowEscapeKey: true,
-        onOpen: () => {
-            $('#matricula').on('keypress', (e) => { if (e.keyCode == 13) $('#senha').val('').focus() });
-            $('#senha').on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() });
+  return Swal.fire({
+    title: 'Autorização',
+    html: htmlModalAuth,
+    width: '20rem',
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Voltar',
+    cancelButtonColor: '#3085d6',
+    showLoaderOnConfirm: true,
+    allowOutsideClick: false,
+    allowEscapeKey: true,
+    onOpen: () => {
+      $('#matricula').on('keypress', (e) => { if (e.keyCode == 13) $('#senha').val('').focus() });
+      $('#senha').on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() });
 
-            $('#swal2-validation-message').addClass('text-danger fw-700');
-        },
-        didOpen: () => {
-            $('#matricula').focus();
-        },
-        preConfirm: async () => {
-            let matricula = $('#matricula').val().trim();
-            let senha = $('#senha').val().trim();
-            let loginFunc;
+      $('#swal2-validation-message').addClass('text-danger fw-700');
+    },
+    didOpen: () => {
+      $('#matricula').focus();
+    },
+    preConfirm: async () => {
+      let matricula = $('#matricula').val().trim();
+      let senha = $('#senha').val().trim();
+      let loginFunc;
 
-            if (!matricula || !senha) {
-                !matricula ? $('#matricula').val('').focus() : $('#senha').val('').focus();
-                return Swal.showValidationMessage('Campo de Matrícula ou Senha vazio');
-            }
+      if (!matricula || !senha) {
+        !matricula ? $('#matricula').val('').focus() : $('#senha').val('').focus();
+        return Swal.showValidationMessage('Campo de Matrícula ou Senha vazio');
+      }
 
-            loginFunc = {
-                "MATRICULA": matricula,
-                "SENHA": senha,
-                "IDVOUCHER": idVoucher,
-                "IDEMPRESALOGADA": lojaLogada,
-                "IDGRUPOEMPRESARIAL": grupoLojaLogada
-            };
+      loginFunc = {
+        "MATRICULA": matricula,
+        "SENHA": senha,
+        "IDVOUCHER": idVoucher,
+        "IDEMPRESALOGADA": lojaLogada,
+        "IDGRUPOEMPRESARIAL": grupoLojaLogada
+      };
 
-            let api = !MODOPRINT ? 'auth-funcionario-update-voucher' : 'auth-funcionario-print-voucher';
+      let api = !MODOPRINT ? 'auth-funcionario-update-voucher' : 'auth-funcionario-print-voucher';
 
-            return ajaxPost(`api/resumo-voucher/${api}.xsjs`, loginFunc)
-                .then(async (response) => {
-                    let { data } = response;
+      return ajaxPost(`api/resumo-voucher/${api}.xsjs`, loginFunc)
+        .then(async (response) => {
+          let { data } = response;
 
-                    dadosUser = data[0];
-                })
-                .catch((returnError) => {
-                    let { error } = returnError;
-                    console.log(returnError);
-                    $('#matricula').focus();
-                    return Swal.showValidationMessage(error || 'Error ao tentar validar o usuário, recarregue e tente novamente!');
-                })
-        }
-    }).then(async (result) => {
-        if (result.value) {
-            return dadosUser;
-        }
+          dadosUser = data[0];
+        })
+        .catch((returnError) => {
+          let { error } = returnError;
+          console.log(returnError);
+          $('#matricula').focus();
+          return Swal.showValidationMessage(error || 'Error ao tentar validar o usuário, recarregue e tente novamente!');
+        })
+    }
+  }).then(async (result) => {
+    if (result.value) {
+      return dadosUser;
+    }
 
-        return false;
-    })
+    return false;
+  })
 }
 
 async function modalMotivoCriacaoVoucher() {
-    let motivoTroca;
+  let motivoTroca;
 
-    return Swal.fire({
-        title: 'Motivo da troca?',
-        html: `
-            <div class="d-block m-auto">
-                <div class="input-group d-block text-dark text-left pt-0">
-                    <input type="text" id="motivoTroca" class="swal2-input m-0" autocomplete="off" placeholder="Digite o Motivo" style="text-transform: uppercase">
-                    <small class="fw-700">*Mínimo 10 caracteres</small>
-                </div>
-            </div>
-        `,
-        width: '25rem',
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'Confirmar',
-        cancelButtonText: 'Sair',
-        cancelButtonColor: '#3085d6',
-        showLoaderOnConfirm: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        backdrop: true,
-        onOpen: () => {
+  await Swal.fire({
+    title: 'Motivo da troca?',
+    html: `
+      <div class="d-block m-auto">
+        <div class="input-group d-block text-dark text-left pt-0">
+          <input type="text" id="motivoTroca" class="swal2-input m-0" autocomplete="off" placeholder="Digite o Motivo" style="text-transform: uppercase">
+          <small class="fw-700">*Mínimo 10 caracteres</small>
+        </div>
+      </div>
+    `,
+    width: '25rem',
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Sair',
+    cancelButtonColor: '#3085d6',
+    showLoaderOnConfirm: true,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    backdrop: true,
+    onOpen: () => {
 
-            $('#motivoTroca').on('keyup', (e) => {
-                $('#motivoTroca').val(e.target.value?.replace(/[^a-zA-Z0-9\s]/g, '')?.replace(/\s{2,}/g, ' '));
-            });
+      $('#motivoTroca').on('keyup', (e) => {
+        $('#motivoTroca').val(e.target.value?.replace(/[^a-zA-Z0-9\s]/g, '')?.replace(/\s{2,}/g, ' '));
+      });
 
-            $('#motivoTroca').focus().on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() });
-            $('#swal2-validation-message').addClass(' text-danger fw-700');
+      $('#motivoTroca').focus().on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() });
+      $('#swal2-validation-message').addClass(' text-danger fw-700');
 
-        },
-        preConfirm: () => {
-            motivoTroca = $('#motivoTroca').val()?.trim();
+    },
+    preConfirm: () => {
+      motivoTroca = $('#motivoTroca').val()?.trim();
 
-            if (!motivoTroca?.length || motivoTroca?.length < 10) {
-                $('#motivoTroca').focus();
-                return Swal.showValidationMessage(`Adicione o Motivo da Troca Com no Mínimo 10 Caracteres!`);
-            }
+      if (!motivoTroca?.length || motivoTroca?.length < 10) {
+        $('#motivoTroca').focus();
+        return Swal.showValidationMessage(`Adicione o Motivo da Troca Com no Mínimo 10 Caracteres!`);
+      }
 
-            if (motivoTroca?.length > 200) {
-                $('#motivoTroca').focus();
-                return Swal.showValidationMessage(`Motivo da Troca Está Muito Grande, Abrevie!`);
-            }
-        }
-    }).then((result) => {
-        if (result.value) {
-            return motivoTroca;
-        }
+      if (motivoTroca?.length > 200) {
+        $('#motivoTroca').focus();
+        return Swal.showValidationMessage(`Motivo da Troca Está Muito Grande, Abrevie!`);
+      }
+    }
+  });
 
-        return false;
-    })
+  return motivoTroca;
+}
+
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function buscarDadosClientePorCpfCnpj(cpfCnpjCliente) {
+  cpfCnpjCliente = cpfCnpjCliente?.replace(/\D/g, "");
+
+  let { data } = await ajaxGet(`api/gerencia/cliente.xsjs?numeroCpfCnpj=${cpfCnpjCliente}`) || [];
+
+  return data;
 }
 
 async function modalCpfOuCnpjDoClienteParaVoucher(cpfCnpjCliente) {
-    let dadosCliente;
+  let dadosCliente = null;
 
-    return Swal.fire({
-        title: 'Insira o CPF ou CNPJ do cliente',
-        html: `
-            <div class="d-block m-auto" style="width: 50%;">
-                <div class=" input-group text-dark pt-0 mb-3" >
-                    <input type="text" id="nuCPFCNPJmodal" class="swal2-input m-0 " maxlength="18" autocomplete="off" onkeyup="mascaraMultiAutomatica(this)" onpaste="mascaraMultiAutomatica(this)" placeholder="Digite o CPF/CNPJ" >
-                </div>
-            </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Confirmar',
-        cancelButtonText: 'Sair',
-        cancelButtonColor: '#3085d6',
-        showLoaderOnConfirm: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        backdrop: true,
-        onOpen: () => {
-            cpfCnpjCliente = cpfCnpjCliente?.replace(/\D/g, "");
+  await Swal.fire({
+    title: 'Insira o CPF ou CNPJ do cliente',
+    html: `
+      <div class="d-block m-auto" style="width: 50%;">
+        <div class="input-group text-dark pt-0 mb-3">
+          <input type="text" id="nuCPFCNPJmodal" class="swal2-input m-0" maxlength="18" autocomplete="off" onkeyup="mascaraMultiAutomatica(this)" onpaste="mascaraMultiAutomatica(this)" placeholder="Digite o CPF/CNPJ">
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Sair',
+    cancelButtonColor: '#3085d6',
+    showLoaderOnConfirm: true,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    backdrop: true,
+    onOpen: () => {
+      const cpfCnpj = cpfCnpjCliente?.replace(/\D/g, '');
 
-            $('#nuCPFCNPJmodal').focus().val(cpfCnpjCliente || '').on('keypress', (e) => {
-                if (e.keyCode == 13) {
-                    Swal.clickConfirm();
-                } else {
-                    Swal.resetValidationMessage();
-                }
-            });
+      $('#nuCPFCNPJmodal')
+        .focus()
+        .val(cpfCnpj || '')
+        .on('keypress', function (e) {
+          if (e.keyCode === 13) {
+            Swal.clickConfirm();
+          } else {
+            Swal.resetValidationMessage();
+          }
+        });
 
-            $('#swal2-validation-message').addClass(' text-danger fw-700');
-        },
-        preConfirm: async () => {
-            let CPFCNPJFormatado = $('#nuCPFCNPJmodal').val()?.replace(/\D/g, "");
+      $('#swal2-validation-message').addClass('text-danger fw-700');
+    },
+    preConfirm: async () => {
+      const cpfCnpj = $('#nuCPFCNPJmodal').val()?.replace(/\D/g, '');
 
-            $('#swal2-validation-message').addClass('text-danger fw-700');
+      $('#swal2-validation-message')
+        .removeClass('text-info')
+        .addClass('text-danger fw-700');
 
-            if (CPFCNPJFormatado?.length) {
-                
-                if (CPFCNPJFormatado?.length <= 11 && !validar_Cpf(CPFCNPJFormatado)) {
-                    $('#nuCPFCNPJmodal').val(maskCPF(CPFCNPJFormatado));
-                    return Swal.showValidationMessage('CPF Inválido, verifique o CPF digitado e tente novamente');
+      if (!cpfCnpj) {
+        Swal.showValidationMessage('CPF ou CNPJ vazio. Digite e tente novamente.');
+        return false;
+      }
 
-                }
+      if (cpfCnpj.length <= 11 && !validar_Cpf(cpfCnpj)) {
+        $('#nuCPFCNPJmodal').val(maskCPF(cpfCnpj));
+        Swal.showValidationMessage('CPF inválido. Verifique o CPF digitado e tente novamente.');
+        return false;
+      }
 
-                if (CPFCNPJFormatado.length > 11 && !validar_Cnpj(CPFCNPJFormatado)) {
-                    $('#nuCPFCNPJmodal').val(maskCNPJ(CPFCNPJFormatado));
-                    return Swal.showValidationMessage('CNPJ Inválido, verifique o CNPJ digitado e tente novamente');
+      if (cpfCnpj.length > 11 && !validar_Cnpj(cpfCnpj)) {
+        $('#nuCPFCNPJmodal').val(maskCNPJ(cpfCnpj));
+        Swal.showValidationMessage('CNPJ inválido. Verifique o CNPJ digitado e tente novamente.');
+        return false;
+      }
 
-                }
-                return new Promise(async (resolve, reject)=>{
+      try {
+        dadosCliente = await buscarDadosClientePorCpfCnpj(cpfCnpj);
+      } catch (error) {
+        console.error(error);
+        Swal.showValidationMessage('Erro ao buscar os dados do cliente. Recarregue e tente novamente.');
+        return false;
+      }
 
-                    await ajaxGet(`api/gerencia/cliente.xsjs?numeroCpfCnpj=${CPFCNPJFormatado}`)
-                        .then(async (response) => {
-                            let { data } = response || [];
+      if (!dadosCliente?.length) {
+        Swal.showValidationMessage('Cliente sem cadastro. Faça o cadastro ou verifique o CPF/CNPJ informado!');
 
-                            if (!data?.length) {
-                                setTimeout(() => {
-                                    abreCadastroClienteSemRegistroUltimaInstancia(CPFCNPJFormatado, false);
+        $('#swal2-validation-message')
+          .removeClass('text-danger')
+          .addClass('text-info');
 
-                                    resolve()
-                                }, 5000)
-                                return Swal.showValidationMessage(`Cliente sem cadastro, Faça o cadastro ou verifique o CPF/CNPJ inserido! Abrindo tela de cadastro, aguarde...`)
-                            } else {
-                                dadosCliente = data[0];
+        await sleep(3000);
 
-                                let stAtualizado = await verificaSePrecisaAtualizarCadastroCliente(dadosCliente);
-
-                                if (!stAtualizado) {
-
-                                    setTimeout(() => {
-                                        abreCadastroClienteSemRegistroUltimaInstancia(CPFCNPJFormatado, true);
-
-                                        resolve()
-                                    }, 5000)
-
-                                    $('#swal2-validation-message').removeClass('text-danger').addClass('text-info');
-
-                                    return Swal.showValidationMessage(`Cliente com cadastro desatualizado, Atualize os dados! Abrindo cadastro do cliente, aguarde...`);
-                                }
-                            
-                            }
-
-                            Swal.resetValidationMessage();
-                            dadosCliente = data[0];
-
-                            resolve();
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                            Swal.hideLoading();
-                            setTimeout(()=>reject(), 1000);
-
-                            Swal.resetValidationMessage();
-
-                            return Swal.showValidationMessage('Erro ao buscar dados do cliente, recarregue e tente novamente!')
-                        })
-                    })
-            } else {
-                Swal.resetValidationMessage();
-
-                return Swal.showValidationMessage('CPF ou CNPJ Vazio, Digite e Tente Novamente');
-            }
-        }
-    }).then((result) => {
-        if (result.value) {
-            return dadosCliente;
-        }
+        abreCadastroClienteSemRegistroUltimaInstancia(cpfCnpj, false);
 
         return false;
-    })
+      }
 
+      dadosCliente = dadosCliente[0];
+
+      let stAtualizado;
+
+      try {
+        stAtualizado = await verificaSePrecisaAtualizarCadastroCliente(dadosCliente);
+      } catch (error) {
+        console.error(error);
+        Swal.showValidationMessage('Erro ao verificar o cadastro do cliente.');
+        return false;
+      }
+
+      if (!stAtualizado) {
+        $('#swal2-validation-message')
+          .removeClass('text-danger')
+          .addClass('text-info');
+
+        Swal.showValidationMessage('Cliente com cadastro desatualizado. Atualize os dados!');
+
+        await sleep(3000);
+
+        abreCadastroClienteSemRegistroUltimaInstancia(cpfCnpj, true);
+
+        return false;
+      }
+
+      Swal.resetValidationMessage();
+
+      return dadosCliente;
+    }
+  });
+
+  return dadosCliente
 }
 
 async function modalDeSelecaoDeTipoDeTroca() {
-    let tipoTroca;
+  let tipoTroca;
 
-    return Swal.fire({
-        title: 'Tipo da troca?',
-        html: `<div class="d-block m-auto" style="width: 50%;">
+  return Swal.fire({
+    title: 'Tipo da troca?',
+    html: `<div class="d-block m-auto" style="width: 50%;">
                 <label class="form-label" for="matricula">Tipo</label>
                 <div class="pb-2">
                     <select id="tipoTroca" class="select2">
@@ -12421,477 +12524,474 @@ async function modalDeSelecaoDeTipoDeTroca() {
                     </select>
                 </div>
             </div>`,
-        width: '25rem',
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'Confirmar',
-        cancelButtonText: 'Sair',
-        cancelButtonColor: '#3085d6',
-        showLoaderOnConfirm: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        backdrop: true,
-        onOpen: () => {
-            $('#tipoTroca').select2();
-            $('#tipoTroca').select2('focus');
+    width: '25rem',
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Sair',
+    cancelButtonColor: '#3085d6',
+    showLoaderOnConfirm: true,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    backdrop: true,
+    onOpen: () => {
+      $('#tipoTroca').select2();
+      $('#tipoTroca').select2('focus');
 
-            $('#swal2-validation-message').addClass('text-danger fw-700');
+      $('#swal2-validation-message').addClass('text-danger fw-700');
 
-            $('#tipoTroca').on('select2:select', () => {
-                $('button.swal2-confirm').focus();
-                $('swal2-container').on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() })
-            })
-        },
-        preConfirm: () => {
-            tipoTroca = $('#tipoTroca').val();
+      $('#tipoTroca').on('select2:select', () => {
+        $('button.swal2-confirm').focus();
+        $('swal2-container').on('keypress', (e) => { if (e.keyCode == 13) Swal.clickConfirm() })
+      })
+    },
+    preConfirm: () => {
+      tipoTroca = $('#tipoTroca').val();
 
-            if (!tipoTroca) {
-                $('#tipoTroca').val('').trigger('change');
-                $('#tipoTroca').select2("focus");
+      if (!tipoTroca) {
+        $('#tipoTroca').val('').trigger('change');
+        $('#tipoTroca').select2("focus");
 
-                return Swal.showValidationMessage(`Selecione o Tipo da Troca Antes de Prosseguir!`);;
+        return Swal.showValidationMessage(`Selecione o Tipo da Troca Antes de Prosseguir!`);;
 
-            }
-        }
-    }).then(async (result) => {
-        if (result.value) {
-            return tipoTroca;
-        }
+      }
+    }
+  }).then(async (result) => {
+    if (result.value) {
+      return tipoTroca;
+    }
 
-        return false;
-    });
+    return false;
+  });
 }
 
 ///----------FIM Modais de Interação Com o Usuario----------///
 
-async function telaCriacaoEdicaoVouchers(stReloadingHtml, idVoucher) {
-    try {
-        if (stReloadingHtml) {
-            animationLoadingStart();
+async function telaCriacaoEdicaoVouchers(stReloadingHtml, stExibirModalVouchersEmAnalise = true) {
+  try {
+    if (stReloadingHtml) {
+      animationLoadingStart();
 
-            await $.get("gerencia_action_tela_search_and_create_voucher.html", async (respHtml) => {
-                $("#js-page-content").html(respHtml);
+      let respHtml = await $.get("gerencia_action_tela_search_and_create_voucher.html");
 
-                $('.dataAtual').text(dataAtual);
+      $("#js-page-content").html(respHtml);
 
-                $('#dtconsultainicio').val(dataAtualCampo).on('keypress', (e) => { if (e.keyCode == 13) pesquisaVoucherEmitido() });
-                $('#dtconsultafim').val(dataAtualCampo).on('keypress', (e) => { if (e.keyCode == 13) pesquisaVoucherEmitido() });
+      $('.dataAtual').text(dataAtual);
 
-                $('#NVoucher').on('keypress', (e) => { if (e.keyCode == 13) pesquisaVoucherEmitido() });
+      $('#dtconsultainicio, #dtconsultafim').val(dataAtualCampo).on('keypress', (e) => { if (e.keyCode == 13) pesquisaVoucherEmitido() });
 
-                $('#NVoucher').focus();
+      $('#NVoucher').focus();
 
-                $('.DescTituloVoucher').html(`
-                    <i class='subheader-icon fal fa-chart-area'></i> Vouchers
-                `);
+      $('.DescTituloVoucher').html('<i class=\'subheader-icon fal fa-chart-area\'></i> Vouchers');
 
-                animationLoadingStop();
+      animationLoadingStop();
 
-                if (!idVoucher) {
-                    await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?idEmpresa=${IDEmpresaLogin}&stStatus='EM ANALISE'`, 'Carregando Dados...')
-                        .then(retornoListaVouchersEmProcessamento)
-                        .catch((error) => { throw error; });
-                } else {
-                    await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${idVoucher}`, 'Carregando Dados...')
-                        .then(retornoListaVouchers)
-                        .catch((error) => { throw error; })
-                }
+      if (stExibirModalVouchersEmAnalise) {
+        exibirModalVouchersEmAnalise();
+      }
 
-            }).fail((error) => { throw error; })
+    } else {
+      $('#btnCadCliente').attr('value', '');
+      $('#btnCadVoucher, #tabelaProduto').addClass('d-none');
+      $("#resultadoProduto").DataTable().clear().destroy();
+      $('#tabelaVenda').removeClass('d-none');
+      $("#voltaTela").attr('onclick', 'telaCriacaoEdicaoVouchers(true)');
+      $("#resultadoVendaClienteVoucher").DataTable().destroy();
+      $("#resultadoVendaClienteVoucher").DataTable({
+        paging: true,
+        pageLength: 10,
+        searching: true,
+        info: true,
+        deferRender: true,
+        responsive: true,
+        scrollY: "1000px",
+        scrollX: true,
+        scrollCollapse: true,
+        columnDefs: [
+          {
+            targets: [1, 8],
+            className: 'text-center'
+          },
+          {
+            targets: [6],
+            type: 'currency-brl'
+          },
+          {
+            targets: [7],
+            type: 'date-time-br'
+          },
 
-        } else {
-            $('#btnCadCliente').attr('value', '');
-            $('#btnCadVoucher').addClass('d-none');
-            $('.tabelaProduto').addClass('d-none');
-            $("#resultadoProduto").DataTable().clear().destroy();
-            $('.tabelaVenda').removeClass('d-none');
-            $("#voltaTela").attr('onclick', 'telaCriacaoEdicaoVouchers(true)');
-            $("#resultadoVendaClienteVoucher").DataTable().destroy();
-            $("#resultadoVendaClienteVoucher").DataTable({
-                paging: true,
-                pageLength: 10,
-                searching: true,
-                info: true,
-                deferRender: true,
-                responsive: true,
-                scrollY: "1000px",
-                scrollX: true,
-                scrollCollapse: true,
-                columnDefs: [
-                    {
-                        targets: [1, 8],
-                        className: 'text-center'
-                    },
-                    {
-                        targets: [6],
-                        type: 'currency-brl'
-                    },
-                    {
-                        targets: [7],
-                        type: 'date-time-br'
-                    },
+        ],
+        columns: [
+          { width: '5%' },
+          { width: '5%' },
+          { width: '10%' },
+          { width: '25%' },
+          { width: '10%' },
+          { width: '20%' },
+          { width: '10%' },
+          { width: '10%' },
+          { width: '5%' }
+        ],
+        initComplete: function (settings) {
+          let idTable = `#${settings.nTable.id}`;
 
-                ],
-                columns: [
-                    { width: '5%' },
-                    { width: '5%' },
-                    { width: '10%' },
-                    { width: '25%' },
-                    { width: '10%' },
-                    { width: '20%' },
-                    { width: '10%' },
-                    { width: '10%' },
-                    { width: '5%' }
-                ],
-                initComplete: function (settings) {
-                    let idTable = `#${settings.nTable.id}`;
+          $('html, body').animate({
+            scrollTop: $(idTable).offset().top - 70
+          }, 1000);
 
-                    $('html, body').animate({
-                        scrollTop: $(idTable).offset().top - 70
-                    }, 1000);
-                    
-                    $(idTable).find('tbody td:first').focus()
-                },
-                language: {
-                    "emptyTable": "Dados não encontrados, verifique os dados inseridos na pesquisa e tente novamente!"
-                },
-            });
-        }
-
-        return true;
-
-    } catch (error) {
-        console.log(error);
-        animationLoadingStop();
-        msgError();
+          $(idTable).find('tbody td:first').focus()
+        },
+        language: {
+          "emptyTable": "Dados não encontrados, verifique os dados inseridos na pesquisa e tente novamente!"
+        },
+      });
     }
+
+    return true;
+
+  } catch (error) {
+    console.log(error);
+    animationLoadingStop();
+    msgError();
+  }
 
 }
 
-function retornoListaVouchersEmProcessamento(respostaListaVouchersEmProcessamento) {
-    animationLoadingStop();
-    let { data } = respostaListaVouchersEmProcessamento;
-    let dadosTable = [];
-    let indice = 1;
-    let htmlLista = `
-        <div id="panel-1" class="panel">
-            <div class="panel-container show">
-                <div class="panel-content">
-                    <div>
-                        <table id="detProdVoucherProcessamento" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
-                            <thead class="bg-primary-600">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Data Criação</th>
-                                    <th>Nº Voucher</th>
-                                    <th>Cliente</th>
-                                    <th>Tipo Troca</th>
-                                    <th>Status Voucher</th>
-                                    <th>Dias Passados</th>
-                                    <th>Opção</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </div>
-            </div>
+async function exibirModalVouchersEmAnalise() {
+  try {
+    let listaVouchersEmAnalise = await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?idEmpresa=${IDEmpresaLogin}&stStatus='EM ANALISE'`, 'Carregando Dados...');
+
+    await retornoListaVouchersEmAnaliseNoModal(listaVouchersEmAnalise);
+
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
+}
+
+async function retornoListaVouchersEmAnaliseNoModal(respostaListaVouchersEmAnalise) {
+  let { data } = respostaListaVouchersEmAnalise;
+  let dadosTable = [];
+  let indice = 1;
+  let htmlLista = `
+    <div id="panel-1" class="panel">
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div>
+            <table id="detProdVoucherProcessamento" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                  <th>#</th>
+                  <th>Data Criação</th>
+                  <th>Nº Voucher</th>
+                  <th>Cliente</th>
+                  <th>Tipo Troca</th>
+                  <th>Status Voucher</th>
+                  <th>Dias Passados</th>
+                  <th>Opção</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
         </div>
-    `;
+      </div>
+    </div>
+  `;
 
-    if (data?.length) {
-        for (let { voucher } of data) {
-            let idVoucher = voucher?.IDVOUCHER;
-            let dataVoucher = voucher?.DTINVOUCHER;
-            let dataVoucherFormatada = `<span style="color: blue">${voucher?.DTINVOUCHERFORMATADO}</span>`;
-            let nuVoucher = `<span style="color: blue">${ocultaParteDosDadosVoucher(voucher?.NUVOUCHER)}</span>`;
-            let clienteVoucher = `<span style="color: blue">${voucher?.DSNOMERAZAOSOCIAL}</span>`;
-            let tipoTroca = `<span style="color: red">${voucher?.STTIPOTROCA}</span>`;
-            let stStatus = `<span style="color: blue">${voucher?.STSTATUS}</span>`;
-            let pesqVoucher = `
-                <div class="btn-group btn-group-xs">
-                    <button type="button" class="btn btn-info btn-xs" title="Visualizar Voucher" onclick="pesquisaVoucherEmitido(this.id)" id="${idVoucher}"><span class="fal fa-search p-1"></span></button>
-                </div>
-            `;
+  if (data?.length) {
+    for (let { voucher } of data) {
+      let idVoucher = voucher?.IDVOUCHER;
+      let dataVoucher = voucher?.DTINVOUCHER;
+      let dataVoucherFormatada = `<span style="color: blue">${voucher?.DTINVOUCHERFORMATADO}</span>`;
+      let nuVoucher = `<span style="color: blue">${ocultaParteDosDadosVoucher(voucher?.NUVOUCHER)}</span>`;
+      let clienteVoucher = `<span style="color: blue">${voucher?.DSNOMERAZAOSOCIAL}</span>`;
+      let tipoTroca = `<span style="color: red">${voucher?.STTIPOTROCA}</span>`;
+      let stStatus = `<span style="color: blue">${voucher?.STSTATUS}</span>`;
+      let pesqVoucher = `
+        <div class="btn-group btn-group-xs">
+          <button type="button" class="btn btn-info btn-xs" title="Visualizar Voucher" onclick="pesquisaVoucherEmitido(this.id)" id="${idVoucher}">
+            <span class="fal fa-search p-1"></span>
+          </button>
+        </div>
+      `;
 
-            const DATAHORAVOUCHER = new Date(dataVoucher.slice(0, 10));
-            const DATAHORAATUAL = new Date();
-            const DIFERENCAEMDIAS = `<span style="color: red">${Math.ceil(Math.abs(DATAHORAATUAL - DATAHORAVOUCHER.getTime()) / (1000 * 60 * 60 * 24))}</span>`;
+      const DATAHORAVOUCHER = new Date(dataVoucher.slice(0, 10));
+      const DATAHORAATUAL = new Date();
+      const DIFERENCAEMDIAS = `<span style="color: red">${Math.ceil(Math.abs(DATAHORAATUAL - DATAHORAVOUCHER.getTime()) / (1000 * 60 * 60 * 24))}</span>`;
 
-            dadosTable.push([
-                indice,
-                dataVoucherFormatada,
-                nuVoucher,
-                clienteVoucher,
-                tipoTroca,
-                stStatus,
-                DIFERENCAEMDIAS,
-                pesqVoucher,
-            ]);
+      dadosTable.push([
+        indice,
+        dataVoucherFormatada,
+        nuVoucher,
+        clienteVoucher,
+        tipoTroca,
+        stStatus,
+        DIFERENCAEMDIAS,
+        pesqVoucher,
+      ]);
 
-            indice++;
-        }
-
-        return Swal.fire({
-            type: 'info',
-            title: 'Trocas em Processamento ou Não Liberadas',
-            html: htmlLista,
-            width: '70%',
-            showCancelButton: true,
-            showCloseButton: true,
-            cancelButtonColor: '#17a2b8',
-            confirmButtonText: 'Verificar Todos',
-            cancelButtonText: 'Prosseguir',
-            onOpen: () => {
-                $('#detProdVoucherProcessamento').DataTable({
-                    data: dadosTable,
-                    responsive: true,
-                    deferRender: true,
-                    columnDefs: [
-                        {
-                            type: 'date-time-br',
-                            targets: [1],
-                            className: 'text-left'
-                        },
-                        {
-                            targets: [0, 2, 3, 4, 5, 6],
-                            className: 'text-left'
-                        },
-                    ]
-                })
-            }
-        }).then(async (resp) => {
-            if (resp.value) {
-                await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?idEmpresa=${IDEmpresaLogin}&stStatus='EM ANALISE'&pageSize=500`, 'Carregando Dados...')
-                    .then(retornoListaVouchers)
-                    .catch((error) => { throw error; })
-            }
-        })
-
+      indice++;
     }
+
+    return Swal.fire({
+      type: 'info',
+      title: 'Trocas em Processamento ou Não Liberadas',
+      html: htmlLista,
+      width: '70%',
+      showCancelButton: true,
+      showCloseButton: true,
+      cancelButtonColor: '#17a2b8',
+      confirmButtonText: 'Verificar Todos',
+      cancelButtonText: 'Prosseguir',
+      onOpen: () => {
+        $('#detProdVoucherProcessamento').DataTable({
+          data: dadosTable,
+          responsive: true,
+          deferRender: true,
+          columnDefs: [
+            {
+              type: 'date-time-br',
+              targets: [1],
+              className: 'text-left'
+            },
+            {
+              targets: [0, 2, 3, 4, 5, 6],
+              className: 'text-left'
+            },
+          ]
+        })
+      }
+    }).then(async (resp) => {
+      if (resp.value) {
+        await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?idEmpresa=${IDEmpresaLogin}&stStatus='EM ANALISE'&pageSize=500`, 'Carregando Dados...')
+          .then(retornoListaVouchers)
+          .catch((error) => { throw error; })
+      }
+    })
+
+  }
 }
 
 async function pesquisaVoucherEmitido(idVoucher = '') {
-    try {
-        let dadosUser = await getCurrentUser()?.user;
-        let numerovoucher = idVoucher ? "" : $("#NVoucher").val()?.trim() || "";
-        let userFuncao = dadosUser?.DSFUNCAO;
-        let grupoEmpresa = dadosUser?.IDSUBGRUPOEMPRESARIAL;
-        let idEmpresa = !numerovoucher ? dadosUser?.IDEMPRESA : "";
-        let dtInicio = (!numerovoucher && !idVoucher) ? $('#dtconsultainicio').val() : "";
-        let dtFim = (!numerovoucher && !idVoucher) ? $('#dtconsultafim').val() : "";
+  try {
+    let dadosUser = await getCurrentUser()?.user;
+    let numerovoucher = idVoucher ? "" : $("#NVoucher").val()?.trim() || "";
+    let userFuncao = dadosUser?.DSFUNCAO;
+    let grupoEmpresa = dadosUser?.IDSUBGRUPOEMPRESARIAL;
+    let idEmpresa = !numerovoucher ? dadosUser?.IDEMPRESA : "";
+    let dtInicio = (!numerovoucher && !idVoucher) ? $('#dtconsultainicio').val() : "";
+    let dtFim = (!numerovoucher && !idVoucher) ? $('#dtconsultafim').val() : "";
 
-        if (!dadosUser) {
-            return msgWarning('Erro ao carregar as informações do Usuário, faça o logoff e entre novamente');
-        }
-
-        let numerovoucherFormatado = numerovoucher.split('-');
-
-        if (numerovoucherFormatado.length > 2) {
-            numerovoucher = numerovoucherFormatado.join('-');
-            $("#NVoucher").val(numerovoucher);
-        } else {
-            numerovoucher = numerovoucher.replace(/[^0-9]/g, '');
-            $("#NVoucher").val(numerovoucher);
-        }
-
-        await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${idVoucher}&dataPesquisaInicio=${dtInicio}&dataPesquisaFim=${dtFim}&dadosVoucher=${numerovoucher}&subgrupoEmpresa=${grupoEmpresa}&idEmpresa=${idEmpresa}&pageSize=500`, 'Carregando Dados...')
-            .then(retornoListaVouchers)
-            .catch((error) => { throw error; })
-
-    } catch (error) {
-        console.log(error);
-        animationLoadingStop();
-        msgError();
+    if (!dadosUser) {
+      return msgWarning('Erro ao carregar as informações do Usuário, faça o logoff e entre novamente');
     }
+
+    let numerovoucherFormatado = numerovoucher.split('-');
+
+    if (numerovoucherFormatado.length > 2) {
+      numerovoucher = numerovoucherFormatado.join('-');
+      $("#NVoucher").val(numerovoucher);
+    } else {
+      numerovoucher = numerovoucher.replace(/[^0-9]/g, '');
+      $("#NVoucher").val(numerovoucher);
+    }
+
+    await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${idVoucher}&dataPesquisaInicio=${dtInicio}&dataPesquisaFim=${dtFim}&dadosVoucher=${numerovoucher}&subgrupoEmpresa=${grupoEmpresa}&idEmpresa=${idEmpresa}&pageSize=500`, 'Carregando Dados...')
+      .then(retornoListaVouchers)
+
+  } catch (error) {
+    console.log(error);
+    animationLoadingStop();
+    msgError();
+  }
 }
 
 function ocultaParteDosDadosVoucher(stringParaOcultar) {
-    if (stringParaOcultar) {
-        var dadoString = ("" + stringParaOcultar);
-        var stringPronta = dadoString.substring(0, 5) + ((dadoString.substring(5, dadoString.length - 4)).replace(/[0-9]/g, "*")) + dadoString.substring(dadoString.length - 4);
+  if (stringParaOcultar) {
+    var dadoString = ("" + stringParaOcultar);
+    var stringPronta = dadoString.substring(0, 5) + ((dadoString.substring(5, dadoString.length - 4)).replace(/[0-9]/g, "*")) + dadoString.substring(dadoString.length - 4);
 
-        return stringPronta;
-    } else {
-        console.erro("O parametro(stringParaOcultar) passado para a função(ocultaParteDosDados) está vazio!");
-        return false;
-    }
+    return stringPronta;
+  } else {
+    console.erro("O parametro(stringParaOcultar) passado para a função(ocultaParteDosDados) está vazio!");
+    return false;
+  }
 }
 
 function retornoListaVouchers(voucherEmitido) {
-    let dadosTable = [];
+  let dadosTable = [];
 
-    animationLoadingStop();
+  for (let i = 0; i < voucherEmitido.data.length; i++) {
+    let dados = voucherEmitido.data[i]['voucher'];
+    let indice = i + 1;
+    let IDVoucher = dados?.IDVOUCHER;
+    let idEmpresaOrigemVoucher = dados?.IDEMPRESAORIGEM;
+    let DTVoucherIN = dados?.DTINVOUCHERFORMATADO;
+    let DTVoucherOUT = dados?.DTOUTVOUCHERFORMATADO;
+    let idCaixaOrigem = dados?.IDCAIXAORIGEM;
+    let DSCaixaOrigem = idCaixaOrigem !== 99999 ? dados?.DSCAIXAORIGEM : 'CAIXA WEB';
+    let idUsrAutorizaCriacao = dados?.IDUSRLIBERACAOCRIACAO;
+    let nomeUsrAutorizaCriacao = idUsrAutorizaCriacao ? dados?.NOFUNCIONARIOLIBERACAOCRIACAO : "";
+    let DSCaixaDestino = dados?.DSCAIXADESTINO ? dados?.DSCAIXADESTINO : "";
+    let idUsrAutorizaConsumo = dados?.IDUSRLIBERACAOCONSUMO;
+    let nomeUsrAutorizaConsumo = idUsrAutorizaConsumo ? dados?.NOFUNCIONARIOLIBERACAOCONSUMO : "";
+    let NuVoucher = dados?.NUVOUCHER;
+    let VrVoucher = parseFloat(dados?.VRVOUCHER);
+    let STAtivoVoucher = dados?.STATIVO;
+    let STCanceladoVoucher = dados?.STCANCELADO;
+    let STStatusVoucher = dados?.STSTATUS;
+    let EmpresaOrigem = dados?.EMPORIGEM;
+    let EmpresaDestino = dados?.EMPDESTINO;
+    let statusVoucherParaImpressao;
+    let colorTag = 'blue';
 
-    for (let i = 0; i < voucherEmitido.data.length; i++) {
-        let dados = voucherEmitido.data[i]['voucher'];
-        let indice = i + 1;
-        let IDVoucher = dados?.IDVOUCHER;
-        let idEmpresaOrigemVoucher = dados?.IDEMPRESAORIGEM;
-        let DTVoucherIN = dados?.DTINVOUCHERFORMATADO;
-        let DTVoucherOUT = dados?.DTOUTVOUCHERFORMATADO;
-        let idCaixaOrigem = dados?.IDCAIXAORIGEM;
-        let DSCaixaOrigem = idCaixaOrigem !== 99999 ? dados?.DSCAIXAORIGEM : 'CAIXA WEB';
-        let idUsrAutorizaCriacao = dados?.IDUSRLIBERACAOCRIACAO;
-        let nomeUsrAutorizaCriacao = idUsrAutorizaCriacao ? dados?.NOFUNCIONARIOLIBERACAOCRIACAO : "";
-        let DSCaixaDestino = dados?.DSCAIXADESTINO ? dados?.DSCAIXADESTINO : "";
-        let idUsrAutorizaConsumo = dados?.IDUSRLIBERACAOCONSUMO;
-        let nomeUsrAutorizaConsumo = idUsrAutorizaConsumo ? dados?.NOFUNCIONARIOLIBERACAOCONSUMO : "";
-        let NuVoucher = dados?.NUVOUCHER;
-        let VrVoucher = parseFloat(dados?.VRVOUCHER);
-        let STAtivoVoucher = dados?.STATIVO;
-        let STCanceladoVoucher = dados?.STCANCELADO;
-        let STStatusVoucher = dados?.STSTATUS;
-        let EmpresaOrigem = dados?.EMPORIGEM;
-        let EmpresaDestino = dados?.EMPDESTINO;
-        let statusVoucherParaImpressao;
-        let colorTag = 'blue';
+    if (STAtivoVoucher == 'True' && !STStatusVoucher) {
+      statusVoucherParaImpressao = 'NOVO';
+    } else if (STAtivoVoucher == 'False' && !STStatusVoucher) {
+      statusVoucherParaImpressao = 'FINALIZADO';
+      colorTag = 'red'
+    } else if (STAtivoVoucher == 'True' && (STStatusVoucher == 'LIBERADO PARA O CLIENTE' || STStatusVoucher == 'NOVO')) {
+      statusVoucherParaImpressao = STStatusVoucher;
+    } else if (STAtivoVoucher == 'False' && (STStatusVoucher == 'NEGADO' || STStatusVoucher == 'CANCELADO' || STStatusVoucher == 'FINALIZADO')) {
+      statusVoucherParaImpressao = STStatusVoucher;
+      colorTag = 'red'
+    } else if (STAtivoVoucher == 'False' && STStatusVoucher == 'EM ANALISE') {
+      statusVoucherParaImpressao = STStatusVoucher;
+    } else if (STAtivoVoucher == 'False' && STCanceladoVoucher == 'True' && !STStatusVoucher) {
+      statusVoucherParaImpressao = STStatusVoucher;
+      colorTag = 'red'
+    } else {
+      statusVoucherParaImpressao = 'USADO';
+      colorTag = 'red'
+    }
 
-        if (STAtivoVoucher == 'True' && !STStatusVoucher) {
-            statusVoucherParaImpressao = 'NOVO';
-        } else if (STAtivoVoucher == 'False' && !STStatusVoucher) {
-            statusVoucherParaImpressao = 'FINALIZADO';
-            colorTag = 'red'
-        } else if (STAtivoVoucher == 'True' && (STStatusVoucher == 'LIBERADO PARA O CLIENTE' || STStatusVoucher == 'NOVO')) {
-            statusVoucherParaImpressao = STStatusVoucher;
-        } else if (STAtivoVoucher == 'False' && (STStatusVoucher == 'NEGADO' || STStatusVoucher == 'CANCELADO' || STStatusVoucher == 'FINALIZADO')) {
-            statusVoucherParaImpressao = STStatusVoucher;
-            colorTag = 'red'
-        } else if (STAtivoVoucher == 'False' && STStatusVoucher == 'EM ANALISE') {
-            statusVoucherParaImpressao = STStatusVoucher;
-        } else if (STAtivoVoucher == 'False' && STCanceladoVoucher == 'True' && !STStatusVoucher) {
-            statusVoucherParaImpressao = STStatusVoucher;
-            colorTag = 'red'
-        } else {
-            statusVoucherParaImpressao = 'USADO';
-            colorTag = 'red'
-        }
-
-        tagVoucherAtivo = `<label style="text-align: center; color: ${colorTag}; font-size: 11px;">${statusVoucherParaImpressao}</label>`;
+    tagVoucherAtivo = `<label style="text-align: center; color: ${colorTag}; font-size: 11px;">${statusVoucherParaImpressao}</label>`;
 
 
-        if (DTVoucherOUT == null) {
-            DTVoucherOUT = '';
-        } else {
-            DTVoucherOUT = DTVoucherOUT;
-        }
+    if (DTVoucherOUT == null) {
+      DTVoucherOUT = '';
+    } else {
+      DTVoucherOUT = DTVoucherOUT;
+    }
 
-        if (EmpresaDestino == null) {
-            EmpresaDestino = '';
-        } else {
-            EmpresaDestino = EmpresaDestino;
-        }
+    if (EmpresaDestino == null) {
+      EmpresaDestino = '';
+    } else {
+      EmpresaDestino = EmpresaDestino;
+    }
 
-        dadosTable.push([
-            `<label id="${IDVoucher}" style="color: blue; font-size: 11px;">${indice}</label>`,
-            `<label style="color: blue; font-size: 11px;">${ocultaParteDosDadosVoucher(NuVoucher)}</label>`,
-            `<label style="color: blue; font-size: 11px;">${EmpresaOrigem}</label>`,
-            `<label style="color: blue; font-size: 11px;">${DSCaixaOrigem}</label>`,
-            `<label style="color: blue; font-size: 11px;">${nomeUsrAutorizaCriacao}</label>`,
-            `<label style="color: blue; font-size: 11px;">${DTVoucherIN}</label>`,
-            `<label style="align: right; color: green; font-size: 11px;">${maskValorEmBRL(VrVoucher)}</label>`,
-            `<label style="color: blue; font-size: 11px;">${EmpresaDestino}</label>`,
-            `<label style="color: blue; font-size: 11px;">${DSCaixaDestino}</label>`,
-            `<label style="color: blue; font-size: 11px;">${nomeUsrAutorizaConsumo}</label>`,
-            `<label style="color: blue; font-size: 11px;">${DTVoucherOUT}</label>`,
-            tagVoucherAtivo,
-            `<div class="btn-group btn-group-xs">
+    dadosTable.push([
+      `<label id="${IDVoucher}" style="color: blue; font-size: 11px;">${indice}</label>`,
+      `<label style="color: blue; font-size: 11px;">${ocultaParteDosDadosVoucher(NuVoucher)}</label>`,
+      `<label style="color: blue; font-size: 11px;">${EmpresaOrigem}</label>`,
+      `<label style="color: blue; font-size: 11px;">${DSCaixaOrigem}</label>`,
+      `<label style="color: blue; font-size: 11px;">${nomeUsrAutorizaCriacao}</label>`,
+      `<label style="color: blue; font-size: 11px;">${DTVoucherIN}</label>`,
+      `<label style="align: right; color: green; font-size: 11px;">${maskValorEmBRL(VrVoucher)}</label>`,
+      `<label style="color: blue; font-size: 11px;">${EmpresaDestino}</label>`,
+      `<label style="color: blue; font-size: 11px;">${DSCaixaDestino}</label>`,
+      `<label style="color: blue; font-size: 11px;">${nomeUsrAutorizaConsumo}</label>`,
+      `<label style="color: blue; font-size: 11px;">${DTVoucherOUT}</label>`,
+      tagVoucherAtivo,
+      `<div class="btn-group btn-group-xs">
               <button id="detalheVoucher" type="button" class="btn btn-success btn-xs" title="Visualizar Detalhes" value="${IDVoucher}" ><span class="fal fa-list p-1"></button>
               <button type="button" class="btn btn-warning btn-xs" title="Editar Situação" id="${IDVoucher}" onclick="editarStatusVoucher(this.id);"><span class="fal fa-pen p-1 text-white"></button>
               <button type="button" class="btn btn-primary btn-xs" title="Imprimir" id="${IDVoucher}" onclick="imprimirVoucher(this.id);"><span class="fal fa-print p-1"></button>
             </div>`
-        ])
+    ])
 
+  }
+
+  $('#resultado').removeClass('d-none');
+
+  $('#dt-basic-voucher').DataTable().clear().destroy();
+
+  let tableVoucher = $('#dt-basic-voucher').DataTable({
+    data: dadosTable,
+    "language": { "emptyTable": "Nenhum Voucher Encontrado...", "zeroRecords": "Não há Vendas no Momento" },
+    defaultContent: '',
+    paging: true,
+    pageLength: 50,
+    searching: true,
+    info: false,
+    deferRender: true,
+    scrollX: true,
+    // responsive: true,
+    // "displayLength": 25,
+    columnDefs: [
+      {
+        type: 'date-time-br',
+        targets: [5, 10],
+      },
+      {
+        type: 'currency-brl',
+        targets: [6],
+      },
+    ],
+    initComplete: function (settings) {
+      let idTable = `#${settings.nTable.id}`;
+
+      $('html, body').animate({
+        scrollTop: $(idTable).offset().top - 70
+      }, 1000);
+
+      $(idTable).find('tbody td:first').focus()
     }
+  });
 
-    $('#resultado').removeClass('d-none');
+  $('#dt-basic-voucher tbody').on('click', 'button#detalheVoucher', async function () {
+    try {
+      let tr = $(this).closest('tr');
+      let row = tableVoucher.row(tr);
+      let numVoucherLinha;
 
-    $('#dt-basic-voucher').DataTable().clear().destroy();
+      if (tr.hasClass('child')) {
+        tr = $($(`#${$(this).attr('value')}`).closest('tr'))
 
-    let tableVoucher = $('#dt-basic-voucher').DataTable({
-        data: dadosTable,
-        "language": { "emptyTable": "Nenhum Voucher Encontrado...", "zeroRecords": "Não há Vendas no Momento" },
-        defaultContent: '',
-        paging: true,
-        pageLength: 50,
-        searching: true,
-        info: false,
-        deferRender: true,
-        scrollX: true,
-        // responsive: true,
-        // "displayLength": 25,
-        columnDefs: [
-            {
-                type: 'date-time-br',
-                targets: [5, 10],
-            },
-            {
-                type: 'currency-brl',
-                targets: [6],
-            },
-        ],
-        initComplete: function (settings) {
-            let idTable = `#${settings.nTable.id}`;
-            
-            $('html, body').animate({
-                scrollTop: $(idTable).offset().top - 70
-            }, 1000);
-            
-            $(idTable).find('tbody td:first').focus()
-        }
-    });
+        row = tableVoucher.row(tr);
+        numVoucherLinha = $(this).attr('value');
 
-    $('#dt-basic-voucher tbody').on('click', 'button#detalheVoucher', async function () {
-        try {
-            let tr = $(this).closest('tr');
-            let row = tableVoucher.row(tr);
-            let numVoucherLinha;
+        row.child.hide();
+        tr.removeClass('shown');
 
-            if (tr.hasClass('child')) {
-                tr = $($(`#${$(this).attr('value')}`).closest('tr'))
+      } else {
+        row = tableVoucher.row(tr);
+        numVoucherLinha = $(tr[0].children[0].children[0]).attr('id');
+      }
 
-                row = tableVoucher.row(tr);
-                numVoucherLinha = $(this).attr('value');
+      if (row.child.isShown()) {
+        row.child.hide();
+        tr.removeClass('shown');
 
-                row.child.hide();
-                tr.removeClass('shown');
+      } else {
+        await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${numVoucherLinha}`, 'Carregando Detalhes do Voucher...')
+          .then((dadosVoucher) => {
+            row.child(formatDataTableAccordion(dadosVoucher)).show();
+          })
+          .catch((error) => { throw error });
 
-            } else {
-                row = tableVoucher.row(tr);
-                numVoucherLinha = $(tr[0].children[0].children[0]).attr('id');
-            }
-
-            if (row.child.isShown()) {
-                row.child.hide();
-                tr.removeClass('shown');
-
-            } else {
-                await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${numVoucherLinha}`, 'Carregando Detalhes do Voucher...')
-                    .then((dadosVoucher) => {
-                        row.child(formatDataTableAccordion(dadosVoucher)).show();
-                    })
-                    .catch((error) => { throw error });
-
-                tr.addClass('shown');
-            }
-        } catch (error) {
-            console.log(error);
-            animationLoadingStop();
-            msgError('Erro ao Carregar os Detalhes do Voucher, Tente Novamente Mais Tarde!')
-        }
-    });
+        tr.addClass('shown');
+      }
+    } catch (error) {
+      console.log(error);
+      animationLoadingStop();
+      msgError('Erro ao Carregar os Detalhes do Voucher, Tente Novamente Mais Tarde!')
+    }
+  });
 
 }
 
 function formatDataTableAccordion(dadosProdutos) {
 
-    let dadosProd = dadosProdutos.data[0]['detalhevoucher'];
-    let dadosProdDest = dadosProdutos.data[0]['detalhedestino'];
-    let vendaOrigemVoucher = dadosProdutos.data[0]['voucher']['IDRESUMOVENDAWEB'] ? dadosProdutos.data[0]['voucher']['IDRESUMOVENDAWEB'] : "Não disponível";
-    let vendaDestinoVoucher = dadosProdutos.data[0]['voucher']['IDRESUMOVENDAWEBDESTINO'] ? dadosProdutos.data[0]['voucher']['IDRESUMOVENDAWEBDESTINO'] : "Não disponível";
-    let StatusVoucher = dadosProdutos.data[0]['voucher']['STSTATUS'] ? dadosProdutos.data[0]['voucher']['STSTATUS'] : "";
+  let dadosProd = dadosProdutos.data[0]['detalhevoucher'];
+  let dadosProdDest = dadosProdutos.data[0]['detalhedestino'];
+  let vendaOrigemVoucher = dadosProdutos.data[0]['voucher']['IDRESUMOVENDAWEB'] ? dadosProdutos.data[0]['voucher']['IDRESUMOVENDAWEB'] : "Não disponível";
+  let vendaDestinoVoucher = dadosProdutos.data[0]['voucher']['IDRESUMOVENDAWEBDESTINO'] ? dadosProdutos.data[0]['voucher']['IDRESUMOVENDAWEBDESTINO'] : "Não disponível";
+  let StatusVoucher = dadosProdutos.data[0]['voucher']['STSTATUS'] ? dadosProdutos.data[0]['voucher']['STSTATUS'] : "";
 
-    // `d` is the original data object for the row
-    html = `
+  // `d` is the original data object for the row
+  html = `
   <div class="row">
     <div class="col-xl-12 col-sm-12">
       <div id="panel-1" class="panel">
@@ -12910,8 +13010,8 @@ function formatDataTableAccordion(dadosProdutos) {
                     </tr>
                   </thead>`;
 
-    for (let i = 0; i < dadosProdutos.data[0]['detalhevoucher'].length; i++) {
-        html += `        <tbody>
+  for (let i = 0; i < dadosProdutos.data[0]['detalhevoucher'].length; i++) {
+    html += `        <tbody>
                       <tr>
                         <td>${dadosProd[i]['det']['NUCODBARRAS']}</td>
                         <td>${dadosProd[i]['det']['DSPRODUTO']}</td>
@@ -12919,10 +13019,10 @@ function formatDataTableAccordion(dadosProdutos) {
                         <td>${maskValor(dadosProd[i]['det']['VRTOTALLIQUIDO'])}</td>
                       </tr>
                   </tbody>`;
-    }
+  }
 
-    if (dadosProdutos.data[0]['voucher']['STATIVO'] == 'False' && (StatusVoucher != 'EM ANALISE' && StatusVoucher != 'CANCELADO' && StatusVoucher != 'NEGADO') || dadosProdDest.length) {
-        html += `   </table>
+  if (dadosProdutos.data[0]['voucher']['STATIVO'] == 'False' && (StatusVoucher != 'EM ANALISE' && StatusVoucher != 'CANCELADO' && StatusVoucher != 'NEGADO') || dadosProdDest.length) {
+    html += `   </table>
             </div>
           </div>
         </div>
@@ -12950,8 +13050,8 @@ function formatDataTableAccordion(dadosProdutos) {
                       </tr>
                     </thead>`;
 
-        for (let i = 0; i < dadosProdutos.data[0]['detalhedestino'].length; i++) {
-            html += `      <tbody>
+    for (let i = 0; i < dadosProdutos.data[0]['detalhedestino'].length; i++) {
+      html += `      <tbody>
                         <tr>
                           <td>${dadosProdDest[i]['vendadetdestino']['NUCODBARRAS']}</td>
                           <td>${dadosProdDest[i]['vendadetdestino']['DSPRODUTO']}</td>
@@ -12959,9 +13059,9 @@ function formatDataTableAccordion(dadosProdutos) {
                           <td>${maskValor(dadosProdDest[i]['vendadetdestino']['VRTOTALLIQUIDO'])}</td>
                         </tr>
                     </tbody>`;
-        }
     }
-    html += `</table>
+  }
+  html += `</table>
             </div>
           </div>
         </div>
@@ -12969,213 +13069,213 @@ function formatDataTableAccordion(dadosProdutos) {
     </div>
   </div>`;
 
-    return html;
+  return html;
 }
 
 async function editarStatusVoucher(idVoucher) {
-    $('#memoriaStatusVoucher, #memoriaTipoTrocaVoucher, #memoriaStatusVoucherValue').val('');
+  $('#memoriaStatusVoucher, #memoriaTipoTrocaVoucher, #memoriaStatusVoucherValue').val('');
 
-    let dadosUser = await modalAuthUserEditOrPrintVoucher(idVoucher) || false;
+  let dadosUser = await modalAuthUserEditOrPrintVoucher(idVoucher) || false;
 
-    if (dadosUser) {
-        let dadosVoucher = await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${idVoucher}`, 'Carregando Dados...').catch((error) => { throw error });
+  if (dadosUser) {
+    let dadosVoucher = await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${idVoucher}`, 'Carregando Dados...').catch((error) => { throw error });
 
-        retornoEditarStatusVoucher(dadosVoucher, dadosUser);
-    }
+    retornoEditarStatusVoucher(dadosVoucher, dadosUser);
+  }
 }
 
 async function retornoEditarStatusVoucher(detVoucher, dadosFunc) {
-    try {
-        $("#vendaDestVoucher").addClass('d-none');
-        let { DSFUNCAO, IDFUNCIONARIO, IDGRUPOEMPRESARIAL } = dadosFunc;
-        let dadosListaVoucher = [];
-        let dadosListaVoucherDest = [];
-        let { data } = detVoucher;
-        let tipoTroca;
-        let idVoucher;
-        let noCliente;
-        let cpfCnpjCliente;
-        let nuVoucher;
-        let stAtivo;
-        let stCancelado;
-        let vrVoucher;
-        let nuVenda;
-        let nuVendaDestino;
-        let statusVoucher;
-        let dataVenda;
-        let diasEmAposCompra;
-        let msgUser = '';
-        let stEdicao = true;
+  try {
+    $("#vendaDestVoucher").addClass('d-none');
+    let { DSFUNCAO, IDFUNCIONARIO, IDGRUPOEMPRESARIAL } = dadosFunc;
+    let dadosListaVoucher = [];
+    let dadosListaVoucherDest = [];
+    let { data } = detVoucher;
+    let tipoTroca;
+    let idVoucher;
+    let noCliente;
+    let cpfCnpjCliente;
+    let nuVoucher;
+    let stAtivo;
+    let stCancelado;
+    let vrVoucher;
+    let nuVenda;
+    let nuVendaDestino;
+    let statusVoucher;
+    let dataVenda;
+    let diasEmAposCompra;
+    let msgUser = '';
+    let stEdicao = true;
 
-        for (var i = 0; i < data.length; i++) {
-            let { voucher } = data[i];
+    for (var i = 0; i < data.length; i++) {
+      let { voucher } = data[i];
 
-            idVoucher = voucher?.IDVOUCHER;
-            tipoTroca = voucher?.STTIPOTROCA || 'CORTESIA';
-            noCliente = voucher?.DSNOMERAZAOSOCIAL || voucher?.DSAPELIDONOMEFANTASIA || "";
-            cpfCnpjCliente = voucher?.NUCPFCNPJ?.length ? voucher?.NUCPFCNPJ?.length <= 11 ? maskCPF(voucher?.NUCPFCNPJ) : maskCNPJ(voucher?.NUCPFCNPJ) : ''
-            nuVoucher = voucher?.NUVOUCHER;
-            stAtivo = voucher?.STATIVO;
-            stCancelado = voucher?.STCANCELADO;
-            vrVoucher = maskValorEmBRL(voucher?.VRVOUCHER);
-            nuVenda = voucher?.IDRESUMOVENDAWEB ? voucher?.IDRESUMOVENDAWEB : "Não disponível";
-            nuVendaDestino = voucher?.IDRESUMOVENDAWEBDESTINO ? voucher?.IDRESUMOVENDAWEBDESTINO : "Não disponível";
-            statusVoucher = voucher?.STSTATUS ? (voucher?.STSTATUS).toUpperCase() : "";
-            dataVenda = voucher?.DTHORAFECHAMENTOVENDAORIGEM;
-            motivoTrocaVoucher = voucher?.STCANCELADO == 'True' ? `<h6>Motivo do Cancelamento/Negação : <span class="fw-300">${(voucher?.DSMOTIVOCANCELAMENTO || '')}</span></h6>` : `<h6>Motivo da Troca: <span class="fw-300">${voucher?.MOTIVOTROCA || ""}</span></h6>`;
-            diasEmAposCompra = retornaDiasEntreDatas(dataVenda);
+      idVoucher = voucher?.IDVOUCHER;
+      tipoTroca = voucher?.STTIPOTROCA || 'CORTESIA';
+      noCliente = voucher?.DSNOMERAZAOSOCIAL || voucher?.DSAPELIDONOMEFANTASIA || "";
+      cpfCnpjCliente = voucher?.NUCPFCNPJ?.length ? voucher?.NUCPFCNPJ?.length <= 11 ? maskCPF(voucher?.NUCPFCNPJ) : maskCNPJ(voucher?.NUCPFCNPJ) : ''
+      nuVoucher = voucher?.NUVOUCHER;
+      stAtivo = voucher?.STATIVO;
+      stCancelado = voucher?.STCANCELADO;
+      vrVoucher = maskValorEmBRL(voucher?.VRVOUCHER);
+      nuVenda = voucher?.IDRESUMOVENDAWEB ? voucher?.IDRESUMOVENDAWEB : "Não disponível";
+      nuVendaDestino = voucher?.IDRESUMOVENDAWEBDESTINO ? voucher?.IDRESUMOVENDAWEBDESTINO : "Não disponível";
+      statusVoucher = voucher?.STSTATUS ? (voucher?.STSTATUS).toUpperCase() : "";
+      dataVenda = voucher?.DTHORAFECHAMENTOVENDAORIGEM;
+      motivoTrocaVoucher = voucher?.STCANCELADO == 'True' ? `<h6>Motivo do Cancelamento/Negação : <span class="fw-300">${(voucher?.DSMOTIVOCANCELAMENTO || '')}</span></h6>` : `<h6>Motivo da Troca: <span class="fw-300">${voucher?.MOTIVOTROCA || ""}</span></h6>`;
+      diasEmAposCompra = retornaDiasEntreDatas(dataVenda);
 
-            if (stAtivo == 'True' && (statusVoucher == 'NOVO' || !statusVoucher)) {
-                statusVoucher = 'NOVO';
-            } else if (stAtivo == 'False' && statusVoucher == 'EM ANALISE') {
-                nuVoucher = ocultaParteDosDadosVoucher(nuVoucher)
-            } else if (stAtivo == 'True' && statusVoucher == 'LIBERADO PARA O CLIENTE') {
-                statusVoucher = 'LIBERADO PARA O CLIENTE';
-            } else if (stAtivo == 'False' && stCancelado == 'False' && (!statusVoucher || statusVoucher == 'FINALIZADO')) {
-                statusVoucher = 'FINALIZADO';
-            } else if (stCancelado == 'True' && stAtivo == 'False' && (!statusVoucher || statusVoucher == 'CANCELADO')) {
-                statusVoucher = 'CANCELADO';
-            } else {
-                statusVoucher = 'FINALIZADO';
-            }
+      if (stAtivo == 'True' && (statusVoucher == 'NOVO' || !statusVoucher)) {
+        statusVoucher = 'NOVO';
+      } else if (stAtivo == 'False' && statusVoucher == 'EM ANALISE') {
+        nuVoucher = ocultaParteDosDadosVoucher(nuVoucher)
+      } else if (stAtivo == 'True' && statusVoucher == 'LIBERADO PARA O CLIENTE') {
+        statusVoucher = 'LIBERADO PARA O CLIENTE';
+      } else if (stAtivo == 'False' && stCancelado == 'False' && (!statusVoucher || statusVoucher == 'FINALIZADO')) {
+        statusVoucher = 'FINALIZADO';
+      } else if (stCancelado == 'True' && stAtivo == 'False' && (!statusVoucher || statusVoucher == 'CANCELADO')) {
+        statusVoucher = 'CANCELADO';
+      } else {
+        statusVoucher = 'FINALIZADO';
+      }
 
 
-            if (DSFUNCAO !== 'TI' && DSFUNCAO !== 'SUPERVISOR') {
-                if (DSFUNCAO.includes('OPERADOR')) {
-                    if (IDGRUPOEMPRESARIAL == 4 || diasEmAposCompra > 32) {
-                        stEdicao = false;
-                        msgUser = 'Usuário Com Permissão Apenas de Visualização, Solicite a Autorização ao Seu Gerente ou Lider para Mudança de Status do Voucher';
-                    }
-                }
-                
-                if (tipoTroca !== 'DEFEITO') {
-                    
-                    if (statusVoucher !== 'EM ANALISE' || diasEmAposCompra > 180) {
-                        stEdicao = false;
-                        msgUser = 'Usuário Com Permissão Apenas de Visualização, Solicite a Autorização Do Suporte de Vendas Para Mudança de Status do Voucher';
-                    }
-                    
-                    if (diasEmAposCompra > 60 && diasEmAposCompra < 180) {
-                        stEdicao = false;
-                        msgUser = 'Usuário Com Permissão Apenas de Visualização, Solicite a Autorização Da Supervisão para Mudança de Status do Voucher';
-                    }
-                }
-
-            }
-
-            for (let j = 0; j < data[i]['detalhevoucher'].length; j++) {
-                let { det } = data[i]?.detalhevoucher[j];
-                let codBarras = det?.NUCODBARRAS;
-                let descProd = det?.DSPRODUTO;
-                let vrUnit = maskValorEmBRL(det?.VRUNIT);
-                let qtdProd = parseInt(det?.QTD);
-                let vrBruto = maskValorEmBRL(det?.VRTOTALBRUTO);
-                let vrDesconto = maskValorEmBRL(det?.VRDESCONTO);
-                let vrLiquido = maskValorEmBRL(det?.VRTOTALLIQUIDO);
-
-                dadosListaVoucher.push([
-                    `<label style="color: blue; font-size: 11px;">${j + 1}</label>`,
-                    `<label style="color: blue; font-size: 11px;">${codBarras}</label>`,
-                    `<label style="color: blue; font-size: 11px;">${descProd}</label>`,
-                    `<label style="color: blue; font-size: 11px;">${vrUnit}</label>`,
-                    `<label style="color: blue; font-size: 11px;">${qtdProd}</label>`,
-                    `<label style="color: blue; font-size: 11px;">${vrBruto}</label>`,
-                    `<label style="color: blue; font-size: 11px;">${vrDesconto}</label>`,
-                    `<label style="align: right; color: green; font-size: 11px;">${vrLiquido}</label>`
-                ])
-
-            }
-
-            if (data[i]['detalhedestino'].length) {
-                $("#vendaDestVoucher").removeClass('d-none');
-                for (var h = 0; h < data[i]['detalhedestino'].length; h++) {
-                    let detDest = data[i]?.detalhedestino[h]?.vendadetdestino;
-                    let codBarrasDest = detDest?.NUCODBARRAS;
-                    let descProdDest = detDest?.DSPRODUTO;
-                    let vrUnitDest = maskValorEmBRL(detDest?.VUNCOM);
-                    let qtdProdDest = parseInt(detDest?.QTD);
-                    let vrBrutoDest = maskValorEmBRL(detDest?.VPROD);
-                    let vrDescontoDest = maskValorEmBRL(detDest?.VDESC);
-                    let vrLiquidoDest = maskValorEmBRL(detDest?.VRTOTALLIQUIDO);
-
-                    dadosListaVoucherDest.push([
-                        `<label style="color: blue; font-size: 11px;">${h + 1}</label>`,
-                        `<label style="color: blue; font-size: 11px;">${codBarrasDest}</label>`,
-                        `<label style="color: blue; font-size: 11px;">${descProdDest}</label>`,
-                        `<label style="color: blue; font-size: 11px;">${vrUnitDest}</label>`,
-                        `<label style="color: blue; font-size: 11px;">${qtdProdDest}</label>`,
-                        `<label style="color: blue; font-size: 11px;">${vrBrutoDest}</label>`,
-                        `<label style="color: blue; font-size: 11px;">${vrDescontoDest}</label>`,
-                        `<label style="align: right; color: green; font-size: 11px;">${vrLiquidoDest}</label>`
-                    ])
-                }
-            }
+      if (DSFUNCAO !== 'TI' && DSFUNCAO !== 'SUPERVISOR') {
+        if (DSFUNCAO.includes('OPERADOR')) {
+          if (IDGRUPOEMPRESARIAL == 4 || diasEmAposCompra > 32) {
+            stEdicao = false;
+            msgUser = 'Usuário Com Permissão Apenas de Visualização, Solicite a Autorização ao Seu Gerente ou Lider para Mudança de Status do Voucher';
+          }
         }
 
-        $('#detProdVoucher').DataTable().destroy();
-        $('#detProdVoucherDestino').DataTable().destroy();
+        if (tipoTroca !== 'DEFEITO') {
 
-        $('#detProdVoucher').DataTable({
-            data: dadosListaVoucher,
-            defaultContent: '',
-            paging: true,
-            pageLength: 50,
-            searching: true,
-            info: false,
-            deferRender: true,
-            responsive: true,
-            columnDefs: [
-                {
-                    type: 'currency-brl',
-                    targets: [3, 5, 6],
-                }
-            ],
-            columns: [
-                { width: '10%' },
-                { width: '10%' },
-                { width: '30%' },
-                { width: '10%' },
-                { width: '10%' },
-                { width: '10%' },
-                { width: '10%' },
-                { width: '10%' }
-            ],
-            language: {
-                "emptyTable": "Dados não encontrados!"
-            }
-        });
+          if (statusVoucher !== 'EM ANALISE' || diasEmAposCompra > 180) {
+            stEdicao = false;
+            msgUser = 'Usuário Com Permissão Apenas de Visualização, Solicite a Autorização Do Suporte de Vendas Para Mudança de Status do Voucher';
+          }
 
-        $('#detProdVoucherDestino').DataTable({
-            data: dadosListaVoucherDest,
-            defaultContent: '',
-            paging: true,
-            pageLength: 50,
-            searching: true,
-            info: false,
-            deferRender: true,
-            responsive: true,
-            columnDefs: [
-                {
-                    type: 'currency-brl',
-                    targets: [3, 5, 6],
-                }
-            ],
-            columns: [
-                { width: '10%' },
-                { width: '10%' },
-                { width: '30%' },
-                { width: '10%' },
-                { width: '10%' },
-                { width: '10%' },
-                { width: '10%' },
-                { width: '10%' }
-            ],
-            language: {
-                "emptyTable": "Dados não encontrados!"
-            }
-        });
+          if (diasEmAposCompra > 60 && diasEmAposCompra < 180) {
+            stEdicao = false;
+            msgUser = 'Usuário Com Permissão Apenas de Visualização, Solicite a Autorização Da Supervisão para Mudança de Status do Voucher';
+          }
+        }
 
-        $('.detDadosVoucher').html(`
+      }
+
+      for (let j = 0; j < data[i]['detalhevoucher'].length; j++) {
+        let { det } = data[i]?.detalhevoucher[j];
+        let codBarras = det?.NUCODBARRAS;
+        let descProd = det?.DSPRODUTO;
+        let vrUnit = maskValorEmBRL(det?.VRUNIT);
+        let qtdProd = parseInt(det?.QTD);
+        let vrBruto = maskValorEmBRL(det?.VRTOTALBRUTO);
+        let vrDesconto = maskValorEmBRL(det?.VRDESCONTO);
+        let vrLiquido = maskValorEmBRL(det?.VRTOTALLIQUIDO);
+
+        dadosListaVoucher.push([
+          `<label style="color: blue; font-size: 11px;">${j + 1}</label>`,
+          `<label style="color: blue; font-size: 11px;">${codBarras}</label>`,
+          `<label style="color: blue; font-size: 11px;">${descProd}</label>`,
+          `<label style="color: blue; font-size: 11px;">${vrUnit}</label>`,
+          `<label style="color: blue; font-size: 11px;">${qtdProd}</label>`,
+          `<label style="color: blue; font-size: 11px;">${vrBruto}</label>`,
+          `<label style="color: blue; font-size: 11px;">${vrDesconto}</label>`,
+          `<label style="align: right; color: green; font-size: 11px;">${vrLiquido}</label>`
+        ])
+
+      }
+
+      if (data[i]['detalhedestino'].length) {
+        $("#vendaDestVoucher").removeClass('d-none');
+        for (var h = 0; h < data[i]['detalhedestino'].length; h++) {
+          let detDest = data[i]?.detalhedestino[h]?.vendadetdestino;
+          let codBarrasDest = detDest?.NUCODBARRAS;
+          let descProdDest = detDest?.DSPRODUTO;
+          let vrUnitDest = maskValorEmBRL(detDest?.VUNCOM);
+          let qtdProdDest = parseInt(detDest?.QTD);
+          let vrBrutoDest = maskValorEmBRL(detDest?.VPROD);
+          let vrDescontoDest = maskValorEmBRL(detDest?.VDESC);
+          let vrLiquidoDest = maskValorEmBRL(detDest?.VRTOTALLIQUIDO);
+
+          dadosListaVoucherDest.push([
+            `<label style="color: blue; font-size: 11px;">${h + 1}</label>`,
+            `<label style="color: blue; font-size: 11px;">${codBarrasDest}</label>`,
+            `<label style="color: blue; font-size: 11px;">${descProdDest}</label>`,
+            `<label style="color: blue; font-size: 11px;">${vrUnitDest}</label>`,
+            `<label style="color: blue; font-size: 11px;">${qtdProdDest}</label>`,
+            `<label style="color: blue; font-size: 11px;">${vrBrutoDest}</label>`,
+            `<label style="color: blue; font-size: 11px;">${vrDescontoDest}</label>`,
+            `<label style="align: right; color: green; font-size: 11px;">${vrLiquidoDest}</label>`
+          ])
+        }
+      }
+    }
+
+    $('#detProdVoucher').DataTable().destroy();
+    $('#detProdVoucherDestino').DataTable().destroy();
+
+    $('#detProdVoucher').DataTable({
+      data: dadosListaVoucher,
+      defaultContent: '',
+      paging: true,
+      pageLength: 50,
+      searching: true,
+      info: false,
+      deferRender: true,
+      responsive: true,
+      columnDefs: [
+        {
+          type: 'currency-brl',
+          targets: [3, 5, 6],
+        }
+      ],
+      columns: [
+        { width: '10%' },
+        { width: '10%' },
+        { width: '30%' },
+        { width: '10%' },
+        { width: '10%' },
+        { width: '10%' },
+        { width: '10%' },
+        { width: '10%' }
+      ],
+      language: {
+        "emptyTable": "Dados não encontrados!"
+      }
+    });
+
+    $('#detProdVoucherDestino').DataTable({
+      data: dadosListaVoucherDest,
+      defaultContent: '',
+      paging: true,
+      pageLength: 50,
+      searching: true,
+      info: false,
+      deferRender: true,
+      responsive: true,
+      columnDefs: [
+        {
+          type: 'currency-brl',
+          targets: [3, 5, 6],
+        }
+      ],
+      columns: [
+        { width: '10%' },
+        { width: '10%' },
+        { width: '30%' },
+        { width: '10%' },
+        { width: '10%' },
+        { width: '10%' },
+        { width: '10%' },
+        { width: '10%' }
+      ],
+      language: {
+        "emptyTable": "Dados não encontrados!"
+      }
+    });
+
+    $('.detDadosVoucher').html(`
       <div class="ml-3">
         <input id="memoriaStatusVoucher" type="text" value="${statusVoucher}" hidden />
         <input id="memoriaTipoTrocaVoucher" type="text" value="${tipoTroca}" hidden />
@@ -13216,152 +13316,152 @@ async function retornoEditarStatusVoucher(detVoucher, dadosFunc) {
       </div>
     `)
 
-        $('#tipoTrocaVoucher').val(tipoTroca);
-        $('#statusVoucher').val(statusVoucher);
-        $('#tipoTrocaVoucher, #statusVoucher').select2().trigger('change').prop('disabled', !stEdicao);
+    $('#tipoTrocaVoucher').val(tipoTroca);
+    $('#statusVoucher').val(statusVoucher);
+    $('#tipoTrocaVoucher, #statusVoucher').select2().trigger('change').prop('disabled', !stEdicao);
 
-        $('#vendaVoucherOrigem').html(`Produtos Venda de Origem: ${nuVenda}`);
-        $('#vendaVoucherDestino').html(`Produtos Venda de Destino: ${nuVendaDestino}`);
+    $('#vendaVoucherOrigem').html(`Produtos Venda de Origem: ${nuVenda}`);
+    $('#vendaVoucherDestino').html(`Produtos Venda de Destino: ${nuVendaDestino}`);
 
-        $("#detStatusVoucher").modal('show');
-        // $('#detStatusVoucher').on('shown.bs.modal', function () { })
+    $("#detStatusVoucher").modal('show');
+    // $('#detStatusVoucher').on('shown.bs.modal', function () { })
 
-        msgUser && $('#notificacaoUsuario').html(`
+    msgUser && $('#notificacaoUsuario').html(`
                 <div class="alert alert-danger alert-dismissible fade show h4" role="alert">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true"><i class="fal fa-times"></i></span></button><strong>Atenção! </strong>${msgUser}</div>
             `);
 
-        if (stEdicao) {
-            $('#btnUpdateVoucher').removeClass('d-none').attr('onclick', `atualizaStatusVoucher(${idVoucher}, ${IDFUNCIONARIO})`)
-        } else {
-            $('#btnUpdateVoucher').addClass('d-none');
-        }
-
-    } catch (error) {
-        console.log(error);
-        animationLoadingStop();
-        msgError();
+    if (stEdicao) {
+      $('#btnUpdateVoucher').removeClass('d-none').attr('onclick', `atualizaStatusVoucher(${idVoucher}, ${IDFUNCIONARIO})`)
+    } else {
+      $('#btnUpdateVoucher').addClass('d-none');
     }
+
+  } catch (error) {
+    console.log(error);
+    animationLoadingStop();
+    msgError();
+  }
 }
 
 function trocaCorSelectStatusVoucher() {
-    let tipoTrocaVoucher = $('#tipoTrocaVoucher').val();
-    let statusVoucher = $('#statusVoucher').val() || $('#memoriaStatusVoucher').val();
-    let corTipo = $('#select2-tipoTrocaVoucher-container');
-    let corStatus = $('#select2-statusVoucher-container');
-    const MEMORIATIPOTROCAVOUCHER = $('#memoriaTipoTrocaVoucher').val();
-    const MEMORIASTATUSVOUCHER = $('#memoriaStatusVoucher').val();
+  let tipoTrocaVoucher = $('#tipoTrocaVoucher').val();
+  let statusVoucher = $('#statusVoucher').val() || $('#memoriaStatusVoucher').val();
+  let corTipo = $('#select2-tipoTrocaVoucher-container');
+  let corStatus = $('#select2-statusVoucher-container');
+  const MEMORIATIPOTROCAVOUCHER = $('#memoriaTipoTrocaVoucher').val();
+  const MEMORIASTATUSVOUCHER = $('#memoriaStatusVoucher').val();
 
-    corTipo.attr('style', `color:${tipoTrocaVoucher == 'CORTESIA' ? 'blue' : 'red'}`)
+  corTipo.attr('style', `color:${tipoTrocaVoucher == 'CORTESIA' ? 'blue' : 'red'}`)
 
-    if (statusVoucher == "FINALIZADO" || statusVoucher == "NEGADO" || statusVoucher == "CANCELADO") {
-        corStatus.attr('style', 'color:red');
-    } else {
-        corStatus.attr('style', 'color:blue');
-    }
+  if (statusVoucher == "FINALIZADO" || statusVoucher == "NEGADO" || statusVoucher == "CANCELADO") {
+    corStatus.attr('style', 'color:red');
+  } else {
+    corStatus.attr('style', 'color:blue');
+  }
 
-    if ((MEMORIASTATUSVOUCHER == statusVoucher && MEMORIATIPOTROCAVOUCHER == tipoTrocaVoucher)) {
-        $('#motivoTrocaStatus').parent('div').addClass('d-none');
-    } else {
-        $('#motivoTrocaStatus').parent('div').removeClass('d-none');
-    }
+  if ((MEMORIASTATUSVOUCHER == statusVoucher && MEMORIATIPOTROCAVOUCHER == tipoTrocaVoucher)) {
+    $('#motivoTrocaStatus').parent('div').addClass('d-none');
+  } else {
+    $('#motivoTrocaStatus').parent('div').removeClass('d-none');
+  }
 
 }
 
 async function atualizaStatusVoucher(idVoucher, IDFUNCIONARIO) {
-    try {
-        let dadosUpdateVoucher = [];
-        let { IDEMPRESA, IDGRUPOEMPRESARIAL } = await getCurrentUser()?.user;
-        let tipoTroca = $('#select2-tipoTrocaVoucher-container').attr("title");
-        let statusVoucher = $('#select2-statusVoucher-container').attr("title");
-        let motivoTrocaStatus = $('#motivoTrocaStatus').val();
-        const MEMORIATIPOTROCAVOUCHER = $('#memoriaTipoTrocaVoucher').attr('value');
-        const MEMORIASTATUSVOUCHER = $('#memoriaStatusVoucher').attr('value');
+  try {
+    let dadosUpdateVoucher = [];
+    let { IDEMPRESA, IDGRUPOEMPRESARIAL } = await getCurrentUser()?.user;
+    let tipoTroca = $('#select2-tipoTrocaVoucher-container').attr("title");
+    let statusVoucher = $('#select2-statusVoucher-container').attr("title");
+    let motivoTrocaStatus = $('#motivoTrocaStatus').val();
+    const MEMORIATIPOTROCAVOUCHER = $('#memoriaTipoTrocaVoucher').attr('value');
+    const MEMORIASTATUSVOUCHER = $('#memoriaStatusVoucher').attr('value');
 
-        if (!IDEMPRESA || !IDGRUPOEMPRESARIAL) {
-            return msgWarning('Atenção! Dados do usuário não localizados', 'Faça o logoff, entre novamente e tente atualizar');
-        }
-
-        if (!motivoTrocaStatus) {
-            return msgWarning('Atenção! Motivo de Troca Vazio', 'O Motivo é Obrigatório! Preencha-o e tente atualizar novamente')
-                .then(() => {
-                    setTimeout(() => $('#motivoTrocaStatus').focus(), 500)
-                })
-        } else if (motivoTrocaStatus && motivoTrocaStatus.length <= 10) {
-            return msgWarning('Atenção! Motivo de Troca Deve Conter Pelo Menos 10 Caracteres', 'Preencha-o com mais detalhes e tente atualizar novamente')
-                .then(() => {
-                    setTimeout(() => $('#motivoTrocaStatus').focus(), 500)
-                })
-
-        } else {
-
-            let STATIVO = 'True'
-            let STCANCELADO = 'False'
-            let DSMOTIVOTROCASTATUS = $('#motivoTrocaStatus').val()?.toUpperCase().trim();
-            let STSTATUS = statusVoucher;
-            let STTIPOTROCA = tipoTroca || "";
-            let IDVOUCHER = idVoucher;
-            let IDEMPRESALOGADA = IDEMPRESA;
-
-            if (statusVoucher == 'NOVO' || statusVoucher == 'LIBERADO PARA O CLIENTE') {
-                STATIVO = 'True';
-                STCANCELADO = 'False';
-            } else if (statusVoucher == 'CANCELADO' || statusVoucher == 'NEGADO') {
-                STATIVO = 'False';
-                STCANCELADO = 'True';
-            } else if (statusVoucher == 'EM ANALISE' || statusVoucher == 'FINALIZADO') {
-                STATIVO = 'False';
-                STCANCELADO = 'False';
-            }
-
-            dadosUpdateVoucher.push({
-                STATIVO,
-                STCANCELADO,
-                DSMOTIVOTROCASTATUS,
-                IDFUNCIONARIO,
-                STSTATUS,
-                STTIPOTROCA,
-                IDVOUCHER,
-                IDEMPRESALOGADA,
-                IDGRUPOEMPRESARIAL
-            })
-
-            animationLoadingStart('Enviando dados...');
-
-            await ajaxPut(`api/resumo-voucher/todos-web.xsjs`, dadosUpdateVoucher)
-                .then(async () => {
-                    $('#NVoucher').val(`${idVoucher}`);
-
-                    await msgSuccess('Voucher Atualizado com Sucesso!')
-                        .then(async () => {
-                            $('#detStatusVoucher').modal('hide')
-
-                            await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${idVoucher}`, 'Carregando Voucher...')
-                                .then(retornoListaVouchers)
-                                .catch((error) => { throw error; })
-
-                            $('#NVoucher').val('');
-                        })
-                })
-                .catch((error) => { throw error; })
-        }
-
-    } catch (error) {
-        console.log(error);
-        animationLoadingStop();
-        msgError(error.message || error);
+    if (!IDEMPRESA || !IDGRUPOEMPRESARIAL) {
+      return msgWarning('Atenção! Dados do usuário não localizados', 'Faça o logoff, entre novamente e tente atualizar');
     }
+
+    if (!motivoTrocaStatus) {
+      return msgWarning('Atenção! Motivo de Troca Vazio', 'O Motivo é Obrigatório! Preencha-o e tente atualizar novamente')
+        .then(() => {
+          setTimeout(() => $('#motivoTrocaStatus').focus(), 500)
+        })
+    } else if (motivoTrocaStatus && motivoTrocaStatus.length <= 10) {
+      return msgWarning('Atenção! Motivo de Troca Deve Conter Pelo Menos 10 Caracteres', 'Preencha-o com mais detalhes e tente atualizar novamente')
+        .then(() => {
+          setTimeout(() => $('#motivoTrocaStatus').focus(), 500)
+        })
+
+    } else {
+
+      let STATIVO = 'True'
+      let STCANCELADO = 'False'
+      let DSMOTIVOTROCASTATUS = $('#motivoTrocaStatus').val()?.toUpperCase().trim();
+      let STSTATUS = statusVoucher;
+      let STTIPOTROCA = tipoTroca || "";
+      let IDVOUCHER = idVoucher;
+      let IDEMPRESALOGADA = IDEMPRESA;
+
+      if (statusVoucher == 'NOVO' || statusVoucher == 'LIBERADO PARA O CLIENTE') {
+        STATIVO = 'True';
+        STCANCELADO = 'False';
+      } else if (statusVoucher == 'CANCELADO' || statusVoucher == 'NEGADO') {
+        STATIVO = 'False';
+        STCANCELADO = 'True';
+      } else if (statusVoucher == 'EM ANALISE' || statusVoucher == 'FINALIZADO') {
+        STATIVO = 'False';
+        STCANCELADO = 'False';
+      }
+
+      dadosUpdateVoucher.push({
+        STATIVO,
+        STCANCELADO,
+        DSMOTIVOTROCASTATUS,
+        IDFUNCIONARIO,
+        STSTATUS,
+        STTIPOTROCA,
+        IDVOUCHER,
+        IDEMPRESALOGADA,
+        IDGRUPOEMPRESARIAL
+      })
+
+      animationLoadingStart('Enviando dados...');
+
+      await ajaxPut(`api/resumo-voucher/todos-web.xsjs`, dadosUpdateVoucher)
+        .then(async () => {
+          $('#NVoucher').val(`${idVoucher}`);
+
+          await msgSuccess('Voucher Atualizado com Sucesso!')
+            .then(async () => {
+              $('#detStatusVoucher').modal('hide')
+
+              await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${idVoucher}`, 'Carregando Voucher...')
+                .then(retornoListaVouchers)
+                .catch((error) => { throw error; })
+
+              $('#NVoucher').val('');
+            })
+        })
+        .catch((error) => { throw error; })
+    }
+
+  } catch (error) {
+    console.log(error);
+    animationLoadingStop();
+    msgError(error.message || error);
+  }
 }
 
 async function imprimirVoucher(idVoucher) {
-    let dadosUser = await modalAuthUserEditOrPrintVoucher(idVoucher, true);
+  let dadosUser = await modalAuthUserEditOrPrintVoucher(idVoucher, true);
 
-    dadosUser && await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${idVoucher}`, 'Carregando Dados...')
-        .then(retornoImprimirVoucher)
-        .catch((error) => { throw error });
+  dadosUser && await ajaxGetAllData(`api/resumo-voucher/detalhe-voucher-dados.xsjs?id=${idVoucher}`, 'Carregando Dados...')
+    .then(retornoImprimirVoucher)
+    .catch((error) => { throw error });
 }
 
-function montarConteudoVoucher(dadosVoucher){
+function montarConteudoVoucher(dadosVoucher) {
   let { data } = dadosVoucher || [];
 
   if (!data || data.length === 0) return '';
@@ -13627,10 +13727,10 @@ function montarConteudoVoucher(dadosVoucher){
 }
 
 function retornoImprimirVoucher(dadosRetornoImprimrVoucher) {
-  
+
   $(document).off("keydown");
   let htmlVoucher = montarConteudoVoucher(dadosRetornoImprimrVoucher);
-  
+
   $("#VoucherImp").html(htmlVoucher);
 
   JsBarcode('#svgVoucher').init();
@@ -13695,20 +13795,20 @@ function impVoucher() {
 }
 
 function exportPDF() {
-    var nuVoucher = $('#svgVoucher').attr('value');
-    var nome = $('#nomeVoucher').attr('value');
-    var voucher = document.getElementById('VoucherImp');
-    var doc = new jsPDF('p', 'pt', 'a4');
-    /*var opt = {
-     
-      filename:    ,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { height: 1000, width: 800, y: 200},
-      jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
-    };*/
+  var nuVoucher = $('#svgVoucher').attr('value');
+  var nome = $('#nomeVoucher').attr('value');
+  var voucher = document.getElementById('VoucherImp');
+  var doc = new jsPDF('p', 'pt', 'a4');
+  /*var opt = {
+   
+    filename:    ,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { height: 1000, width: 800, y: 200},
+    jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
+  };*/
 
 
-    var mediaPrintNormal = `
+  var mediaPrintNormal = `
     @media print {
       .hidden-print {
         display: none !important;
@@ -13766,34 +13866,34 @@ function exportPDF() {
     }
   `;
 
-    $("#mediaPrintVoucher").html(mediaPrintNormal);
-    $('#dialogModalVoucher').removeClass('modal-md');
-    $('#dialogModalVoucher').addClass('modal-xl');
-    $('#dialogModalVoucher').attr('style', 'padding: 0; margin-top: 0; margin-left: 1%');
-    $('#contentModalVoucher').attr('style', 'width: 980px !important; margin-top:auto !important; margin-left: -10px !important;');
+  $("#mediaPrintVoucher").html(mediaPrintNormal);
+  $('#dialogModalVoucher').removeClass('modal-md');
+  $('#dialogModalVoucher').addClass('modal-xl');
+  $('#dialogModalVoucher').attr('style', 'padding: 0; margin-top: 0; margin-left: 1%');
+  $('#contentModalVoucher').attr('style', 'width: 980px !important; margin-top:auto !important; margin-left: -10px !important;');
 
-    svgAsPngUri(document.getElementById("svgVoucher")).then(uri => { $('#codVoucher').html(`<img id="svgVoucher" value="${nuVoucher}" src="${uri}" style="height: 30px !important; width: 250px !important;">`) })
+  svgAsPngUri(document.getElementById("svgVoucher")).then(uri => { $('#codVoucher').html(`<img id="svgVoucher" value="${nuVoucher}" src="${uri}" style="height: 30px !important; width: 250px !important;">`) })
 
-    $('.linhaPontilhadaVoucher').html(`<h1>-----------------------------------------------------------------------------------------------</h1>`);
-    $('.alinhamentoDuplo').removeClass('center');
+  $('.linhaPontilhadaVoucher').html(`<h1>-----------------------------------------------------------------------------------------------</h1>`);
+  $('.alinhamentoDuplo').removeClass('center');
 
 
-    // setTimeout(()=>html2pdf().set(opt).from(voucher).save(), 1000);
-    setTimeout(() => {
-        doc.fromHTML(voucher, 15, 15, {
-            'width': 600
+  // setTimeout(()=>html2pdf().set(opt).from(voucher).save(), 1000);
+  setTimeout(() => {
+    doc.fromHTML(voucher, 15, 15, {
+      'width': 600
 
-        });
+    });
 
-    }, 500)
+  }, 500)
 
-    setTimeout(() => {
-        doc.save(`Voucher_${nome}_${nuVoucher}.pdf`)
-    }, 600)
+  setTimeout(() => {
+    doc.save(`Voucher_${nome}_${nuVoucher}.pdf`)
+  }, 600)
 
-    setTimeout(() => {
+  setTimeout(() => {
 
-        $('#codVoucher').html(`
+    $('#codVoucher').html(`
       <svg id="svgVoucher"
         class="codBarras"
         jsbarcode-value="${nuVoucher}"
@@ -13804,703 +13904,877 @@ function exportPDF() {
       </svg>
     `);
 
-        JsBarcode('#svgVoucher').init();
-    }, 700);
+    JsBarcode('#svgVoucher').init();
+  }, 700);
 
-    setTimeout(() => {
-        $('.linhaPontilhadaVoucher').html(`<hr style="border: 1px dashed" />`);
-        $('.alinhamentoDuplo').addClass('center');
-        $('#dialogModalVoucher').attr('style', 'align-content: center;');
-        $('#dialogModalVoucher').removeClass('modal-xl');
-        $('#dialogModalVoucher').addClass('modal-md');
-        $('#contentModalVoucher').attr('style', 'width: 400px !important;');
-    }, 700);
+  setTimeout(() => {
+    $('.linhaPontilhadaVoucher').html(`<hr style="border: 1px dashed" />`);
+    $('.alinhamentoDuplo').addClass('center');
+    $('#dialogModalVoucher').attr('style', 'align-content: center;');
+    $('#dialogModalVoucher').removeClass('modal-xl');
+    $('#dialogModalVoucher').addClass('modal-md');
+    $('#contentModalVoucher').attr('style', 'width: 400px !important;');
+  }, 700);
 
 }
 
 async function telaPesquisaVendaVoucher() {
-    try {
-        let dodosUser = await getCurrentUser()?.user;
-        let userFuncao = dodosUser.DSFUNCAO;
-        let grupoEmpresa = dodosUser?.IDSUBGRUPOEMPRESARIAL || "";
-        let idEmpresa = dodosUser?.IDEMPRESA || "";
+  try {
+    animationLoadingStart();
 
-        $.get("action_pesqvendavoucher.html", (htmlResp) => {
-            $("#js-page-content").html(htmlResp);
+    let dodosUser = await getCurrentUser()?.user;
+    let grupoEmpresa = dodosUser?.IDSUBGRUPOEMPRESARIAL || "";
+    let idEmpresa = dodosUser?.IDEMPRESA || "";
 
+    let respHtml = await $.get("gerencia_action_lista_venda_criar_voucher.html");
+    let listaEmpresas = await ajaxGet(`api/resumo-voucher/empresa.xsjs?idSubGrupoEmpresa=${grupoEmpresa}&idEmpresa=${idEmpresa}`);
 
-            $('.dataAtual').text(dataAtual);
-            $('#dtconsultavendainicio').val(dataAtualCampo).on('keypress', (e) => { if (e.keyCode == 13) pesquisaVendaCliente() }).focus();
-            $('#dtvendaconsultafim').val(dataAtualCampo).on('keypress', (e) => { if (e.keyCode == 13) pesquisaVendaCliente() });
-            $('#idvenda_cpf').on('keypress', (e) => { if (e.keyCode == 13) pesquisaVendaCliente() });
-            $('#serie').on('keypress', (e) => { if (e.keyCode == 13) pesquisaVendaCliente() });
-            $('#nfce').on('keypress', (e) => { if (e.keyCode == 13) pesquisaVendaCliente() });
+    $("#js-page-content").html(respHtml);
 
-        }).fail((error) => { throw error })
+    await retornoListaEmpresasSelectVendaVoucher(listaEmpresas);
 
+    animationLoadingStop();
 
-        await ajaxGet(`api/resumo-voucher/empresa.xsjs?idSubGrupoEmpresa=${grupoEmpresa}&idEmpresa=${idEmpresa}`)
-            .then(retornoListaEmpresasSelectVendaVoucher)
-            .catch((error) => { throw error })
+    $('#idEmpresaVenda').val(idEmpresa).trigger('change');
+    $('.dataAtual').text(dataAtual);
+    $('#dtconsultavendainicio, #dtvendaconsultafim').val(dataAtualCampo);
+    $('#dtconsultavendainicio, #dtvendaconsultafim, #idvenda_cpf, #serie, #nfce').on('keypress', (e) => { if (e.keyCode == 13) pesquisarVendaCliente() });
+    $('#dtconsultavendainicio').focus();
 
-        $('#idEmpresaVenda').val(idEmpresa).trigger('change')
-
-    } catch (error) {
-        console.log(error);
-        msgError();
-    }
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
 }
 
-function retornoListaEmpresasSelectVendaVoucher(respostaListaEmpresas) {
-    let { data } = respostaListaEmpresas;
+async function retornoListaEmpresasSelectVendaVoucher(respostaListaEmpresas) {
+  let { data } = respostaListaEmpresas;
 
-    for (var i = 0; i < data.length; i++) {
-        let { IDEMPRESA, NOFANTASIA } = data[i];
+  for (var i = 0; i < data.length; i++) {
+    let { IDEMPRESA, NOFANTASIA } = data[i];
 
-        $('#idEmpresaVenda').append(
-            `<option value="${IDEMPRESA}">${NOFANTASIA}</option>`
-        );
+    $('#idEmpresaVenda').append(
+      `<option value="${IDEMPRESA}">${NOFANTASIA}</option>`
+    );
 
-    }
+  }
 
-    $('#idEmpresaVenda').select2()
+  $('#idEmpresaVenda').select2()
 }
 
 function selecionaLinhaProdutoParaVoucher(element, selectByQtd) {
-    let linhaSelecionada = $(element).closest('tr');
+  let linhaSelecionada = $(element).closest('tr');
 
-    selectByQtd && $(linhaSelecionada).find('input:first').prop('checked', true);
+  selectByQtd && $(linhaSelecionada).find('input:first').prop('checked', true);
 
-    if (!linhaSelecionada.hasClass('selected') || selectByQtd) {
-        linhaSelecionada.addClass('selected').css("opacity", 0.8)
-        linhaSelecionada.attr('title', 'PRODUTO SELECIONADO PARA TROCA!');
+  if (!linhaSelecionada.hasClass('selected') || selectByQtd) {
+    linhaSelecionada.addClass('selected').css("opacity", 0.8)
+    linhaSelecionada.attr('title', 'PRODUTO SELECIONADO PARA TROCA!');
 
-    } else {
-        linhaSelecionada.removeClass('selected').removeAttr('style')
-        linhaSelecionada.attr('title', '')
+  } else {
+    linhaSelecionada.removeClass('selected').removeAttr('style')
+    linhaSelecionada.attr('title', '')
 
+  }
+
+  if ($('[name="selecaoProdutosParaVoucher"]:checked:not(:disabled)').length) {
+    $('#btnCadVoucher').removeClass('d-none');
+  } else {
+    $('#btnCadVoucher').addClass('d-none');
+  }
+
+  atualizarCardResumoVoucher();
+}
+
+async function validarQtdProdutoDigitadaParaTrocar(element) {
+  let linhaTable = $(element).closest('tr');
+  let numLinha = linhaTable.find('td:first').text();
+  let descProduto = linhaTable.find('td:eq(2)').text();
+  let qtdOriginal = Number($(element).attr('data-qtd-original') || 0)
+  let qtdDigitada = Number($(element).val()?.replace(/\D/g, '') || 0);
+  let qtdValidada = qtdDigitada;
+
+  qtdDigitada = qtdDigitada < 0 ? 0 : qtdDigitada;
+
+  if (qtdDigitada <= 0 || qtdDigitada > qtdOriginal) {
+    await msgWarning(`Quantidade Inválida Digitada Na Linha( ${numLinha} )`, `Produto: ${descProduto}, QUANTIDADE DISPONÍVEL: ${qtdOriginal}`)
+
+    qtdValidada = qtdOriginal;
+  }
+
+  $(element).val(qtdValidada).focus();
+
+  await atualizarCardResumoVoucher();
+}
+
+async function obterDadosTabelaProdutosSelecionadosParaTrocar() {
+
+  let tabela = $('#resultadoProduto').DataTable();
+  let produtos = [];
+
+  tabela.rows().every(function () {
+
+    let row = $(this.node());
+
+    let checkbox = row.find('[name="selecaoProdutosParaVoucher"]');
+    let inputQtd = row.find('[name="qtdProdutoParaTrocar"]');
+
+    if (checkbox.prop('checked') && !checkbox.prop('disabled')) {
+
+      produtos.push({
+        IDVENDA: checkbox.attr('data-id-venda'),
+        IDVENDADETALHE: checkbox.attr('data-id-venda-detalhe'),
+        IDPRODUTO: checkbox.attr('data-id-produto'),
+        QTD: Number(inputQtd.val()),
+        VRUNIT: Number(checkbox.attr('data-valor-unitario-liquido-produto')),
+        IDVENDEDOR: checkbox.attr('data-id-vendedor')
+      });
     }
+  });
 
-    if ($('[name="selecaoProdutosParaVoucher"]:checked:not(:disabled)').length) {
-        $('#btnCadVoucher').removeClass('d-none');
-    } else {
-        $('#btnCadVoucher').addClass('d-none');
+  return produtos;
+}
+
+async function atualizarCardResumoVoucher() {
+  animationLoadingStart();
+
+  let produtos = await obterDadosTabelaProdutosSelecionadosParaTrocar();
+  let qtdProdutosSelecionados = 0;
+  let qtdProdutos = 0;
+  let valorVoucher = 0;
+
+  for (let { QTD, VRUNIT, } of produtos) {
+    qtdProdutos += QTD;
+    valorVoucher += QTD * VRUNIT;
+    qtdProdutosSelecionados++;
+  }
+
+  $('#cardResumoVoucherQtdProdutosVoucher').text(qtdProdutosSelecionados);
+  $('#cardResumoVoucherQtdItensVoucher').text(qtdProdutos);
+  $('#cardResumoVoucherValorVoucher').text(maskValorEmBRL(valorVoucher));
+
+  animationLoadingStop();
+}
+
+async function pesquisarVendaCliente() {
+  let dataInicio = $('#dtconsultavendainicio').val() || "";
+  let dataFim = $('#dtvendaconsultafim').val() || "";
+  let idLoja = Number($('#idEmpresaVenda').val()) || "";
+  let cpfOrIdVenda = $('#idvenda_cpf').val() || "";
+  let serie = $('#serie').val() || "";
+  let nfce = $('#nfce').val() || "";
+  let dadosVendaFormatado = cpfOrIdVenda?.split('-');
+  let dodosUser = await getCurrentUser()?.user;
+  let grupoEmpresa = dodosUser?.IDSUBGRUPOEMPRESARIAL;
+  let idLojaUser = dodosUser?.IDEMPRESA;
+
+  $('#voltaTela').removeClass('d-none');
+  $('#btnCadCliente').attr('value', "");
+
+  if (dadosVendaFormatado?.length > 2) {
+    cpfOrIdVenda = dadosVendaFormatado.join('-');
+  } else {
+    cpfOrIdVenda = cpfOrIdVenda.replace(/[^0-9]/g, '');
+    $('#btnCadCliente').attr('value', cpfOrIdVenda);
+  }
+
+  /*if (idLojaUser !== idLoja && (!dataInicio || !dataFim || !idLoja || (!cpfOrIdVenda && !nfce && !serie))) {
+    return msgInfo('Atenção!', 'Para pesquisar vendas de outra loja, deve se preencher os campos de Data e um dos campos(CPF/CNPJ ou Nº Venda, Serie e Nº NFCE) da pesquisa!')
+  }*/
+
+  $("#resultadoVendaClienteVoucher, #resultadoProduto").DataTable().clear().destroy();
+  $("#tabelaVenda, #tabelaProduto, #cardResumoVoucher").addClass('d-none');
+
+  try {
+    $("#tabelaVenda").removeClass('d-none');
+
+    let listaVendas = await ajaxGetAllData(`api/resumo-voucher/lista-venda.xsjs?dtInicio=${dataInicio}&dtFim=${dataFim}&idSubgrupoEmpresarial=${grupoEmpresa}&idEmpresa=${idLoja}&cpfouIdVenda=${cpfOrIdVenda}&nnf=${nfce}&serie=${serie}&pageSize=500`)
+
+    await retornoPesquisaVendaCliente(listaVendas);
+  } catch (e) {
+    console.log(e);
+    msgError();
+  }
+}
+
+async function retornoPesquisaVendaCliente(respostapesquisaVendaCliente) {
+  let { data } = respostapesquisaVendaCliente || [];
+  let dadosTable = [];
+  let count = 0;
+
+  if (data?.length > 0) {
+    for (let dadosVenda of data) {
+      let idVenda = dadosVenda?.IDVENDA;
+      let nomeRazao = dadosVenda?.DSNOMERAZAOSOCIAL || "";
+      let sobrenomeFant = dadosVenda?.DSAPELIDONOMEFANTASIA || "";
+
+      sobrenomeFant = sobrenomeFant != nomeRazao ? sobrenomeFant : "";
+
+      let nuCnpj = dadosVenda?.DEST_CNPJ ? maskCNPJ(dadosVenda?.DEST_CNPJ) : "";
+      let nuCpf = dadosVenda?.DEST_CPF ? maskCPF(dadosVenda?.DEST_CPF) : "";
+      let nomeClienteVenda = nuCpf ? ([nomeRazao, sobrenomeFant].filter(Boolean).join(" ")) : nomeRazao;
+      let cpfCnpjCliente = nuCnpj || nuCpf;
+      let loja = dadosVenda?.NOFANTASIA;
+      let valorTotal = dadosVenda?.VRTOTALPAGO;
+      let dataVenda = dadosVenda?.DTHORAFECHAMENTO;
+      let dataVendaFormatada = dadosVenda?.DTHORAFECHAMENTOFORMATEUA;
+      let situacaoVenda = `
+              <label class"fw-500" style="color: ${dadosVenda?.STCANCELADO == 'False' ? 'blue' : 'red'};">${dadosVenda?.STCANCELADO == 'False' ? 'Ativa' : 'Cancelada'}</label>
+          `;
+      let opcoesVenda = `
+              <div class="btn-group btn-group-xs">
+                  <button type="button" class="btn btn-success btn-xs" title="Detalhar Produtos" id="${idVenda}" onclick="visualizarProdutosDaVendaParaVoucher(this.id, '${dataVendaFormatada}')" ><span class="fal fa-list mr-1"></span></button>
+              </div>
+          `;
+
+      dadosTable.push([
+        ++count,
+        opcoesVenda,
+        idVenda,
+        nomeClienteVenda,
+        cpfCnpjCliente,
+        loja,
+        maskValor(valorTotal),
+        dataVenda,
+        situacaoVenda
+
+      ])
     }
+  }
+
+  $("#resultadoVendaClienteVoucher").DataTable({
+    data: dadosTable,
+    paging: true,
+    pageLength: 10,
+    searching: true,
+    info: true,
+    deferRender: true,
+    responsive: true,
+    scrollY: "1000px",
+    scrollX: true,
+    scrollCollapse: true,
+    columnDefs: [
+      {
+        targets: [1, 8],
+        className: 'text-center'
+      },
+      {
+        targets: [6],
+        type: 'currency-brl'
+      },
+      {
+        targets: [7],
+        type: 'date-time-br'
+      },
+
+    ],
+    columns: [
+      { width: '5%' },
+      { width: '5%' },
+      { width: '10%' },
+      { width: '25%' },
+      { width: '10%' },
+      { width: '20%' },
+      { width: '10%' },
+      { width: '10%' },
+      { width: '5%' }
+    ],
+    initComplete: function (settings) {
+      let idTable = `#${settings.nTable.id}`;
+
+      $('html, body').animate({
+        scrollTop: $(idTable).offset().top - 70
+      }, 1000);
+
+      $(idTable).find('tbody td:first').focus()
+
+    },
+    language: {
+      "emptyTable": "Dados não encontrados, verifique os dados inseridos na pesquisa e tente novamente!"
+    },
+  });
 
 }
 
-async function validaQtdDigitada(element) {
-    let numLinha = $(element).closest('tr').find('td:first').text();
-    let qtdOriginal = Number($(element).attr('qtdOriginal'))
-    let qtdDigitada = Number($(element).val()?.replace(/\D/g, '') || 0);
+async function visualizarProdutosDaVendaParaVoucher(idVenda, dataVenda) {
+  try {
+    let tipoTroca = await modalDeSelecaoDeTipoDeTroca();
 
-    if (qtdDigitada > 0 && qtdDigitada <= qtdOriginal) {
-        return $(element).val(qtdDigitada);
+    if (tipoTroca) {
+      animationLoadingStart();
+
+      $("#js-page-content #tabelaVenda").addClass('d-none');
+      $("#js-page-content #tabelaProduto").removeClass('d-none');
+      $("#voltaTela").attr('onclick', 'telaCriacaoEdicaoVouchers()');
+
+      let respHtmlTabelaProdutos = await $.get("gerencia_action_produtos_venda_criar_voucher.html");
+      let dadosResumoVenda = await ajaxGetAllData(`api/resumo-voucher/lista-venda.xsjs?id=${idVenda}`);
+      let dadosProdutosVenda = await ajaxGetAllData(`api/resumo-voucher/lista-produtos-venda.xsjs?id=${idVenda}`);
+
+      $("#tabelaProduto").html(respHtmlTabelaProdutos);
+
+      await retornoVisualizarProdutos(dadosResumoVenda, dadosProdutosVenda, tipoTroca);
+
+      await atualizarCardResumoVoucher();
+
+      animationLoadingStop();
     }
-
-    await msgWarning(`Quantidade Inválida Digitada Na Linha( ${numLinha} ), QUANTIDADE DISPONÍVEL: ${qtdOriginal}`)
-        .then(() => {
-            $(element).val(qtdOriginal).focus();
-        })
-}
-
-async function pesquisaVendaCliente() {
-    let dataInicio = $('#dtconsultavendainicio').val() || "";
-    let dataFim = $('#dtvendaconsultafim').val() || "";
-    let idLoja = Number($('#idEmpresaVenda').val()) || "";
-    let dadosVenda = $('#idvenda_cpf').val() || "";
-    let serie = $('#serie').val() || "";
-    let nfce = $('#nfce').val() || "";
-    let dadosVendaFormatado = dadosVenda?.split('-');
-    let dodosUser = await getCurrentUser()?.user;
-    let grupoEmpresa = dodosUser?.IDSUBGRUPOEMPRESARIAL;
-
-    $('#voltaTela').removeClass('d-none');
-    $('#btnCadCliente').attr('value', "");
-
-    if (dadosVendaFormatado?.length > 2) {
-        dadosVenda = dadosVendaFormatado.join('-');
-    } else {
-        dadosVenda = dadosVenda.replace(/[^0-9]/g, '');
-        $('#btnCadCliente').attr('value', dadosVenda);
-    }
-
-    $("#resultadoVendaClienteVoucher").DataTable().clear().destroy();
-    $(".tabelaVenda").addClass('d-none');
-    $("#resultadoProduto").DataTable().clear().destroy();
-    $(".tabelaProduto").addClass('d-none');
-
-
-    await ajaxGetAllData(`api/venda/lista-venda-cliente.xsjs?dtInicio=${dataInicio}&dtFim=${dataFim}&idSubgrupoEmpresarial=${grupoEmpresa}&idEmpresa=${idLoja}&cpfouIdVenda=${dadosVenda}&nnf=${nfce}&serie=${serie}&pageSize=500`, 'Carregando Dados...')
-        .then(retornoPesquisaVendaCliente)
-        .catch((error) => { throw error })
-}
-
-function retornoPesquisaVendaCliente(respostapesquisaVendaCliente) {
-    let { data } = respostapesquisaVendaCliente;
-    let dadosTable = [];
-
-    $(".tabelaVenda").removeClass('d-none');
-
-    for (i = 0; i < data.length; i++) {
-        let dadosVenda = data[i]?.venda;
-        let idVenda = dadosVenda?.IDVENDA;
-        let nomeRazao = dadosVenda?.DSNOMERAZAOSOCIAL || "";
-        let sobrenomeFant = dadosVenda?.DSAPELIDONOMEFANTASIA || "";
-        let nuCnpj = dadosVenda?.DEST_CNPJ ? maskCNPJ(dadosVenda?.DEST_CNPJ) : "";
-        let nuCpf = dadosVenda?.DEST_CPF ? maskCPF(dadosVenda?.DEST_CPF) : "";
-        let nomeClienteVenda = nuCpf ? (nomeRazao + " " + sobrenomeFant) : nomeRazao;
-        let cpfCnpjCliente = nuCnpj || nuCpf;
-        let loja = dadosVenda?.NOFANTASIA;
-        let valorTotal = dadosVenda?.VRTOTALPAGO;
-        let dataVenda = dadosVenda?.DTHORAFECHAMENTO;
-        let dataVendaFormatada = dadosVenda?.DTHORAFECHAMENTOFORMATEUA;
-        let situacaoVenda = `
-            <label class"fw-500" style="color: ${dadosVenda?.STCANCELADO == 'False' ? 'blue' : 'red'};">${dadosVenda?.STCANCELADO == 'False' ? 'Ativa' : 'Cancelada'}</label>
-        `;
-        let opcoesVenda = `
-            <div class="btn-group btn-group-xs">
-                <button type="button" class="btn btn-success btn-xs" title="Detalhar Produtos" id="${idVenda}" onclick="visualizarProdutosDaVendaParaVoucher(this.id, '${dataVendaFormatada}')" ><span class="fal fa-list mr-1"></span></button>
-            </div>
-        `;
-
-        dadosTable.push([
-            (i + 1),
-            opcoesVenda,
-            idVenda,
-            nomeClienteVenda,
-            cpfCnpjCliente,
-            loja,
-            maskValor(valorTotal),
-            dataVenda,
-            situacaoVenda
-
-        ])
-    }
-
-    $("#resultadoVendaClienteVoucher").DataTable({
-        data: dadosTable,
-        paging: true,
-        pageLength: 10,
-        searching: true,
-        info: true,
-        deferRender: true,
-        responsive: true,
-        scrollY: "1000px",
-        scrollX: true,
-        scrollCollapse: true,
-        columnDefs: [
-            {
-                targets: [1, 8],
-                className: 'text-center'
-            },
-            {
-                targets: [6],
-                type: 'currency-brl'
-            },
-            {
-                targets: [7],
-                type: 'date-time-br'
-            },
-
-        ],
-        columns: [
-            { width: '5%' },
-            { width: '5%' },
-            { width: '10%' },
-            { width: '25%' },
-            { width: '10%' },
-            { width: '20%' },
-            { width: '10%' },
-            { width: '10%' },
-            { width: '5%' }
-        ],
-        initComplete: function (settings) {
-            let idTable = `#${settings.nTable.id}`;
-
-            $('html, body').animate({
-                scrollTop: $(idTable).offset().top - 70
-            }, 1000);
-            
-            $(idTable).find('tbody td:first').focus()
-
-        },
-        language: {
-            "emptyTable": "Dados não encontrados, verifique os dados inseridos na pesquisa e tente novamente!"
-        },
-    });
-
-}
-
-async function visualizarProdutosDaVendaParaVoucher(IdVenda, dataVenda) {
-    try {
-        let tipoTroca = await modalDeSelecaoDeTipoDeTroca();
-
-        if (tipoTroca) {
-            $(".tabelaVenda").addClass('d-none');
-            $('.tabelaProduto').removeClass('d-none')
-            $("#voltaTela").attr('onclick', 'telaCriacaoEdicaoVouchers()')
-
-            await ajaxGetAllData(`api/venda/lista-venda-cliente.xsjs?id=${IdVenda}`, 'Carregando Produtos...')
-                .then(async (dadosVenda) => {
-                    retornoVisualizarProdutos(dadosVenda, tipoTroca);
-                })
-                .catch((error) => { throw error })
-        }
-    } catch (error) {
-        console.log(error);
-        msgError();
-    }
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
 
 }
 
 async function validaUsuarioLogado(dadosVenda) {
-    try {
-        let idUserLogado = await getCurrentUser()?.user?.id;
-        let { DTHORAFECHAMENTO } = dadosVenda?.data[0] || "";
-        let diferencaEmDias;
-        let dadosUserVerificado;
-        let grupoEmpresarial
-        let dsFuncVerificado;
-        let dsFuncAutorizadas = [
-            'TI',
-            'SUPERVISOR',
-            'GERENTE',
-            'SUB GERENTE',
-            'FISCAL DE CAIXA',
-            'OPERADORA DE CAIXA',
-            'OPERADOR DE CAIXA'
+  try {
+    let idUserLogado = await getCurrentUser()?.user?.id;
+    let { DTHORAFECHAMENTO } = dadosVenda?.data[0] || "";
+    let diferencaEmDias;
+    let dadosUserVerificado;
+    let grupoEmpresarial
+    let dsFuncVerificado;
+    let dsFuncAutorizadas = [
+      'TI',
+      'SUPERVISOR',
+      'GERENTE',
+      'SUB GERENTE',
+      'FISCAL DE CAIXA',
+      'OPERADORA DE CAIXA',
+      'OPERADOR DE CAIXA'
+    ];
+
+    if (!idUserLogado) {
+      throw 'Erro ao validar o usuário, recarregue e tente novamente!';
+    }
+
+    let dadosUser = await ajaxGet(`api/funcionario/todos.xsjs?idFuncionario=${idUserLogado}`).catch((error) => { throw error });
+
+    if (!dadosUser?.data?.length) {
+      throw 'Erro ao validar o usuário, recarregue e tente novamente!';
+    }
+
+    dadosUserVerificado = dadosUser?.data[0]
+    dsFuncVerificado = dadosUserVerificado.DSFUNCAO?.trim()?.toUpperCase();
+    grupoEmpresarial = dadosUserVerificado?.IDGRUPOEMPRESARIAL;
+    diferencaEmDias = retornaDiasEntreDatas(DTHORAFECHAMENTO);
+
+    if (dsFuncAutorizadas.includes(dsFuncVerificado)) {
+      if (diferencaEmDias > 180 && dsFuncVerificado !== 'TI') {
+        return false;
+      }
+
+      if (grupoEmpresarial == 4) {
+        dsFuncAutorizadas = [
+          'GERENTE',
+          'SUB GERENTE',
+          'FISCAL DE CAIXA',
         ];
 
-        if (!idUserLogado) {
-            throw 'Erro ao validar o usuário, recarregue e tente novamente!';
+        if (!dsFuncAutorizadas.includes(dsFuncVerificado)) {
+          return false;
         }
+      }
 
-        let dadosUser = await ajaxGet(`api/funcionario/todos.xsjs?idFuncionario=${idUserLogado}`).catch((error) => { throw error });
-
-        if (!dadosUser?.data?.length) {
-            throw 'Erro ao validar o usuário, recarregue e tente novamente!';
-        }
-
-        dadosUserVerificado = dadosUser?.data[0]
-        dsFuncVerificado = dadosUserVerificado.DSFUNCAO?.trim()?.toUpperCase();
-        grupoEmpresarial = dadosUserVerificado?.IDGRUPOEMPRESARIAL;
-        diferencaEmDias = retornaDiasEntreDatas(DTHORAFECHAMENTO);
-
-        if (dsFuncAutorizadas.includes(dsFuncVerificado)) {
-            if (diferencaEmDias > 180 && dsFuncVerificado !== 'TI') {
-                return false;
-            }
-
-            if (grupoEmpresarial == 4) {
-                dsFuncAutorizadas = [
-                    'GERENTE',
-                    'SUB GERENTE',
-                    'FISCAL DE CAIXA',
-                ];
-
-                if (!dsFuncAutorizadas.includes(dsFuncVerificado)) {
-                    return false;
-                }
-            }
-
-            if (diferencaEmDias > 32 && dsFuncVerificado.includes('OPERADOR')) {
-                return false;
-            }
-
-            return dadosUserVerificado;
-        }
-
+      if (diferencaEmDias > 32 && dsFuncVerificado.includes('OPERADOR')) {
         return false;
-    } catch (error) {
-        console.log(error);
-        msgError('Erro ao validar o usuário, recarregue e tente novamente!');
-    }
-}
+      }
 
-async function retornoVisualizarProdutos(respostaVisualizarProdutos, tipoTroca) {
-    try {
-        let { data } = respostaVisualizarProdutos;
-        let { venda } = data[0];
-        let { IDVENDA, DEST_CPF, DEST_CNPJ, NRNOTA, DTHORAFECHAMENTOFORMATEUA } = venda;
-
-        let cpfCnpjCliente = DEST_CPF || DEST_CNPJ;
-        let dataVenda = DTHORAFECHAMENTOFORMATEUA;
-        let dadosTable = [];
-        let qtdTotalProdutos = 0;
-        let indice = 0;
-
-        const DIFERENCAEMDIAS = retornaDiasEntreDatas(dataVenda);
-        const DATAAUTORIZADA = tipoTroca == 'CORTESIA' ? 32 : 90;
-        const dsTipoTroca = tipoTroca;
-
-        $('#nuVendaProd').attr('value', NRNOTA).html(`<span class="fw-500"><i>  Produtos - Venda: ${IDVENDA}</i></span>`);
-
-        for (let i = 0; i < data.length; i++) {
-            let { detalhe } = data[i];
-
-            for (let j = 0; j < detalhe.length; j++) {
-                let { det } = detalhe[j];
-                let {
-                    CPROD,
-                    IDVENDADETALHE,
-                    XPROD,
-                    NUCODBARRAS,
-                    QTD,
-                    VRTOTALLIQUIDO,
-                    VUNTRIB,
-                    VPROD,
-                    STTROCA,
-                    STCANCELADO,
-                    VENDEDOR_MATRICULA
-                } = det;
-
-                let idLinha = CPROD + '_' + indice
-                let idProduto = CPROD
-                let idVendaDetalhe = IDVENDADETALHE;
-                let codProduto = CPROD;
-                let descProduto = XPROD;
-                let codBarras = NUCODBARRAS;
-                let quantidade = Number(QTD);
-                let valorProd = Number(VRTOTALLIQUIDO);
-                let valorProdUnit = Number(VUNTRIB);
-                let valorTotalProdBruto = Number(VPROD);
-                let descontoProduto = valorProdUnit - valorProd;
-                let stTroca = STTROCA == "True" ? "disabled" : ""
-                let checked = STTROCA == "True" ? "checked" : "";
-                let idVendedor = VENDEDOR_MATRICULA;
-                let stQuantidade = checked || quantidade <= 1 ? "disabled" : "";
-                let stCancelado = STCANCELADO || 'False';
-
-                if (+DIFERENCAEMDIAS > DATAAUTORIZADA) {
-                    //stTroca = "disabled";
-
-                    $('#nuVendaProd').html(`
-                    <span class="fw-500">
-                        <i> Produtos - Venda: ${IDVENDA}</i>  &#160;&#160; <i class="text-danger h4">Venda Fora do Prazo de <u><b>${DATAAUTORIZADA} DIAS</u></b> Para Troca do Tipo <u><b>${dsTipoTroca}</u></b>. Dias Passados Após a Compra: <u><b>${DIFERENCAEMDIAS} DIAS<b></u></i>
-                    </span>
-                `);
-                }
-
-                selecao = `
-                    <div class="custom-control custom-checkbox"> 
-                        <input type="checkbox" class="custom-control-input" name="selecaoProdutosParaVoucher" id="${idLinha}" value="${valorProd}" onchange="selecionaLinhaProdutoParaVoucher(this)" idVenda="${IDVENDA}" diasPassadosDaCompra="${DIFERENCAEMDIAS}" idVendaDetalhe="${idVendaDetalhe}" idProduto="${idProduto}" quantidade="${quantidade}" valorProdUnit="${valorProdUnit}" valorTotalProdBruto="${valorTotalProdBruto}" descontoProduto="${descontoProduto}" valorProd="${valorProd}" idVendedor="${idVendedor}" cnpfCnpjCliente="${cpfCnpjCliente}"
-                        ${checked} ${stTroca} tipoTroca="${tipoTroca}" dataAutorizada="${DATAAUTORIZADA}" dataVenda="${dataVenda}" />
-                        <label class="custom-control-label" for="${idLinha}"></label>
-                    </div>
-                `;
-
-                quantidade = `
-                <div class="custom-control"> 
-                    <input class="rounded" type="number" min="1" max="${quantidade}" autocomplete="off" autofill="off" name="quantidaProduto" qtdOriginal="${quantidade}" value="${quantidade}" onchange="validaQtdDigitada(this)" onclick="selecionaLinhaProdutoParaVoucher(this, true)"style="width: 50px; text-align: center;" ${stQuantidade}>
-                </div>
-            `;
-                if(stCancelado == 'False'){
-                    qtdTotalProdutos++;
-                    indice++;
-                    
-                    dadosTable.push([
-                        indice,
-                        selecao,
-                        codProduto,
-                        descProduto,
-                        codBarras,
-                        quantidade,
-                        maskValorEmBRL(valorProd)
-                    ])
-                }
-
-            }
-        }
-
-        $('#btnCadCliente').removeClass('d-none').attr('value', cpfCnpjCliente);
-
-        $("#resultadoProduto").DataTable().clear().destroy();
-
-        $("#resultadoProduto").DataTable({
-            data: dadosTable,
-            pageLength: 50,
-            paging: true,
-            searching: true,
-            info: true,
-            deferRender: true,
-            responsive: true,
-            scrollY: "1000px",
-            scrollX: true,
-            scrollCollapse: true,
-            columnDefs: [
-                {
-                    targets: [1, 5],
-                    className: 'text-center'
-                },
-                {
-                    targets: [6],
-                    type: 'currency-brl',
-                    className: 'text-center'
-                }
-            ],
-            columns: [
-                { width: '5%' },
-                { width: '5%' },
-                { width: '10%' },
-                { width: '50%' },
-                { width: '15%' },
-                { width: '5%' },
-                { width: '15%' }
-            ],
-            initComplete: function (settings) {
-                let idTable = `#${settings.nTable.id}`;
-                
-                $('html, body').animate({
-                    scrollTop: $(idTable).offset().top - 70
-                }, 1000);
-                
-                $(idTable).find('tbody td:first').focus()
-            },
-            language: {
-                "emptyTable": "Não há Produtos Na Venda"
-            },
-        });
-
-        let verificaProd = $("[name=selecaoProdutosParaVoucher]");
-        let qtdItensTrocados = 0;
-
-        for (let i = 0; i < verificaProd.length; i++) {
-            let linhaProd = $(verificaProd[i]).closest('tr');
-
-            if (verificaProd[i].disabled && verificaProd[i].checked) {
-                qtdItensTrocados++
-                linhaProd.css("opacity", 0.5).attr('title', 'ESTE PRODUTO JÁ FOI TROCADO!');
-
-            } else if (+DIFERENCAEMDIAS > DATAAUTORIZADA) {
-                linhaProd.attr('title', `VENDA FORA DO PRAZO DE ${DATAAUTORIZADA} DIAS PARA A TROCA DO TIPO ${dsTipoTroca}, JÁ SE PASSARAM: ${DIFERENCAEMDIAS} DIAS APÓS A COMPRA!`)//.css("opacity", 0.5)
-            }
-        }
-
-        if (qtdTotalProdutos - qtdItensTrocados == 0) {
-            $('#nuVendaProd').html(`<span class="fw-500 todosTrocados"><i>  Produtos _ Venda: ${IDVENDA}</i>  &#160;&#160; <i class="text-danger h4">Todos os Produtos Desta Venda Já Foram Trocados</i></span>`);
-        }
-
-    } catch (error) {
-        console.log(error);
-        msgError()//.then(() => telaCriacaoEdicaoVouchers())
-
+      return dadosUserVerificado;
     }
 
+    return false;
+  } catch (error) {
+    console.log(error);
+    msgError('Erro ao validar o usuário, recarregue e tente novamente!');
+  }
 }
 
-async function exibirModalFormCliente(tipoCliente){
-    let actionModal = (tipoCliente ? 'action_clienteVoucher_modal.html' : 'action_empresaVoucher_modal.html');
+async function retornoVisualizarProdutos(dadosResumoVenda, listaProdutosVenda, tipoTroca) {
 
-    await $.get(actionModal, async (res) => {
-        $('#resultadoModalCadCliente').html(res);
+  let { data } = dadosResumoVenda;
+  let idVendedor = 0;
 
-        $('#notificacaoModalCadastroCliente').html('');
-        $("#CadCliente").text('Cadastrar').removeClass('d-none');
+  let {
+    IDVENDA,
+    DEST_CPF,
+    DEST_CNPJ,
+    NRNOTA,
+    DTHORAFECHAMENTOFORMATEUA
+  } = data[0];
 
-        $("#detClienteVoucher").modal('show');
+  let cpfCnpjCliente = DEST_CPF || DEST_CNPJ;
+  let dataVenda = DTHORAFECHAMENTOFORMATEUA;
 
-        $("#DataCadastro").val(dataAtualCampo);
-        $('#idIndicacaoIE').select2();
-    })
+  let dadosTable = [];
+
+  let qtdTotalProdutos = 0;
+  let qtdTotalTrocados = 0;
+
+  let indice = 0;
+
+  let colorTipoTroca = tipoTroca == 'CORTESIA' ? 'text-info' : 'text-danger';
+
+  const DIFERENCAEMDIAS = retornaDiasEntreDatas(dataVenda);
+  const DATAAUTORIZADA = tipoTroca == 'CORTESIA' ? 32 : 90;
+  const dsTipoTroca = tipoTroca;
+
+  $('#nuVendaProd')
+    .attr('value', NRNOTA)
+    .html(`
+      <span class="fw-500">
+          <i>Produtos - Venda: ${IDVENDA}</i>
+      </span>
+    `);
+
+
+  $('#cardResumoVoucherCpfCnpjClienteVenda').val(cpfCnpjCliente);
+  $('#cardResumoVoucherIdVenda').text(IDVENDA);
+  $('#cardResumoVoucherTipoTroca').text(tipoTroca).addClass(colorTipoTroca);
+
+  if (listaProdutosVenda?.data?.length > 0) {
+
+    for (let registro of listaProdutosVenda.data) {
+
+      let {
+        IDVENDA,
+        IDVENDADETALHE,
+        IDPRODUTO,
+        DESCRICAO_PRODUTO,
+        CODIGO_BARRAS_PRODUTO,
+        QUANTIDADE_VENDIDA,
+        QUANTIDADE_TROCADA,
+        QUANTIDADE_DISPONIVEL_PARA_TROCA,
+        VALOR_UNITARIO_PRODUTO_LIQUIDO,
+        VALOR_TOTAL_LINHA_PRODUTO_LIQUIDO,
+        VENDEDOR_MATRICULA,
+      } = registro;
+
+
+      let idProduto = IDPRODUTO;
+      let idLinha = idProduto + '_' + indice;
+      let idVendaDetalhe = IDVENDADETALHE;
+      let descProduto = DESCRICAO_PRODUTO;
+      let codBarras = CODIGO_BARRAS_PRODUTO;
+      let qtdVendida = Number(QUANTIDADE_VENDIDA);
+      let qtdDisponivel = Number(QUANTIDADE_DISPONIVEL_PARA_TROCA);
+      let qtdTrocada = qtdDisponivel == 0 ? qtdVendida : Number(QUANTIDADE_TROCADA);
+      let valorUnitarioProdutoLiquido = Number(VALOR_UNITARIO_PRODUTO_LIQUIDO);
+      let valorTotalLiquidoProd = Number(VALOR_TOTAL_LINHA_PRODUTO_LIQUIDO);
+      let stItemQtdTotalTrocado = qtdDisponivel == 0;
+      let stVendaForaPrazoDoTipoTroca = DIFERENCAEMDIAS > DATAAUTORIZADA;
+      let checkedSelecao = stItemQtdTotalTrocado ? "checked" : "";
+      let disabledSelecao = stItemQtdTotalTrocado || stVendaForaPrazoDoTipoTroca ? "disabled" : "";
+      let stQuantidade = checkedSelecao || qtdDisponivel <= 1 ? "disabled" : "";
+
+      if (qtdTrocada > 0) {
+        qtdTotalTrocados += qtdTrocada;
+      }
+
+      if (stVendaForaPrazoDoTipoTroca) {
+        $("#cardResumoVoucher").addClass('d-none');
+
+        $('#nuVendaProd').html(`
+          <span class="fw-500">
+            <i>Produtos - Venda: ${IDVENDA}</i>
+
+            &#160;&#160;
+
+            <i class="text-danger h4">
+                Venda Fora do Prazo de
+                <u> 
+                  <b>${DATAAUTORIZADA} DIAS</b> 
+                </u>
+                Para Troca do Tipo
+                <u>
+                    <b>${dsTipoTroca}</b>
+                </u>.
+
+                Dias Passados Após a Compra:
+                <u>
+                  <b>${DIFERENCAEMDIAS} DIAS</b>
+                </u>
+            </i>
+          </span>
+        `);
+      } else {
+        $("#cardResumoVoucher").removeClass('d-none');
+      }
+
+      let selecao = `
+        <div class="custom-control custom-checkbox">
+          <input
+            id="${idLinha}"
+            type="checkbox"
+            class="custom-control-input"
+            name="selecaoProdutosParaVoucher"
+
+            data-id-venda="${IDVENDA}"
+            data-id-venda-detalhe="${idVendaDetalhe}"
+            data-id-produto="${idProduto}"
+            data-valor-unitario-liquido-produto="${valorUnitarioProdutoLiquido}"
+            data-id-vendedor="${VENDEDOR_MATRICULA}"
+            data-cnpfCnpj-cliente="${cpfCnpjCliente}"
+            data-tipo-troca="${tipoTroca}"
+            
+            ${checkedSelecao}
+            ${disabledSelecao}
+
+            onchange="selecionaLinhaProdutoParaVoucher(this)"
+          />
+
+          <label
+            class="custom-control-label"
+            for="${idLinha}">
+          </label>
+
+        </div>
+      `;
+
+      let inputQtdDisponivel = `
+        <div class="custom-control">
+          <input
+            class="rounded"
+            type="number"
+            name="qtdProdutoParaTrocar"
+
+            min="1"
+            max="${qtdDisponivel}"
+            
+            data-qtd-original="${qtdDisponivel}"
+
+            value="${qtdDisponivel}"
+
+            onkeyup="validarQtdProdutoDigitadaParaTrocar(this)"
+            onclick="selecionaLinhaProdutoParaVoucher(this, true)"
+            
+            style="width: 50px; text-align: center;"
+            
+            autocomplete="off"
+            autofill="off"
+            
+            ${stQuantidade}
+          />
+
+        </div>
+      `;
+
+      idVendedor = !idVendedor ? parseInt(VENDEDOR_MATRICULA || 0) : idVendedor;
+
+      qtdTotalProdutos += qtdVendida;
+
+      indice++;
+
+      dadosTable.push([
+        indice,
+        selecao,
+        descProduto,
+        codBarras,
+        qtdVendida,
+        qtdTrocada,
+        inputQtdDisponivel,
+        maskValorEmBRL(valorUnitarioProdutoLiquido),
+        maskValorEmBRL(valorTotalLiquidoProd)
+      ]);
+    }
+
+
+    $('#btnCadCliente').removeClass('d-none').attr('value', cpfCnpjCliente);
+  }
+
+  if ($.fn.DataTable.isDataTable('#resultadoProduto')) {
+    $('#resultadoProduto').DataTable().clear().destroy();
+  }
+
+  $("#resultadoProduto").DataTable({
+    data: dadosTable,
+    pageLength: 50,
+    paging: true,
+    searching: true,
+    info: true,
+    deferRender: true,
+    responsive: false,
+    columnDefs: [
+      {
+        targets: [1, 6],
+        className: 'text-center'
+      },
+      {
+        targets: [7, 8],
+        type: 'currency-brl'
+      }
+    ],
+    columns: [
+      { width: '5%' },
+      { width: '10%' },
+      { width: '45%' },
+      { width: '10%' },
+      { width: '5%' },
+      { width: '5%' },
+      { width: '5%' },
+      { width: '10%' },
+
+    ],
+    createdRow: function (row, data, dataIndex) {
+      let linhaProd = $(row);
+      let checkbox = linhaProd.find('[name=selecaoProdutosParaVoucher]');
+
+      if (!checkbox.length) {
+        return;
+      }
+
+      if (checkbox.prop('disabled') && checkbox.prop('checked')) {
+
+        linhaProd.css('opacity', 0.5).addClass('cursor-pointer').attr('title', 'ESTE PRODUTO JÁ FOI TROCADO!');
+
+      } else if (DIFERENCAEMDIAS > DATAAUTORIZADA) {
+
+        linhaProd.css('opacity', 0.5).addClass('cursor-pointer').attr('title', `VENDA FORA DO PRAZO DE ${DATAAUTORIZADA} DIAS PARA A TROCA DO TIPO ${dsTipoTroca}, JÁ SE PASSARAM: ${DIFERENCAEMDIAS} DIAS APÓS A COMPRA!`);
+      }
+    },
+    initComplete: function (settings) {
+      let idTable = `#${settings.nTable.id}`;
+
+      $('html, body').animate({
+        scrollTop: $(idTable).offset().top - 70
+      }, 1000);
+
+      if (qtdTotalProdutos > 0 && qtdTotalProdutos === qtdTotalTrocados) {
+
+        $('#nuVendaProd').html(`
+          <span class="fw-500 todosTrocados">
+            Produtos - Venda: ${IDVENDA}
+            
+            &#160;&#160;
+
+            <span class="text-danger h4">
+                Todos os Produtos Desta Venda Já Foram Trocados
+            </span>
+          </span>
+        `);
+      }
+    },
+    language: {
+      emptyTable: "Não há Produtos Na Venda"
+    }
+
+  });
+
+  $('#cardResumoVoucherIdVendedorVenda').val(idVendedor);
+}
+
+async function exibirModalFormCliente(tipoCliente) {
+  let actionModal = (tipoCliente ? 'action_clienteVoucher_modal.html' : 'action_empresaVoucher_modal.html');
+
+  await $.get(actionModal, async (res) => {
+    $('#resultadoModalCadCliente').html(res);
+
+    $('#notificacaoModalCadastroCliente').html('');
+    $("#CadCliente").text('Cadastrar').removeClass('d-none');
+
+    $("#detClienteVoucher").modal('show');
+
+    $("#DataCadastro").val(dataAtualCampo);
+    $('#idIndicacaoIE').select2();
+  })
 }
 
 async function verificaSeExisteCadastroCliente(cpfcnpj = '', stUltimaInstancia = false) {
-    try {
-        let CPFCNPJ = cpfcnpj.replace(/\D/g, "");
+  try {
+    let CPFCNPJ = cpfcnpj.replace(/\D/g, "");
 
-        if (CPFCNPJ?.length) {
+    if (CPFCNPJ?.length) {
 
-            !stUltimaInstancia && animationLoadingStart('Verificando Dados, aguarde...');
-            animationLoadingFormClient('Verificando Dados, aguarde...');
+      !stUltimaInstancia && animationLoadingStart('Verificando Dados, aguarde...');
+      animationLoadingFormClient('Verificando Dados, aguarde...');
 
-            await ajaxGet(`api/gerencia/cliente.xsjs?numeroCpfCnpj=${CPFCNPJ}`)
-                .then((resp) => {
-                    !stUltimaInstancia && animationLoadingStop();
-                    preenche_dados_registrados(resp, CPFCNPJ, stUltimaInstancia)
-                })
-                .catch((error) => { throw error })
-        }
-    } catch (error) {
-        console.log(error);
-        !stUltimaInstancia && msgError();
-        msgWarningCadastroCliente(undefined, 'Erro ao verificar dados, recarregue e tente novamente!')
+      await ajaxGet(`api/gerencia/cliente.xsjs?numeroCpfCnpj=${CPFCNPJ}`)
+        .then((resp) => {
+          !stUltimaInstancia && animationLoadingStop();
+          preenche_dados_registrados(resp, CPFCNPJ, stUltimaInstancia)
+        })
+        .catch((error) => { throw error })
     }
+  } catch (error) {
+    console.log(error);
+    !stUltimaInstancia && msgError();
+    msgWarningCadastroCliente(undefined, 'Erro ao verificar dados, recarregue e tente novamente!')
+  }
 }
 
 async function preenche_dados_registrados(retornoCadastroCliente, cpfcnpj, stUltimaInstancia = false) {
-    let { data } = retornoCadastroCliente || [];
+  let { data } = retornoCadastroCliente || [];
 
-    if (data?.length) {
-        let {
-            IDEMPRESA,
-            IDCLIENTE,
-            NUCPFCNPJ,
-            DSNOMERAZAOSOCIAL,
-            DSAPELIDONOMEFANTASIA,
-            TPCLIENTE,
-            DTCADASTRO,
-            DTULTALTERACAO,
-            DTNASCFUNDACAO,
-            NUTELCELULAR,
-            NURGINSCESTADUAL,
-            NUINSCMUNICIPAL,
-            EEMAIL,
-            NUCEP,
-            EENDERECO,
-            NUENDERECO,
-            ECOMPLEMENTO,
-            EBAIRRO,
-            NUIBGE,
-            ECIDADE,
-            SGUF,
-            NUTELCOMERCIAL,
-            IDINDICACAOIE,
-            NUCNAE
-        } = data[0] || "";
+  if (data?.length) {
+    let {
+      IDEMPRESA,
+      IDCLIENTE,
+      NUCPFCNPJ,
+      DSNOMERAZAOSOCIAL,
+      DSAPELIDONOMEFANTASIA,
+      TPCLIENTE,
+      DTCADASTRO,
+      DTULTALTERACAO,
+      DTNASCFUNDACAO,
+      NUTELCELULAR,
+      NURGINSCESTADUAL,
+      NUINSCMUNICIPAL,
+      EEMAIL,
+      NUCEP,
+      EENDERECO,
+      NUENDERECO,
+      ECOMPLEMENTO,
+      EBAIRRO,
+      NUIBGE,
+      ECIDADE,
+      SGUF,
+      NUTELCOMERCIAL,
+      IDINDICACAOIE,
+      NUCNAE
+    } = data[0] || "";
 
-        await exibirModalFormCliente((TPCLIENTE == 'FISICA' || TPCLIENTE == 'FÍSICA') && NUCPFCNPJ?.length <= 11);
-        
-        if(TPCLIENTE !== 'JURIDICA'){
-            if(SGUF == 'DF'){
-                IDINDICACAOIE = 2;
-            } else {
-                IDINDICACAOIE = 9;
-            }
-        }
-        
-        $("#idEmpresa").val(IDEMPRESA);
-        $("#idClienteEmpresa").val(IDCLIENTE);
-        $("#DataCadastro").val(DTCADASTRO?.split(" ")[0] || DTULTALTERACAO?.split(" ")[0]);
-        $("#DataNascimentoCriacao").val(DTNASCFUNDACAO ? DTNASCFUNDACAO.split(" ")[0] : "");
-        $("#TelefoneCliente").val(NUTELCELULAR ? maskFone(NUTELCELULAR?.replace(/\D/g, '')) : NUTELCELULAR);
-        $("#email").val(EEMAIL);
-        $('#idIndicacaoIE').val(IDINDICACAOIE || 0).trigger('change');
-        $("#NuCEP").val(maskCEP(NUCEP));
-        $("#Endereco").val(EENDERECO);
-        $("#NuEndereco").val(NUENDERECO);
-        $("#Complemento").val(ECOMPLEMENTO);
-        $("#Bairro").val(EBAIRRO);
-        $("#NuIBGE").val(NUIBGE);
-        $("#Cidade").val(ECIDADE);
-        $("#Estado").val(SGUF);
-        $('#CadCliente').attr('onclick', `validaDadosDoFormCliente(${stUltimaInstancia})`).text('Atualizar');
+    await exibirModalFormCliente((TPCLIENTE == 'FISICA' || TPCLIENTE == 'FÍSICA') && NUCPFCNPJ?.length <= 11);
 
-        if (NUCPFCNPJ?.length <= 11) {
-            let nomeCliente = data[0]["DSNOMERAZAOSOCIAL"];
-            let sobrenomeCliente = '';
-
-            nomeCliente = nomeCliente.split(' ');
-
-            if (nomeCliente.length > 1) {
-                sobrenomeCliente = nomeCliente.pop()
-                nomeCliente = nomeCliente.join(' ');
-            }
-
-            $("#CPFCNPJ").val(maskCPF(NUCPFCNPJ))
-            $("#NomeClienteRazao").val(nomeCliente)
-            $("#sobrenomeNomeFan").val(sobrenomeCliente)
-            $("#CPFCNPJ").prop({
-                'readonly': (validar_Cpf(NUCPFCNPJ)),
-                'disabled': (validar_Cpf(NUCPFCNPJ))
-            }).removeAttr('onchange');
-
-        } else if (NUCPFCNPJ?.length > 11) {
-            $("#CPFCNPJ").val(maskCNPJ(NUCPFCNPJ));
-            $('#container-btn-update-receita-federal').removeClass('d-none');
-            $('#btn-update-receita-federal').val(NUCPFCNPJ);
-
-            $("#IE").val(NURGINSCESTADUAL);
-            $("#IM").val(NUINSCMUNICIPAL);
-            $("#CNAE").val(NUCNAE || "")
-            $("#NomeClienteRazao").val(DSNOMERAZAOSOCIAL);
-            $("#sobrenomeNomeFan").val(DSAPELIDONOMEFANTASIA);
-            $("#TelefoneClienteEmpresaComercial").val(NUTELCOMERCIAL ? maskFone(NUTELCOMERCIAL?.replace(/\D/g, '')) : NUTELCOMERCIAL);
-            $("#CPFCNPJ").prop({
-                'readonly': (validar_Cnpj(NUCPFCNPJ)),
-                'disabled': (validar_Cnpj(NUCPFCNPJ))
-            }).removeAttr('onblur');
-
-            if(stUltimaInstancia){
-                $('#btn-update-receita-federal').attr('onclick',  `(modal_Preenchimento_CNPJ(document.querySelector("#CPFCNPJ").value, ${true}))`)
-            }
-
-        }
-
-        msgSuccessFormCliente();
-    } else {
-        $('#notificacaoModalCadastroCliente').html('');
-        $("#DataCadastro").val(dataAtualCampo)
-
-        if ($('#CPFCNPJ').attr('maxlength') == 18) {
-            $('#CPFCNPJ').val(maskCNPJ(cpfcnpj));
-
-            if (!stUltimaInstancia) {
-                ValidaCNPJ(cpfcnpj) && setTimeout(() => modal_Preenchimento_CNPJ(cpfcnpj), 1000);
-            }
-
-        } else {
-            $('#CPFCNPJ').val(maskCPF(cpfcnpj));
-            !stUltimaInstancia && ValidaCpf(cpfcnpj);
-        }
-
-        $('#CadCliente').attr('onclick', `validaDadosDoFormCliente(${stUltimaInstancia})`).text('Cadastrar');
+    if (TPCLIENTE !== 'JURIDICA') {
+      /*if(SGUF == 'DF'){
+          IDINDICACAOIE = 2;
+      } else {*/
+      IDINDICACAOIE = 9;
+      //}
     }
+
+    $("#idEmpresa").val(IDEMPRESA);
+    $("#idClienteEmpresa").val(IDCLIENTE);
+    $("#DataCadastro").val(DTCADASTRO || DTULTALTERACAO?.split(" ")[0]);
+    $("#DataNascimentoCriacao").val(DTNASCFUNDACAO ? DTNASCFUNDACAO.split(" ")[0] : "");
+    $("#TelefoneCliente").val(NUTELCELULAR ? maskFone(NUTELCELULAR?.replace(/\D/g, '')) : NUTELCELULAR);
+    $("#email").val(EEMAIL);
+    $('#idIndicacaoIE').val(IDINDICACAOIE || 0).trigger('change');
+    $("#NuCEP").val(maskCEP(NUCEP));
+    $("#Endereco").val(EENDERECO);
+    $("#NuEndereco").val(NUENDERECO);
+    $("#Complemento").val(ECOMPLEMENTO);
+    $("#Bairro").val(EBAIRRO);
+    $("#NuIBGE").val(NUIBGE);
+    $("#Cidade").val(ECIDADE);
+    $("#Estado").val(SGUF);
+    $('#CadCliente').attr('onclick', `validaDadosDoFormCliente(${stUltimaInstancia})`).text('Atualizar');
+
+    if (NUCPFCNPJ?.length <= 11) {
+      let nomeCliente = data[0]["DSNOMERAZAOSOCIAL"];
+      let sobrenomeCliente = '';
+
+      nomeCliente = nomeCliente.split(' ');
+
+      if (nomeCliente.length > 1) {
+        sobrenomeCliente = nomeCliente.pop()
+        nomeCliente = nomeCliente.join(' ');
+      }
+
+      $("#CPFCNPJ").val(maskCPF(NUCPFCNPJ))
+      $("#NomeClienteRazao").val(nomeCliente)
+      $("#sobrenomeNomeFan").val(sobrenomeCliente)
+      $("#CPFCNPJ").prop({
+        'readonly': (validar_Cpf(NUCPFCNPJ)),
+        'disabled': (validar_Cpf(NUCPFCNPJ))
+      }).removeAttr('onchange');
+
+    } else if (NUCPFCNPJ?.length > 11) {
+      $("#CPFCNPJ").val(maskCNPJ(NUCPFCNPJ));
+      $('#container-btn-update-receita-federal').removeClass('d-none');
+      $('#btn-update-receita-federal').val(NUCPFCNPJ);
+
+      $("#IE").val(NURGINSCESTADUAL);
+      $("#IM").val(NUINSCMUNICIPAL);
+      $("#CNAE").val(NUCNAE || "")
+      $("#NomeClienteRazao").val(DSNOMERAZAOSOCIAL);
+      $("#sobrenomeNomeFan").val(DSAPELIDONOMEFANTASIA);
+      $("#TelefoneClienteEmpresaComercial").val(NUTELCOMERCIAL ? maskFone(NUTELCOMERCIAL?.replace(/\D/g, '')) : NUTELCOMERCIAL);
+      $("#CPFCNPJ").prop({
+        'readonly': (validar_Cnpj(NUCPFCNPJ)),
+        'disabled': (validar_Cnpj(NUCPFCNPJ))
+      }).removeAttr('onblur');
+
+      if (stUltimaInstancia) {
+        $('#btn-update-receita-federal').attr('onclick', `(modal_Preenchimento_CNPJ(document.querySelector("#CPFCNPJ").value, ${true}))`)
+      }
+
+    }
+
+    msgSuccessFormCliente();
+  } else {
+    $('#notificacaoModalCadastroCliente').html('');
+    $("#DataCadastro").val(dataAtualCampo)
+
+    if ($('#CPFCNPJ').attr('maxlength') == 18) {
+      $('#CPFCNPJ').val(maskCNPJ(cpfcnpj));
+
+      if (!stUltimaInstancia) {
+        ValidaCNPJ(cpfcnpj) && setTimeout(() => modal_Preenchimento_CNPJ(cpfcnpj), 1000);
+      }
+
+    } else {
+      $('#CPFCNPJ').val(maskCPF(cpfcnpj));
+      !stUltimaInstancia && ValidaCpf(cpfcnpj);
+    }
+
+    $('#CadCliente').attr('onclick', `validaDadosDoFormCliente(${stUltimaInstancia})`).text('Cadastrar');
+  }
 
 }
 
 async function modalCadastroCliente(cpfOrCnpj, stUltimaInstancia = false) {
-    try {
-        let CPFCNPJ = cpfOrCnpj?.replace(/\D/g, "");
+  try {
+    let CPFCNPJ = cpfOrCnpj?.replace(/\D/g, "");
 
-        if (!CPFCNPJ && !stUltimaInstancia) {
-            Swal.fire({
-                type: 'question',
-                title: 'Qual o tipo do Cliente?',
-                text: 'Clique na opção desejada!',
-                showCloseButton: true,
-                showCancelButton: true,
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'CPF',
-                cancelButtonText: 'CNPJ'
-            }).then(async (result) => {
-                let { value, dismiss } = result || false;
+    if (!CPFCNPJ && !stUltimaInstancia) {
+      Swal.fire({
+        type: 'question',
+        title: 'Qual o tipo do Cliente?',
+        text: 'Clique na opção desejada!',
+        showCloseButton: true,
+        showCancelButton: true,
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'CPF',
+        cancelButtonText: 'CNPJ'
+      }).then(async (result) => {
+        let { value, dismiss } = result || false;
 
-                if (value || dismiss == 'cancel') {
-                    animationLoadingStart();
+        if (value || dismiss == 'cancel') {
+          animationLoadingStart();
 
-                    $('#detClienteVoucher').removeAttr('style');
+          $('#detClienteVoucher').removeAttr('style');
 
-                    await exibirModalFormCliente(value);
+          await exibirModalFormCliente(value);
 
-                    animationLoadingStop();
-                }
-
-
-            })
-
-        } else if (CPFCNPJ.length) {
-            !stUltimaInstancia && animationLoadingStart('Carregando Dados do Cliente, aguarde...');
-            animationLoadingFormClient('Carregando dados...');
-
-            await exibirModalFormCliente(CPFCNPJ.length <= 11);
-            
-            $("CPFCNPJ").val(cpfOrCnpj);
-
-            await ajaxGet(`api/cliente/todos.xsjs?numeroCpfCnpj=${CPFCNPJ}`)
-                .then((resp) => preenche_dados_registrados(resp, CPFCNPJ, stUltimaInstancia))
-                .catch((error) => { throw error });
-
-            !stUltimaInstancia && animationLoadingStop();
-            $('#notificacaoModalCadastroCliente').html('');
+          animationLoadingStop();
         }
 
-        return 
-    } catch (error) {
-        console.log(error);
-        !stUltimaInstancia && msgError();
-        msgWarningCadastroCliente($('#notificacaoModalCadastroCliente'), 'Error ao Carregar os dados, recarregue e tente novamente!');
+
+      })
+
+    } else if (CPFCNPJ.length) {
+      !stUltimaInstancia && animationLoadingStart('Carregando Dados do Cliente, aguarde...');
+      animationLoadingFormClient('Carregando dados...');
+
+      await exibirModalFormCliente(CPFCNPJ.length <= 11);
+
+      $("CPFCNPJ").val(cpfOrCnpj);
+
+      await ajaxGet(`api/cliente/todos.xsjs?numeroCpfCnpj=${CPFCNPJ}`)
+        .then((resp) => preenche_dados_registrados(resp, CPFCNPJ, stUltimaInstancia))
+        .catch((error) => { throw error });
+
+      !stUltimaInstancia && animationLoadingStop();
+      $('#notificacaoModalCadastroCliente').html('');
     }
+
+    return
+  } catch (error) {
+    console.log(error);
+    !stUltimaInstancia && msgError();
+    msgWarningCadastroCliente($('#notificacaoModalCadastroCliente'), 'Error ao Carregar os dados, recarregue e tente novamente!');
+  }
 
 }
 
@@ -14681,235 +14955,249 @@ async function validaDadosDoFormCliente(stUltimaInstancia = false) {
 }
 
 async function registra_cliente(retornoValidaCliente, dadosCliente, stUltimaInstancia) {
-    try {
+  try {
 
-        let retorno = retornoValidaCliente.data || []
+    let retorno = retornoValidaCliente.data || []
 
-        if (retorno.length) {
-            await ajaxPut(`api/gerencia/cliente.xsjs`, dadosCliente).catch((error) => { throw error });
+    if (retorno.length) {
+      await ajaxPut(`api/gerencia/cliente.xsjs`, dadosCliente).catch((error) => { throw error });
 
-        } else {
-            await ajaxPost(`api/gerencia/cliente.xsjs`, dadosCliente).catch((error) => { throw error });
+    } else {
+      await ajaxPost(`api/gerencia/cliente.xsjs`, dadosCliente).catch((error) => { throw error });
 
-        }
-        
-        $('#notificacaoModalCadastroCliente').html('');
-
-        await returnMsgClientInsertOrUpdateSuccess(stUltimaInstancia, dadosCliente[0].NUCPFCNPJ);
-
-    } catch (error) {
-        console.log(error);
-        msgWarningCadastroCliente(undefined, 'Erro ao Cadastrar/Atualizar Dados, recarregue e tente novamente!')
-        !stUltimaInstancia && msgError()
     }
+
+    $('#notificacaoModalCadastroCliente').html('');
+
+    await returnMsgClientInsertOrUpdateSuccess(stUltimaInstancia, dadosCliente[0].NUCPFCNPJ);
+
+  } catch (error) {
+    console.log(error);
+    msgWarningCadastroCliente(undefined, 'Erro ao Cadastrar/Atualizar Dados, recarregue e tente novamente!')
+    !stUltimaInstancia && msgError()
+  }
 
 }
 
 async function abreCadastroClienteSemRegistroUltimaInstancia(cpfOrCnpj = '', stAtualizaCadastro) {
-    cpfOrCnpj = cpfOrCnpj?.replace(/\D/g, "")?.trim();
+  cpfOrCnpj = cpfOrCnpj?.replace(/\D/g, "")?.trim();
 
-    $('#detClienteVoucher').attr('style', 'z-index: 30000 !important;');
+  $('#detClienteVoucher').attr('style', 'z-index: 30000 !important;');
 
-    Swal.hideLoading();
+  Swal.hideLoading();
+
+  if (cpfOrCnpj?.length) {
+
+    await modalCadastroCliente(cpfOrCnpj, true);
+
+  } else {
+    return false;
+  }
+
+  !stAtualizaCadastro && valida_dados_cliente_em_ultima_instancia(cpfOrCnpj)
+
+  setTimeout(() => {
+    $('#CPFCNPJ').attr('onchange', `valida_dados_cliente_em_ultima_instancia(this.value)`).prop('disabled', true)
+  }, 1000);
+
+}
+
+function criarObjVoucher(dadosResumoVoucher, arrayProdutosVoucher) {
+  let { idGrupoEmpresarialOrigem, idEmpresaOrigem, idUserLogado, idFuncionarioAutorizador, idCliente, cpfCnpjCliente, motivoTroca, idVendaVoucher, stTipoTroca, idVendedor } = dadosResumoVoucher;
+
+  return {
+    IDGRUPOEMPRESARIAL: parseInt(idGrupoEmpresarialOrigem),
+    IDEMPRESAORIGEM: parseInt(idEmpresaOrigem),
+    IDCAIXAORIGEM: 99999,
+    IDUSRINVOUCHER: parseInt(idUserLogado),
+    IDVENDEDOR: parseInt(idVendedor),
+    IDCLIENTE: parseInt(idCliente),
+    NUCPF: cpfCnpjCliente,
+    IDRESUMOVENDAWEB: idVendaVoucher,
+    STTIPOTROCA: stTipoTroca,
+    MOTIVOTROCA: motivoTroca,
+    IDUSRLIBERACAOCRIACAO: parseInt(idFuncionarioAutorizador), //Usuario Autorizador da Criação
+    DETALHEVOUCHER: arrayProdutosVoucher
+  };
+}
+
+async function validarDadosCriarVoucher(dadosCriarVoucher) {
+
+  if (!dadosCriarVoucher || typeof dadosCriarVoucher !== 'object') {
+    throw 'Erro ao Validar os Dados do Voucher, dados inválidos. Recarregue e tente novamente!';
+  }
+
+  for (let key in dadosCriarVoucher) {
+
+    let valor = dadosCriarVoucher[key];
+
+    if (Array.isArray(valor)) {
+
+      if (valor.length === 0) {
+        throw `Erro ao Validar os Dados do Voucher, o campo ${key} está inválido, recarregue e tente novamente!`;
+      }
+
+      for (let reg of valor) {
+
+        if (!reg || typeof reg !== 'object') {
+          throw `Erro ao Validar os Dados do Voucher, o campo ${key} está inválido, recarregue e tente novamente!`;
+        }
+
+        for (let keyReg in reg) {
+
+          let valorReg = reg[keyReg];
+
+          if (keyReg != 'IDVENDEDOR' && (
+            valorReg === undefined ||
+            valorReg === null ||
+            valorReg === '' ||
+            valorReg === 0
+          )
+          ) {
+            throw `Erro ao Validar os Dados do Voucher, o campo ${keyReg} de ${key} está inválido, recarregue e tente novamente!`;
+          }
+        }
+      }
+
+      continue;
+    }
+
+    if (key != 'IDVENDEDOR' && (
+      valor === undefined ||
+      valor === null ||
+      valor === '' ||
+      valor === 0
+    )
+    ) {
+      throw `Erro ao Validar os Dados do Voucher, o campo ${key} está inválido, recarregue e tente novamente!`;
+    }
+  }
+
+  return true;
+}
+
+async function getDadosFuncionarioLogado() {
+
+  let { user } = await getCurrentUser();
+
+  if (!user) {
+    throw 'Erro ao Localizar os Dados do Usuário Logado, Recarregue e Tente Novamente!';
+  }
+
+  let idUserLogado = Number(user.id);
+  let idEmpresaUserLogado = Number(user.IDEMPRESA);
+  let idGrupoEmpresarialUserLogado = Number(user.IDGRUPOEMPRESARIAL);
+
+  if (
+    !idUserLogado ||
+    !idEmpresaUserLogado ||
+    !idGrupoEmpresarialUserLogado
+  ) {
+    throw 'Erro ao Localizar os Dados do Usuário Logado, Recarregue e Tente Novamente!';
+  }
+
+  return {
+    idUserLogado,
+    idGrupoEmpresarialUserLogado,
+    idEmpresaUserLogado
+  };
+}
+
+async function payloadCriarVoucher() {
+  try {
+    let idVendaVoucher = $('#cardResumoVoucherIdVenda').text();
+    let stTipoTroca = $('#cardResumoVoucherTipoTroca').text().toUpperCase();
+    let idVendedor = $('#cardResumoVoucherIdVendedorVenda').val();
+    let cpfCnpjCliente = $('#cardResumoVoucherCpfCnpjClienteVenda').val();
+
+    $('#voltaTela').attr('onclick', 'telaCriacaoEdicaoVouchers(true)');
+
+    let { idUserLogado, idGrupoEmpresarialUserLogado, idEmpresaUserLogado } = await getDadosFuncionarioLogado();
+
+    let dadosAutorizacao = await modalAuthUserCreateVoucher(idVendaVoucher, stTipoTroca);
+
+    if (!dadosAutorizacao || !Number(dadosAutorizacao?.IDFUNCIONARIO || 0)) {
+      return false;
+    }
+
+    let { IDFUNCIONARIO } = dadosAutorizacao;
+
+    if( !IDFUNCIONARIO || !Number(IDFUNCIONARIO)) {
+      return false;
+    }
+
+    let motivoTroca = await modalMotivoCriacaoVoucher();
+
+    if (!motivoTroca || motivoTroca?.length == 0) {
+      return false;
+    }
+
+    let dadosCliente = await modalCpfOuCnpjDoClienteParaVoucher(cpfCnpjCliente);
+
+    if (!dadosCliente?.IDCLIENTE) {
+      return false;
+    }
+
+    let dadosResumoVoucher = {
+      idGrupoEmpresarialOrigem: parseInt(idGrupoEmpresarialUserLogado),
+      idEmpresaOrigem: parseInt(idEmpresaUserLogado),
+      idUserLogado: parseInt(idUserLogado),
+      idFuncionarioAutorizador: parseInt(IDFUNCIONARIO),
+      idCliente: parseInt(dadosCliente.IDCLIENTE),
+      cpfCnpjCliente: dadosCliente.NUCPFCNPJ,
+      motivoTroca: motivoTroca?.toUpperCase(),
+      idVendaVoucher,
+      stTipoTroca,
+      idVendedor
+    };
+
+    let arrayProdutosVoucher = await obterDadosTabelaProdutosSelecionadosParaTrocar();
+
+    if (!Array.isArray(arrayProdutosVoucher) || arrayProdutosVoucher.length === 0) {
+      throw 'Nenhum produto foi selecionado para o voucher!';
+    }
+
+    let payload = criarObjVoucher(dadosResumoVoucher, arrayProdutosVoucher);
+
+    validarDadosCriarVoucher(payload);
+
+    return [payload];
+
+  } catch (error) {
+    console.log(error);
+    msgError(error?.message || 'Erro ao tentar gerar o voucher!');
+
+  }
+}
+
+async function criarVoucher() {
+  try {
+    let voucher = await payloadCriarVoucher() || [];
+
+    if (!voucher || !Array.isArray(voucher) || voucher.length === 0) {
+      return;
+    }
     
-    if (cpfOrCnpj?.length) {
+    animationLoadingStart('Criando Voucher...', 1);
 
-        await modalCadastroCliente(cpfOrCnpj, true);
+    let dadosVoucherCriado = await ajaxPost(`api/resumo-voucher/todos-web.xsjs`, voucher);
 
-    } else {
-        return false;
+    let idVoucher = dadosVoucherCriado?.IDVOUCHER || '';
+
+    if (!idVoucher) {
+      throw 'Erro ao tentar gerar o voucher, recarregue e tente novamente!';
     }
 
-    !stAtualizaCadastro && valida_dados_cliente_em_ultima_instancia(cpfOrCnpj)
+    await msgSuccess('Voucher Cadastrado com Sucesso!');
 
-    setTimeout(() => {
-        $('#CPFCNPJ').attr('onchange', `valida_dados_cliente_em_ultima_instancia(this.value)`).prop('disabled', true)
-    }, 1000);
+    await telaCriacaoEdicaoVouchers(true, false);
 
-}
+    await pesquisaVoucherEmitido(idVoucher);
 
-async function createObjectVoucher() {
-    try {
-        let produtosSelecionados = $("[name=selecaoProdutosParaVoucher]:checked:not(:disabled)");
-        let produtosVoucher = [];
-        let detVoucher = [];
-        let voucher = [];
-        let diasAposACompra;
-        let dataAutorizada;
-        let stAllProdsTrocados = $('#nuVendaProd').hasClass('todosTrocados');
-        let idVendedor;
-        let idVendaVoucher;
-        let cpfCnpjCliente;
-        let IDVENDADETALHE;
-        let IDPRODUTO;
-        let QTD;
-        let qtdDigitada;
-        let VRUNIT;
-        let VRTOTALBRUTO;
-        let VRTOTALLIQUIDO;
-        let VRDESCONTO;
-        let STATIVO;
-        let STCANCELADO;
-        let STTROCA;
-        let STTIPOTROCA;
-        let VRVOUCHER = 0;
-
-        for (let i = 0; i < produtosSelecionados.length; i++) {
-            let produto = produtosSelecionados[i];
-            let linhaProdutoSelecionado = $(produto).closest('tr');
-
-            idVendaVoucher = $(produto).attr('idVenda');
-            diasAposACompra = !diasAposACompra ? Number($(produto).attr('diaspassadosdacompra')) : diasAposACompra;
-            dataAutorizada = !dataAutorizada ? Number($(produto).attr('dataAutorizada')) : dataAutorizada;
-            IDVENDADETALHE = $(produto).attr('idVendaDetalhe');
-            IDPRODUTO = String($(produto).attr('idProduto'));
-            QTD = Number($(produto).attr('quantidade')).toFixed(2);
-            qtdDigitada = Number($(linhaProdutoSelecionado).find('input:last').val());
-            STTIPOTROCA = !STTIPOTROCA ? $(produto).attr('tipotroca') : STTIPOTROCA;
-            VRUNIT = Number($(produto).attr('valorProdUnit'));
-            VRTOTALBRUTO = Number($(produto).attr('valorTotalProdBruto'));
-            VRTOTALLIQUIDO = Number($(produto).attr('valorProd'));
-            VRDESCONTO = Number((VRTOTALBRUTO - VRTOTALLIQUIDO).toFixed(2));
-            STATIVO = 'True';
-            STCANCELADO = 'False';
-            idVendedor = parseInt($(produto).attr('idVendedor'));
-            cpfCnpjCliente = $(produto).attr('cnpfCnpjCliente') ? $(produto).attr('cnpfCnpjCliente') : "";
-            valorProduto = Number(VRTOTALBRUTO);
-            STTROCA = 'True'
-            cpfCnpjCliente = cpfCnpjCliente ? (cpfCnpjCliente.length == 11 ? maskCPF(cpfCnpjCliente) : maskCNPJ(cpfCnpjCliente)) : "";
-
-            VRTOTALLIQUIDO = Number((VRTOTALLIQUIDO / QTD).toFixed(2));
-            VRDESCONTO = Number((VRDESCONTO / QTD).toFixed(2));
-            QTD = Number((!qtdDigitada || qtdDigitada > QTD) ? QTD : qtdDigitada);
-            VRTOTALBRUTO = Number((qtdDigitada * VRUNIT).toFixed(2));
-            valorProduto = Number((qtdDigitada * VRTOTALLIQUIDO).toFixed(2));
-            VRDESCONTO = Number(qtdDigitada * VRDESCONTO);
-            VRTOTALLIQUIDO = Number(valorProduto);
-
-            VRVOUCHER += Number(valorProduto);
-
-            produtosVoucher.push({
-                IDVENDADETALHE,
-                STTROCA,
-                QTD,
-                VRTOTALBRUTO,
-                VDESC: VRDESCONTO,
-                VRTOTALLIQUIDO: valorProduto
-
-            })
-
-            detVoucher.push({
-                IDPRODUTO,
-                QTD,
-                VRUNIT,
-                VRTOTALBRUTO,
-                VRDESCONTO,
-                VRTOTALLIQUIDO,
-                STATIVO,
-                STCANCELADO
-            })
-
-
-
-        }
-
-        if (produtosVoucher?.length) {
-            $('#voltaTela').attr('onclick', 'telaCriacaoEdicaoVouchers(true)');
-
-            let dataUserLogado = await getCurrentUser()?.user;
-            let idUserLogado = dataUserLogado?.id
-            let { IDEMPRESA, IDGRUPOEMPRESARIAL } = dataUserLogado;
-
-            if (!dataUserLogado) {
-                throw 'Erro ao Localizar os Dados do Usuário Logado, Recarregue e Tente Novamente!'
-            }
-
-            let { IDFUNCIONARIO } = await modalAuthUserCreateVoucher(idVendaVoucher, STTIPOTROCA) || false;
-            let MOTIVOTROCA = IDFUNCIONARIO && await modalMotivoCriacaoVoucher() || false;
-            let { IDCLIENTE, NUCPFCNPJ } = MOTIVOTROCA && await modalCpfOuCnpjDoClienteParaVoucher(cpfCnpjCliente) || false;
-
-            if (!IDCLIENTE) {
-                return false;
-            }
-
-            let IDEMPRESAORIGEM = parseInt(IDEMPRESA);
-            let IDCAIXAORIGEM = parseInt(99999);
-            let IDNFEDEVOLUCAO = parseInt($('#nuVendaProd').attr('value'));
-            let IDUSRINVOUCHER = parseInt(idUserLogado); //Usuario da Sessao Logada
-            let IDVENDEDOR = parseInt(idVendedor);
-            let IDRESUMOVENDAWEB = idVendaVoucher;
-            let IDUSRLIBERACAOCRIACAO = parseInt(IDFUNCIONARIO); //Usuario Autorizador da Criação
-
-            IDCLIENTE = parseInt(IDCLIENTE);
-            MOTIVOTROCA = MOTIVOTROCA.toUpperCase();
-            VRVOUCHER = Number(VRVOUCHER.toFixed(2));
-
-            voucher.push({
-                IDGRUPOEMPRESARIAL,
-                IDEMPRESAORIGEM,
-                IDCAIXAORIGEM,
-                IDNFEDEVOLUCAO,
-                IDUSRINVOUCHER,
-                IDVENDEDOR,
-                IDCLIENTE,
-                NUCPF: NUCPFCNPJ,
-                VRVOUCHER,
-                IDRESUMOVENDAWEB,
-                STTIPOTROCA,
-                MOTIVOTROCA,
-                IDUSRLIBERACAOCRIACAO,
-                detVoucher,
-                produtosVoucher
-            });
-
-            if (stAllProdsTrocados) {
-                await msgWarning('Todos os Produtos Desta Venda já Foram Trocados, Favor Verificar se o Número da Venda Está Correto!', 'Caso os Dados Estejam Corretos, Oriente o Cliente Sobre o Ocorrido Ou Fale Com o Suporte!');
-                
-                return false;
-                
-            }
-
-        } else {
-            await msgWarning('Nenhum produto foi selecionado, favor selecionar e tentar novamente!');
-
-            return false;
-
-        }
-
-        return voucher;
-    } catch (error) {
-        console.log(error);
-        msgError(error?.message || 'Erro ao tentar gerar o voucher!');
-
-    }
-}
-
-async function criaVoucher() {
-    try {
-        let voucher = await createObjectVoucher() || [];
-
-       if (voucher?.length) {
-            await animationLoadingStart('Criando Voucher...', 1);
-
-            await ajaxPost(`api/resumo-voucher/todos-web.xsjs`, voucher)
-                .then(async (response) => {
-                    let { IDVOUCHER } = response || '';
-
-                    retornoVoucherCriado(IDVOUCHER);
-                    //vinculoVoucherVendaDetalhe(resp, produtosVoucher);
-                })
-                .catch((error) => { throw error })
-        }
-    } catch (error) {
-        console.log(error);
-        msgError(error?.message || 'Erro ao tentar gerar o voucher!');
-    }
-}
-
-async function retornoVoucherCriado(idVoucher) {
-    await msgSuccess('Voucher Cadastrado com Sucesso!').then(() => telaCriacaoEdicaoVouchers(true, idVoucher))
-
-    pesquisaVoucherEmitido(idVoucher);
+  } catch (error) {
+    console.log(error);
+    msgError(error?.message || 'Erro ao tentar gerar o voucher, recarregue e tente novamente!');
+  }
 }
 
 //========== FIM Rotina - Create Edit Cancel - VOUCHER ==========//
@@ -16776,6 +17064,2788 @@ function deletarEtiquetaRemarcacaoDoAcumulador(idArray){
 }
 
 //?============ FIM ROTINA - IMPRESSÃO ETIQUETAS REMARCACAO ============ //
+
+
+///////////////// METAS POR PERIODO ///////////////////////
+
+function ListaMetasLojaPeriodo(){
+
+    dataRetornoListaMetasLoja = [];
+    var idempresa = IDEmpresaLogin;
+    numPage = 1;
+    contador = 0;
+    
+    if (window.XMLHttpRequest) {
+      // code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function () {
+      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+        document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
+        
+            $('.dataAtual').text(dataAtual);
+            $('#dtconsultainicio').val(dataAtualCampo);
+            $('#dtconsultafim').val(dataAtualCampo);
+
+        	ajaxGetComAnimacaoDeCarregamento(`api/comercial/lista-meta-vendas-lojas.xsjs?page=${numPage}&idEmpresa=${idempresa}`, "Carregando Dados, aguarde...", retornoListaMetasLoja, "Erro ao Carregar os Dados");
+
+      }
+    };
+    xmlhttp.open("GET", "action_metasloja.html", true);
+    xmlhttp.send();
+}
+
+function chamarProximaListaMetasLoja(numPage){
+
+    var idempresa = IDEmpresaLogin;
+    
+    ajaxGet('api/comercial/lista-meta-vendas-lojas.xsjs?page=' + numPage + '&idEmpresa=' + idempresa)
+    	.then(retornoListaMetasLoja)
+    	.catch((e) => { funcError(), console.log(e) });
+}
+
+function retornoListaMetasLoja(respostaListaMetasLoja) {
+
+  var numPageAtual = parseInt(respostaListaMetasLoja.page);
+
+  if (respostaListaMetasLoja.data.length != 0) {
+    for (var i = 0; i < respostaListaMetasLoja.data.length; i++) {
+        contador++;
+        idMetaLoja = respostaListaMetasLoja.data[i]['IDMETASLOJA'];
+        idEmpresa = respostaListaMetasLoja.data[i]['IDEMPRESA'];
+        dataIniMetaFormat = respostaListaMetasLoja.data[i]['DTMETAINICIOFORMAT'];
+        dataFimMetaFormat = respostaListaMetasLoja.data[i]['DTMETAFIMFORMAT'];
+        dataIniMeta = respostaListaMetasLoja.data[i]['DTMETAINICIO'];
+        dataFimMeta = respostaListaMetasLoja.data[i]['DTMETAFIM'];
+        DsEmpresa = respostaListaMetasLoja.data[i]['NOFANTASIA'];
+        StAtivoMeta = respostaListaMetasLoja.data[i]['STATIVO'];
+
+        if(StAtivoMeta == 'True'){
+            labelstmetas = `<label style="color: blue; font-size: 10px;">ATIVO</label>`;
+        }else{
+            labelstmetas = `<label style="color: red; font-size: 10px;">INATIVO</label>`;
+        }
+            
+        btnOpcao = `<div class="btn-group btn-group-xs">
+                        <button type="button" class="btn btn-info btn-xs" title="Detalhar Metas" id="` + idMetaLoja + `" onclick="detalhe_metas_lojas(this.id)" ><i class="fal fa-eye"></i></button>
+                    </div>`;
+              
+            dataRetornoListaMetasLoja.push([
+                contador,
+                DsEmpresa,
+                dataIniMetaFormat,
+                dataFimMetaFormat,
+                labelstmetas,
+                btnOpcao]);
+
+    }
+    
+    chamarProximaListaMetasLoja(numPageAtual + 1);
+
+  } else {
+      
+    $('#resultadometa').html(
+      `<table id="dt-basic-lista-metas-loja" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                  <tr>
+                      <th>*</th>
+                      <th>Empresa</th>
+                      <th>Data Inicio</th>
+                      <th>Data Fim</th>
+                      <th>Situação</th>
+                      <th>Opção</th>
+                  </tr>
+              </thead>
+              <tbody id="resultadoListaMetasLoja">
+              </tbody>
+              <tfoot id="totalListaListaMetasLoja"class="thead-themed">
+              </tfoot>
+          </table>`
+    );
+
+    $('#dt-basic-lista-metas-loja').DataTable({
+      data: dataRetornoListaMetasLoja,
+      deferRender: true,
+      //scrollY:        800,
+      //scrollCollapse: false,
+      //scroller:       false,
+      responsive: true,
+      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+      buttons: [
+        {
+          extend: 'pdfHtml5',
+          text: 'PDF',
+          titleAttr: 'Generate PDF',
+          className: 'btn-outline-danger btn-sm mr-1'
+        },
+        {
+          extend: 'excelHtml5',
+          text: 'Excel',
+          titleAttr: 'Generate Excel',
+          className: 'btn-outline-success btn-sm mr-1'
+        },
+        {
+          extend: 'print',
+          text: 'Print',
+          titleAttr: 'Print Table',
+          className: 'btn-outline-primary btn-sm'
+        }
+      ]
+    });
+
+  }
+
+}
+
+////////////////////DETALHAR METAS CADASTRADAS ////
+
+function BuscaMetasCalc(){
+    
+    let NoSecaoCalcado = 'CALÇADOS';
+     
+    return ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idMetaLoja=' + IDEmpresaLogin + '&noSecaoMetaLoja=' + NoSecaoCalcado)
+    	.then(funcSucessColaboradorListaMetasCalc)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaMetasFem(){
+    
+    let NoSecaoFeminino = 'FEMININO';
+     
+    return ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idMetaLoja=' + IDEmpresaLogin + '&noSecaoMetaLoja=' + NoSecaoFeminino)
+    	.then(funcSucessColaboradorListaMetasFem)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaMetasMasc(){
+    
+    let NoSecaoMasculino = 'MASCULINO';
+     
+    return ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idMetaLoja=' + IDEmpresaLogin + '&noSecaoMetaLoja=' + NoSecaoMasculino)
+    	.then(funcSucessColaboradorListaMetasMasc)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaMetasInfant(){
+    
+    let NoSecaoInfantil = 'INFANTIL';
+     
+    return ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idMetaLoja=' + IDEmpresaLogin + '&noSecaoMetaLoja=' + NoSecaoInfantil)
+    	.then(funcSucessColaboradorListaMetasInfant)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaMetasCMB(){
+    
+    let NoSecaoCMB = 'CMB';
+     
+    return ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idMetaLoja=' + IDEmpresaLogin + '&noSecaoMetaLoja=' + NoSecaoCMB)
+    	.then(funcSucessColaboradorListaMetasCMB)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function detalhe_metas_lojas(idMeta){
+    
+    dataRetornoDetMetas=[];
+    contador = 0;
+    
+    var idempresa = IDEmpresaLogin;
+    numPage = 1;
+  
+    if (window.XMLHttpRequest) {
+      // code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function () {
+        
+      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+        document.getElementById("ResulDadosMeta").innerHTML = xmlhttp.responseText;
+        //newDataTable();
+        
+        $('.dataAtual').text(dataAtual);
+
+        ajaxGetComAnimacaoDeCarregamento(`api/comercial/detalhe-meta-lojas.xsjs?idMetaEmpresa=${idMeta}`, "Carregando Dados, aguarde...", retornoListaMetasDetLoja, "Erro ao Carregar os Dados");
+
+      }
+    };
+    
+    xmlhttp.open("GET", "action_pesqmetaloja.html", true);
+    xmlhttp.send();
+}
+
+function retornoListaMetasDetLoja(respostaListaMetasDetLoja) {
+
+    var numPageAtual = parseInt(respostaListaMetasDetLoja.page);
+    
+    if(respostaListaMetasDetLoja.data.length != 0){
+    
+        for (var i=0; i < respostaListaMetasDetLoja.data.length; i++) {
+            
+            contador ++;
+            
+            var IDMETASLOJAMETAS = respostaListaMetasDetLoja.data[i]['IDMETASLOJA'];
+            let DTMETAINICIOMETAS = respostaListaMetasDetLoja.data[i]['DTMETAINICIO'];
+            let DTMETAFIMMETAS = respostaListaMetasDetLoja.data[i]['DTMETAFIM'];
+            let IDGRUPOEMPRESAMETAS = respostaListaMetasDetLoja.data[i]['IDGRUPOEMPRESA'];
+            let IDEMPRESAMETAS = respostaListaMetasDetLoja.data[i]['IDEMPRESA'];
+            let IDFUNCIONARIOMETAS = respostaListaMetasDetLoja.data[i]['IDFUNCIONARIO'];
+            let VRMETAVENDAGERALMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAGERAL'];
+            let VRMETAVENDACALCADOSMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDACALCADOS'];
+            let PERCMETAVENDACALCADOSMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDACALCADOS'];
+
+            let VRMETAVENDAFEMVERINVMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAFEMVERINV'];
+            let PERCMETAVENDAFEMVERINVMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAFEMVERINV'];
+            let VRMETAVENDAFEMPCINTIMAMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAFEMPCINTIMA'];
+            let PERCMETAVENDAFEMPCINTIMAMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAFEMPCINTIMA'];
+            let VRMETAVENDAFEMACESSORIOSMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAFEMACESSORIOS'];
+            let PERCMETAVENDAFEMACESSORIOSMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAFEMACESSORIOS'];
+
+            let VRMETAVENDAMASCVERINVMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAMASCVERINV'];
+            let PERCMETAVENDAMASCVERINVMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAMASCVERINV'];
+            let VRMETAVENDAMASCPCINTIMAMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAMASCPCINTIMA'];
+            let PERCMETAVENDAMASCPCINTIMAMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAMASCPCINTIMA'];
+            let VRMETAVENDAMASCACESSORIOSMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAMASCACESSORIOS'];
+            let PERCMETAVENDAMASCACESSORIOSMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAMASCACESSORIOS'];
+
+            let VRMETAVENDAINFANTVERINVMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAINFANTVERINV'];
+            let PERCMETAVENDAINFANTVERINVMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAINFANTVERINV'];
+            let VRMETAVENDAINFANTPCINTIMAMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAINFANTPCINTIMA'];
+            let PERCMETAVENDAINFANTPCINTIMAMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAINFANTPCINTIMA'];
+            let VRMETAVENDAINFANTACESSORIOSMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAINFANTACESSORIOS'];
+            let PERCMETAVENDAINFANTACESSORIOSMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAINFANTACESSORIOS'];
+            
+            let VRMETAVENDACMBMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDACMB'];
+            let PERCMETAVENDACMBMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDACMB'];
+            let VRMETAVENDAOUTROSMETAS = respostaListaMetasDetLoja.data[i]['VRMETAVENDAOUTROS'];
+            let PERCMETAVENDAOUTROSMETAS = respostaListaMetasDetLoja.data[i]['PERCMETAVENDAOUTROS'];
+            let PERCTOTALVENDAMETAS = respostaListaMetasDetLoja.data[i]['PERCTOTALVENDA'];
+            let STATIVOMETAS = respostaListaMetasDetLoja.data[i]['STATIVO'];
+            let NOFANTASIAMETAS = respostaListaMetasDetLoja.data[i]['NOFANTASIA'];
+
+                dataRetornoDetMetas.push([
+                  `<label style="color: blue; font-size: 11px;">` + contador + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + NOFANTASIAMETAS + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + DTMETAINICIOMETAS + ` a ` + DTMETAFIMMETAS + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + (parseFloat(VRMETAVENDAGERALMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+                  
+                  `<label style="color: orange; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDACALCADOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: orange; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDACALCADOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAFEMVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAFEMVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAFEMPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAFEMPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAFEMACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAFEMACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAMASCVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAMASCVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAMASCPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAMASCPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAMASCACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAMASCACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAINFANTVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAINFANTVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAINFANTPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAINFANTPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAINFANTACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAINFANTACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: SlateBlue; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDACMBMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: SlateBlue; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDACMBMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: Violet; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAOUTROSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: Violet; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAOUTROSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: Orange; font-size: 11px;"><strong>` + (parseFloat(PERCTOTALVENDAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                 
+                ]);
+        }
+    }
+    
+    if(numPageAtual === 1){
+         $('#detmeta').html(
+            `<table id="dt-basic-metas-detloja" class="table table-bordered table-hover">
+                <thead class="bg-primary-600">
+                    <tr>
+                        <td class="bg-primary-400" colspan="4" style="font-size: 12px; text-align:center">META GERAL</td>
+                        <td class="bg-warning-200" colspan="2" style="font-size: 12px; text-align:center">CALÇADOS</td>
+                        <td class="bg-danger-200" colspan="6" style="font-size: 12px; text-align:center">SEÇÃO FEMININA</td>
+                        <td class="bg-info-200" colspan="6" style="font-size: 12px; text-align:center">SEÇÃO MASCULINA</td>
+                        <td class="bg-success-200" colspan="6" style="font-size: 12px; text-align:center">SEÇÃO INFANTIL</td>
+                        <td class="bg-primary-200" colspan="2" style="font-size: 12px; text-align:center">CMB</td>
+                        <td class="bg-danger-200" colspan="2" style="font-size: 12px; text-align:center">Outros</td>
+                        <td class="bg-warning-200" style="font-size: 12px; text-align:center">Total</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-primary-400">#</th>
+                        <th class="bg-primary-400">Empresa</th>
+                        <th class="bg-primary-400">Data Meta</th>
+                        <th class="bg-primary-400">Vr Meta</th>
+                        
+                        <th class="bg-warning-400">Vr Meta</th>
+                        <th class="bg-warning-400">%</th>
+                        
+                        <th class="bg-danger-400">Verão/Inverno</th>
+                        <th class="bg-danger-400">%</th>
+                        <th class="bg-danger-400">Peça Intima</th>
+                        <th class="bg-danger-400">%</th>
+                        <th class="bg-danger-400">Acessórios</th>
+                        <th class="bg-danger-400">%</th>
+                        
+                        <th class="bg-info-400">Verão/Inverno</th>
+                        <th class="bg-info-400">%</th>
+                        <th class="bg-info-400">Peça Intima</th>
+                        <th class="bg-info-400">%</th>
+                        <th class="bg-info-400">Acessórios</th>
+                        <th class="bg-info-400">%</th>
+                        
+                        <th class="bg-success-400">Verão/Inverno</th>
+                        <th class="bg-success-400">%</th>
+                        <th class="bg-success-400">Peça Intima</th>
+                        <th class="bg-success-400">%</th>
+                        <th class="bg-success-400">Acessórios</th>
+                        <th class="bg-success-400">%</th>
+                        
+                        <th class="bg-primary-400">CMB</th>
+                        <th class="bg-primary-400">%</th>
+                        
+                        <th class="bg-danger-200">Outros</th>
+                        <th class="bg-danger-200">%</th>
+                        
+                        <th class="bg-warning-400">%</th>
+                        
+                    </tr>
+                </thead>
+                <tbody id="resultadoMetaDetLoja">
+                </tbody>
+                <tfoot id="totalResultadoMetaDetLoja"class="thead-themed">
+                </tfoot>
+            </table>`
+        );
+
+        $('#dt-basic-metas-detloja').DataTable( {
+            
+            data: dataRetornoDetMetas,
+            "columnDefs": [
+              { "width": "5px", "targets": 0 },
+              { "width": "180px", "targets": 1 },
+              { "width": "95px", "targets": [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28] }
+          ],
+            deferRender: false,
+            lengthChange: false,
+            //displayLength: 100,
+            ordering:  false,
+            paging: false,
+            searching: false,
+            //scrollY:        800,
+            scrollCollapse: false,
+            //scroller:       false,
+            scrollX: true,
+            autowidth: false,
+            responsive: false,
+            dom:        "<'row mb-3'<'col-sm-12 col-md-12 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-12 d-flex align-items-center justify-content-end'lB>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+            buttons: [
+                        {
+                            text: 'Cadastrar Metas Calçados',
+                            titleAttr: 'Incluir Colaboradores nas Metas dos Calçados',
+                            className: 'btn-outline-success btn-sm mr-1',
+                            action: function () {
+                                Modal_Metas_Calcado(IDMETASLOJAMETAS);
+                            }
+                        },
+                        {
+                            text: 'Cadastrar Metas Feminino',
+                            titleAttr: 'Incluir Colaboradores nas Metas Femininas',
+                            className: 'btn-outline-warning btn-sm mr-1',
+                            action: function () {
+                                Modal_Metas_Feminino(IDMETASLOJAMETAS);
+                            }
+                        },
+                        {
+                            text: 'Cadastrar Metas Masculino',
+                            titleAttr: 'Incluir Colaboradores nas Metas Masculinas',
+                            className: 'btn-outline-primary btn-sm mr-1',
+                            action: function () {
+                                Modal_Metas_Masculino(IDMETASLOJAMETAS);
+                            }
+                        },
+                        {
+                            text: 'Cadastrar Metas Infantil',
+                            titleAttr: 'Incluir Colaboradores nas Metas Infantis',
+                            className: 'btn-outline-danger btn-sm mr-1',
+                            action: function () {
+                                Modal_Metas_Infantil(IDMETASLOJAMETAS);
+                            }
+                        },
+                        {
+                            text: 'Cadastrar Metas CMB',
+                            titleAttr: 'Incluir Colaboradores nas Metas CMB',
+                            className: 'btn-outline-success btn-sm mr-1',
+                            action: function () {
+                                Modal_Metas_CMB(IDMETASLOJAMETAS);
+                            }
+                        }
+                        /*
+                        {
+                            extend: 'pdfHtml5',
+                            text: 'PDF',
+                            titleAttr: 'Generate PDF',
+                            className: 'btn-outline-danger btn-sm mr-1'
+                        },
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Excel',
+                            titleAttr: 'Generate Excel',
+                            className: 'btn-outline-success btn-sm mr-1'
+                        },
+                        {
+                            extend: 'print',
+                            text: 'Print',
+                            titleAttr: 'Print Table',
+                            className: 'btn-outline-primary btn-sm'
+                        }
+                         */
+                    ] 
+        } );
+        
+    }
+
+    BuscaMetasCalc();
+    BuscaMetasFem();
+    BuscaMetasMasc();
+    BuscaMetasInfant();
+    BuscaMetasCMB();
+}
+
+function funcSucessColaboradorListaMetasCalc(respostaColaboradorListaMetasCalc) {
+
+  contadorListMetaCalc = 0;
+
+  var numPageAtual = parseInt(respostaColaboradorListaMetasCalc.page);
+  if(numPageAtual === 1){
+      
+      $('#listmetascolaboradorescalcados').html(
+          `<table id="dt-lista-colab-metas-calc" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                  <tr>
+                      <th>#</th>
+                      <th>Nome</th>
+                      <th>Matricula</th>
+                      <th>Função</th>
+                      <th>Seção</th>
+                      <th>Vr Meta</th>
+                      <th>Vr Alcançado</th>
+                      <th>Situação</th>
+                      <th>Opções</th>
+                  </tr>
+              </thead>
+              <tbody id="resultadoListaColabMetaCalc">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaColabMetasCalc = $('#dt-lista-colab-metas-calc').DataTable({
+          "columnDefs": [
+              { "width": "3%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "10%", "targets": 2 },
+              { "width": "10%", "targets": 3 },
+              { "width": "10%", "targets": 4 },
+              { "width": "10%", "targets": 5 },
+              { "width": "10%", "targets": 6 },
+              { "width": "10%", "targets": 7 },
+              { "width": "10%", "targets": 8 }
+          ],
+          deferRender:    true,
+          paging: false,
+          ordering:  false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaColabMetasCalc.rows().remove().draw();
+  }
+
+  if(respostaColaboradorListaMetasCalc.data.length != 0){
+    for (var i = 0; i < respostaColaboradorListaMetasCalc.data.length; i++) { 
+        contadorListMetaCalc ++;
+
+          idMetaLojaCalc = respostaColaboradorListaMetasCalc.data[i].metasColaborador['IDMETASLOJA'];
+          idMetaColabCalc = respostaColaboradorListaMetasCalc.data[i].metasColaborador['IDMETASCOLABORADOR'];
+          idColabCalc = respostaColaboradorListaMetasCalc.data[i].metasColaborador['IDFUNCIONARIO'];
+          noColabCalc = respostaColaboradorListaMetasCalc.data[i].metasColaborador['NOFUNCIONARIO'];
+          noSecaoColabCalc = respostaColaboradorListaMetasCalc.data[i].metasColaborador['NOSECAO'];
+          dsFuncaoColabCalc = respostaColaboradorListaMetasCalc.data[i].metasColaborador['DSFUNCAO'];
+          vrMetaColabCalc = parseFloat(respostaColaboradorListaMetasCalc.data[i].metasColaborador['VRMETACOLABORADOR']);
+          percMetaColabCalc = parseFloat(respostaColaboradorListaMetasCalc.data[i].metasColaborador['PERCMETACOLABORADOR']);
+          vrVendaCalcadosColabCalc = parseFloat(respostaColaboradorListaMetasCalc.data[i].vendasecaocalcados[0]['venda-calcados']['VRTOTALLIQUIDOCALC']);
+
+            if(vrMetaColabCalc>vrVendaCalcadosColabCalc){
+                situacaopcCalc = `<label style="color: red; font-size: 11px;">NÃO CUMPRIDA</label>`;
+                buttonopcCalc = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabCalc + `" onclick="del_meta_colaborador(this.id,idMetaLojaCalc,noSecaoColabCalc)" ><i class="fal fa-trash"></i></button>`;
+            }else{
+                situacaopcCalc = `<label style="color: blue; font-size: 11px;">CUMPRIDA</label>`;
+                buttonopcCalc = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabCalc + `" onclick="del_meta_colaborador(this.id,idMetaLojaCalc,noSecaoColabCalc)" ><i class="fal fa-trash"></i></button>`;
+                
+            }
+
+      tableListaColabMetasCalc.row.add([
+              `<label style="color: blue; font-size: 11px;">` + contadorListMetaCalc + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + noColabCalc + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + idColabCalc + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoColabCalc + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + noSecaoColabCalc + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrMetaColabCalc).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrVendaCalcadosColabCalc).toFixed(2)) + ` </label>`,
+              situacaopcCalc,
+              buttonopcCalc,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessColaboradorListaMetasFem(respostaColaboradorListaMetasFem) {
+
+  contadorListMetaFem = 0;
+
+  var numPageAtual = parseInt(respostaColaboradorListaMetasFem.page);
+  if(numPageAtual === 1){
+      
+      $('#listmetascolaboradoresfeminino').html(
+          `<table id="dt-lista-colab-metas-fem" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                  <tr>
+                      <th>#</th>
+                      <th>Nome</th>
+                      <th>Matricula</th>
+                      <th>Função</th>
+                      <th>Seção</th>
+                      <th>Vr Meta</th>
+                      <th>Vr Alcançado</th>
+                      <th>Situação</th>
+                      <th>Opções</th>
+                  </tr>
+              </thead>
+              <tbody id="resultadoListaColabMetaFem">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaColabMetasFem = $('#dt-lista-colab-metas-fem').DataTable({
+          "columnDefs": [
+              { "width": "3%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "10%", "targets": 2 },
+              { "width": "10%", "targets": 3 },
+              { "width": "10%", "targets": 4 },
+              { "width": "10%", "targets": 5 },
+              { "width": "10%", "targets": 6 },
+              { "width": "10%", "targets": 7 },
+              { "width": "10%", "targets": 8 }
+          ],
+          deferRender:    true,
+          paging: false,
+          ordering:  false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaColabMetasFem.rows().remove().draw();
+  }
+
+  if(respostaColaboradorListaMetasFem.data.length != 0){
+    for (var i = 0; i < respostaColaboradorListaMetasFem.data.length; i++) { 
+        contadorListMetaFem ++;
+
+          idMetaLojaFem = respostaColaboradorListaMetasFem.data[i].metasColaborador['IDMETASLOJA'];
+          idMetaColabFem = respostaColaboradorListaMetasFem.data[i].metasColaborador['IDMETASCOLABORADOR'];
+          idColabFem = respostaColaboradorListaMetasFem.data[i].metasColaborador['IDFUNCIONARIO'];
+          noColabFem = respostaColaboradorListaMetasFem.data[i].metasColaborador['NOFUNCIONARIO'];
+          noSecaoColabFem = respostaColaboradorListaMetasFem.data[i].metasColaborador['NOSECAO'];
+          dsFuncaoColabFem = respostaColaboradorListaMetasFem.data[i].metasColaborador['DSFUNCAO'];
+          vrMetaColabFem = parseFloat(respostaColaboradorListaMetasFem.data[i].metasColaborador['VRMETACOLABORADOR']);
+          percMetaColabFem = parseFloat(respostaColaboradorListaMetasFem.data[i].metasColaborador['PERCMETACOLABORADOR']);
+          vrVendaCalcadosColabFem = parseFloat(respostaColaboradorListaMetasFem.data[i].vendasecaofeminina[0]['venda-feminina']['VRTOTALLIQUIDOFEMININO']);
+
+            if(vrMetaColabFem>vrVendaCalcadosColabFem){
+                situacaopcFem = `<label style="color: red; font-size: 11px;">NÃO CUMPRIDA</label>`;
+                buttonopcFem = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabFem + `" onclick="del_meta_colaborador(this.id,idMetaLojaFem,noSecaoColabFem)" ><i class="fal fa-trash"></i></button>`;
+            }else{
+                situacaopcFem = `<label style="color: blue; font-size: 11px;">CUMPRIDA</label>`;
+                buttonopcFem = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabFem + `" onclick="del_meta_colaborador(this.id,idMetaLojaFem,noSecaoColabFem)" ><i class="fal fa-trash"></i></button>`;
+                
+            }
+
+      tableListaColabMetasFem.row.add([
+              `<label style="color: blue; font-size: 11px;">` + contadorListMetaFem + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + noColabFem + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + idColabFem + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoColabFem + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + noSecaoColabFem + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrMetaColabFem).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrVendaCalcadosColabFem).toFixed(2)) + ` </label>`,
+              situacaopcFem,
+              buttonopcFem,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessColaboradorListaMetasMasc(respostaColaboradorListaMetasMasc) {
+
+  contadorListMetaMasc = 0;
+
+  var numPageAtual = parseInt(respostaColaboradorListaMetasMasc.page);
+  if(numPageAtual === 1){
+      
+      $('#listmetascolaboradoresmasculino').html(
+          `<table id="dt-lista-colab-metas-masc" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                  <tr>
+                      <th>#</th>
+                      <th>Nome</th>
+                      <th>Matricula</th>
+                      <th>Função</th>
+                      <th>Seção</th>
+                      <th>Vr Meta</th>
+                      <th>Vr Alcançado</th>
+                      <th>Situação</th>
+                      <th>Opções</th>
+                  </tr>
+              </thead>
+              <tbody id="resultadoListaColabMetaMasc">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaColabMetasMasc = $('#dt-lista-colab-metas-masc').DataTable({
+          "columnDefs": [
+              { "width": "3%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "10%", "targets": 2 },
+              { "width": "10%", "targets": 3 },
+              { "width": "10%", "targets": 4 },
+              { "width": "10%", "targets": 5 },
+              { "width": "10%", "targets": 6 },
+              { "width": "10%", "targets": 7 },
+              { "width": "10%", "targets": 8 }
+          ],
+          deferRender:    true,
+          paging: false,
+          ordering:  false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaColabMetasMasc.rows().remove().draw();
+  }
+
+  if(respostaColaboradorListaMetasMasc.data.length != 0){
+    for (var i = 0; i < respostaColaboradorListaMetasMasc.data.length; i++) { 
+        contadorListMetaMasc ++;
+
+          idMetaLojaMasc = respostaColaboradorListaMetasMasc.data[i].metasColaborador['IDMETASLOJA'];
+          idMetaColabMasc = respostaColaboradorListaMetasMasc.data[i].metasColaborador['IDMETASCOLABORADOR'];
+          idColabMasc = respostaColaboradorListaMetasMasc.data[i].metasColaborador['IDFUNCIONARIO'];
+          noColabMasc = respostaColaboradorListaMetasMasc.data[i].metasColaborador['NOFUNCIONARIO'];
+          noSecaoColabMasc = respostaColaboradorListaMetasMasc.data[i].metasColaborador['NOSECAO'];
+          dsFuncaoColabMasc = respostaColaboradorListaMetasMasc.data[i].metasColaborador['DSFUNCAO'];
+          vrMetaColabMasc = parseFloat(respostaColaboradorListaMetasMasc.data[i].metasColaborador['VRMETACOLABORADOR']);
+          percMetaColabMasc = parseFloat(respostaColaboradorListaMetasMasc.data[i].metasColaborador['PERCMETACOLABORADOR']);
+          vrVendaCalcadosColabMasc = parseFloat(respostaColaboradorListaMetasMasc.data[i].vendasecaomasculina[0]['venda-masculina']['VRTOTALLIQUIDOMASCULINO']);
+
+            if(vrMetaColabMasc>vrVendaCalcadosColabMasc){
+                situacaopcMasc = `<label style="color: red; font-size: 11px;">NÃO CUMPRIDA</label>`;
+                buttonopcMasc = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabMasc + `" onclick="del_meta_colaborador(this.id,idMetaLojaMasc,noSecaoColabMasc)" ><i class="fal fa-trash"></i></button>`;
+            }else{
+                situacaopcMasc = `<label style="color: blue; font-size: 11px;">CUMPRIDA</label>`;
+                buttonopcMasc = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabMasc + `" onclick="del_meta_colaborador(this.id,idMetaLojaMasc,noSecaoColabMasc" ><i class="fal fa-trash"></i></button>`;
+                
+            }
+
+      tableListaColabMetasMasc.row.add([
+              `<label style="color: blue; font-size: 11px;">` + contadorListMetaMasc + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + noColabMasc + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + idColabMasc + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoColabMasc + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + noSecaoColabMasc + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrMetaColabMasc).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrVendaCalcadosColabMasc).toFixed(2)) + ` </label>`,
+              situacaopcMasc,
+              buttonopcMasc,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessColaboradorListaMetasInfant(respostaColaboradorListaMetasInfant) {
+
+  contadorListMetaInfant = 0;
+
+  var numPageAtual = parseInt(respostaColaboradorListaMetasInfant.page);
+  if(numPageAtual === 1){
+      
+      $('#listmetascolaboradoresinfantil').html(
+          `<table id="dt-lista-colab-metas-infant" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                  <tr>
+                      <th>#</th>
+                      <th>Nome</th>
+                      <th>Matricula</th>
+                      <th>Função</th>
+                      <th>Seção</th>
+                      <th>Vr Meta</th>
+                      <th>Vr Alcançado</th>
+                      <th>Situação</th>
+                      <th>Opções</th>
+                  </tr>
+              </thead>
+              <tbody id="resultadoListaColabMetaInfant">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaColabMetasInfant = $('#dt-lista-colab-metas-infant').DataTable({
+          "columnDefs": [
+              { "width": "3%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "10%", "targets": 2 },
+              { "width": "10%", "targets": 3 },
+              { "width": "10%", "targets": 4 },
+              { "width": "10%", "targets": 5 },
+              { "width": "10%", "targets": 6 },
+              { "width": "10%", "targets": 7 },
+              { "width": "10%", "targets": 8 }
+          ],
+          deferRender:    true,
+          paging: false,
+          ordering:  false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaColabMetasInfant.rows().remove().draw();
+  }
+
+  if(respostaColaboradorListaMetasInfant.data.length != 0){
+    for (var i = 0; i < respostaColaboradorListaMetasInfant.data.length; i++) { 
+        contadorListMetaInfant ++;
+
+          idMetaLojaInfant = respostaColaboradorListaMetasInfant.data[i].metasColaborador['IDMETASLOJA'];
+          idMetaColabInfant = respostaColaboradorListaMetasInfant.data[i].metasColaborador['IDMETASCOLABORADOR'];
+          idColabInfant = respostaColaboradorListaMetasInfant.data[i].metasColaborador['IDFUNCIONARIO'];
+          noColabInfant = respostaColaboradorListaMetasInfant.data[i].metasColaborador['NOFUNCIONARIO'];
+          noSecaoColabInfant = respostaColaboradorListaMetasInfant.data[i].metasColaborador['NOSECAO'];
+          dsFuncaoColabInfant = respostaColaboradorListaMetasInfant.data[i].metasColaborador['DSFUNCAO'];
+          vrMetaColabInfant = parseFloat(respostaColaboradorListaMetasInfant.data[i].metasColaborador['VRMETACOLABORADOR']);
+          percMetaColabInfant = parseFloat(respostaColaboradorListaMetasInfant.data[i].metasColaborador['PERCMETACOLABORADOR']);
+          vrVendaCalcadosColabInfant = parseFloat(respostaColaboradorListaMetasInfant.data[i].vendasecaoinfantil[0]['venda-infantil']['VRTOTALLIQUIDOINFANTIL']);
+
+            if(vrMetaColabInfant>vrVendaCalcadosColabInfant){
+                situacaopcInfant = `<label style="color: red; font-size: 11px;">NÃO CUMPRIDA</label>`;
+                buttonopcInfant = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabInfant + `" onclick="del_meta_colaborador(this.id,idMetaLojaInfant,noSecaoColabInfant)" ><i class="fal fa-trash"></i></button>`;
+            }else{
+                situacaopcInfant = `<label style="color: blue; font-size: 11px;">CUMPRIDA</label>`;
+                buttonopcInfant = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabInfant + `" onclick="del_meta_colaborador(this.id,idMetaLojaInfant,noSecaoColabInfant" ><i class="fal fa-trash"></i></button>`;
+                
+            }
+
+      tableListaColabMetasInfant.row.add([
+              `<label style="color: blue; font-size: 11px;">` + contadorListMetaInfant + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + noColabInfant + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + idColabInfant + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoColabInfant + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + noSecaoColabInfant + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrMetaColabInfant).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrVendaCalcadosColabInfant).toFixed(2)) + ` </label>`,
+              situacaopcInfant,
+              buttonopcInfant,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessColaboradorListaMetasCMB(respostaColaboradorListaMetasCMB) {
+
+  contadorListMetaCMB = 0;
+
+  var numPageAtual = parseInt(respostaColaboradorListaMetasCMB.page);
+  if(numPageAtual === 1){
+      
+      $('#listmetascolaboradorescmb').html(
+          `<table id="dt-lista-colab-metas-cmb" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                  <tr>
+                      <th>#</th>
+                      <th>Nome</th>
+                      <th>Matricula</th>
+                      <th>Função</th>
+                      <th>Seção</th>
+                      <th>Vr Meta</th>
+                      <th>Vr Alcançado</th>
+                      <th>Situação</th>
+                      <th>Opções</th>
+                  </tr>
+              </thead>
+              <tbody id="resultadoListaColabMetaCMB">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaColabMetasCMB = $('#dt-lista-colab-metas-cmb').DataTable({
+          "columnDefs": [
+              { "width": "3%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "10%", "targets": 2 },
+              { "width": "10%", "targets": 3 },
+              { "width": "10%", "targets": 4 },
+              { "width": "10%", "targets": 5 },
+              { "width": "10%", "targets": 6 },
+              { "width": "10%", "targets": 7 },
+              { "width": "10%", "targets": 8 }
+          ],
+          deferRender:    true,
+          paging: false,
+          ordering:  false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaColabMetasCMB.rows().remove().draw();
+  }
+
+  if(respostaColaboradorListaMetasCMB.data.length != 0){
+    for (var i = 0; i < respostaColaboradorListaMetasCMB.data.length; i++) { 
+        contadorListMetaCMB ++;
+
+          idMetaLojaCMB = respostaColaboradorListaMetasCMB.data[i].metasColaborador['IDMETASLOJA'];
+          idMetaColabCMB = respostaColaboradorListaMetasCMB.data[i].metasColaborador['IDMETASCOLABORADOR'];
+          idColabCMB = respostaColaboradorListaMetasCMB.data[i].metasColaborador['IDFUNCIONARIO'];
+          noColabCMB = respostaColaboradorListaMetasCMB.data[i].metasColaborador['NOFUNCIONARIO'];
+          noSecaoColabCMB = respostaColaboradorListaMetasCMB.data[i].metasColaborador['NOSECAO'];
+          dsFuncaoColabCMB = respostaColaboradorListaMetasCMB.data[i].metasColaborador['DSFUNCAO'];
+          vrMetaColabCMB = parseFloat(respostaColaboradorListaMetasCMB.data[i].metasColaborador['VRMETACOLABORADOR']);
+          percMetaColabCMB = parseFloat(respostaColaboradorListaMetasCMB.data[i].metasColaborador['PERCMETACOLABORADOR']);
+          vrVendaCalcadosColabCMB = parseFloat(respostaColaboradorListaMetasCMB.data[i].vendasecaocmb[0]['venda-cmb']['VRTOTALLIQUIDOCMB']);
+
+            if(vrMetaColabCMB>vrVendaCalcadosColabCMB){
+                situacaopcCMB = `<label style="color: red; font-size: 11px;">NÃO CUMPRIDA</label>`;
+                buttonopcCMB = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabCMB + `" onclick="del_meta_colaborador(this.id,idMetaLojaCMB,noSecaoColabCMB)" ><i class="fal fa-trash"></i></button>`;
+            }else{
+                situacaopcCMB = `<label style="color: blue; font-size: 11px;">CUMPRIDA</label>`;
+                buttonopcCMB = `<button type="button" class="btn btn-danger btn-xs" title="Excluir Meta do Colaborador" id="` + idMetaColabCMB + `" onclick="del_meta_colaborador(this.id,idMetaLojaCMB,noSecaoColabCMB" ><i class="fal fa-trash"></i></button>`;
+                
+            }
+
+      tableListaColabMetasCMB.row.add([
+              `<label style="color: blue; font-size: 11px;">` + contadorListMetaCMB + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + noColabCMB + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + idColabCMB + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoColabCMB + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + noSecaoColabCMB + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrMetaColabCMB).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(vrVendaCalcadosColabCMB).toFixed(2)) + ` </label>`,
+              situacaopcCMB,
+              buttonopcCMB,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+////////////////////METAS CALÇADOS ////
+
+function Modal_Metas_Calcado(idmeta) {
+
+    $.get('action_incluirmetassecaomodal.html', function(res) {
+  
+        $('#resultadoModalIncluirMetas').html(res);
+        $("#incluirMetas").modal('show');
+        $('#incluirMetas').on('shown.bs.modal', function() {
+
+            $('#buttonprevia').html(`
+                <button type="button" class="btn btn-danger btn-xs" title="Listar Colaboradores para Seção Calçados" id="` +idmeta + `" onclick="lista_colaborador_calcado(this.id)" ><span class="fal fa-bars"> Listar Colaboradores</span></button> 
+            `);
+            
+            $('#footerIncluirMetas').html(`
+                <button type="button" class="btn btn-success" onclick="Cadastrar_Metas_Colaborador_Calcados()">Cadastrar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            `);
+
+        });		
+
+        ajaxGetComAnimacaoDeCarregamento('api/comercial/meta-secao-calcado.xsjs?idmeta=' + idmeta, 'Carregando Dados...', retornoIncluirMetasCalcados);
+
+    })
+}
+
+function retornoIncluirMetasCalcados(respostaIncluirMetasCalcados) {
+
+  for (var i = 0; i < respostaIncluirMetasCalcados.data.length; i++) {
+
+    let IDMETACALCADO = respostaIncluirMetasCalcados.data[i]['IDMETASLOJA'];
+    let IDEMPCALCADO = respostaIncluirMetasCalcados.data[i]['IDEMPRESA'];
+    let DTINIMETACALCADO = respostaIncluirMetasCalcados.data[i]['DTINIMETA'];
+    let DTFIMMETACALCADO = respostaIncluirMetasCalcados.data[i]['DTFIMMETA'];
+    let DTINICALCADO = respostaIncluirMetasCalcados.data[i]['DTMETAINICIO'];
+    let DTFIMCALCADO = respostaIncluirMetasCalcados.data[i]['DTMETAFIM'];
+    let VRVENDACALCADO = respostaIncluirMetasCalcados.data[i]['VRVENDACALCADOS'];
+    let PRVENDACALCADO = respostaIncluirMetasCalcados.data[i]['PERCVENDACALCADOS'];
+    let VRMETACALCADO = respostaIncluirMetasCalcados.data[i]['VRMETAVENDACALCADOS'];
+    let PRMETACALCADO = respostaIncluirMetasCalcados.data[i]['PERCMETAVENDACALCADOS'];
+    let PRTOTALMETA = respostaIncluirMetasCalcados.data[i]['PERCTOTALVENDA'];
+    let STSALVOCALCADO = respostaIncluirMetasCalcados.data[i]['STSALVO'];
+    let NOSECAOCALCADO='CALÇADOS';
+
+      $('.text-muted').html(`
+                        Nº ${IDMETACALCADO}
+                    `);
+        
+    $('#idMetasLojas').val(IDMETACALCADO);
+    $('#idEmpresa').val(IDEMPCALCADO);
+    $('#dtinicio').val(DTINIMETACALCADO);
+    $('#dtfim').val(DTFIMMETACALCADO);
+    $('#namesecao').val('CALÇADOS');
+    $('#dtmetasecao').val(DTINICALCADO+' a '+DTFIMCALCADO);
+
+    $('#vrmetasecao').val(mascaraValor(parseFloat(VRMETACALCADO).toFixed(2)));
+    $('#percmetasecao').val(mascaraValor(parseFloat(PRMETACALCADO).toFixed(2)));
+
+    ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idEmp=' + IDEMPCALCADO + '&idMetaLoja=' + IDMETACALCADO + '&noSecaoMetaLoja=' + NOSECAOCALCADO)
+        .then(retornoListaMetasColaboradorCalcados)
+        .catch((e) => { funcError(), console.log(e) });
+
+  }
+}
+
+function retornoListaMetasColaboradorCalcados(respostaListaMetasColabCalcado) {
+
+        if(respostaListaMetasColabCalcado.data.length != 0){
+            
+            $('#qtdmetacolab').val(respostaListaMetasColabCalcado.data.length);
+            
+            $('#vrmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabCalcado.data[0].metasColaborador['VRMETACOLABORADOR']).toFixed(2)));
+            $('#percmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabCalcado.data[0].metasColaborador['PERCMETACOLABORADOR']).toFixed(2)));
+            
+        }else{
+             $('#qtdmetacolab').val(0);
+             $('#vrmetacolab').val(0);
+             $('#percmetacolab').val(0);
+        }
+}
+
+function lista_colaborador_calcado(idmeta) {
+
+  FuncaoColab = 'True';
+  STAtivoColab = 'True';
+  countselecionados = 0;
+  QTDMetaCalc = 0;
+  
+  $(vrmetacolab).val(0);
+  $(percmetacolab).val(0);
+
+      ajaxGet('api/comercial/funcionario-metas.xsjs?idEmpresa=' + IDEmpresaLogin + '&dsfuncao=' + FuncaoColab + '&stativo=' + STAtivoColab)
+        .then(retornoListaColaboradorCalcados)
+        .catch((e) => { funcError(), console.log(e) });
+
+}
+
+function retornoListaColaboradorCalcados(respostaListaColabCalcado) {
+  
+        contador = 0;
+           
+        var numPageAtual = parseInt(respostaListaColabCalcado.page);
+        if(numPageAtual === 1){
+          
+            $('#resultadolistcolaborador').html(
+              `<table id="dt-basic-lista-colabcalcado" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                  <thead class="bg-primary-600">
+                      <tr>
+                          <th >*</th>
+                          <th ></th>
+                          <th ><div style="display:none"></div></th>
+                          <th >Matricula</th>
+                          <th >Nome</th>
+                          <th >Função</th>
+                      </tr>
+                  </thead>
+                  <tbody id="resultadocolabcalcado">
+                  </tbody>
+                  <tfoot id="totalListaColabCalcado"class="thead-themed">
+                  </tfoot>
+              </table>`
+            );
+          
+            var tableListaColabCalcado = $('#dt-basic-lista-colabcalcado').DataTable({
+              "columnDefs": [
+                  { "width": "8%", "targets": [0, 1] },
+                  { "width": "1%", "targets": 2 },
+                  { "width": "12%", "targets": 3 },
+                  { "width": "38%", "targets": 4 },
+                  { "width": "24%", "targets": 5 },
+              ],
+              deferRender:    true,
+              paging: false,
+              ordering:  false,
+              searching: false,
+              info: false,
+              //scrollY:        800,
+              //scrollCollapse: false,
+              //scroller:       false,
+              responsive: true,
+              dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                          "<'row'<'col-sm-12'tr>>" +
+                          "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                        {
+
+                        },
+                        {
+
+                        }
+                    ]
+
+          });
+          
+            tableListaColabCalcado.rows().remove().draw();
+            $('#resultadocolabcalcado').html('');
+          
+        }
+        
+        if(respostaListaColabCalcado.data.length != 0){
+          
+          for (var i = 0; i < respostaListaColabCalcado.data.length; i++) {
+    
+            contador++;
+    
+            idFuncCalc = respostaListaColabCalcado.data[i]['IDFUNCIONARIO'];
+            dsFuncCalc = respostaListaColabCalcado.data[i]['NOFUNCIONARIO'];
+            LoginFuncCalc = respostaListaColabCalcado.data[i]['NOLOGIN'];
+            dsFuncaoFuncCalc = respostaListaColabCalcado.data[i]['DSFUNCAO'];
+
+            tableListaColabCalcado.row.add([
+              `<label style="color: blue; font-size: 11px;">` + (contador) + `</label>`,
+              `<div class="custom-control custom-checkbox"><input type="checkbox" name="selecao" id="marcadorcalc_` + contador + `" class="custom-control-input" value="" onchange="selecionaLinhaCalcados(this.id)"><label class="custom-control-label" for="marcadorcalc_` + contador + `"></label></input></div>`,
+              `<input type="hidden" id="matcalcado_` + contador + `" name="matcalcado_` + contador + `" class="form-control" value="` + idFuncCalc + `" readonly></input>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncCalc + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + LoginFuncCalc + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoFuncCalc + `</label>`,
+            ]).draw(false);
+        
+          }
+        }
+}
+
+function selecionaLinhaCalcados(idlinha) {
+
+    let VrMetaCalc = $('#vrmetasecao').val().replace(".", "").replace(",", ".");
+    let PercMetaCalc = $('#percmetasecao').val().replace(".", "").replace(",", ".");
+    
+    let VrMetaColabCalc = $('#vrmetacolab').val().replace(".", "").replace(",", ".");
+    let PercMetaColabCalc = $('#percmetacolab').val().replace(".", "").replace(",", ".");
+    
+    let vrmetadiv = 0;
+    let percmetadiv = 0;
+    
+    let QTDMetaCalc = $('#qtdmetacolab').val();
+
+    let linhaSelecionada = $(`#${idlinha}`).parent('div').parent('td').parent();
+    
+    if (!linhaSelecionada.hasClass('selected')) {
+      linhaSelecionada.addClass('selected').css("opacity", 0.8)
+      
+      $(qtdmetacolab).val(parseFloat(QTDMetaCalc) + 1);
+      
+      vrmetadiv = parseFloat(VrMetaCalc)/(parseFloat(QTDMetaCalc) + 1);
+      percmetadiv = parseFloat(PercMetaCalc)/(parseFloat(QTDMetaCalc) + 1);
+      $(vrmetacolab).val(vrmetadiv.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+      $(percmetacolab).val(percmetadiv.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  
+    } else {
+      linhaSelecionada.removeClass('selected').removeAttr('style')
+      if(parseFloat(QTDMetaCalc) == 0){
+          vrmetadiv = 0;
+          percmetadiv = 0;
+          $(vrmetacolab).val(vrmetadiv.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadiv.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(0);
+      }else{
+          vrmetadiv = parseFloat(VrMetaCalc)/(parseFloat(QTDMetaCalc) - 1);
+          percmetadiv = parseFloat(PercMetaCalc)/(parseFloat(QTDMetaCalc) - 1);
+          $(vrmetacolab).val(vrmetadiv.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadiv.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(parseFloat(QTDMetaCalc) - 1);
+      }
+      
+    }
+
+}
+
+function Cadastrar_Metas_Colaborador_Calcados() {
+  
+    var dadosTableMetasColab = [];
+    var cont = 1;
+    var table = $('#dt-basic-lista-colabcalcado').DataTable();
+    table.rows().iterator('row', function(context, index) {
+        
+        let linhaSelecionada = $(`#${"marcadorcalc_"+cont}`).parent('div').parent('td').parent();
+
+        if (linhaSelecionada.hasClass('selected')) {
+            //alert($("#matcalcado_"+cont.toString()).val());
+            var dadosMetaCoab = {
+                "IDColab":parseInt($("#matcalcado_"+cont.toString()).val())
+            }
+      
+            dadosTableMetasColab.push(dadosMetaCoab);
+        }
+        
+        cont++;
+    });
+
+//alert(dadosTableMetasColab.length);
+
+    let idmetaloja = $("#idMetasLojas").val();
+    let nosecao = $("#namesecao").val();
+    let idemp = $("#idEmpresa").val();
+    let dtinic = $("#dtinicio").val();
+    let dtfim = $("#dtfim").val();
+    let vrmetageral = parseFloat($("#vrmetasecao").val().replace(".", "").replace(",", "."));
+    let percmetageral = parseFloat($("#percmetasecao").val().replace(".", "").replace(",", "."));
+    let vrcolabmeta = parseFloat($("#vrmetacolab").val().replace(".", "").replace(",", "."));
+    let perccolabmeta = parseFloat($("#percmetacolab").val().replace(".", "").replace(",", "."));
+    let StAtivo = 'True';
+
+    if(vrcolabmeta == 0){
+
+      Swal.fire({
+          type: "warning",
+          title: "Escolha um Colaborador ",
+          showConfirmButton: false,
+          timer: 2000
+      });
+      return;
+      
+    }else{
+        Swal.fire({
+              title: 'Certeza que Deseja Finalizar o Cadastro?',
+              text: "Você não poderá reverter esta ação!",
+              buttonsStyling: false,
+              showCancelButton: true,
+              customClass: {
+                confirmButton: 'btn btn-primary btn-lg',
+                cancelButton: 'btn btn-danger btn-lg',
+                loader: 'custom-loader'
+              },
+              loaderHtml: '<div class="spinner-border text-primary"></div>',
+              preConfirm: () => {
+                Swal.showLoading()
+                return new Promise((resolve) => {
+        
+                  var dados = [{ 
+                      "IDEMPRESA": parseInt(idemp),
+                      "IDMETASLOJA": parseInt(idmetaloja),
+                      "DTMETAINICIO":dtinic,
+                      "DTMETAFIM":dtfim,
+                      "NOSECAO":nosecao,
+                      "VRMETAVENDAGERAL":(vrmetageral),
+                      "PERCMETAVENDAGERAL":(percmetageral),
+                      "VRMETACOLABORADOR":(vrcolabmeta),
+                      "PERCMETACOLABORADOR":(perccolabmeta),
+                      "METASDETALHE":dadosTableMetasColab,
+                      "STATIVO":StAtivo
+                }];
+                  
+                  ajaxPost("api/comercial/cadastrar-metas-colaborador.xsjs", dados)
+						.then((respostaPost)=>{
+							   Swal.close();
+							   funcSucessCadMetasColab(idmetaloja,nosecao);                                    
+							})
+						.catch(funcError);
+                          
+                })
+              }
+        })
+    }
+}
+
+////////////////////METAS FEMININO ////
+
+function Modal_Metas_Feminino(idmeta) {
+
+    $.get('action_incluirmetassecaomodal.html', function(res) {
+  
+        $('#resultadoModalIncluirMetas').html(res);
+        $("#incluirMetas").modal('show');
+        $('#incluirMetas').on('shown.bs.modal', function() {
+
+            $('#buttonprevia').html(`
+                <button type="button" class="btn btn-danger btn-xs" title="Listar Colaboradores para Seção Feminina" id="` +idmeta + `" onclick="lista_colaborador_Feminino(this.id)" ><span class="fal fa-bars"> Listar Colaboradores</span></button> 
+            `);
+            
+            $('#footerIncluirMetas').html(`
+                <button type="button" class="btn btn-success" onclick="Cadastrar_Metas_Colaborador_Feminino()">Cadastrar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            `);
+
+        });		
+
+        ajaxGetComAnimacaoDeCarregamento('api/comercial/meta-secao-feminino.xsjs?idmeta=' + idmeta, 'Carregando Dados...', retornoIncluirMetasFeminino);
+
+    })
+}
+
+function retornoIncluirMetasFeminino(respostaIncluirMetasFeminino) {
+
+  for (var i = 0; i < respostaIncluirMetasFeminino.data.length; i++) {
+
+    let IDMETAFEMININO = respostaIncluirMetasFeminino.data[i]['IDMETASLOJA'];
+    let IDEMPFEMININO = respostaIncluirMetasFeminino.data[i]['IDEMPRESA'];
+    let DTINIMETAFEMININO = respostaIncluirMetasFeminino.data[i]['DTINIMETA'];
+    let DTFIMMETAFEMININO = respostaIncluirMetasFeminino.data[i]['DTFIMMETA'];
+    let DTINIFEMININO = respostaIncluirMetasFeminino.data[i]['DTMETAINICIO'];
+    let DTFIMFEMININO = respostaIncluirMetasFeminino.data[i]['DTMETAFIM'];
+    
+    let VRVENDAFEMININO = respostaIncluirMetasFeminino.data[i]['VRTOTALVENDAFEM'];
+    let PRVENDAFEMININO = respostaIncluirMetasFeminino.data[i]['PERCTOTALVENDAFEM'];
+    
+    let VRMETAFEMININO = respostaIncluirMetasFeminino.data[i]['VRTOTALMETAFEM'];
+    let PRMETAFEMININO = respostaIncluirMetasFeminino.data[i]['PERCTOTALMETAFEM'];
+    
+    let PRTOTALMETAFEMININO = respostaIncluirMetasFeminino.data[i]['PERCTOTALVENDA'];
+    let STSALVOFEMININO = respostaIncluirMetasFeminino.data[i]['STSALVO'];
+    
+    let NOSECAOFEMININO='FEMININO';
+
+      $('.text-muted').html(`
+                        Nº ${IDMETAFEMININO}
+                    `);
+        
+    $('#idMetasLojas').val(IDMETAFEMININO);
+    $('#idEmpresa').val(IDEMPFEMININO);
+    $('#dtinicio').val(DTINIMETAFEMININO);
+    $('#dtfim').val(DTFIMMETAFEMININO);
+    $('#namesecao').val('FEMININO');
+    $('#dtmetasecao').val(DTINIFEMININO+' a '+DTFIMFEMININO);
+
+    $('#vrmetasecao').val(mascaraValor(parseFloat(VRMETAFEMININO).toFixed(2)));
+    $('#percmetasecao').val(mascaraValor(parseFloat(PRMETAFEMININO).toFixed(2)));
+
+    ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idEmp=' + IDEMPFEMININO + '&idMetaLoja=' + IDMETAFEMININO + '&noSecaoMetaLoja=' + NOSECAOFEMININO)
+        .then(retornoListaMetasColaboradorFeminino)
+        .catch((e) => { funcError(), console.log(e) });
+
+  }
+}
+
+function retornoListaMetasColaboradorFeminino(respostaListaMetasColabFeminino) {
+
+        if(respostaListaMetasColabFeminino.data.length != 0){
+            
+            $('#qtdmetacolab').val(respostaListaMetasColabFeminino.data.length);
+            
+            $('#vrmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabFeminino.data[0].metasColaborador['VRMETACOLABORADOR']).toFixed(2)));
+            $('#percmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabFeminino.data[0].metasColaborador['PERCMETACOLABORADOR']).toFixed(2)));
+            
+        }else{
+             $('#qtdmetacolab').val(0);
+             $('#vrmetacolab').val(0);
+             $('#percmetacolab').val(0);
+        }
+}
+
+function lista_colaborador_Feminino(idmeta) {
+
+  FuncaoColabFem = 'True';
+  STAtivoColabFem = 'True';
+  countselecionadosFem = 0;
+  QTDMetaFem = 0;
+  
+  $(vrmetacolab).val(0);
+  $(percmetacolab).val(0);
+
+      ajaxGet('api/comercial/funcionario-metas.xsjs?idEmpresa=' + IDEmpresaLogin + '&dsfuncao=' + FuncaoColabFem + '&stativo=' + STAtivoColabFem)
+        .then(retornoListaColaboradorFeminino)
+        .catch((e) => { funcError(), console.log(e) });
+
+}
+
+function retornoListaColaboradorFeminino(respostaListaColabFeminino) {
+  
+        contadorfem = 0;
+           
+        var numPageAtual = parseInt(respostaListaColabFeminino.page);
+        if(numPageAtual === 1){
+          
+            $('#resultadolistcolaborador').html(
+              `<table id="dt-basic-lista-colabfeminino" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                  <thead class="bg-primary-600">
+                      <tr>
+                          <th >*</th>
+                          <th ></th>
+                          <th ><div style="display:none"></div></th>
+                          <th >Matricula</th>
+                          <th >Nome</th>
+                          <th >Função</th>
+                      </tr>
+                  </thead>
+                  <tbody id="resultadocolabfeminino">
+                  </tbody>
+                  <tfoot id="totalListaColabFeminino"class="thead-themed">
+                  </tfoot>
+              </table>`
+            );
+          
+            var tableListaColabFeminino = $('#dt-basic-lista-colabfeminino').DataTable({
+              "columnDefs": [
+                  { "width": "8%", "targets": [0, 1] },
+                  { "width": "1%", "targets": 2 },
+                  { "width": "12%", "targets": 3 },
+                  { "width": "38%", "targets": 4 },
+                  { "width": "24%", "targets": 5 },
+              ],
+              deferRender:    true,
+              paging: false,
+              ordering:  false,
+              searching: false,
+              info: false,
+              //scrollY:        800,
+              //scrollCollapse: false,
+              //scroller:       false,
+              responsive: true,
+              dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                          "<'row'<'col-sm-12'tr>>" +
+                          "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                        {
+
+                        },
+                        {
+
+                        }
+                    ]
+
+          });
+          
+            tableListaColabFeminino.rows().remove().draw();
+            $('#resultadocolabfeminino').html('');
+          
+        }
+        
+        if(respostaListaColabFeminino.data.length != 0){
+          
+          for (var i = 0; i < respostaListaColabFeminino.data.length; i++) {
+    
+            contadorfem++;
+    
+            idFuncFem = respostaListaColabFeminino.data[i]['IDFUNCIONARIO'];
+            dsFuncFem = respostaListaColabFeminino.data[i]['NOFUNCIONARIO'];
+            LoginFuncFem = respostaListaColabFeminino.data[i]['NOLOGIN'];
+            dsFuncaoFuncFem = respostaListaColabFeminino.data[i]['DSFUNCAO'];
+
+            tableListaColabFeminino.row.add([
+              `<label style="color: blue; font-size: 11px;">` + (contadorfem) + `</label>`,
+              `<div class="custom-control custom-checkbox"><input type="checkbox" name="selecao" id="marcadorfem_` + contadorfem + `" class="custom-control-input" value="" onchange="selecionaLinhaFeminino(this.id)"><label class="custom-control-label" for="marcadorfem_` + contadorfem + `"></label></input></div>`,
+              `<input type="hidden" id="matfem_` + contadorfem + `" name="matfem_` + contadorfem + `" class="form-control" value="` + idFuncFem + `" readonly></input>`,
+              `<label style="color: blue; font-size: 11px;">` + (LoginFuncFem) + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncFem + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoFuncFem + `</label>`,
+            ]).draw(false);
+        
+          }
+
+        }
+}
+
+function selecionaLinhaFeminino(idlinhaFem) {
+
+    let VrMetaFem = $('#vrmetasecao').val().replace(".", "").replace(",", ".");
+    let PercMetaFem = $('#percmetasecao').val().replace(".", "").replace(",", ".");
+    
+    let VrMetaColabFem = $('#vrmetacolab').val().replace(".", "").replace(",", ".");
+    let PercMetaColabFem = $('#percmetacolab').val().replace(".", "").replace(",", ".");
+    
+    let vrmetadivFem = 0;
+    let percmetadivFem = 0;
+    
+    let QTDMetaFem = $('#qtdmetacolab').val();
+
+    let linhaSelecionadaFem = $(`#${idlinhaFem}`).parent('div').parent('td').parent();
+    
+    if (!linhaSelecionadaFem.hasClass('selected')) {
+      linhaSelecionadaFem.addClass('selected').css("opacity", 0.8)
+      
+      $(qtdmetacolab).val(parseFloat(QTDMetaFem) + 1);
+      
+      vrmetadivFem = parseFloat(VrMetaFem)/(parseFloat(QTDMetaFem) + 1);
+      percmetadivFem = parseFloat(PercMetaFem)/(parseFloat(QTDMetaFem) + 1);
+      
+      $(vrmetacolab).val(vrmetadivFem.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+      $(percmetacolab).val(percmetadivFem.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  
+    } else {
+      linhaSelecionadaFem.removeClass('selected').removeAttr('style')
+      if(parseFloat(QTDMetaFem) == 0){
+          vrmetadivFem = 0;
+          percmetadivFem = 0;
+          
+          $(vrmetacolab).val(vrmetadivFem.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadivFem.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(0);
+      }else{
+          vrmetadivFem = parseFloat(VrMetaFem)/(parseFloat(QTDMetaFem) - 1);
+          percmetadivFem = parseFloat(PercMetaFem)/(parseFloat(QTDMetaFem) - 1);
+          
+          $(vrmetacolab).val(vrmetadivFem.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadivFem.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(parseFloat(QTDMetaFem) - 1);
+      }
+      
+    }
+
+}
+
+function Cadastrar_Metas_Colaborador_Feminino() {
+  
+    var dadosTableMetasColabFem = [];
+    var contFem = 1;
+    var tableFem = $('#dt-basic-lista-colabfeminino').DataTable();
+    tableFem.rows().iterator('row', function(context, index) {
+        
+        let linhaSelecionadaFem = $(`#${"marcadorfem_"+contFem}`).parent('div').parent('td').parent();
+
+        if (linhaSelecionadaFem.hasClass('selected')) {
+            //alert($("#matcalcado_"+cont.toString()).val());
+            var dadosMetaCoabFem = {
+                "IDColab":parseInt($("#matfem_"+contFem.toString()).val())
+            }
+      
+            dadosTableMetasColabFem.push(dadosMetaCoabFem);
+        }
+        
+        contFem++;
+    });
+
+//alert(dadosTableMetasColab.length);
+
+    let idmetaloja = $("#idMetasLojas").val();
+    let nosecao = $("#namesecao").val();
+    let idemp = $("#idEmpresa").val();
+    let dtinic = $("#dtinicio").val();
+    let dtfim = $("#dtfim").val();
+    let vrmetageral = parseFloat($("#vrmetasecao").val().replace(".", "").replace(",", "."));
+    let percmetageral = parseFloat($("#percmetasecao").val().replace(".", "").replace(",", "."));
+    let vrcolabmeta = parseFloat($("#vrmetacolab").val().replace(".", "").replace(",", "."));
+    let perccolabmeta = parseFloat($("#percmetacolab").val().replace(".", "").replace(",", "."));
+    let StAtivo = 'True';
+
+    if(vrcolabmeta == 0){
+
+      Swal.fire({
+          type: "warning",
+          title: "Escolha um Colaborador ",
+          showConfirmButton: false,
+          timer: 2000
+      });
+      return;
+      
+    }else{
+        Swal.fire({
+              title: 'Certeza que Deseja Finalizar o Cadastro?',
+              text: "Você não poderá reverter esta ação!",
+              buttonsStyling: false,
+              showCancelButton: true,
+              customClass: {
+                confirmButton: 'btn btn-primary btn-lg',
+                cancelButton: 'btn btn-danger btn-lg',
+                loader: 'custom-loader'
+              },
+              loaderHtml: '<div class="spinner-border text-primary"></div>',
+              preConfirm: () => {
+                Swal.showLoading()
+                return new Promise((resolve) => {
+        
+                  var dados = [{ 
+                      "IDEMPRESA": parseInt(idemp),
+                      "IDMETASLOJA": parseInt(idmetaloja),
+                      "DTMETAINICIO":dtinic,
+                      "DTMETAFIM":dtfim,
+                      "NOSECAO":nosecao,
+                      "VRMETAVENDAGERAL":(vrmetageral),
+                      "PERCMETAVENDAGERAL":(percmetageral),
+                      "VRMETACOLABORADOR":(vrcolabmeta),
+                      "PERCMETACOLABORADOR":(perccolabmeta),
+                      "METASDETALHE":dadosTableMetasColabFem,
+                      "STATIVO":StAtivo
+                }];
+                  
+                  ajaxPost("api/comercial/cadastrar-metas-colaborador.xsjs", dados)
+						.then((respostaPost)=>{
+							   Swal.close();
+							   funcSucessCadMetasColab(idmetaloja,nosecao);                                    
+							})
+						.catch(funcError);
+                          
+                })
+              }
+        })
+    }
+}
+
+////////////////////METAS MASCULINO ////
+
+function Modal_Metas_Masculino(idmeta) {
+
+    $.get('action_incluirmetassecaomodal.html', function(res) {
+  
+        $('#resultadoModalIncluirMetas').html(res);
+        $("#incluirMetas").modal('show');
+        $('#incluirMetas').on('shown.bs.modal', function() {
+
+            $('#buttonprevia').html(`
+                <button type="button" class="btn btn-danger btn-xs" title="Listar Colaboradores para Seção Masculina" id="` +idmeta + `" onclick="lista_colaborador_Masculino(this.id)" ><span class="fal fa-bars"> Listar Colaboradores</span></button> 
+            `);
+            
+            $('#footerIncluirMetas').html(`
+                <button type="button" class="btn btn-success" onclick="Cadastrar_Metas_Colaborador_Masculino()">Cadastrar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            `);
+
+        });		
+
+        ajaxGetComAnimacaoDeCarregamento('api/comercial/meta-secao-masculino.xsjs?idmeta=' + idmeta, 'Carregando Dados...', retornoIncluirMetasMasculino);
+
+    })
+}
+
+function retornoIncluirMetasMasculino(respostaIncluirMetasMasculino) {
+
+  for (var i = 0; i < respostaIncluirMetasMasculino.data.length; i++) {
+
+    let IDMETAMASCULINO = respostaIncluirMetasMasculino.data[i]['IDMETASLOJA'];
+    let IDEMPMASCULINO = respostaIncluirMetasMasculino.data[i]['IDEMPRESA'];
+    let DTINIMETAMASCULINO = respostaIncluirMetasMasculino.data[i]['DTINIMETA'];
+    let DTFIMMETAMASCULINO = respostaIncluirMetasMasculino.data[i]['DTFIMMETA'];
+    let DTINIMASCULINO = respostaIncluirMetasMasculino.data[i]['DTMETAINICIO'];
+    let DTFIMMASCULINO = respostaIncluirMetasMasculino.data[i]['DTMETAFIM'];
+    
+    let VRVENDAMASCULINO = respostaIncluirMetasMasculino.data[i]['VRTOTALVENDAMASC'];
+    let PRVENDAMASCULINO = respostaIncluirMetasMasculino.data[i]['PERCTOTALVENDAMASC'];
+    
+    let VRMETAMASCULINO = respostaIncluirMetasMasculino.data[i]['VRTOTALMETAMASC'];
+    let PRMETAMASCULINO = respostaIncluirMetasMasculino.data[i]['PERCTOTALMETAMASC'];
+    
+    let PRTOTALMETAMASCULINO = respostaIncluirMetasMasculino.data[i]['PERCTOTALVENDA'];
+    let STSALVOMASCULINO = respostaIncluirMetasMasculino.data[i]['STSALVO'];
+    
+    let NOSECAOMASCULINO='MASCULINO';
+
+      $('.text-muted').html(`
+                        Nº ${IDMETAMASCULINO}
+                    `);
+        
+    $('#idMetasLojas').val(IDMETAMASCULINO);
+    $('#idEmpresa').val(IDEMPMASCULINO);
+    $('#dtinicio').val(DTINIMETAMASCULINO);
+    $('#dtfim').val(DTFIMMETAMASCULINO);
+    $('#namesecao').val('MASCULINO');
+    $('#dtmetasecao').val(DTINIMASCULINO+' a '+DTFIMMASCULINO);
+
+    $('#vrmetasecao').val(mascaraValor(parseFloat(VRMETAMASCULINO).toFixed(2)));
+    $('#percmetasecao').val(mascaraValor(parseFloat(PRMETAMASCULINO).toFixed(2)));
+
+    ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idEmp=' + IDEMPMASCULINO + '&idMetaLoja=' + IDMETAMASCULINO + '&noSecaoMetaLoja=' + NOSECAOMASCULINO)
+        .then(retornoListaMetasColaboradorMasculino)
+        .catch((e) => { funcError(), console.log(e) });
+
+  }
+}
+
+function retornoListaMetasColaboradorMasculino(respostaListaMetasColabMasculino) {
+
+        if(respostaListaMetasColabMasculino.data.length != 0){
+            
+            $('#qtdmetacolab').val(respostaListaMetasColabMasculino.data.length);
+            
+            $('#vrmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabMasculino.data[0].metasColaborador['VRMETACOLABORADOR']).toFixed(2)));
+            $('#percmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabMasculino.data[0].metasColaborador['PERCMETACOLABORADOR']).toFixed(2)));
+            
+        }else{
+             $('#qtdmetacolab').val(0);
+             $('#vrmetacolab').val(0);
+             $('#percmetacolab').val(0);
+        }
+}
+
+function lista_colaborador_Masculino(idmeta) {
+
+  FuncaoColabMasc = 'True';
+  STAtivoColabMasc = 'True';
+  countselecionadosMasc = 0;
+  QTDMetaMasc = 0;
+  
+  $(vrmetacolab).val(0);
+  $(percmetacolab).val(0);
+
+      ajaxGet('api/comercial/funcionario-metas.xsjs?idEmpresa=' + IDEmpresaLogin + '&dsfuncao=' + FuncaoColabMasc + '&stativo=' + STAtivoColabMasc)
+        .then(retornoListaColaboradorMasculino)
+        .catch((e) => { funcError(), console.log(e) });
+
+}
+
+function retornoListaColaboradorMasculino(respostaListaColabMasculino) {
+  
+        contadormasc = 0;
+           
+        var numPageAtual = parseInt(respostaListaColabMasculino.page);
+        if(numPageAtual === 1){
+          
+            $('#resultadolistcolaborador').html(
+              `<table id="dt-basic-lista-colabmasculino" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                  <thead class="bg-primary-600">
+                      <tr>
+                          <th >*</th>
+                          <th ></th>
+                          <th ><div style="display:none"></div></th>
+                          <th >Matricula</th>
+                          <th >Nome</th>
+                          <th >Função</th>
+                      </tr>
+                  </thead>
+                  <tbody id="resultadocolabmasculino">
+                  </tbody>
+                  <tfoot id="totalListaColabMasculino"class="thead-themed">
+                  </tfoot>
+              </table>`
+            );
+          
+            var tableListaColabMasculino = $('#dt-basic-lista-colabmasculino').DataTable({
+              "columnDefs": [
+                  { "width": "8%", "targets": [0, 1] },
+                  { "width": "1%", "targets": 2 },
+                  { "width": "12%", "targets": 3 },
+                  { "width": "38%", "targets": 4 },
+                  { "width": "24%", "targets": 5 },
+              ],
+              deferRender:    true,
+              paging: false,
+              ordering:  false,
+              searching: false,
+              info: false,
+              //scrollY:        800,
+              //scrollCollapse: false,
+              //scroller:       false,
+              responsive: true,
+              dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                          "<'row'<'col-sm-12'tr>>" +
+                          "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                        {
+
+                        },
+                        {
+
+                        }
+                    ]
+
+          });
+          
+            tableListaColabMasculino.rows().remove().draw();
+            $('#resultadocolabmasculino').html('');
+          
+        }
+        
+        if(respostaListaColabMasculino.data.length != 0){
+          
+          for (var i = 0; i < respostaListaColabMasculino.data.length; i++) {
+    
+            contadormasc++;
+    
+            idFuncMasc = respostaListaColabMasculino.data[i]['IDFUNCIONARIO'];
+            dsFuncMasc = respostaListaColabMasculino.data[i]['NOFUNCIONARIO'];
+            LoginFuncMasc = respostaListaColabMasculino.data[i]['NOLOGIN'];
+            dsFuncaoFuncMasc = respostaListaColabMasculino.data[i]['DSFUNCAO'];
+
+            tableListaColabMasculino.row.add([
+              `<label style="color: blue; font-size: 11px;">` + (contadormasc) + `</label>`,
+              `<div class="custom-control custom-checkbox"><input type="checkbox" name="selecao" id="marcadormasc_` + contadormasc + `" class="custom-control-input" value="" onchange="selecionaLinhaMasculino(this.id)"><label class="custom-control-label" for="marcadormasc_` + contadormasc + `"></label></input></div>`,
+              `<input type="hidden" id="matmasc_` + contadormasc + `" name="matmasc_` + contadormasc + `" class="form-control" value="` + idFuncMasc + `" readonly></input>`,
+              `<label style="color: blue; font-size: 11px;">` + (LoginFuncMasc) + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncMasc + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoFuncMasc + `</label>`,
+            ]).draw(false);
+        
+          }
+
+        }
+}
+
+function selecionaLinhaMasculino(idlinhaMasc) {
+
+    let VrMetaMasc = $('#vrmetasecao').val().replace(".", "").replace(",", ".");
+    let PercMetaMasc = $('#percmetasecao').val().replace(".", "").replace(",", ".");
+    
+    let VrMetaColabMasc = $('#vrmetacolab').val().replace(".", "").replace(",", ".");
+    let PercMetaColabMasc = $('#percmetacolab').val().replace(".", "").replace(",", ".");
+    
+    let vrmetadivMasc = 0;
+    let percmetadivMasc = 0;
+    
+    let QTDMetaMasc = $('#qtdmetacolab').val();
+
+    let linhaSelecionadaMasc = $(`#${idlinhaMasc}`).parent('div').parent('td').parent();
+    
+    if (!linhaSelecionadaMasc.hasClass('selected')) {
+      linhaSelecionadaMasc.addClass('selected').css("opacity", 0.8)
+      
+      $(qtdmetacolab).val(parseFloat(QTDMetaMasc) + 1);
+      
+      vrmetadivMasc = parseFloat(VrMetaMasc)/(parseFloat(QTDMetaMasc) + 1);
+      percmetadivMasc = parseFloat(PercMetaMasc)/(parseFloat(QTDMetaMasc) + 1);
+      
+      $(vrmetacolab).val(vrmetadivMasc.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+      $(percmetacolab).val(percmetadivMasc.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  
+    } else {
+      linhaSelecionadaMasc.removeClass('selected').removeAttr('style')
+      if(parseFloat(QTDMetaMasc) == 0){
+          vrmetadivMasc = 0;
+          percmetadivMasc = 0;
+          
+          $(vrmetacolab).val(vrmetadivMasc.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadivMasc.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(0);
+      }else{
+          vrmetadivMasc = parseFloat(VrMetaMasc)/(parseFloat(QTDMetaMasc) - 1);
+          percmetadivMasc = parseFloat(PercMetaMasc)/(parseFloat(QTDMetaMasc) - 1);
+          
+          $(vrmetacolab).val(vrmetadivMasc.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadivMasc.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(parseFloat(QTDMetaMasc) - 1);
+      }
+      
+    }
+
+}
+
+function Cadastrar_Metas_Colaborador_Masculino() {
+  
+    var dadosTableMetasColabMasc = [];
+    var contMasc = 1;
+    var tableMasc = $('#dt-basic-lista-colabmasculino').DataTable();
+    tableMasc.rows().iterator('row', function(context, index) {
+        
+        let linhaSelecionadaMasc = $(`#${"marcadormasc_"+contMasc}`).parent('div').parent('td').parent();
+
+        if (linhaSelecionadaMasc.hasClass('selected')) {
+            //alert($("#matcalcado_"+cont.toString()).val());
+            var dadosMetaCoabMasc = {
+                "IDColab":parseInt($("#matmasc_"+contMasc.toString()).val())
+            }
+      
+            dadosTableMetasColabMasc.push(dadosMetaCoabMasc);
+        }
+        
+        contMasc++;
+    });
+
+//alert(dadosTableMetasColab.length);
+
+    let idmetaloja = $("#idMetasLojas").val();
+    let nosecao = $("#namesecao").val();
+    let idemp = $("#idEmpresa").val();
+    let dtinic = $("#dtinicio").val();
+    let dtfim = $("#dtfim").val();
+    let vrmetageral = parseFloat($("#vrmetasecao").val().replace(".", "").replace(",", "."));
+    let percmetageral = parseFloat($("#percmetasecao").val().replace(".", "").replace(",", "."));
+    let vrcolabmeta = parseFloat($("#vrmetacolab").val().replace(".", "").replace(",", "."));
+    let perccolabmeta = parseFloat($("#percmetacolab").val().replace(".", "").replace(",", "."));
+    let StAtivo = 'True';
+
+    if(vrcolabmeta == 0){
+
+      Swal.fire({
+          type: "warning",
+          title: "Escolha um Colaborador ",
+          showConfirmButton: false,
+          timer: 2000
+      });
+      return;
+      
+    }else{
+        Swal.fire({
+              title: 'Certeza que Deseja Finalizar o Cadastro?',
+              text: "Você não poderá reverter esta ação!",
+              buttonsStyling: false,
+              showCancelButton: true,
+              customClass: {
+                confirmButton: 'btn btn-primary btn-lg',
+                cancelButton: 'btn btn-danger btn-lg',
+                loader: 'custom-loader'
+              },
+              loaderHtml: '<div class="spinner-border text-primary"></div>',
+              preConfirm: () => {
+                Swal.showLoading()
+                return new Promise((resolve) => {
+        
+                  var dados = [{ 
+                      "IDEMPRESA": parseInt(idemp),
+                      "IDMETASLOJA": parseInt(idmetaloja),
+                      "DTMETAINICIO":dtinic,
+                      "DTMETAFIM":dtfim,
+                      "NOSECAO":nosecao,
+                      "VRMETAVENDAGERAL":(vrmetageral),
+                      "PERCMETAVENDAGERAL":(percmetageral),
+                      "VRMETACOLABORADOR":(vrcolabmeta),
+                      "PERCMETACOLABORADOR":(perccolabmeta),
+                      "METASDETALHE":dadosTableMetasColabMasc,
+                      "STATIVO":StAtivo
+                }];
+                  
+                  ajaxPost("api/comercial/cadastrar-metas-colaborador.xsjs", dados)
+						.then((respostaPost)=>{
+							   Swal.close();
+							   funcSucessCadMetasColab(idmetaloja,nosecao);                                    
+							})
+						.catch(funcError);
+                          
+                })
+              }
+        })
+    }
+}
+
+////////////////////METAS INFANTIL ////
+
+function Modal_Metas_Infantil(idmeta) {
+
+    $.get('action_incluirmetassecaomodal.html', function(res) {
+  
+        $('#resultadoModalIncluirMetas').html(res);
+        $("#incluirMetas").modal('show');
+        $('#incluirMetas').on('shown.bs.modal', function() {
+
+            $('#buttonprevia').html(`
+                <button type="button" class="btn btn-danger btn-xs" title="Listar Colaboradores para Seção Infantil" id="` +idmeta + `" onclick="lista_colaborador_Infantil(this.id)" ><span class="fal fa-bars"> Listar Colaboradores</span></button> 
+            `);
+            
+            $('#footerIncluirMetas').html(`
+                <button type="button" class="btn btn-success" onclick="Cadastrar_Metas_Colaborador_Infantil()">Cadastrar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            `);
+
+        });		
+
+        ajaxGetComAnimacaoDeCarregamento('api/comercial/meta-secao-infantil.xsjs?idmeta=' + idmeta, 'Carregando Dados...', retornoIncluirMetasInfantil);
+
+    })
+}
+
+function retornoIncluirMetasInfantil(respostaIncluirMetasInfantil) {
+
+  for (var i = 0; i < respostaIncluirMetasInfantil.data.length; i++) {
+
+    let IDMETAINFANTIL = respostaIncluirMetasInfantil.data[i]['IDMETASLOJA'];
+    let IDEMPINFANTIL = respostaIncluirMetasInfantil.data[i]['IDEMPRESA'];
+    let DTINIMETAINFANTIL = respostaIncluirMetasInfantil.data[i]['DTINIMETA'];
+    let DTFIMMETAINFANTIL = respostaIncluirMetasInfantil.data[i]['DTFIMMETA'];
+    let DTINIINFANTIL = respostaIncluirMetasInfantil.data[i]['DTMETAINICIO'];
+    let DTFIMINFANTIL = respostaIncluirMetasInfantil.data[i]['DTMETAFIM'];
+    
+    let VRVENDAINFANTIL = respostaIncluirMetasInfantil.data[i]['VRTOTALVENDAINFANT'];
+    let PRVENDAINFANTIL = respostaIncluirMetasInfantil.data[i]['PERCTOTALVENDAINFANT'];
+    
+    let VRMETAINFANTIL = respostaIncluirMetasInfantil.data[i]['VRTOTALMETAINFANT'];
+    let PRMETAINFANTIL = respostaIncluirMetasInfantil.data[i]['PERCTOTALMETAINFANT'];
+    
+    let PRTOTALMETAINFANTIL = respostaIncluirMetasInfantil.data[i]['PERCTOTALVENDA'];
+    let STSALVOINFANTIL = respostaIncluirMetasInfantil.data[i]['STSALVO'];
+    
+    let NOSECAOINFANTIL='INFANTIL';
+
+      $('.text-muted').html(`
+                        Nº ${IDMETAINFANTIL}
+                    `);
+        
+    $('#idMetasLojas').val(IDMETAINFANTIL);
+    $('#idEmpresa').val(IDEMPINFANTIL);
+    $('#dtinicio').val(DTINIMETAINFANTIL);
+    $('#dtfim').val(DTFIMMETAINFANTIL);
+    $('#namesecao').val('INFANTIL');
+    $('#dtmetasecao').val(DTINIINFANTIL+' a '+DTFIMINFANTIL);
+
+    $('#vrmetasecao').val(mascaraValor(parseFloat(VRMETAINFANTIL).toFixed(2)));
+    $('#percmetasecao').val(mascaraValor(parseFloat(PRMETAINFANTIL).toFixed(2)));
+
+    ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idEmp=' + IDEMPINFANTIL + '&idMetaLoja=' + IDMETAINFANTIL + '&noSecaoMetaLoja=' + NOSECAOINFANTIL)
+        .then(retornoListaMetasColaboradorInfantil)
+        .catch((e) => { funcError(), console.log(e) });
+
+  }
+}
+
+function retornoListaMetasColaboradorInfantil(respostaListaMetasColabInfantil) {
+
+        if(respostaListaMetasColabInfantil.data.length != 0){
+            
+            $('#qtdmetacolab').val(respostaListaMetasColabInfantil.data.length);
+            
+            $('#vrmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabInfantil.data[0].metasColaborador['VRMETACOLABORADOR']).toFixed(2)));
+            $('#percmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabInfantil.data[0].metasColaborador['PERCMETACOLABORADOR']).toFixed(2)));
+            
+        }else{
+             $('#qtdmetacolab').val(0);
+             $('#vrmetacolab').val(0);
+             $('#percmetacolab').val(0);
+        }
+}
+
+function lista_colaborador_Infantil(idmeta) {
+
+  FuncaoColabInfant = 'True';
+  STAtivoColabInfant = 'True';
+  countselecionadosInfant = 0;
+  QTDMetaInfant = 0;
+  
+  $(vrmetacolab).val(0);
+  $(percmetacolab).val(0);
+
+      ajaxGet('api/comercial/funcionario-metas.xsjs?idEmpresa=' + IDEmpresaLogin + '&dsfuncao=' + FuncaoColabInfant + '&stativo=' + STAtivoColabInfant)
+        .then(retornoListaColaboradorInfantil)
+        .catch((e) => { funcError(), console.log(e) });
+
+}
+
+function retornoListaColaboradorInfantil(respostaListaColabInfantil) {
+  
+        contadorinfant = 0;
+           
+        var numPageAtual = parseInt(respostaListaColabInfantil.page);
+        if(numPageAtual === 1){
+          
+            $('#resultadolistcolaborador').html(
+              `<table id="dt-basic-lista-colabinfantil" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                  <thead class="bg-primary-600">
+                      <tr>
+                          <th >*</th>
+                          <th ></th>
+                          <th ><div style="display:none"></div></th>
+                          <th >Matricula</th>
+                          <th >Nome</th>
+                          <th >Função</th>
+                      </tr>
+                  </thead>
+                  <tbody id="resultadocolabinfantil">
+                  </tbody>
+                  <tfoot id="totalListaColabInfantil"class="thead-themed">
+                  </tfoot>
+              </table>`
+            );
+          
+            var tableListaColabInfantil = $('#dt-basic-lista-colabinfantil').DataTable({
+              "columnDefs": [
+                  { "width": "8%", "targets": [0, 1] },
+                  { "width": "1%", "targets": 2 },
+                  { "width": "12%", "targets": 3 },
+                  { "width": "38%", "targets": 4 },
+                  { "width": "24%", "targets": 5 },
+              ],
+              deferRender:    true,
+              paging: false,
+              ordering:  false,
+              searching: false,
+              info: false,
+              //scrollY:        800,
+              //scrollCollapse: false,
+              //scroller:       false,
+              responsive: true,
+              dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                          "<'row'<'col-sm-12'tr>>" +
+                          "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                        {
+
+                        },
+                        {
+
+                        }
+                    ]
+
+          });
+          
+            tableListaColabInfantil.rows().remove().draw();
+            $('#resultadocolabinfantil').html('');
+          
+        }
+        
+        if(respostaListaColabInfantil.data.length != 0){
+          
+          for (var i = 0; i < respostaListaColabInfantil.data.length; i++) {
+    
+            contadorinfant++;
+    
+            idFuncInfant = respostaListaColabInfantil.data[i]['IDFUNCIONARIO'];
+            dsFuncInfant = respostaListaColabInfantil.data[i]['NOFUNCIONARIO'];
+            LoginFuncInfant = respostaListaColabInfantil.data[i]['NOLOGIN'];
+            dsFuncaoFuncInfant = respostaListaColabInfantil.data[i]['DSFUNCAO'];
+
+            tableListaColabInfantil.row.add([
+              `<label style="color: blue; font-size: 11px;">` + (contadorinfant) + `</label>`,
+              `<div class="custom-control custom-checkbox"><input type="checkbox" name="selecao" id="marcadorinfant_` + contadorinfant + `" class="custom-control-input" value="" onchange="selecionaLinhaInfantil(this.id)"><label class="custom-control-label" for="marcadorinfant_` + contadorinfant + `"></label></input></div>`,
+              `<input type="hidden" id="matinfant_` + contadorinfant + `" name="matinfant_` + contadorinfant + `" class="form-control" value="` + idFuncInfant + `" readonly></input>`,
+              `<label style="color: blue; font-size: 11px;">` + (LoginFuncInfant) + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncInfant + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoFuncInfant + `</label>`,
+            ]).draw(false);
+        
+          }
+
+        }
+}
+
+function selecionaLinhaInfantil(idlinhaInfant) {
+
+    let VrMetaInfant = $('#vrmetasecao').val().replace(".", "").replace(",", ".");
+    let PercMetaInfant = $('#percmetasecao').val().replace(".", "").replace(",", ".");
+    
+    let VrMetaColabInfant = $('#vrmetacolab').val().replace(".", "").replace(",", ".");
+    let PercMetaColabInfant = $('#percmetacolab').val().replace(".", "").replace(",", ".");
+    
+    let vrmetadivInfant = 0;
+    let percmetadivInfant = 0;
+    
+    let QTDMetaInfant = $('#qtdmetacolab').val();
+
+    let linhaSelecionadaInfant = $(`#${idlinhaInfant}`).parent('div').parent('td').parent();
+    
+    if (!linhaSelecionadaInfant.hasClass('selected')) {
+      linhaSelecionadaInfant.addClass('selected').css("opacity", 0.8)
+      
+      $(qtdmetacolab).val(parseFloat(QTDMetaInfant) + 1);
+      
+      vrmetadivInfant = parseFloat(VrMetaInfant)/(parseFloat(QTDMetaInfant) + 1);
+      percmetadivInfant = parseFloat(PercMetaInfant)/(parseFloat(QTDMetaInfant) + 1);
+      
+      $(vrmetacolab).val(vrmetadivInfant.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+      $(percmetacolab).val(percmetadivInfant.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  
+    } else {
+      linhaSelecionadaInfant.removeClass('selected').removeAttr('style')
+      if(parseFloat(QTDMetaInfant) == 0){
+          vrmetadivInfant = 0;
+          percmetadivInfant = 0;
+          
+          $(vrmetacolab).val(vrmetadivInfant.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadivInfant.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(0);
+      }else{
+          vrmetadivInfant = parseFloat(VrMetaInfant)/(parseFloat(QTDMetaInfant) - 1);
+          percmetadivInfant = parseFloat(PercMetaInfant)/(parseFloat(QTDMetaInfant) - 1);
+          
+          $(vrmetacolab).val(vrmetadivInfant.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadivInfant.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(parseFloat(QTDMetaInfant) - 1);
+      }
+      
+    }
+
+}
+
+function Cadastrar_Metas_Colaborador_Infantil() {
+  
+    var dadosTableMetasColabInfant = [];
+    var contInfant = 1;
+    var tableInfant = $('#dt-basic-lista-colabinfantil').DataTable();
+    tableInfant.rows().iterator('row', function(context, index) {
+        
+        let linhaSelecionadaInfant = $(`#${"marcadorinfant_"+contInfant}`).parent('div').parent('td').parent();
+
+        if (linhaSelecionadaInfant.hasClass('selected')) {
+            //alert($("#matinfant_"+contInfant.toString()).val());
+            var dadosMetaCoabInfant = {
+                "IDColab":parseInt($("#matinfant_"+contInfant.toString()).val())
+            }
+      
+            dadosTableMetasColabInfant.push(dadosMetaCoabInfant);
+        }
+        
+        contInfant++;
+    });
+
+//alert(dadosTableMetasColab.length);
+
+    let idmetaloja = $("#idMetasLojas").val();
+    let nosecao = $("#namesecao").val();
+    let idemp = $("#idEmpresa").val();
+    let dtinic = $("#dtinicio").val();
+    let dtfim = $("#dtfim").val();
+    let vrmetageral = parseFloat($("#vrmetasecao").val().replace(".", "").replace(",", "."));
+    let percmetageral = parseFloat($("#percmetasecao").val().replace(".", "").replace(",", "."));
+    let vrcolabmeta = parseFloat($("#vrmetacolab").val().replace(".", "").replace(",", "."));
+    let perccolabmeta = parseFloat($("#percmetacolab").val().replace(".", "").replace(",", "."));
+    let StAtivo = 'True';
+
+    if(vrcolabmeta == 0){
+
+      Swal.fire({
+          type: "warning",
+          title: "Escolha um Colaborador ",
+          showConfirmButton: false,
+          timer: 2000
+      });
+      return;
+      
+    }else{
+        Swal.fire({
+              title: 'Certeza que Deseja Finalizar o Cadastro?',
+              text: "Você não poderá reverter esta ação!",
+              buttonsStyling: false,
+              showCancelButton: true,
+              customClass: {
+                confirmButton: 'btn btn-primary btn-lg',
+                cancelButton: 'btn btn-danger btn-lg',
+                loader: 'custom-loader'
+              },
+              loaderHtml: '<div class="spinner-border text-primary"></div>',
+              preConfirm: () => {
+                Swal.showLoading()
+                return new Promise((resolve) => {
+        
+                  var dados = [{ 
+                      "IDEMPRESA": parseInt(idemp),
+                      "IDMETASLOJA": parseInt(idmetaloja),
+                      "DTMETAINICIO":dtinic,
+                      "DTMETAFIM":dtfim,
+                      "NOSECAO":nosecao,
+                      "VRMETAVENDAGERAL":(vrmetageral),
+                      "PERCMETAVENDAGERAL":(percmetageral),
+                      "VRMETACOLABORADOR":(vrcolabmeta),
+                      "PERCMETACOLABORADOR":(perccolabmeta),
+                      "METASDETALHE":dadosTableMetasColabInfant,
+                      "STATIVO":StAtivo
+                }];
+                  
+                  ajaxPost("api/comercial/cadastrar-metas-colaborador.xsjs", dados)
+						.then((respostaPost)=>{
+							   Swal.close();
+							   funcSucessCadMetasColab(idmetaloja,nosecao);                                    
+							})
+						.catch(funcError);
+                          
+                })
+              }
+        })
+    }
+}
+
+////////////////////METAS CMB ////
+
+function Modal_Metas_CMB(idmeta) {
+
+    $.get('action_incluirmetassecaomodal.html', function(res) {
+  
+        $('#resultadoModalIncluirMetas').html(res);
+        $("#incluirMetas").modal('show');
+        $('#incluirMetas').on('shown.bs.modal', function() {
+
+            $('#buttonprevia').html(`
+                <button type="button" class="btn btn-danger btn-xs" title="Listar Colaboradores para Seção CMB" id="` +idmeta + `" onclick="lista_colaborador_CMB(this.id)" ><span class="fal fa-bars"> Listar Colaboradores</span></button> 
+            `);
+            
+            $('#footerIncluirMetas').html(`
+                <button type="button" class="btn btn-success" onclick="Cadastrar_Metas_Colaborador_CMB()">Cadastrar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            `);
+
+        });		
+
+        ajaxGetComAnimacaoDeCarregamento('api/comercial/meta-secao-cmb.xsjs?idmeta=' + idmeta, 'Carregando Dados...', retornoIncluirMetasCMB);
+
+    })
+}
+
+function retornoIncluirMetasCMB(respostaIncluirMetasCMB) {
+
+  for (var i = 0; i < respostaIncluirMetasCMB.data.length; i++) {
+
+    let IDMETACMB = respostaIncluirMetasCMB.data[i]['IDMETASLOJA'];
+    let IDEMPCMB = respostaIncluirMetasCMB.data[i]['IDEMPRESA'];
+    let DTINIMETACMB = respostaIncluirMetasCMB.data[i]['DTINIMETA'];
+    let DTFIMMETACMB = respostaIncluirMetasCMB.data[i]['DTFIMMETA'];
+    let DTINICMB = respostaIncluirMetasCMB.data[i]['DTMETAINICIO'];
+    let DTFIMCMB = respostaIncluirMetasCMB.data[i]['DTMETAFIM'];
+    let VRVENDACMB = respostaIncluirMetasCMB.data[i]['VRTOTALVENDACMB'];
+    let PRVENDACMB = respostaIncluirMetasCMB.data[i]['PERCTOTALVENDACMB'];
+    let VRMETACMB = respostaIncluirMetasCMB.data[i]['VRTOTALMETACMB'];
+    let PRMETACMB = respostaIncluirMetasCMB.data[i]['PERCTOTALMETACMB'];
+    let PRTOTALMETA = respostaIncluirMetasCMB.data[i]['PERCTOTALVENDA'];
+    let STSALVOCMB = respostaIncluirMetasCMB.data[i]['STSALVO'];
+    let NOSECAOCMB='CMB';
+
+      $('.text-muted').html(`
+                        Nº ${IDMETACMB}
+                    `);
+        
+    $('#idMetasLojas').val(IDMETACMB);
+    $('#idEmpresa').val(IDEMPCMB);
+    $('#dtinicio').val(DTINIMETACMB);
+    $('#dtfim').val(DTFIMMETACMB);
+    $('#namesecao').val('CMB');
+    $('#dtmetasecao').val(DTINICMB+' a '+DTFIMCMB);
+
+    $('#vrmetasecao').val(mascaraValor(parseFloat(VRMETACMB).toFixed(2)));
+    $('#percmetasecao').val(mascaraValor(parseFloat(PRMETACMB).toFixed(2)));
+
+    ajaxGet('api/comercial/cadastrar-metas-colaborador.xsjs?idEmp=' + IDEMPCMB + '&idMetaLoja=' + IDMETACMB + '&noSecaoMetaLoja=' + NOSECAOCMB)
+        .then(retornoListaMetasColaboradorCMB)
+        .catch((e) => { funcError(), console.log(e) });
+
+  }
+}
+
+function retornoListaMetasColaboradorCMB(respostaListaMetasColabCMB) {
+
+        if(respostaListaMetasColabCMB.data.length != 0){
+            
+            $('#qtdmetacolab').val(respostaListaMetasColabCMB.data.length);
+            
+            $('#vrmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabCMB.data[0].metasColaborador['VRMETACOLABORADOR']).toFixed(2)));
+            $('#percmetacolab').val(mascaraValor(parseFloat(respostaListaMetasColabCMB.data[0].metasColaborador['PERCMETACOLABORADOR']).toFixed(2)));
+            
+        }else{
+             $('#qtdmetacolab').val(0);
+             $('#vrmetacolab').val(0);
+             $('#percmetacolab').val(0);
+        }
+}
+
+function lista_colaborador_CMB(idmeta) {
+
+  FuncaoColabCMB = 'True';
+  STAtivoColabCMB = 'True';
+  countselecionadosCMB = 0;
+  QTDMetaCMB = 0;
+  
+  $(vrmetacolab).val(0);
+  $(percmetacolab).val(0);
+
+      ajaxGet('api/comercial/funcionario-metas.xsjs?idEmpresa=' + IDEmpresaLogin + '&dsfuncao=' + FuncaoColabCMB + '&stativo=' + STAtivoColabCMB)
+        .then(retornoListaColaboradorCMB)
+        .catch((e) => { funcError(), console.log(e) });
+
+}
+
+function retornoListaColaboradorCMB(respostaListaColabCMB) {
+  
+        contadorCMB = 0;
+           
+        var numPageAtual = parseInt(respostaListaColabCMB.page);
+        if(numPageAtual === 1){
+          
+            $('#resultadolistcolaborador').html(
+              `<table id="dt-basic-lista-colabcmb" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                  <thead class="bg-primary-600">
+                      <tr>
+                          <th >*</th>
+                          <th ></th>
+                          <th ><div style="display:none"></div></th>
+                          <th >Matricula</th>
+                          <th >Nome</th>
+                          <th >Função</th>
+                      </tr>
+                  </thead>
+                  <tbody id="resultadocolabCMB">
+                  </tbody>
+                  <tfoot id="totalListaColabCMB"class="thead-themed">
+                  </tfoot>
+              </table>`
+            );
+          
+            var tableListaColabCMB = $('#dt-basic-lista-colabcmb').DataTable({
+              "columnDefs": [
+                  { "width": "8%", "targets": [0, 1] },
+                  { "width": "1%", "targets": 2 },
+                  { "width": "12%", "targets": 3 },
+                  { "width": "38%", "targets": 4 },
+                  { "width": "24%", "targets": 5 },
+              ],
+              deferRender:    true,
+              paging: false,
+              ordering:  false,
+              searching: false,
+              info: false,
+              //scrollY:        800,
+              //scrollCollapse: false,
+              //scroller:       false,
+              responsive: true,
+              dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                          "<'row'<'col-sm-12'tr>>" +
+                          "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                        {
+
+                        },
+                        {
+
+                        }
+                    ]
+
+          });
+          
+            tableListaColabCMB.rows().remove().draw();
+            $('#resultadocolabCMB').html('');
+          
+        }
+        
+        if(respostaListaColabCMB.data.length != 0){
+          
+          for (var i = 0; i < respostaListaColabCMB.data.length; i++) {
+    
+            contadorCMB++;
+    
+            idFuncCMB = respostaListaColabCMB.data[i]['IDFUNCIONARIO'];
+            dsFuncCMB = respostaListaColabCMB.data[i]['NOFUNCIONARIO'];
+            LoginFuncCMB = respostaListaColabCMB.data[i]['NOLOGIN'];
+            dsFuncaoFuncCMB = respostaListaColabCMB.data[i]['DSFUNCAO'];
+
+            tableListaColabCMB.row.add([
+              `<label style="color: blue; font-size: 11px;">` + (contadorCMB) + `</label>`,
+              `<div class="custom-control custom-checkbox"><input type="checkbox" name="selecao" id="marcadorCMB_` + contadorCMB + `" class="custom-control-input" value="" onchange="selecionaLinhaCMB(this.id)"><label class="custom-control-label" for="marcadorCMB_` + contadorCMB + `"></label></input></div>`,
+              `<input type="hidden" id="matCMB_` + contadorCMB + `" name="matCMB_` + contadorCMB + `" class="form-control" value="` + idFuncCMB + `" readonly></input>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncCMB + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + LoginFuncCMB + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + dsFuncaoFuncCMB + `</label>`,
+            ]).draw(false);
+        
+          }
+        }
+}
+
+function selecionaLinhaCMB(idlinhaCMB) {
+
+    let VrMetaCMB = $('#vrmetasecao').val().replace(".", "").replace(",", ".");
+    let PercMetaCMB = $('#percmetasecao').val().replace(".", "").replace(",", ".");
+    
+    let VrMetaColabCMB = $('#vrmetacolab').val().replace(".", "").replace(",", ".");
+    let PercMetaColabCMB = $('#percmetacolab').val().replace(".", "").replace(",", ".");
+    
+    let vrmetadivCMB = 0;
+    let percmetadivCMB = 0;
+    
+    let QTDMetaCMB = $('#qtdmetacolab').val();
+
+    let linhaSelecionadaCMB = $(`#${idlinhaCMB}`).parent('div').parent('td').parent();
+    
+    if (!linhaSelecionadaCMB.hasClass('selected')) {
+      linhaSelecionadaCMB.addClass('selected').css("opacity", 0.8)
+      
+      $(qtdmetacolab).val(parseFloat(QTDMetaCMB) + 1);
+      
+      vrmetadivCMB = parseFloat(VrMetaCMB)/(parseFloat(QTDMetaCMB) + 1);
+      percmetadivCMB = parseFloat(PercMetaCMB)/(parseFloat(QTDMetaCMB) + 1);
+      $(vrmetacolab).val(vrmetadivCMB.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+      $(percmetacolab).val(percmetadivCMB.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+  
+    } else {
+      linhaSelecionadaCMB.removeClass('selected').removeAttr('style')
+      if(parseFloat(QTDMetaCMB) == 0){
+          vrmetadivCMB = 0;
+          percmetadivCMB = 0;
+          $(vrmetacolab).val(vrmetadivCMB.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadivCMB.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(0);
+      }else{
+          vrmetadivCMB = parseFloat(VrMetaCMB)/(parseFloat(QTDMetaCMB) - 1);
+          percmetadivCMB = parseFloat(PercMetaCMB)/(parseFloat(QTDMetaCMB) - 1);
+          $(vrmetacolab).val(vrmetadivCMB.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(percmetacolab).val(percmetadivCMB.toLocaleString('pt-br', { minimumFractionDigits: 2 }));
+          $(qtdmetacolab).val(parseFloat(QTDMetaCMB) - 1);
+      }
+      
+    }
+
+}
+
+function Cadastrar_Metas_Colaborador_CMB() {
+  
+    var dadosTableMetasColabCMB = [];
+    var contCMB = 1;
+    var tableCMB = $('#dt-basic-lista-colabCMB').DataTable();
+    tableCMB.rows().iterator('row', function(context, index) {
+        
+        let linhaSelecionadaCMB = $(`#${"marcadorCMB_"+contCMB}`).parent('div').parent('td').parent();
+
+        if (linhaSelecionadaCMB.hasClass('selected')) {
+            //alert($("#matcalcado_"+cont.toString()).val());
+            var dadosMetaCoabCMB = {
+                "IDColab":parseInt($("#matCMB_"+contCMB.toString()).val())
+            }
+      
+            dadosTableMetasColabCMB.push(dadosMetaCoabCMB);
+        }
+        
+        contCMB++;
+    });
+
+//alert(dadosTableMetasColab.length);
+
+    let idmetaloja = $("#idMetasLojas").val();
+    let nosecao = $("#namesecao").val();
+    let idemp = $("#idEmpresa").val();
+    let dtinic = $("#dtinicio").val();
+    let dtfim = $("#dtfim").val();
+    let vrmetageral = parseFloat($("#vrmetasecao").val().replace(".", "").replace(",", "."));
+    let percmetageral = parseFloat($("#percmetasecao").val().replace(".", "").replace(",", "."));
+    let vrcolabmeta = parseFloat($("#vrmetacolab").val().replace(".", "").replace(",", "."));
+    let perccolabmeta = parseFloat($("#percmetacolab").val().replace(".", "").replace(",", "."));
+    let StAtivo = 'True';
+
+    if(vrcolabmeta == 0){
+
+      Swal.fire({
+          type: "warning",
+          title: "Escolha um Colaborador ",
+          showConfirmButton: false,
+          timer: 2000
+      });
+      return;
+      
+    }else{
+        Swal.fire({
+              title: 'Certeza que Deseja Finalizar o Cadastro?',
+              text: "Você não poderá reverter esta ação!",
+              buttonsStyling: false,
+              showCancelButton: true,
+              customClass: {
+                confirmButton: 'btn btn-primary btn-lg',
+                cancelButton: 'btn btn-danger btn-lg',
+                loader: 'custom-loader'
+              },
+              loaderHtml: '<div class="spinner-border text-primary"></div>',
+              preConfirm: () => {
+                Swal.showLoading()
+                return new Promise((resolve) => {
+        
+                  var dados = [{ 
+                      "IDEMPRESA": parseInt(idemp),
+                      "IDMETASLOJA": parseInt(idmetaloja),
+                      "DTMETAINICIO":dtinic,
+                      "DTMETAFIM":dtfim,
+                      "NOSECAO":nosecao,
+                      "VRMETAVENDAGERAL":(vrmetageral),
+                      "PERCMETAVENDAGERAL":(percmetageral),
+                      "VRMETACOLABORADOR":(vrcolabmeta),
+                      "PERCMETACOLABORADOR":(perccolabmeta),
+                      "METASDETALHE":dadosTableMetasColabCMB,
+                      "STATIVO":StAtivo
+                }];
+                  
+                  ajaxPost("api/comercial/cadastrar-metas-colaborador.xsjs", dados)
+						.then((respostaPost)=>{
+							   Swal.close();
+							   funcSucessCadMetasColab(idmetaloja,nosecao);                                    
+							})
+						.catch(funcError);
+                          
+                })
+              }
+        })
+    }
+}
+
+////////////////////FUNÇÕES COMUNS DAS SEÇÕES ////
+
+function funcSucessCadMetasColab(idmetaloja, NoSecao) {
+
+    Swal.fire({
+      type: "success",
+      title: "Metas Cadastradas com Sucesso ",
+      showConfirmButton: false,
+      timer: 2500
+    });
+    
+    $("#incluirMetas").modal('hide');
+
+    if(NoSecao == 'CALÇADOS'){
+        BuscaMetasCalc();
+    }
+    
+    if(NoSecao == 'FEMININO'){
+        BuscaMetasFem();
+    }
+    
+    if(NoSecao == 'MASCULINO'){
+        BuscaMetasMasc();
+    }
+    
+    if(NoSecao == 'INFANTIL'){
+        BuscaMetasInfant();
+    }
+    
+    if(NoSecao == 'CMB'){
+        BuscaMetasCMB();
+    }
+
+}
+
+function del_meta_colaborador(idMetasColab,idMetaLoja,noColabSecao) {
+
+  let status = 'False';
+  
+  Swal.fire({
+		title: 'Certeza que Deseja Cancelar a Meta desse Colaborador?',
+		text: "Você não poderá reverter esta ação!",
+		buttonsStyling: false,
+		showCancelButton: true,
+		customClass: {
+		  confirmButton: 'btn btn-primary btn-lg',
+		  cancelButton: 'btn btn-danger btn-lg',
+		  loader: 'custom-loader'
+		},
+		loaderHtml: '<div class="spinner-border text-primary"></div>',
+		allowOutsideClick: () => !Swal.isLoading()
+  }).then((result) => {
+		if (result.dismiss == 'timer') {
+		  Swal.fire({
+			type: 'error',
+			title: `Tempo de resposta ou inatividade atingido`,
+			timer: 10000,
+		  });
+		} else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
+		  return false;
+		} else{
+
+			Swal.fire({
+			  type:'question',
+			  title: 'Motivo do Cancelamento da Meta?',
+			  html: `<div>
+						  <div class=" input-group pt-0" >
+							  <input type="text" id="motivoCancelMeta" class="swal2-input m-0 " placeholder="Motivo do Cancelamento da Meta!" style="text-transform: uppercase">
+						  </div>
+					  </div>`,
+			  width: '25rem',
+			  focusConfirm: false,
+			  showCancelButton: true,
+			  confirmButtonText: 'Confirmar',
+			  cancelButtonText: 'Voltar',
+			  cancelButtonColor: '#3085d6',
+			  showLoaderOnConfirm: true,
+			  preConfirm: () => {
+				  motivoCancelMeta = $('#motivoCancelMeta').val();
+			
+				  if (!motivoCancelMeta) {
+					  Swal.showValidationMessage(`Coloque o Motivo da Cancelamento da Meta!`);
+					  $('#motivoCancelMeta').focus();
+					  return false;
+			
+				  } else if (motivoCancelMeta.length < 10) {
+					  Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 e no máximo 200 Caracteres!`)
+					  $('#motivoCancelMeta').val('').focus();
+					  return false;
+			
+				  } else {
+					  
+						
+				  }
+			  }
+			}).then((result) => {
+					
+				if (result.dismiss == 'timer') {
+				
+				  Swal.fire({
+					  type: 'error',
+					  title: `Tempo de resposta ou inatividade atingido`,
+					  timer: 60000,
+				  })
+				} else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
+				  return false;
+				} else{
+					let barraCarregamento = `<div id="BarraCarregamento" class="progress">
+											  <div  class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div>
+										  </div>`
+
+					Swal.fire({
+					  html: barraCarregamento,
+					  type: 'info',
+					  title: 'Carregando Dados...Aguarde!',
+					  timer: 180000,
+					  backdrop: false,
+					  allowEscapeKey: false,
+					  allowOutsideClick: false,
+					  onOpen: async () => {
+						  Swal.showLoading();
+						  
+							let dados = {
+								"IDMETASLOJA": parseInt(idMetaLoja),
+								"IDMETASCOLABORADOR": parseInt(idMetasColab),
+								"DSMOTIVOCANCELAMENTO": motivoCancelMeta.toString(),
+								"NOSECAO": (noColabSecao),
+								"STATIVO":status
+							};
+					
+						  await ajaxPut("api/comercial/del-metas-colaborador.xsjs", dados)
+								.then((respostaPut)=>{
+									   Swal.close();
+									   funcSucessCancelaMetasColaborador(idMetaLoja,noColabSecao);                                    
+									})
+								.catch(funcError);
+					
+					  }
+					}).then((result) => {
+					  if (result.dismiss == "timer") {
+						  Swal.close();
+					
+						  Swal.fire({
+							  type: 'error',
+							  title: "Erro ao carregar os dados, recarregue a página e tente novamente",
+							  timer: 15000,
+						  });
+						  return false;
+					  }
+					})
+					
+					  let animacaoBarra = setInterval(() => {
+					  let barra = $($('.pace-progress')[0]).attr('data-progress')
+					  let barra2 = $($('.pace-progress')[0]).attr('data-progress-text')
+					
+					  $('#BarraCarregamento').html(`
+						  <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="${barra}" aria-valuemin="0" aria-valuemax="100" style="width: ${barra}%">${barra}%</div>
+						  `)
+					}, 700)
+				}
+			})
+		}
+	})
+			 
+}
+
+function funcSucessCancelaMetasColaborador(idmetaLoja, noSecao) {
+
+//let idmetaloja = $("#idMetasLojas").val();
+
+    Swal.fire({
+      type: "success",
+      title: "Meta Cancelada com Sucesso ",
+      showConfirmButton: false, 
+      timer: 2500
+    });
+
+    if(noSecao == 'CALÇADOS'){
+        BuscaMetasCalc();
+    }
+    
+    if(noSecao == 'FEMININO'){
+        BuscaMetasFem();
+    }
+    
+    if(noSecao == 'MASCULINO'){
+        BuscaMetasMasc();
+    }
+    
+    if(noSecao == 'INFANTIL'){
+        BuscaMetasInfant();
+    }
+    
+    if(noSecao == 'CMB'){
+        BuscaMetasCMB();
+    }
+    
+}
+
 
 //? ======================================================== INICIO ROTINA ENVIO DE MALOTES ======================================================== //
 // Autor: Hendryw Deyvison
@@ -18998,7 +22068,8 @@ function retornoListarClientes(dadosClientes) {
 
 async function listarVendasDigitais(){
     try {
-      await $.get("financeiro_action_listvendasdigitalmarca.html", (respHtml) => {$("#js-page-content").html(respHtml)}); 
+      const respHtml = await $.get("financeiro_action_listvendasdigitalmarca.html"); 
+      $("#js-page-content").html(respHtml); 
 
       $('.dataAtual').text(dataAtual);
       $('#dtconsultainicio').val(dataAtualCampo);
@@ -19019,7 +22090,8 @@ async function pesq_vendas_digitaisResumidoMarca(numPage){
     if(!datapesqinicio || !datapesqfim || !idempresa) return funcError('Favor preencher todos os campos.');
 
     try {
-      await $.get("gerencia_action_lista_vendas_digitais_por_loja.html", (respHtml) => {$("#resultado").html(respHtml)}); 
+      const respHtml = await $.get("gerencia_action_lista_vendas_digitais_por_loja.html"); 
+      $("#resultado").html(respHtml); 
 
       const respVendas = await ajaxGet(`api/gerencia/vendas-digitais-por-loja.xsjs?pageSize=500&idEmpresa=${idempresa}&dataPesquisaInicio=${datapesqinicio}&dataPesquisaFim=${datapesqfim}`)
       retornoListaVendasDigitalResumidoMarca(respVendas);
@@ -19110,3 +22182,85 @@ function criarDataTableVendasDigitais(data, somaQuantidade, somaValorVenda) {
   }
 }
 //================ FIM ROTINA VENDAS DIGITAIS ==============================================
+
+// function ListaEtiquetaRemarcacao() {
+//   if (window.XMLHttpRequest) {
+//     xmlhttp = new XMLHttpRequest();
+//   } else {
+//     xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//   }
+
+//   xmlhttp.onreadystatechange = function () {
+//     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+//       document.getElementById("js-page-content").innerHTML = `
+//         <iframe src="https://etiqueta-remarcacao.vercel.app/" 
+//         style="width:100%;height:200vh;border:none;"></iframe>
+//       `;
+//     }
+//   };
+
+//   xmlhttp.open("GET", "gerencia_action_etiqueta_remarcacao.html", true);
+//   xmlhttp.send();
+// }
+
+// function ListaEtiquetaVolume() {
+//   if (window.XMLHttpRequest) {
+//     xmlhttp = new XMLHttpRequest();
+//   } else {
+//     xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//   }
+
+//   xmlhttp.onreadystatechange = function () {
+//     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+//       document.getElementById("js-page-content").innerHTML = `
+//         <iframe src="https://etiquetas-volumes.vercel.app/" 
+//         style="width:100%;height:200vh;border:none;"></iframe>
+//       `;
+//     }
+//   };
+
+//   xmlhttp.open("GET", "gerencia_action_etiqueta_volume.html", true);
+//   xmlhttp.send();
+// }
+
+// function ListaEtiquetaProduto() {
+//   if (window.XMLHttpRequest) {
+//     xmlhttp = new XMLHttpRequest();
+//   } else {
+//     xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+//   }
+
+//   xmlhttp.onreadystatechange = function () {
+//     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+//       document.getElementById("js-page-content").innerHTML = `
+//         <iframe src="https://etiquetas-produtos.vercel.app/" 
+//         style="width:100%;height:200vh;border:none;"></iframe>
+//       `;
+//     }
+//   };
+
+//   xmlhttp.open("GET", "gerencia_action_etiqueta_produto.html", true);
+//   xmlhttp.send();
+// }
+
+async function ListaEtiquetaProduto() {
+  let idFuncionario = (await getCurrentUser())?.user?.id;
+  let idEmpresa = IDEmpresaLogin;
+  let noFantasia = NOEmpresaLogin;
+  window.open(`https://etiquetas-produtos.vercel.app/?idFuncionario=${idFuncionario}&idEmpresa=${idEmpresa}&noFantasia=${noFantasia}`, '_blank');
+}
+
+async function ListaEtiquetaRemarcacao() {
+  let idFuncionario = (await getCurrentUser())?.user?.id;
+  let idEmpresa = IDEmpresaLogin;
+  let noFantasia = NOEmpresaLogin;
+  window.open(`https://etiqueta-remarcacao.vercel.app/?idFuncionario=${idFuncionario}&idEmpresa=${idEmpresa}&noFantasia=${noFantasia}`, '_blank');
+}
+
+async function ListaEtiquetaVolume() {
+  let idFuncionario = (await getCurrentUser())?.user?.id;
+  let idEmpresa = IDEmpresaLogin;
+  let noFantasia = NOEmpresaLogin;
+  window.open(`https://etiquetas-volumes.vercel.app/?idFuncionario=${idFuncionario}&idEmpresa=${idEmpresa}&noFantasia=${noFantasia}`, '_blank');
+}
+

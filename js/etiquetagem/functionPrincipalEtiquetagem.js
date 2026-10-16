@@ -6,7 +6,7 @@
  */
 
 if (!getCurrentUser()) {
-    window.location.href = 'index.html';
+  window.location.href = 'index.html';
 }
 
 var usuario = getCurrentUser().user;
@@ -73,91 +73,92 @@ var valorTotalRecebido = 0;
 //////////////// FunÃ§Ãµes Globais ///////////////////////////////////
 
 function Onlynumbers(e) {
-    var tecla = (window.event) ? event.keyCode : e.which;
-    if (tecla > 47 && tecla < 58) {
-        return true;
+  var tecla = (window.event) ? event.keyCode : e.which;
+  if (tecla > 47 && tecla < 58) {
+    return true;
+  } else {
+    if (tecla === 8 || tecla === 0) {
+      return true;
     } else {
-        if (tecla === 8 || tecla === 0) {
-            return true;
-        } else {
-            return false;
-        }
+      return false;
     }
+  }
 }
 
+//	função que mascara o VALOR
 function maskValor(valor) {
-    return new Intl.NumberFormat('br-BR', { style: 'currency', currency: 'BRL' }).format(valor)
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
 }
 
 function mascaraValor(valor) {
-    valor = valor.toString().replace(/\D/g, "");
-    valor = valor.toString().replace(/(\d{1})(\d{17})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{14})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{11})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{8})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{5})$/, "$1.$2");
-    valor = valor.toString().replace(/(\d{1})(\d{2})$/, "$1,$2");
-    return valor;
+  valor = valor.toString().replace(/\D/g, "");
+  valor = valor.toString().replace(/(\d{1})(\d{17})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{14})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{11})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{8})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{5})$/, "$1.$2");
+  valor = valor.toString().replace(/(\d{1})(\d{2})$/, "$1,$2");
+  return valor;
 }
 
 function mascara_num(obj) {
-    valida_num(obj)
-    if (obj.value.match("-")) {
-        mod = "-";
-    } else {
-        mod = "";
-    }
-    valor = obj.value.replace("-", "");
-    valor = valor.replace(",", "");
-    if (valor.length >= 3) {
-        valor = poe_ponto_num(valor.substring(0, valor.length - 2)) + "," + valor.substring(valor.length - 2, valor.length);
-    }
-    obj.value = mod + valor;
+  valida_num(obj)
+  if (obj.value.match("-")) {
+    mod = "-";
+  } else {
+    mod = "";
+  }
+  valor = obj.value.replace("-", "");
+  valor = valor.replace(",", "");
+  if (valor.length >= 3) {
+    valor = poe_ponto_num(valor.substring(0, valor.length - 2)) + "," + valor.substring(valor.length - 2, valor.length);
+  }
+  obj.value = mod + valor;
 }
 
 function poe_ponto_num(valor) {
-    valor = valor.replace(/\./g, "");
-    if (valor.length > 3) {
-        valores = "";
-        while (valor.length > 3) {
-            valores = "." + valor.substring(valor.length - 3, valor.length) + "" + valores;
-            valor = valor.substring(0, valor.length - 3);
-        }
-        return valor + "" + valores;
-    } else {
-        return valor;
+  valor = valor.replace(/\./g, "");
+  if (valor.length > 3) {
+    valores = "";
+    while (valor.length > 3) {
+      valores = "." + valor.substring(valor.length - 3, valor.length) + "" + valores;
+      valor = valor.substring(0, valor.length - 3);
     }
+    return valor + "" + valores;
+  } else {
+    return valor;
+  }
 }
 
 function valida_num(obj) {
-    numeros = new RegExp("[0-9]");
-    while (!obj.value.charAt(obj.value.length - 1).match(numeros)) {
-        if (obj.value.length == 1 && obj.value == "-") {
-            return true;
-        }
-        if (obj.value.length >= 1) {
-            obj.value = obj.value.substring(0, obj.value.length - 1)
-        } else {
-            return false;
-        }
+  numeros = new RegExp("[0-9]");
+  while (!obj.value.charAt(obj.value.length - 1).match(numeros)) {
+    if (obj.value.length == 1 && obj.value == "-") {
+      return true;
     }
+    if (obj.value.length >= 1) {
+      obj.value = obj.value.substring(0, obj.value.length - 1)
+    } else {
+      return false;
+    }
+  }
 }
 
 function logout() {
-    LogoffUser();
-    window.location.href = 'index.html';
+  LogoffUser();
+  window.location.href = 'index.html';
 }
 
 function retornoIp(resp) {
-    ipCliente = resp?.ip;
-    console.log(resp)
+  ipCliente = resp?.ip;
+  console.log(resp)
 }
 
-$(document).ready(function() {
-    $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
-    $('.NoEmpresaTitulo').text(NOEmpresaLogin);
-    
-    ListaProdutosEtiqueta()
+$(document).ready(function () {
+  $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
+  $('.NoEmpresaTitulo').text(NOEmpresaLogin);
+
+  telaEtiquetagemProdutos()
 })
 
 // ? ======================================================== INICIO ROTINA IMPRESSÃO ETIQUETAS CONSULTA NO SAP ========================================================
@@ -172,6 +173,7 @@ $(document).ready(function() {
 var acumuladorEtiquetas;
 var acumuladorEtiquetasZPL;
 var stSaveAcumulador = false;
+var dataEtiquetasZPL;
 // Fim Variaveis Globais da Rotina De Etiquetas//
 
 // Inicio Funções Globais da Rotina De Etiquetas//
@@ -247,14 +249,14 @@ async function selecionaTodasLinhasProdEtiqueta(element) {
     $('.text-Marcar-Desmarcar-Todos').text('Desmarcar Todos');
 
 
-    $('#btnImpEtiqueta, #btnAcumuladorImpEtiqueta').removeClass('d-none');
+    $('.btnImpEtiqueta, #btnAcumuladorImpEtiqueta').removeClass('d-none');
   } else {
     $('.text-Marcar-Desmarcar-Todos').text('Marcar Todos');
 
     $('#btnAcumuladorImpEtiqueta').addClass('d-none');
 
     if (!acumuladorEtiquetas?.length) {
-      $('#btnImpEtiqueta, #btnEditarAcumuladorImpEtiqueta, #btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
+      $('.btnImpEtiqueta, #btnEditarAcumuladorImpEtiqueta, #btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
     }
   }
 
@@ -283,7 +285,7 @@ function selecionaLinhaProdEtiqueta(elementoChk) {
     $('#btnAcumuladorImpEtiqueta').addClass('d-none');
 
     if (!lengthAcumulador) {
-      $('#btnImpEtiqueta, #btnEditarAcumuladorImpEtiqueta, #btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
+      $('.btnImpEtiqueta, #btnEditarAcumuladorImpEtiqueta, #btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
 
     }
 
@@ -294,7 +296,7 @@ function selecionaLinhaProdEtiqueta(elementoChk) {
     $('.text-Marcar-Desmarcar-Todos').text('Desmarcar Todos');
 
     $('#btnAcumuladorImpEtiqueta').removeClass('d-none');
-    $('#btnImpEtiqueta').removeClass('d-none');
+    $('.btnImpEtiqueta').removeClass('d-none');
   }
 }
 
@@ -325,7 +327,7 @@ function trocaQtdProd(element) {
   $(inputQtdProd).attr('qtdprod', valorInput);
 }
 
-function acumuladorImpEtiquetas(stClick = true) {
+async function adicionarEtiquetasSelecionadasNoAcumulador(stClick = true) {
   let tabela = $('#dt-basic-lista-prodEtiquetas').DataTable();
 
   if (!acumuladorEtiquetas?.length) {
@@ -377,9 +379,9 @@ function acumuladorImpEtiquetas(stClick = true) {
   }
 }
 
-function deletarAcumuladorImpEtiquetas() {
+async function deletarTodasEtiquetasNoAcumulador() {
 
-  Swal.fire({
+  return Swal.fire({
     type: 'question',
     title: 'Deseja Limpar as Etiquetas Guardadas?',
     text: 'Esta ação não poderá ser desfeita!',
@@ -388,16 +390,16 @@ function deletarAcumuladorImpEtiquetas() {
     cancelButtonText: 'Não, Voltar!',
     confirmButtonColor: '#d33',
     cancelButtonColor: '#2196F3',
-    preConfirm: () => {
+    preConfirm: async () => {
       acumuladorEtiquetas = '';
       stSaveAcumulador = false;
 
       $('#btnEditarAcumuladorImpEtiqueta, #btnDeletarAcumuladorImpEtiquetas').addClass('d-none');
 
       $('#selecaoTodosProdEtiqueta').prop('checked', false);
-      selecionaTodasLinhasProdEtiqueta($('#selecaoTodosProdEtiqueta')[0]);
+      await selecionaTodasLinhasProdEtiqueta($('#selecaoTodosProdEtiqueta')[0]);
 
-      !$('[name="selecaoProdEtiqueta"]:checked')?.length && $('#btnImpEtiqueta').addClass('d-none');
+      !$('[name="selecaoProdEtiqueta"]:checked')?.length && $('.btnImpEtiqueta').addClass('d-none');
 
     }
   })
@@ -445,7 +447,7 @@ function excluirProdLista(linha) {
 
 }
 
-function indicadorPageEtiquetas() {
+async function indicadorPageEtiquetas(qtdPorPagina = 3) {
   let prod = [];
   let contador = 0;
   let indice = 0
@@ -469,7 +471,7 @@ function indicadorPageEtiquetas() {
     for (let i = 0; i < prod.length; i++) {
       contador++
 
-      if (contador == 3) {
+      if (contador == qtdPorPagina) {
         if ((i + 1) < prod.length) {
           contadorPaginas++;
         }
@@ -480,7 +482,7 @@ function indicadorPageEtiquetas() {
 
   })
 
-  contadorPaginas = Math.ceil(contadorEtiquetas / 3);
+  contadorPaginas = Math.ceil(contadorEtiquetas / qtdPorPagina);
 
   contadorEtiquetas = contadorEtiquetas * qtdCopias;
   contadorPaginas = contadorPaginas * qtdCopias;
@@ -504,28 +506,32 @@ function fecharModalGenerico() {
 }
 // Fim Funções Globais da Rotina De Etiquetas//
 
-async function ListaProdutosEtiqueta() {
+async function telaEtiquetagemProdutos() {
+  animationLoadingStart();
+
   try {
-    animationLoadingStart();
+    let respHtml = await $.get("etiquetagem_action_tela_etiqueta_produto.html");
+    let listaDePrecos = await ajaxGetAllData('api/produtos/listas-de-precos-SAP.xsjs', false);
 
-    await $.get("etiquetagem_action_tela_etiqueta_produto.html", (resp) => $('#js-page-content').html(resp));
+    $('#js-page-content').html(respHtml);
 
-    await ajaxGetAllData('api/produtos/listas-de-precos-SAP.xsjs', false).then(retornoListadePreçosGrupos);
-
-    $('#idListaPreco').select2();
-
-    $('.numPedidoEtiqueta').addClass('d-none');
-
-    $('#idProdEtiqueta, #descProdEtiqueta, #codBarrasProdEtiqueta').on('keypress', (e) => { if (e.keyCode == 13) pesquisaProdutos() });
-
-    $('input[name="qtdProdutoEtiqueta"]').off('keypress');
-
-    animationLoadingStop();
+    await retornoListadePreçosGrupos(listaDePrecos);
 
   } catch (error) {
-    msgError();
     console.log(error);
+    await msgError();
   }
+
+  $('#idListaPreco').select2();
+
+  $('.numPedidoEtiqueta').addClass('d-none');
+
+  $('#idProdEtiqueta, #descProdEtiqueta, #codBarrasProdEtiqueta').off('keypress').on('keypress', (e) => { if (e.keyCode == 13) pesquisarProdutos() });
+
+  $('input[name="qtdProdutoEtiqueta"]').off('keypress');
+
+  animationLoadingStop();
+
 }
 
 function retornoListadePreçosGrupos(dadosListasPreco) {
@@ -634,21 +640,18 @@ function retornoPesqProdutoPorPedido(respostaDadosProdutos, descFormatada) {
 
 }
 
-async function pesquisaProdutos() {
-  let idProduto = $('#idProdEtiqueta')?.val()?.trim() || "";
-  let descProd = $('#descProdEtiqueta')?.val()?.trim() || "";
-  let codBarras = $('#codBarrasProdEtiqueta')?.val()?.trim() || "";
-  let idLista = $('#idListaPreco')?.val() || "";
+async function pesquisarProdutos() {
+  let idProduto = String($('#idProdEtiqueta')?.val()?.trim() || "");
+  let descProd = String($('#descProdEtiqueta')?.val()?.trim() || "");
+  let codBarras = String($('#codBarrasProdEtiqueta')?.val()?.trim() || "");
+  let idLista = Number($('#idListaPreco')?.val() || 0);
 
-  if (idLista != '' && (idProduto || descProd || codBarras)) {
-    try {
-      await ajaxGetAllData(`api/produtos/lista-produtos-etiqueta-SAP.xsjs?idLista=${idLista}&id=${idProduto}&descProd=${descProd}&codeBars=${codBarras}`)
-        .then(retornoPesquisaProdutos);
-    } catch (erro) {
-      msgError('Erro ao carregar os dados')
-      console.log(erro);
-    }
+  if (idLista == 0 || (!idProduto && !descProd && !codBarras)) {
+    return msgInfo('Selecione uma Lista de Preço e preencha um dos campos(Id.Produto, Descrição ou Código de Barras) para Pesquisar os Produtos e tente novamente!', ' ')
   }
+
+  await ajaxGetAllData(`api/produtos/lista-produtos-etiqueta-SAP.xsjs?idLista=${idLista}&id=${idProduto}&descProd=${descProd}&codeBars=${codBarras}`)
+    .then(retornoPesquisaProdutos);
 }
 
 function retornoPesquisaProdutos(respostaPesquisaProdutos) {
@@ -668,7 +671,7 @@ function retornoPesquisaProdutos(respostaPesquisaProdutos) {
     }
   });
 
-  !acumuladorEtiquetas?.length ? $('#btnImpEtiqueta').addClass('d-none') : $('#btnImpEtiqueta').removeClass('d-none');
+  !acumuladorEtiquetas?.length ? $('.btnImpEtiqueta').addClass('d-none') : $('.btnImpEtiqueta').removeClass('d-none');
 
   if (data.length) {
     $('#containerQtdCopias').removeClass('d-none');
@@ -784,14 +787,15 @@ function retornoPesquisaProdutos(respostaPesquisaProdutos) {
         orderDataType: 'input-checkbox'
       },
       {
-        targets: [5, 10],
-        className: 'text-center '
-      },
-      {
         targets: 2,
         className: 'text-center ',
         orderDataType: 'input-number'
       },
+      {
+        targets: 6,
+        className: 'text-center ',
+        type: 'currency-brl',
+      }
     ],
     columns: [
       { width: '5%' },
@@ -848,7 +852,7 @@ function retornoPesquisaProdutos(respostaPesquisaProdutos) {
 
 }
 
-function listarProdsParaImprimir() {
+function exibirModalListaEtiquetasSelecionadasParaImprimir() {
   let listProdutos = [];
   let indice = 0;
   let tableProds = `
@@ -894,7 +898,7 @@ function listarProdsParaImprimir() {
 
   if (!stSaveAcumulador) {
     acumuladorEtiquetas = '';
-    acumuladorImpEtiquetas(false);
+    adicionarEtiquetasSelecionadasNoAcumulador(false);
   }
 
   acumuladorEtiquetas.map((dadoProd, i) => {
@@ -989,7 +993,53 @@ function listarProdsParaImprimir() {
   indicadorPageEtiquetas();
 }
 
-async function modalImpEtiqueta(stShow = true) {
+async function exibirModalPreviaVisualEtiquetasPadraoParaImprimir() {
+  animationLoadingStart('Gerando Prévia de Impressão... Aguarde!');
+
+  try {
+    await montarHtmlEtiquetasProdutos();
+  } catch (error) {
+    console.log(error);
+    return msgError('Erro ao Gerar a Prévia de Impressão, Tente Novamente!');
+  }
+
+  $('#modalImpEtiquetaProd').attr('style', 'overflow: hidden auto;');
+
+  $('#modalImpEtiquetaProd').off('hidden.bs.modal').on('hidden.bs.modal', function (e) {
+    if (!stSaveAcumulador) {
+      acumuladorEtiquetas = '';
+    }
+  });
+
+  $("#modalImpEtiquetaProd").modal('show');
+
+  animationLoadingStop();
+}
+
+async function exibirModalPreviaVisualEtiquetasOculosParaImprimir() {
+  animationLoadingStart('Gerando Prévia de Impressão... Aguarde!');
+
+  try {
+    await montarHtmlEtiquetasOculos();
+  } catch (error) {
+    console.log(error);
+    return msgError('Erro ao Gerar a Prévia de Impressão, Tente Novamente!');
+  }
+
+  $('#modalImpEtiquetaOculos').attr('style', 'overflow: hidden auto;');
+
+  $('#modalImpEtiquetaOculos').off('hidden.bs.modal').on('hidden.bs.modal', function (e) {
+    if (!stSaveAcumulador) {
+      acumuladorEtiquetas = '';
+    }
+  });
+
+  $('#modalImpEtiquetaOculos').modal('show');
+
+  animationLoadingStop();
+}
+
+async function montarHtmlEtiquetasProdutos() {
   let prod = [];
   let listProdutos = [];
   let indice = 0;
@@ -998,12 +1048,12 @@ async function modalImpEtiqueta(stShow = true) {
 
   if (!stSaveAcumulador) {
     acumuladorEtiquetas = '';
-    acumuladorImpEtiquetas(false);
+    await adicionarEtiquetasSelecionadasNoAcumulador(false);
   }
 
-  $('#modalImpEtiquetaProd').off('hidden.bs.modal');
-
   $('#qtdCopias').val(qtdCopias);
+
+  $('#resultadoImpEtiquetaProd').html('');
 
   acumuladorEtiquetasZPL = acumuladorEtiquetas;
 
@@ -1093,9 +1143,9 @@ async function modalImpEtiqueta(stShow = true) {
     }
 
   }
+
   etiqueta += `</div>`;
 
-  $('#resultadoImpEtiquetaProd').html('');
   for (let i = 0; i < qtdCopias; i++) {
     $('#resultadoImpEtiquetaProd').append(etiqueta);
   }
@@ -1105,37 +1155,140 @@ async function modalImpEtiqueta(stShow = true) {
   $('.svgEtiqueta').attr('width', '100%');
   $('.svgEtiqueta').attr('height', '100px')
 
-  $('#modalImpEtiquetaProd').attr('style', 'overflow: hidden auto;');
-  stShow && $("#modalImpEtiquetaProd").modal('show');
+  await indicadorPageEtiquetas();
+}
 
-  indicadorPageEtiquetas();
+async function montarHtmlEtiquetasOculos(labelData, qtdCopiasModal = 0) {
+  let htmlDivPage = `<div class="etiqueta-oculos-page rounded" ><div class="etiqueta-oculos-page-number hidden-print" >numPage</div>`;
+  let htmlCloseDiv = `</div>`
+  let htmlLabelPages = htmlDivPage;
+  let totalQtdEtiquetas = 0;
+  let contador = 0;
+  let arrayLabelCards = [];
+  let htmlEtiquetasParaImprimir = ``;
+  let fontSize = 1.2;
+  let jsContent = 'center';
+  let vrDiferencaLength = 0;
+  let vrCompensacao = 0;
+  let qtdCopias = Number($('#qtdCopias').val()) || 1;
 
-  $('#modalImpEtiquetaProd').on('hidden.bs.modal', function (e) {
-    if (!stSaveAcumulador) {
-      acumuladorEtiquetas = '';
+  if (!stSaveAcumulador) {
+    acumuladorEtiquetas = '';
+    await adicionarEtiquetasSelecionadasNoAcumulador(false);
+  }
+
+  $('#qtdCopias').val(qtdCopias);
+
+  $('#resultadoImpEtiquetaOculos').html('');
+
+  acumuladorEtiquetasZPL = acumuladorEtiquetas;
+
+  for (let dadoProd of acumuladorEtiquetas) {
+    let qtdEtiqueta = dadoProd.qtdEtiqueta;
+    let precoVenda = maskValor(dadoProd.precoVenda);
+    let codBarras = dadoProd.codBarras;
+    let lengthVrEtiqueta = precoVenda.length;
+
+    if (lengthVrEtiqueta <= 11) {
+      jsContent = 'center';
+    } else {
+      jsContent = 'flex-start';
     }
-  });
+
+    if (lengthVrEtiqueta > 12) {
+      vrDiferencaLength = lengthVrEtiqueta - 12;
+    }
+
+    if (lengthVrEtiqueta >= 15) {
+      vrDiferencaLength = lengthVrEtiqueta - 14;
+    }
+
+    vrCompensacao = vrDiferencaLength / 10;
+    fontSize = lengthVrEtiqueta <= 12 ? 2 : Number(fontSize - vrCompensacao).toFixed(3);
+
+    let htmlCardEtiqueta = `
+        <div class="etiqueta-oculos-card border-dark rounded">
+          <div class="preco-oculos" style="font-size: ${fontSize + 'em'}; justify-content: ${jsContent}">
+              <h2 style="margin: 1px !important;">${precoVenda}</h2>
+          </div>
+        </div>
+        <div class="etiqueta-oculos-card border-dark rounded">
+          <div class="codbarras-oculos">
+            <svg
+              class="svgEtiqueta text-center"
+              jsbarcode-format="EAN13"
+              jsbarcode-value="${codBarras}"
+              jsbarcode-width= "2"
+              jsbarcode-height="45"
+              jsbarcode-margin="0" 
+              jsbarcode-fontSize="10"
+              jsbarcode-textmargin="0"
+              value="${codBarras}">
+            </svg>
+          </div>
+        </div>
+      `;
+
+    for (let i = 0; i < qtdEtiqueta; i++) {
+      arrayLabelCards.push(htmlCardEtiqueta);
+    }
+
+  }
+
+  for (let i = 0; i < arrayLabelCards.length; i++) {
+    let htmlCardEtiqueta = arrayLabelCards[i];
+
+    htmlLabelPages += htmlCardEtiqueta;
+    contador++;
+
+    htmlLabelPages += htmlCloseDiv;
+
+    if ((i + 1) < arrayLabelCards.length) {
+      htmlLabelPages += htmlDivPage;
+    }
+  }
+
+  htmlLabelPages += htmlCloseDiv;
+
+  htmlEtiquetasParaImprimir = new Array(qtdCopias).fill(htmlLabelPages).join('').split(/(?=<div class="etiqueta-oculos-page )/);
+
+  htmlEtiquetasParaImprimir = htmlEtiquetasParaImprimir.map((item, i) => item.replace('numPage', `${i + 1}`)).join('');
+
+  $('#resultadoImpEtiquetaOculos').html(htmlEtiquetasParaImprimir);
+
+  JsBarcode('.svgEtiqueta').init();
+
+  $('.svgEtiqueta').attr('width', '95%');
+  $('.svgEtiqueta').attr('height', '80px')
+
+  await indicadorPageEtiquetas(1);
+
+
 }
 
 async function montarZplEtiquetasProdutos() {
   let startPageLabel = `
     ^XA
-    ^MD10
     ^FWN
     ^PW850
     ^LL320
     ^CI28
+    ^BY2,3,55
   `;
   let endPageLabel = '^XZ';
-  let dataLabelsZPL = startPageLabel;
-  let contador = 0;
+  let dataLabelsZPLToPrint = startPageLabel;
   let qtdCopias = Number($('#qtdCopias').val());
-  let dataLabelsReadyToPrint = '';
+  let contador = 0;
+
 
   for (let i = 0; i < acumuladorEtiquetasZPL?.length; i++) {
     let { descricaoProd, estiloProd, tamanhoProd, precoVenda, codBarras, qtdEtiqueta, localExpProd, listaPreco, marcaProd } = acumuladorEtiquetasZPL[i];
-    tamanhoProd = tamanhoProd.toUpperCase();
-    precoVenda = maskValorEmBRL(precoVenda);
+
+    descricaoProd = descricaoProd?.replace(/\r?\n|\r/g, ' ')?.replace(/\s{2,}/g, ' ')?.trim() || '';
+    estiloProd = estiloProd?.replace(/\r?\n|\r/g, ' ')?.replace(/\s{2,}/g, ' ')?.trim() || '';
+    localExpProd = localExpProd?.toUpperCase()?.replace(/\r?\n|\r/g, ' ')?.replace(/\s{2,}/g, ' ')?.trim() || '';
+    tamanhoProd = tamanhoProd?.toUpperCase()?.replace(/\r?\n|\r/g, ' ')?.replace(/\s{2,}/g, ' ')?.trim() || '';
+    precoVenda = maskValor(precoVenda);
 
     if (!isValidEAN13(`${codBarras}`)) {
       throw new Error(`O código de barras(${codBarras}) do produto(${descricaoProd}) da linha: ${i + 1} está em formato inválido, entre em contato com o departamento de cadastro de produtos`);
@@ -1145,35 +1298,32 @@ async function montarZplEtiquetasProdutos() {
       let priceLength = precoVenda.length;
       let ajustePositionPrice = priceLength > 7 ? (priceLength - 7) * 15 : 0;
       let ajusteFontSizePrice = priceLength <= 11 ? 0 : 5;
-      let positionDefault = (contador * 280);
-      let positionPrice = 135 + (contador * 280) - ajustePositionPrice;
-      let positionTamanho = 10 + (contador * 280);
-      let positionCodBars = 30 + (contador * 280);
+      let positionDefault = (contador * 280) + 5;
+      let positionPrice = 135 + positionDefault - ajustePositionPrice;
+      let positionTamanho = positionDefault + (tamanhoProd.length == 1 ? 15 : tamanhoProd.length == 2 ? 10 : 5 );
+      let positionCodBars = 40 + positionDefault;
       let fontSizePrice = 35 - ajusteFontSizePrice;
-      let widthBorder = tamanhoProd.length > 3 ? '75' : '50';
+      let widthBorder = 50 + ( tamanhoProd.length > 2 ? 10 : 0 );
       let abrirMaisUmaPagina = (j + 1) < qtdEtiqueta || (i + 1) < acumuladorEtiquetasZPL?.length;
 
-      dataLabelsZPL += `
-          ^FO${positionDefault},120^A0N,20,30^FB255,4,2,L,0^FD${descricaoProd}^FS
-          ^FO${positionDefault},205^A0N,20,25^FB255,3,2,L,0^FD${estiloProd}^FS
-          ^FO${positionDefault},245^A0N,20,25^FB255,3,2,L,0^FD${localExpProd}^FS
-          ^FO${positionDefault},285^GB${widthBorder},50,3^FS
-          ^FO${positionDefault},265^A0N,22^FDTAM^FS
+      dataLabelsZPLToPrint += `
+          ^FO${positionDefault},110^A0N,22,28^FB265,4,1,L,0^FD${descricaoProd}^FS
+          ^FO${positionDefault},210^A0N,22,20^FB265,2,0,L,0^FD${estiloProd}^FS
+          ^FO${positionDefault},260^A0N,22,20^FB265,2,0,L,0^FD${localExpProd}^FS
+          ^FO${positionDefault},285^A0N,22,28^FDTAM^FS
+          ^FO${positionDefault},302^GB${widthBorder},30,3^FS
+          ^FO${positionTamanho},309^A0N,22,28^FD${tamanhoProd}^FS
           ^FO${positionPrice},300^A0,${fontSizePrice}^FD${precoVenda}^FS
-          ^FO${positionTamanho},300^A0N,22^FD${tamanhoProd}^FS
-          ^BY1.6,3,500
-          ^FO${positionCodBars},340
-          ^BEN,55,Y,N
-          ^FD${codBarras}^FS
+          ^FO${positionCodBars},335^BEN,55,Y,N^FD${codBarras}^FS
       `;
 
       contador++;
 
       if (contador == 3) {
-        dataLabelsZPL += endPageLabel;
+        dataLabelsZPLToPrint += endPageLabel;
 
         if (abrirMaisUmaPagina) {
-          dataLabelsZPL += startPageLabel;
+          dataLabelsZPLToPrint += startPageLabel;
         }
 
         contador = 0;
@@ -1182,27 +1332,92 @@ async function montarZplEtiquetasProdutos() {
 
   }
 
-  dataLabelsZPL += contador !== 0 ? endPageLabel : '';
+  dataLabelsZPLToPrint += contador !== 0 ? endPageLabel : '';
+
+  dataLabelsZPLToPrint = dataLabelsZPLToPrint.repeat(qtdCopias);
+
+  return dataLabelsZPLToPrint.replace(/^[ \t]+/gm, '').replace(/^\s*$/gm, '');
+}
+
+async function montarZplEtiquetasOculos() {
+  let startPageLabel = `
+      ^XA
+      ^FWN
+      ^PW850
+      ^LL90
+      ^CI28
+  `;
+  let endPageLabel = '^XZ';
+  let dataLabelsZPL = '';
+  let contador = 0;
+  let qtdCopias = Number($('#qtdCopias').val());
+  let dataLabelsReadyToPrint = '';
+
+  for (let i = 0; i < acumuladorEtiquetasZPL?.length; i++) {
+    let { precoVenda, codBarras, qtdEtiqueta } = acumuladorEtiquetasZPL[i];
+
+    if (!isValidEAN13(`${codBarras}`)) {
+      throw new Error(`O código de barras(${codBarras}) do produto(${descricaoProd}) da linha: ${i + 1} está em formato inválido, entre em contato com o departamento de cadastro de produtos`);
+    }
+
+    precoVenda = maskValor(precoVenda);
+
+    for (let j = 0; j < qtdEtiqueta; j++) {
+      let widthFontPrecoVenda = precoVenda.length > 12 ? 35 : 40;
+
+      dataLabelsZPL += `
+        ${startPageLabel}
+        ^FO5,35^A0,40,${widthFontPrecoVenda}^FB268,1,1,C,0^FD${precoVenda}^FS
+        ^BY1.6,3,500
+        ^FO290,15
+        ^BEN,55,Y,N
+        ^FD${codBarras}^FS
+        ${endPageLabel}
+      `;
+    }
+
+  }
 
   dataLabelsReadyToPrint = dataLabelsZPL.repeat(qtdCopias);
 
-  /*for (let i = 0; i < qtdCopias; i++) {
-    dataLabelsReadyToPrint += dataLabelsZPL;
-  }*/
+  /* dataLabelsReadyToPrint += `
+     ^XA
+     ^MD0
+     ~SD07
+     ^JUS
+     ^XZ
+   `;*/
 
   return dataLabelsReadyToPrint.replace(/^[ \t]+/gm, '').replace(/^\s*$/gm, '');
 }
 
-async function impEtiquetaProdutos() {
-  try {
-    if (false) {
+async function imprimirEtiquetasProdutos() {
+  if (true) {
+    try {
       let dataZPLToPrint = await montarZplEtiquetasProdutos();
-
+      console.log(dataZPLToPrint);
       await enviarZPLParaImpressora(dataZPLToPrint).catch((error) => { throw error });
 
-    } else {
-      let conteudo = document.getElementById('resultadoImpEtiquetaProd').innerHTML;
-      let html = `
+      $('#modalImpEtiquetaProd, #modalGenerico').modal('hide');
+      $('#selecaoTodosProdEtiqueta').prop('checked', false)
+
+      await selecionaTodasLinhasProdEtiqueta($('#selecaoTodosProdEtiqueta')[0])
+
+      if (stSaveAcumulador) {
+        await deletarTodasEtiquetasNoAcumulador();
+      } else {
+        $('.btnImpEtiqueta, #btnAcumuladorImpEtiqueta').addClass('d-none');
+      }
+
+    } catch (error) {
+      console.log(error);
+      msgError(error);
+    }
+
+
+  } else {
+    let conteudo = document.getElementById('resultadoImpEtiquetaProd').innerHTML;
+    let html = `
       <html>
           <head>
               <meta charset="utf-8">
@@ -1306,45 +1521,86 @@ async function impEtiquetaProdutos() {
                   }
               </style>
               <script>
-                window.onafterprint = function() {
+                /*window.onafterprint = function() {
                     setTimeout(()=>{window.close()}, 500);
                 };
                 window.document.addEventListener('DOMContentLoaded', function() {
                     //window.focus();
                     window.print();
                 });
+                window.onclose = function() {
+                  setTimeout(()=>{window.close()}, 500);
+                };*/
               </script>
           </head>
           <body>
     `;
 
-      $('#modalImpEtiquetaProd, #modalGenerico').modal('hide');
+    let janelaImpressao = document.createElement('iframe');
+    janelaImpressao.style.display = 'none';
+    document.body.appendChild(janelaImpressao);
 
-      let tela_impressao = window.open('', '', '');
+    janelaImpressao.contentDocument.open();
+    janelaImpressao.contentDocument.write(html + conteudo + '</body></html>');
+    janelaImpressao.contentDocument.close();
 
-      tela_impressao.document.open();
-      tela_impressao.document.write(html);
-      tela_impressao.document.write(conteudo);
-      tela_impressao.document.write('</body></html>');
-      tela_impressao.document.close();
-      //tela_impressao.window.print();
-      // tela_impressao.window.close();
+    janelaImpressao.contentWindow.print();
+    /*let janelaImpressao = window.open('', '', '');
 
-      // $('#modalImpEtiquetaProd, #modalGenerico').modal('hide');
-      $('#selecaoTodosProdEtiqueta').prop('checked', false)
+    janelaImpressao.document.open();
+    janelaImpressao.document.write(html);
+    janelaImpressao.document.write(conteudo);
+    janelaImpressao.document.write('</body></html>');
+    janelaImpressao.document.close();*/
 
-      selecionaTodasLinhasProdEtiqueta($('#selecaoTodosProdEtiqueta')[0])
+    $('#modalImpEtiquetaProd, #modalGenerico').modal('hide');
+    $('#selecaoTodosProdEtiqueta').prop('checked', false)
 
-      stSaveAcumulador && deletarAcumuladorImpEtiquetas();
+    await selecionaTodasLinhasProdEtiqueta($('#selecaoTodosProdEtiqueta')[0])
 
-      //msgSuccess('Processo Impressão Finalizado!').then(() => {
-      //    acumuladorEtiquetas = '';
-      //    stSaveAcumulador = false;
-      //})
+    if (stSaveAcumulador) {
+      await deletarTodasEtiquetasNoAcumulador();
+    } else {
+      $('.btnImpEtiqueta, #btnAcumuladorImpEtiqueta').addClass('d-none');
     }
+  }
+}
+
+async function imprimirEtiquetasOculos() {
+  try {
+    let dataZPLToPrint = await montarZplEtiquetasOculos();
+    console.log(dataZPLToPrint);
+    await enviarZPLParaImpressora(dataZPLToPrint).catch((error) => { throw error });
+
+    $('#modalImpEtiquetaOculos, #modalGenerico').modal('hide');
+    $('#selecaoTodosProdEtiqueta').prop('checked', false);
+
+    await selecionaTodasLinhasProdEtiqueta($('#selecaoTodosProdEtiqueta')[0])
+
+    if (stSaveAcumulador) {
+      await deletarTodasEtiquetasNoAcumulador();
+    } else {
+      $('.btnImpEtiqueta, #btnAcumuladorImpEtiqueta').addClass('d-none');
+    }
+
   } catch (error) {
     console.log(error);
-    msgError(error);
+    msgError(error || 'Erro ao enviar as etiquetas para impressora, tente novamente ou entre em contato com o suporte!');
   }
+}
+
+async function ListaEtiquetaVolume() {
+  let idFuncionario = (await getCurrentUser())?.user?.id;
+  let idEmpresa = IDEmpresaLogin;
+  let noFantasia = NOEmpresaLogin;
+  window.open(`https://etiquetas-volumes.vercel.app/?idFuncionario=${idFuncionario}&idEmpresa=${idEmpresa}&noFantasia=${noFantasia}`, '_blank');
+}
+
+async function ListaEtiquetaOculos() {
+  let idFuncionario = (await getCurrentUser())?.user?.id;
+  let idEmpresa = IDEmpresaLogin;
+  let noFantasia = NOEmpresaLogin;
+  window.open(`https://etiquetas-oculos-tau.vercel.app/?idFuncionario=${idFuncionario}&idEmpresa=${idEmpresa}&noFantasia=${noFantasia}`, '_blank');
+  
 }
 // ? ======================================================== FIM ROTINA IMPRESSÃO ETIQUETAS CONSULTA NO SAP ========================================================

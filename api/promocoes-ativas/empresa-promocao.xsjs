@@ -34,10 +34,12 @@ function fnHandleGet(byId) {
             tbt.IDRESUMOPROMOCAOMARKETING,
             tbt.IDEMPRESA,
             tbt.STATIVO,
-            tbe.NOFANTASIA
+            tbe.NOFANTASIA,
+            tbe.IDGRUPOEMPRESARIAL
         FROM 
             "VAR_DB_NAME".EMPRESAPROMOCAOMARKETING tbt
             INNER JOIN "VAR_DB_NAME"."EMPRESA" tbe on tbt.IDEMPRESA = tbe.IDEMPRESA
+            INNER JOIN "VAR_DB_NAME".GRUPOEMPRESARIAL tbg on tbe.IDGRUPOEMPRESARIAL = tbg.IDGRUPOEMPRESARIAL
         WHERE
             1 = ?
     `;

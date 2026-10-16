@@ -280,7 +280,7 @@ function fnUpdateValoresPedido(idResumoPedido){
     idResumoPedidoSecundario > 0 && fnUpdateValoresResumoPedidoSecundario(idResumoPedidoSecundario, dados, conn)
 }
 
-function fnCriarPedidoSecundario(dadosPedido, idPedidoPrimario){
+function fnCriarPedidoSecundario(dadosPedido, idPedidoPrimario, conn){
     let vrTaxaAcrescimo = getValorTaxa();
     let query = `
         INSERT INTO 
@@ -591,7 +591,7 @@ function fnHandleGet(byId) {
     }
     
     if(!idPedido && dataPesquisaInicio && dataPesquisaFim) {
-        query += ` AND ((TO_DATE(tbrp.DTPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}') OR (TO_DATE(tbrp.DTMOVPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}')) `;
+        query += ` AND ((TO_DATE(tbrp.DTPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}') /*OR (TO_DATE(tbrp.DTMOVPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}')*/) `;
     }
     
     if(tpPedido) {

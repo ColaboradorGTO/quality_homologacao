@@ -1,0 +1,6 @@
+description = "HttpBin API";
+host = "httpbin.org";
+port = 443;
+useSSL = true;
+sslHostCheck = false;
+sslAuth = anonymous;

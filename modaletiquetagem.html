@@ -6,7 +6,7 @@
         <div>
 
           <button id="btnPrint" type="button" class="btn btn-info btn-sm hidden-print p-1 fw-700"
-            title="Imprimir Etiquetas" onclick="impEtiquetaProdutos()">
+            title="Imprimir Etiquetas" onclick="imprimirEtiquetasProdutos()">
             <span class="fal fa-print pr-1"></span>
             Imprimir
           </button>
@@ -120,5 +120,194 @@
           <div id="resultadoModalGenerico" class="modal-body"></div>
           <div id="footerModalGenerico" class="modal-footer"></div>
       </div>
+  </div>
+</div>
+
+<!-- Modal Etiqueta Remarcacao-->
+<div class="modal fade" id="modalImpEtiquetaOculos" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header align-items-center p-0 pl-2 m-2 hidden-print">
+
+        <button type="button" class="btn btn-info btn-sm p-1 fw-700 hidden-print" title="Imprimir Etiquetas"
+          onclick="imprimirEtiquetasOculos()">
+          <i class="fal fa-print pr-1"></i>
+          Imprimir
+        </button>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+
+      </div>
+      <style>
+        #modalImpEtiquetaOculos .modal-xl {
+          min-width: 730px !important;
+        }
+
+        .etiqueta-oculos-page {
+          display: flex;
+          flex-wrap: nowrap;
+          align-content: flex-start;
+          position: relative;
+          margin: 1%;
+          min-width: 640px !important;
+          max-width: 100% !important;
+          height: 4cm;
+          background: white;
+          -webkit-box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+          box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+          background-size: cover;
+          padding: 2rem 0 0 2rem;
+        }
+
+        .etiqueta-oculos-card {
+          min-width: 30%;
+          max-width: 35%;
+          height: 2.5cm;
+          margin-right: 2%;
+          margin-bottom: 0.5in;
+          padding: 0px !important;
+          box-sizing: border-box;
+          border: 0.5px solid #000;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .etiqueta-oculos-page-number {
+          position: absolute;
+          top: 82%;
+          left: 1%;
+          font-size: 12px;
+          font-weight: bold;
+          color: black;
+        }
+
+        .preco-oculos {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          width: 100% !important;
+        }
+
+        .preco-oculos h2 {
+          font-size: clamp(1vw + 0.8em, 0.1vw + 1.5em, 2em) !important
+        }
+
+        .codbarras-oculos {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+        }
+      </style>
+      <div class="modal-subheader hidden-print">
+
+        <hr class="border border-1 border-dark mt-0">
+
+        <div class="d-flex modal-title-text justify-content-center mb-4">
+          <h2>
+            Etiquetas
+          </h2>
+        </div>
+        <div class="modal-title-quantidade d-flex flex-column  ml-4"></div>
+      </div>
+      <div class="modal-body d-flex justify-content-center">
+        <div id="resultadoImpEtiquetaOculos" class="w-100">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Etiqueta Remarcacao-->
+<div class="modal fade" id="modalImpEtiquetaRemarcacao" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header align-items-center p-0 pl-2 m-2 hidden-print">
+
+        <button type="button" class="btn btn-info btn-sm p-1 fw-700 hidden-print" title="Imprimir Etiquetas"
+          onclick="imprimirEtiquetasRemarcacao()">
+          <i class="fal fa-print pr-1"></i>
+          Imprimir
+        </button>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"><i class="fal fa-times"></i></span>
+        </button>
+
+      </div>
+      <style>
+        #modalImpEtiquetaRemarcacao .modal-xl {
+          min-width: 730px !important;
+        }
+
+        .etiqueta-remarcacao-page {
+          display: flex;
+          flex-wrap: nowrap;
+          align-content: flex-start;
+          position: relative;
+          margin: 1%;
+          min-width: 640px !important;
+          max-width: 100% !important;
+          height: 3cm;
+          background: white;
+          -webkit-box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+          box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+          background-size: cover;
+          padding: 2rem 0 0 2rem;
+        }
+
+        .etiqueta-remarcacao-card {
+          min-width: 23%;
+          height: 1.5cm;
+          margin-right: 2%;
+          margin-bottom: 0.5in;
+          padding: 0px !important;
+          box-sizing: border-box;
+          border: 0.5px solid #000;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .etiqueta-remarcacao-page-number {
+          position: absolute;
+          top: 82%;
+          left: 1%;
+          font-size: 12px;
+          font-weight: bold;
+          color: black;
+        }
+
+        .preco-remarcacao {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          width: 100% !important;
+        }
+
+        .preco-remarcacao h2 {
+          font-size: clamp(1vw + 0.8em, 0.1vw + 1.5em, 2em) !important
+        }
+      </style>
+      <div class="modal-subheader hidden-print">
+
+        <hr class="border border-1 border-dark mt-0">
+
+        <div class="d-flex modal-title-text justify-content-center mb-4">
+          <h2>
+            Etiquetas
+          </h2>
+        </div>
+        <div class="modal-title-quantidade d-flex flex-column  ml-4"></div>
+      </div>
+      <div class="modal-body d-flex justify-content-center">
+        <div id="resultadoImpEtiquetaRemarcacao" class="w-100">
+        </div>
+      </div>
+    </div>
   </div>
 </div>

@@ -151,9 +151,15 @@ function msgQuestion(msgTitle = 'Deseja realmente executar esta ação?', text =
         showCloseButton: true,
         confirmButtonText: 'Sim',
         cancelButtonText: 'Não',
-        cancelButtonColor: '#d33',
+     //   cancelButtonColor: '#d33',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: 'btn btn-primary mr-2',
+          cancelButton: 'btn btn-danger'
+        },
         timer: timerClose,
         allowOutsideClick: false,
+        focusConfirm: false
     })
 }
 
@@ -167,7 +173,7 @@ function msgQuestionInputMotivo(msgTitle = 'Digite o motivo!', lengthMotivo = 10
         title: `${msgTitle}`,
         html: `<div>
                     <div class=" input-group pt-0" >
-                        <input type="text" id="idMotivoModal" class="swal2-input m-0 " placeholder="Digite o motivo" style="text-transform: uppercase" autocomplete="off" />
+                        <textarea id="idMotivoModal" class="swal2-textarea m-0 " placeholder="Digite o motivo" style="text-transform: uppercase" autocomplete="off"> </textarea>
                     </div>
                 </div>`,
         width: '25rem',
@@ -199,6 +205,49 @@ function msgQuestionInputMotivo(msgTitle = 'Digite o motivo!', lengthMotivo = 10
         reason
       };
     })
+
+}
+
+function msgQuestionTextareaMotivo(msgTitle = 'Digite o motivo!', lengthMinimoMotivo = 10) {
+  animationLoadingStop();
+
+  return Swal.fire({
+    type: 'question',
+    title: `${msgTitle}`,
+    input: "textarea",
+    inputPlaceholder: "Digite o motivo...",
+    inputAutoTrim: true,
+    width: '25rem',
+    focusConfirm: false,
+    showCancelButton: true,
+    showCloseButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Sair',
+    buttonsStyling: false,
+    customClass: {
+      confirmButton: 'btn btn-primary mr-2',
+      cancelButton: 'btn btn-danger'
+    },
+    allowOutsideClick: false,
+    onOpen: () => {
+      $('#swal2-validation-message').addClass('text-danger mt-2 fw-700')
+      let textarea = document.querySelector('.swal2-textarea');
+
+      if (textarea) {
+        textarea.style.textTransform = 'uppercase';
+      }
+    },
+    inputValidator: (value) => {
+      value = String(value)
+        ?.replace(/[^a-zA-ZÀ-ÿ0-9, ]/g, '')
+        ?.replace(/\s{2,}/g, ' ')
+        ?.trim();
+
+      if (!value || value.length < lengthMinimoMotivo) {
+        return `Digite o motivo! O motivo deve conter no mínimo ${lengthMinimoMotivo} caracteres!`;
+      }
+    }
+  });
 
 }
 

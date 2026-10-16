@@ -49,10 +49,15 @@ function fnHandleGet(byId) {
             STDETPROMOORIGEM, 
             STDETPROMODESTINO,
             STATIVO,
-            IDMECANICARESUMOPROMOCAOMARKETING
+            STPRODUTO,
+            STESTRUTURA,
+            STESTRUTURAPRODUTO,
+            IDMECANICARESUMOPROMOCAOMARKETING,
+            NUTIPOPROMOCAO
         FROM "VAR_DB_NAME".RESUMOPROMOCAOMARKETING
         WHERE 1 = ?
     `;
+    
 
     if (idResumoPromocao) {
         query = query + ' AND IDRESUMOPROMOCAOMARKETING = \'' + idResumoPromocao + '\' ';
@@ -80,23 +85,21 @@ function fnHandleGet(byId) {
 }
 
 
-function fnIncluirMecanicaPromocao(conn, idResumoPromocao, tpAplicada, tpFatorPromo, tpApartirde) {
-    var query = `INSERT INTO "VAR_DB_NAME"."MECANICARESUMOPROMOCAOMARKETING" 
-            ( 
+function fnIncluirMecanicaPromocao(conn, mecanicaId, idResumoPromocao, tpAplicada, tpFatorPromo, tpApartirde) {
+    var query = `INSERT INTO "VAR_DB_NAME"."MECANICARESUMOPROMOCAOMARKETING"
+            (
                 "IDMECANICARESUMOPROMOCAOMARKETING",
                 "IDRESUMOPROMOCAOMARKETING",
-                "TPAPLICADOA", 
-                "TPFATORPROMO", 
+                "TPAPLICADOA",
+                "TPFATORPROMO",
                 "TPAPARTIRDE",
-                "STATIVO" 
-            ) 
+                "STATIVO"
+            )
             VALUES(?,?,?,?,?, 'True') `;
 
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 
-    var Id = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDMECANICARESUMOPROMOCAOMARKETING")),0) + 1 FROM "VAR_DB_NAME"."MECANICARESUMOPROMOCAOMARKETING" WHERE 1 = ? ', 1);
-
-    pStmt.setInt(1, Id);
+    pStmt.setInt(1, mecanicaId);
     pStmt.setInt(2, idResumoPromocao);
     pStmt.setFloat(3, tpAplicada);
     pStmt.setInt(4, tpFatorPromo);
@@ -160,11 +163,14 @@ function incluirDetalhePromocaoMarketingDestino(conn, idResumoPromocao, idGrupo,
     // idProdutos pode ser um array ou um único valor
     var produtos = Array.isArray(idProdutos) ? idProdutos : [idProdutos];
 
+    // Calcula o próximo ID uma única vez e incrementa em memória,
+    // evitando 1 SELECT por produto (essencial para lotes de até 1000 produtos)
+    var nextId = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDDETALHEPROMOCAOMARKETINGDESTINO")),0) + 1 FROM "VAR_DB_NAME"."DETALHEPROMOCAOMARKETINGDESTINO" WHERE 1 = ? ', 1);
+
     for (var i = 0; i < produtos.length; i++) {
-        var Id = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDDETALHEPROMOCAOMARKETINGDESTINO")),0) + 1 FROM "VAR_DB_NAME"."DETALHEPROMOCAOMARKETINGDESTINO" WHERE 1 = ? ', 1);
         var idProduto = produtos[i];
 
-        pStmt.setInt(1, Id);
+        pStmt.setInt(1, nextId);
         pStmt.setInt(2, idResumoPromocao);
         pStmt.setInt(3, idGrupo || -1);
         pStmt.setInt(4, idSubGrupo || -1);
@@ -174,9 +180,11 @@ function incluirDetalhePromocaoMarketingDestino(conn, idResumoPromocao, idGrupo,
         pStmt.setString(8, stEmpresaDestino);
 
         pStmt.execute();
-        conn.commit();
+        nextId++;
     }
 
+    // Commit único ao final do lote em vez de um commit por produto
+    conn.commit();
     pStmt.close();
 }
 
@@ -200,11 +208,14 @@ function incluirDetalhePromocaoMarketingOrigem(conn, idResumoPromocao, idGrupo, 
     // idProdutosOrigem pode ser um array ou um único valor
     var produtosOrigem = Array.isArray(idProdutosOrigem) ? idProdutosOrigem : [idProdutosOrigem];
 
+    // Calcula o próximo ID uma única vez e incrementa em memória,
+    // evitando 1 SELECT por produto (essencial para lotes de até 1000 produtos)
+    var nextId = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDDETALHEPROMOCAOMARKETINGORIGEM")),0) + 1 FROM "VAR_DB_NAME"."DETALHEPROMOCAOMARKETINGORIGEM" WHERE 1 = ? ', 1);
+
     for (var i = 0; i < produtosOrigem.length; i++) {
-        var Id = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDDETALHEPROMOCAOMARKETINGORIGEM")),0) + 1 FROM "VAR_DB_NAME"."DETALHEPROMOCAOMARKETINGORIGEM" WHERE 1 = ? ', 1);
         var idProdutoOrigem = produtosOrigem[i];
 
-        pStmt.setInt(1, Id);
+        pStmt.setInt(1, nextId);
         pStmt.setInt(2, idResumoPromocao);
         pStmt.setInt(3, idGrupo || -1);
         pStmt.setInt(4, idSubGrupo || -1);
@@ -214,9 +225,11 @@ function incluirDetalhePromocaoMarketingOrigem(conn, idResumoPromocao, idGrupo, 
         pStmt.setString(8, stEmpresaOrigem);
 
         pStmt.execute();
-        conn.commit();
+        nextId++;
     }
 
+    // Commit único ao final do lote em vez de um commit por produto
+    conn.commit();
     pStmt.close();
 }
 
@@ -235,79 +248,115 @@ function fnIncluirDetalhesEmpresaPromocao(conn, idResumoPromocao, idProdutos) {
     // idProdutos pode ser um array ou um único valor
     var produtos = Array.isArray(idProdutos) ? idProdutos : [idProdutos];
 
+    // Calcula o próximo ID uma única vez e incrementa em memória,
+    // evitando 1 SELECT por produto (essencial para lotes de até 1000 produtos)
+    var nextId = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDDETALHEPROMO")),0) + 1 FROM "VAR_DB_NAME"."DETALHEPROMOCAO" WHERE 1 = ? ', 1);
+
     for (var i = 0; i < produtos.length; i++) {
-        var Id = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDDETALHEPROMO")),0) + 1 FROM "VAR_DB_NAME"."DETALHEPROMOCAO" WHERE 1 = ? ', 1);
         var idProduto = produtos[i];
 
-        pStmt.setInt(1, Id);
+        pStmt.setInt(1, nextId);
         pStmt.setInt(2, idResumoPromocao);
         pStmt.setString(3, idProduto);
 
         pStmt.execute();
-        conn.commit();
+        nextId++;
     }
 
+    // Commit único ao final do lote em vez de um commit por produto
+    conn.commit();
     pStmt.close();
 }
 
 
 function fnHandlePost() {
 	var conn = $.db.getConnection();
-	var queryId = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDRESUMOPROMOCAOMARKETING")),0) + 1 FROM "VAR_DB_NAME"."RESUMOPROMOCAOMARKETING" WHERE 1 = ? ', 1);
 	try {
-        var query = `INSERT INTO "VAR_DB_NAME"."RESUMOPROMOCAOMARKETING" 
-            ( 
-                "IDRESUMOPROMOCAOMARKETING", 
-                "DSPROMOCAOMARKETING", 
-                "DTHORAINICIO", 
-                "DTHORAFIM", 
-                "TPAPLICADOA", 
-                "APARTIRDEQTD", 
-                "APARTIRDOVLR", 
-                "TPFATORPROMO", 
-                "FATORPROMOVLR", 
-                "FATORPROMOPERC", 
-                "TPAPARTIRDE", 
-                "VLPRECOPRODUTO", 
+        var query = `INSERT INTO "VAR_DB_NAME"."RESUMOPROMOCAOMARKETING"
+            (
+                "IDRESUMOPROMOCAOMARKETING",
+                "DSPROMOCAOMARKETING",
+                "DTHORAINICIO",
+                "DTHORAFIM",
+                "TPAPLICADOA",
+                "APARTIRDEQTD",
+                "APARTIRDOVLR",
+                "TPFATORPROMO",
+                "FATORPROMOVLR",
+                "FATORPROMOPERC",
+                "TPAPARTIRDE",
+                "VLPRECOPRODUTO",
                 "STEMPRESAPROMO",
                 "STDETPROMOORIGEM",
                 "STDETPROMODESTINO",
                 "IDMECANICARESUMOPROMOCAOMARKETING",
-                "STATIVO"
-            ) 
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'True') 
+                "STATIVO",
+                "STESTRUTURA",
+                "STPRODUTO",
+                "STESTRUTURAPRODUTO",
+                "NUTIPOPROMOCAO"
+            )
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         `;
 		var pStmt = conn.prepareStatement(api.replaceDbName(query));
 		var bodyJson = JSON.parse($.request.body.asString());
+		var idsPromocao = [];
 
 		for (var i = 0; i < bodyJson.length; i++) {
-            
+
             var registro = bodyJson[i];
 
-			pStmt.setInt(1, queryId);
-			pStmt.setString(2, registro.DSPROMOCAOMARKETING);
-			pStmt.setDate(3, registro.DTHORAINICIO);
-			pStmt.setDate(4, registro.DTHORAFIM);
-			pStmt.setFloat(5, registro.TPAPLICADOA);
-			pStmt.setFloat(6, registro.APARTIRDEQTD);
-			pStmt.setInt(7, registro.APARTIRDOVLR);
-			pStmt.setInt(8, registro.TPFATORPROMO);
-			pStmt.setInt(9, registro.FATORPROMOVLR);
-			pStmt.setFloat(10, registro.FATORPROMOPERC);
-			pStmt.setInt(11, registro.TPAPARTIRDE);
-            pStmt.setFloat(12, registro.VLPRECOPRODUTO);
-            pStmt.setString(13, registro.STEMPRESAPROMO);
-            pStmt.setString(14, registro.STDETPROMOORIGEM);
-            pStmt.setString(15, registro.STDETPROMODESTINO);
-            pStmt.setInt(16, queryId)
-		
+            // Se o registro já traz um IDRESUMOPROMOCAOMARKETING, este é um lote de
+            // produtos sendo ANEXADO a uma promoção já criada (upload em lotes de até
+            // 1000 produtos vindos de planilha) — não recria cabeçalho/mecânica/empresa,
+            // só insere/atualiza os produtos daquele lote na mesma promoção.
+            var isLoteAdicionalDeProdutos = !!registro.IDRESUMOPROMOCAOMARKETING;
 
-			pStmt.execute();
- 			fnIncluirMecanicaPromocao(conn, queryId, registro.TPAPLICADOA, registro.TPFATORPROMO, registro.TPAPARTIRDE);
-            incluirDetalhePromocaoMarketingDestino(conn, queryId, registro.IDGRUPOEMDESTINO, registro.IDSUBGRUPOEMDESTINO, registro.IDMARCAEMDESTINO, registro.IDFORNECEDOREMDESTINO, registro.IDPRODUTODESTINO, registro.STDETPROMODESTINO);
-            incluirDetalhePromocaoMarketingOrigem(conn, queryId, registro.IDGRUPOEMORIGEM, registro.IDSUBGRUPOEMORIGEM, registro.IDMARCAEMORIGEM, registro.IDFORNECEDOREMORIGEM, registro.IDPRODUTOORIGEM, registro.STDETPROMOORIGEM);
-            fnIncluirDetalheEmpresaPromocaoMarketing(conn, queryId, registro.IDEMPRESA, registro.STEMPRESAPROMO);
-            fnIncluirDetalhesEmpresaPromocao(conn, queryId, registro.IDPRODUTO);
+            var queryId = isLoteAdicionalDeProdutos
+                ? Number(registro.IDRESUMOPROMOCAOMARKETING)
+                : api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDRESUMOPROMOCAOMARKETING")),0) + 1 FROM "VAR_DB_NAME"."RESUMOPROMOCAOMARKETING" WHERE 1 = ? ', 1);
+
+            if (!isLoteAdicionalDeProdutos) {
+                var mecanicaId = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDMECANICARESUMOPROMOCAOMARKETING")),0) + 1 FROM "VAR_DB_NAME"."MECANICARESUMOPROMOCAOMARKETING" WHERE 1 = ? ', 1);
+
+                pStmt.setInt(1, queryId);
+                pStmt.setString(2, registro.DSPROMOCAOMARKETING);
+                pStmt.setDate(3, registro.DTHORAINICIO);
+                pStmt.setDate(4, registro.DTHORAFIM);
+                pStmt.setFloat(5, registro.TPAPLICADOA);
+                pStmt.setFloat(6, registro.APARTIRDEQTD);
+                pStmt.setInt(7, registro.APARTIRDOVLR);
+                pStmt.setInt(8, registro.TPFATORPROMO);
+                pStmt.setInt(9, registro.FATORPROMOVLR);
+                pStmt.setFloat(10, registro.FATORPROMOPERC);
+                pStmt.setInt(11, registro.TPAPARTIRDE);
+                pStmt.setFloat(12, registro.VLPRECOPRODUTO);
+                pStmt.setString(13, registro.STEMPRESAPROMO);
+                pStmt.setString(14, registro.STDETPROMOORIGEM);
+                pStmt.setString(15, registro.STDETPROMODESTINO);
+                pStmt.setInt(16, mecanicaId);
+                pStmt.setString(17, registro.STATIVO);
+                pStmt.setString(18, registro.STESTRUTURA);
+                pStmt.setString(19, registro.STPRODUTO);
+                pStmt.setString(20, registro.STESTRUTURAPRODUTO);
+                pStmt.setInt(21, registro.NUTIPOPROMOCAO);
+
+                pStmt.execute();
+                fnIncluirMecanicaPromocao(conn, mecanicaId, queryId, registro.TPAPLICADOA, registro.TPFATORPROMO, registro.TPAPARTIRDE);
+                fnIncluirDetalheEmpresaPromocaoMarketing(conn, queryId, registro.IDEMPRESA, registro.STEMPRESAPROMO);
+
+                incluirDetalhePromocaoMarketingDestino(conn, queryId, registro.IDGRUPOEMDESTINO, registro.IDSUBGRUPOEMDESTINO, registro.IDMARCAEMDESTINO, registro.IDFORNECEDOREMDESTINO, registro.IDPRODUTODESTINO, registro.STDETPROMODESTINO);
+                incluirDetalhePromocaoMarketingOrigem(conn, queryId, registro.IDGRUPOEMORIGEM, registro.IDSUBGRUPOEMORIGEM, registro.IDMARCAEMORIGEM, registro.IDFORNECEDOREMORIGEM, registro.IDPRODUTOORIGEM, registro.STDETPROMOORIGEM);
+                fnIncluirDetalhesEmpresaPromocao(conn, queryId, registro.IDPRODUTO);
+            } else {
+                // Lote adicional: usa as versões idempotentes (checa existência antes de
+                // inserir), para que reenviar um lote após falha de rede não duplique produto.
+                incluirOuAtualizarDetalhePromocaoMarketingDestino(conn, queryId, registro.IDGRUPOEMDESTINO, registro.IDSUBGRUPOEMDESTINO, registro.IDMARCAEMDESTINO, registro.IDFORNECEDOREMDESTINO, registro.IDPRODUTODESTINO, registro.STDETPROMODESTINO);
+                incluirOuAtualizarDetalhePromocaoMarketingOrigem(conn, queryId, registro.IDGRUPOEMORIGEM, registro.IDSUBGRUPOEMORIGEM, registro.IDMARCAEMORIGEM, registro.IDFORNECEDOREMORIGEM, registro.IDPRODUTOORIGEM, registro.STDETPROMOORIGEM);
+                incluirOuAtualizarDetalhesEmpresaPromocao(conn, queryId, registro.IDPRODUTO);
+            }
+
+            idsPromocao.push(queryId);
 		}
 
 		pStmt.close();
@@ -316,7 +365,9 @@ function fnHandlePost() {
 
 		return {
 			"msg": "Inclusão realizada com sucesso!",
-			 "objetoRecebido": bodyJson
+			"objetoRecebido": bodyJson,
+			"IDRESUMOPROMOCAOMARKETING": idsPromocao[0],
+			"idsPromocao": idsPromocao
 		};
 	} catch (e) {
 	    conn.rollback();
@@ -324,73 +375,6 @@ function fnHandlePost() {
 	}
 }
 
-// function incluirOuAtualizarMecanicaPromocao(conn, idResumoPromocao, tpAplicada, tpFatorPromo, tpApartirde, dsPromocao) {
-//     // Verifica se já existe uma mecânica para esse IDRESUMOPROMOCAOMARKETING
-//     var existe = api.executeScalar(`
-//         SELECT COUNT(*) 
-//         FROM "VAR_DB_NAME"."MECANICARESUMOPROMOCAOMARKETING"
-//         WHERE "IDRESUMOPROMOCAOMARKETING" = ?
-//     `, idResumoPromocao);
-
-//     if (existe > 0) {
-//         // UPDATE se já existe
-//         var updateQuery = `
-//             UPDATE "VAR_DB_NAME"."MECANICARESUMOPROMOCAOMARKETING"
-//             SET 
-//                 "TPAPLICADOA" = ?, 
-//                 "TPFATORPROMO" = ?, 
-//                 "TPAPARTIRDE" = ?, 
-//                 "DSPROMOCAO" = ?,
-//                 "STATIVO" = 'True'
-//             WHERE 
-//                 "IDRESUMOPROMOCAOMARKETING" = ?
-//         `;
-
-//         var updateStmt = conn.prepareStatement(api.replaceDbName(updateQuery));
-//         updateStmt.setFloat(1, tpAplicada);
-//         updateStmt.setInt(2, tpFatorPromo);
-//         updateStmt.setInt(3, tpApartirde);
-//         updateStmt.setString(4, dsPromocao); 
-//         updateStmt.setInt(5, idResumoPromocao);
-
-//         updateStmt.execute();
-//         updateStmt.close();
-//     } else {
-//         // INSERT se não existe
-//         var insertQuery = `
-//             INSERT INTO "VAR_DB_NAME"."MECANICARESUMOPROMOCAOMARKETING"
-//             (
-//                 "IDMECANICARESUMOPROMOCAOMARKETING",
-//                 "IDRESUMOPROMOCAOMARKETING",
-//                 "TPAPLICADOA",
-//                 "TPFATORPROMO",
-//                 "TPAPARTIRDE",
-//                 "DSPROMOCAO",
-//                 "STATIVO"
-//             )
-//             VALUES (?, ?, ?, ?, ?, ?, 'True')
-//         `;
-
-//         var insertStmt = conn.prepareStatement(api.replaceDbName(insertQuery));
-
-//         var novoId = api.executeScalar(`
-//             SELECT IFNULL(MAX(TO_INT("IDMECANICARESUMOPROMOCAOMARKETING")), 0) + 1 
-//             FROM "VAR_DB_NAME"."MECANICARESUMOPROMOCAOMARKETING"
-//         `);
-
-//         insertStmt.setInt(1, novoId);
-//         insertStmt.setInt(2, idResumoPromocao);
-//         insertStmt.setFloat(3, tpAplicada);
-//         insertStmt.setInt(4, tpFatorPromo);
-//         insertStmt.setInt(5, tpApartirde);
-//         insertStmt.setString(6, dsPromocao);
-
-//         insertStmt.execute();
-//         insertStmt.close();
-//     }
-
-//     conn.commit();
-// }
 
 function incluirOuAtualizarMecanicaPromocao(conn, idResumoPromocao, tpAplicada, tpFatorPromo, tpApartirde, dsPromocao) {
     var checkQueryMecanica = `
@@ -798,7 +782,7 @@ function incluirOuAtualizarDetalheEmpresaPromocaoMarketing(conn, idResumoPromoca
 
 function fnHandlePut() {
     var conn = $.db.getConnection();
-    var bodyJson;
+  
     try {
         var query = ` UPDATE "VAR_DB_NAME"."RESUMOPROMOCAOMARKETING" SET
             "DSPROMOCAOMARKETING" = ?, 
@@ -816,12 +800,16 @@ function fnHandlePut() {
             "STDETPROMOORIGEM" = ?,
             "STDETPROMODESTINO" = ?,
             "IDMECANICARESUMOPROMOCAOMARKETING" = ?,
-            "STATIVO" = ?
+            "STATIVO" = ?,
+            "STESTRUTURA" = ?,
+            "STPRODUTO" = ?,
+            "STESTRUTURAPRODUTO" = ?,
+            "NUTIPOPROMOCAO" = ?
             WHERE IDRESUMOPROMOCAOMARKETING = ?
         `;
 
         var pStmt = conn.prepareStatement(api.replaceDbName(query));
-        bodyJson = JSON.parse($.request.body.asString());
+        var bodyJson = JSON.parse($.request.body.asString());
 
         for (var i = 0; i < bodyJson.length; i++) {
             var registro = bodyJson[i];
@@ -841,15 +829,19 @@ function fnHandlePut() {
             pStmt.setString(12, registro.STEMPRESAPROMO);
             pStmt.setString(13, registro.STDETPROMOORIGEM);
             pStmt.setString(14, registro.STDETPROMODESTINO);
-            pStmt.setInt(15, registro.IDMECANICARESUMOPROMOCAOMARKETING);
+            setIntOrNull(pStmt, 15, registro.IDMECANICARESUMOPROMOCAOMARKETING);
             pStmt.setString(16, registro.STATIVO);
-            pStmt.setInt(17, registro.IDRESUMOPROMOCAOMARKETING);
+            pStmt.setString(17, registro.STESTRUTURA);
+            pStmt.setString(18, registro.STPRODUTO);
+            pStmt.setString(19, registro.STESTRUTURAPRODUTO);
+            pStmt.setInt(20, registro.NUTIPOPROMOCAO);
+            setIntOrNull(pStmt, 21, registro.IDRESUMOPROMOCAOMARKETING);
             pStmt.execute();
             
              
             incluirOuAtualizarDetalhesEmpresaPromocao(conn, registro.IDRESUMOPROMOCAOMARKETING, registro.IDPRODUTO);
             incluirOuAtualizarMecanicaPromocao(conn, registro.IDRESUMOPROMOCAOMARKETING, registro.TPAPLICADOA, registro.TPFATORPROMO, registro.TPAPARTIRDE, registro.DSPROMOCAOMARKETING);
-            // incluirOuAtualizarDetalheEmpresaPromocaoMarketing(conn, registro.IDRESUMOPROMOCAOMARKETING, registro.IDEMPRESA, registro.STEMPRESAPROMOMO);
+            incluirOuAtualizarDetalheEmpresaPromocaoMarketing(conn, registro.IDRESUMOPROMOCAOMARKETING, registro.IDEMPRESA, registro.STEMPRESAPROMOMO);
                 
                 var retornoEmpresa = incluirOuAtualizarDetalheEmpresaPromocaoMarketing(
                 conn,

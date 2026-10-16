@@ -228,14 +228,26 @@ function fnValidaIntegracao(idCliente, cpfOrCnpjCliente){
 function fnObterEnderecosCliente(registro){
     let { IDCLIENTE, IDINDICACAOIE, NUCPFCNPJ } = registro;
     
-    if(NUCPFCNPJ.length == 11){
-        IDINDICACAOIE = registro.SGUF == 'DF' ? 2 : 9;
+    if(NUCPFCNPJ.length == 11 && IDINDICACAOIE != 9){
+        IDINDICACAOIE = 9;//registro.SGUF == 'DF' ? 2 : 9;
     }
     
-    let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("Name") = ? AND UPPER("State") = '${registro.SGUF}' `, registro.ECIDADE);
+    let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("State") = '${registro.SGUF}' AND UPPER("Name") = ? `, registro.ECIDADE);
     
     if(!regAbsId.length){
         errorLogIntegracaoCliente(IDCLIENTE, 'ID da Cidade Não Localizado, Verifique os Dados de Endereço e Tente Novamente');
+        
+        return null;
+    }
+    
+    if(registro.EBAIRRO.length > 0 && !/^(?!\d+$)[A-Za-zÀ-ÖØ-öø-ÿ\s()'\d\-ªº]+$/.test(registro.EBAIRRO)){
+        errorLogIntegracaoCliente(IDCLIENTE, 'Bairro Inválido, Verifique os Dados de Endereço e Tente Novamente');
+        
+        return null;
+    }
+    
+    if(registro.NUCEP.length != 8){
+        errorLogIntegracaoCliente(IDCLIENTE, 'CEP Inválido, Verifique os Dados de Endereço e Tente Novamente');
         
         return null;
     }
@@ -283,7 +295,7 @@ function executeIntegrarClienteDevolucao(connDB, session, idVoucher, stMsgRetorn
             TBC.TPCLIENTE,
             TBC.NUCPFCNPJ,
             TBC.DSNOMERAZAOSOCIAL,
-            IFNULL(TBC.DSAPELIDONOMEFANTASIA, TBC.DSNOMERAZAOSOCIAL) AS DSAPELIDONOMEFANTASIA,
+            TRIM(IFNULL(TBC.DSAPELIDONOMEFANTASIA, TBC.DSNOMERAZAOSOCIAL)) AS DSAPELIDONOMEFANTASIA,
             IFNULL(TBC.NUTELCOMERCIAL, TBC.NUTELCELULAR) AS NUTELCOMERCIAL,
             IFNULL(TBC.NUTELCELULAR, '') AS NUTELCELULAR,
             IFNULL(TBC.FONECONTATOCLIENTE01, TBC.NUTELCELULAR) AS FONECONTATOCLIENTE01,
@@ -292,7 +304,7 @@ function executeIntegrarClienteDevolucao(connDB, session, idVoucher, stMsgRetorn
             IFNULL(TBC.NURGINSCESTADUAL,'') AS NURGINSCESTADUAL, 
             TBC.IDINDICACAOIE,
             TBC.DSINDICACAOIE,
-            TBC.NUCEP,
+            TRIM(TBC.NUCEP) AS NUCEP,
             TRIM(UPPER(IFNULL(TBC.EENDERECO, 'NI'))) AS EENDERECO,
             TRIM(UPPER(IFNULL(TBC.EBAIRRO, 'NI'))) AS EBAIRRO,
             TRIM(UPPER(TBC.ECIDADE)) AS ECIDADE,
@@ -317,6 +329,7 @@ function executeIntegrarClienteDevolucao(connDB, session, idVoucher, stMsgRetorn
                 OR 
                 (LENGTH(TBC.NUCPFCNPJ) = 14 AND UPPER(TBC.TPCLIENTE) <> 'FISICA' AND TBO."Model" = 39 )
             )
+            --AND TRIM(IFNULL(TBC.ERRORLOGSAP, '')) = ''
             AND 1 = ?
     `;
     
@@ -325,7 +338,8 @@ function executeIntegrarClienteDevolucao(connDB, session, idVoucher, stMsgRetorn
     } else {
         queryCliente += `
             AND TO_DATE(TBR.DTINVOUCHER) >= '2025-01-01'
-            AND ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) > 3
+             AND ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) > 3
+           /* AND TO_DATE(TBR.DTINVOUCHER) <= '2025-06-30' */
         `;
     }
     
@@ -348,7 +362,7 @@ function executeIntegrarClienteDevolucao(connDB, session, idVoucher, stMsgRetorn
                     
                     if(!fnValidaIntegracao(registro.IDCLIENTE, registro.NUCPFCNPJ)){
                         
-                        let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("Name") = ? AND "State" = '${registro.SGUF}'`, registro.ECIDADE);
+                        let regAbsId = api.sqlQuery(`SELECT "AbsId" FROM ${dbNameSAP}.OCNT WHERE UPPER("State") = '${registro.SGUF}' AND UPPER("Name") = ? `, registro.ECIDADE);
                         
                         if(regAbsId.length > 0){
                             let telCliente = (registro.NUTELCOMERCIAL || registro.NUTELCELULAR)
@@ -357,8 +371,8 @@ function executeIntegrarClienteDevolucao(connDB, session, idVoucher, stMsgRetorn
                             
                             let dadosCliente = {
                                "Series": 70, // fixo
-                               "CardName": registro.DSNOMERAZAOSOCIAL, // razão social 
-                               "CardForeignName": registro.DSAPELIDONOMEFANTASIA, // nome fantasia
+                               "CardName": (registro.DSNOMERAZAOSOCIAL.replace(/\s{2,}/g, ' ')), // razão social 
+                               "CardForeignName": ((registro.DSAPELIDONOMEFANTASIA || registro.DSNOMERAZAOSOCIAL).replace(/\s{2,}/g, ' ')), // nome fantasia
                                 "CardType": "cCustomer", // "cCustomer" para cliente e "cSupplier" para fornecedor
                                 "Phone1": telCliente, //fone 1
                                 //"Phone2": (registro.FONECONTATOCLIENTE01 || registro.NUTELCELULAR), // fone 2

@@ -183,13 +183,11 @@ function fnHandleGet(byId) {
     }
     
     if (idSubGrupoEmpresa) {
-        let clausula = `AND TBE.IDSUBGRUPOEMPRESARIAL = '${idSubGrupoEmpresa}' AND NOT CONTAINS(TBE.NOFANTASIA, '%${idSubGrupoEmpresa}%') `;
-        
         if( idSubGrupoEmpresa == 'OUTLET'){
-            clausula = `AND CONTAINS(TBE.NOFANTASIA, '%${idSubGrupoEmpresa}%')`
+            query += `AND (UPPER(TBE.NOFANTASIA) LIKE '%OUTLET%' OR UPPER(TBE.NOFANTASIA) LIKE '% - OF -%')`
+        } else {
+            query += `AND TBE.IDSUBGRUPOEMPRESARIAL = '${idSubGrupoEmpresa}' AND UPPER(TBE.NOFANTASIA) NOT LIKE '%OUTLET%' AND UPPER(TBE.NOFANTASIA) NOT LIKE '% - OF -%' `;
         }
-        
-        query += clausula;
     }
     
     if (nuCnpj) {

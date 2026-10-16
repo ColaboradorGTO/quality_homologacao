@@ -1,6 +1,6 @@
 let dbNameSAP = "SBO_GTO_TESTE4";
 let filePath = "quality.concentrador_homologacao.api";
-let filePathLibs = `${filePath}.service-layer.devolucao.devolucao-produtos-voucher.libs`;
+let filePathLibs = `${filePath}.service-layer.devolucao.devolucao-produtos-voucher-nova.libs`;
 
 let api = $.import(`${filePath}.apiResponse`, "int_api");
 let libGeraNotaEntradaTransferenciaProduto = $.import(filePathLibs, "nfe-entrada-transferencia"); 
@@ -58,7 +58,7 @@ function fnValidaNotaDeSaidaTransferenciaSAP(idVoucher, docEntryNotaSaidaTransfe
     if(regDocEntry.length > 0){
         let statusDev = regDocEntry[0].NUMSTATE || false;
         
-        if(statusDev !== 100){
+        if(statusDev !== 100 && statusDev !== 150){
             msgRetorno = regDocEntry[0].MSGRETORNO ? ('Nota de Entrada da Transferencia Nao Integrada, Nota de Saida da Transferencia Nao Autorizada, ' + regDocEntry[0].MSGRETORNO) : 'Nota de Entrada da Transferencia Nao Integrada, Nota de Saida da Transferencia Sem Retorno ou Nao Enviada Para Sefaz';
         }
         
@@ -67,7 +67,7 @@ function fnValidaNotaDeSaidaTransferenciaSAP(idVoucher, docEntryNotaSaidaTransfe
     }
     
     if(msgRetorno.length > 0){
-        if(regDocEntry[0].NUMSTATE > 108){
+        if(regDocEntry.length > 0 && regDocEntry[0].NUMSTATE > 108){
             return errorNotaEntradaTransferencia(idVoucher, msgRetorno); 
         }
         
@@ -116,6 +116,8 @@ function executeGerarNotaEntradaTransferencia(connDB, session, idVoucher, stMsgR
         queryVoucher += `
             AND TO_DATE(TBR.DTINVOUCHER) >= '2025-01-01'
             AND ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) > 3
+            AND TBR.ERRORLOGSAP IS NULL
+            /*--AND TO_DATE(TBR.DTINVOUCHER) <= '2025-04-30' */
         `;
     }
     

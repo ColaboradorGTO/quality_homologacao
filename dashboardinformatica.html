@@ -300,70 +300,7 @@
                     <!-- BEGIN Page Content -->
                     <!-- the #js-page-content id is needed for some plugins to initialize -->
                     
-                        <main id="js-page-content" role="main" class="page-content">
-                            <ol class="breadcrumb page-breadcrumb">
-                                <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
-                                <li class="breadcrumb-item active">Tela Principal</li>
-                                <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
-                            </ol>
-
-                            <div class="subheader">
-                                <h1 class="subheader-title">
-                                    <i class='subheader-icon fal fa-chart-area'></i> Tela Principal <span class='fw-300'>Dashboard Informática</span>
-                                </h1>
-                            </div>
-                            <div class="row">
-                                <div class="col-xl-12">
-                                    <div id="panel-1" class="panel">
-                                        <div class="panel-hdr">
-                                            <h2>
-                                                Lista de Empresas <span class="fw-300"><i>do Grupo GTO</i></span>
-                                            </h2>
-                                        </div>
-                                        <div class="panel-container show">
-                                            <div class="panel-content">
-                                                <div class="panel-tag">
-                                                    <div class="row">
-                                                        <div class="col-sm-6 col-xl-3">
-                                                        <br>
-                                                            <button class="btn btn-primary" type="button" onclick="pesq_caixa_empresa()"><span class="fal fa-search mr-1"></span>Listar Caixas</button>
-                                                        </div>
-                                                        <div class="col-sm-6 col-xl-3">
-                                                        <br>
-                                                            <button type="button" class="btn btn-danger" data-offset="0,10" onclick="xls_caixas_loja()"><span class="fal fa-file-pdf mr-1"></span> Exportar Caixas XLS</button>
-                                                        </div>
-                                                        <div class="col-sm-6 col-xl-3">
-                                                        <br>
-                                                            <button type="button" class="btn btn-warning" data-offset="0,20" onclick="atualizar_caixas_todos()"><span class="fal fa-file-pdf mr-1"></span> Atualizar Todos os Caixas</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <br>
-                                                <div id="resultado">
-                                                    <!-- datatable start -->
-                                                    <table id="dt-basic-lista_empresas" class="table table-bordered table-hover table-striped w-100">
-                                                        <thead class="bg-primary-600">
-                                                            <tr>
-                                                                <th>Nº</th>
-                                                                <th>Empresa</th>
-                                                                <th>CNPJ</th>
-                                                                <th>IE</th>
-                                                                <th>Certificado</th>
-                                                                <th>Data Validade</th>
-                                                                <th width="12%">Opções</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="resultadoListEmpresas">
-                                                        </tbody>
-                                                    </table>
-                                                    <!-- datatable end -->
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </main>
+                        <main id="js-page-content" role="main" class="page-content"></main>
                    
                     <!-- this overlay is activated only when mobile menu is triggered -->
                     <div class="page-content-overlay" data-action="toggle" data-class="mobile-nav-on"></div> <!-- END Page Content -->
@@ -535,6 +472,7 @@
             NOTE: 	The file size is pretty big, but you can always use the
 			build.json file to deselect any components you do not need under "export" -->
         <script src="js/datagrid/datatables/datatables.export.js"></script>
+        <script src="js/utils/general-masks.js"></script>
         <script src="js/funcRequest.js"></script>
         <script src="js/informatica/functionTelaPrincipal.js"></script>
         <script src="js/funcResponseSweetAlert.js"></script>

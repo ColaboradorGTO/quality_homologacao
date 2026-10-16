@@ -1,6 +1,8 @@
-var api = $.import("quality.concentrador_homologacao.api", "apiResponse");
-var libEditProduto = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.libs.alteracao-pedido.itens", "alterar-dados-produto-pedido");
-var libEditProdutoPedido = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.libs.alteracao-pedido.itens", "alterar-dados-item-pedido");
+let api = $.import("quality.concentrador_homologacao.api", "apiResponse");
+let libEditProduto = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.libs.alteracao-pedido.itens", "alterar-dados-produto-pedido");
+let libEditItemPedido = $.import("quality.concentrador_homologacao.api.service-layer.pedido-compra.libs.alteracao-pedido.itens", "alterar-dados-item-pedido");
+
+let dbNameSAP = 'SBO_GTO_TESTE4';
 
 let conn;
 
@@ -28,6 +30,132 @@ function setIntOrNull(stmt, fieldId, value) {
 	stmt.setInt(fieldId, value);
 }
 
+function registrarSucessoLog(idDetalheProdutoPedido){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" 
+        SET 
+            ERRORLOGSAP = NULL
+        WHERE 
+            IDDETALHEPRODUTOPEDIDO = ?
+            OR IDDETALHEPRODUTOPEDIDOPRIMARIO = ?
+    `;
+    
+	let pStmt = conn.prepareStatement(api.replaceDbName(query));
+
+	pStmt.setInt(1, Number(idDetalheProdutoPedido));
+	pStmt.setInt(2, Number(idDetalheProdutoPedido));
+	
+	pStmt.executeUpdate();
+	pStmt.close();
+}
+
+function registrarErrorLog(idDetalheProdutoPedido, msgError = 'Erro ao editar o Item no Pedido SAP'){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" 
+        SET 
+            ERRORLOGSAP = ? 
+        WHERE 
+            IDDETALHEPRODUTOPEDIDO = ?
+            OR IDDETALHEPRODUTOPEDIDOPRIMARIO = ?
+    `;
+    
+	let pStmt = conn.prepareStatement(api.replaceDbName(query));
+
+	pStmt.setString(1, msgError);
+	pStmt.setInt(2, Number(idDetalheProdutoPedido));
+	pStmt.setInt(3, Number(idDetalheProdutoPedido));
+	
+	pStmt.executeUpdate();
+	pStmt.close();
+	
+	conn.commit();
+}
+
+// Return Warning
+
+function returnWarning(msg){
+    $.response.status = 400;
+    
+    return {
+        msg
+    }
+}
+
+// Get Dados
+
+function getValoresPedidoQuandoCancelamentoTotalDetalhePedido(idResumoPedido, idDetalhePedido){
+    let query = `
+        SELECT 
+            IFNULL(COUNT(IDDETALHEPEDIDO), 0) TOTALITENS, 
+            IFNULL(SUM(QTDTOTAL), 0) QTDTOTAL, 
+            IFNULL(SUM(QTDTOTAL), 0) * IFNULL(VRUNITLIQUIDO, 0)) AS  VRTOTAL
+        FROM
+            "VAR_DB_NAME".DETALHEPEDIDO
+        WHERE
+            IDRESUMOPEDIDO = ${idResumoPedido}
+            AND STCANCELADO = 'False'
+            AND 1 = ?
+    `;
+
+	return api.sqlQuery(query, 1);
+}
+
+function getQtdGradeDetalhePedidoAtualizada(idDetalheProdutoPedido, idTamanho, qtdNova){
+    let query = `
+        SELECT
+            IFNULL(SUM(QTD), 0) + ${qtdNova} AS QTD
+        FROM 
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDPG
+        INNER JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDPP ON 
+            TBDPG.IDDETALHEPEDIDO = TBDPP.IDDETALHEPEDIDO
+        WHERE
+            TBDPG.STATIVO = 'True'
+            AND TBDPG.IDTAMANHO <> ${idTamanho}
+            AND TBDPP.IDDETALHEPRODUTOPEDIDO = ${idDetalheProdutoPedido}
+            AND 1 = ?
+    `;
+    
+    let reg = api.sqlQuery(query, 1);
+    
+    let qtdAtualizada = Number(reg[0].QTD);
+    
+    return qtdAtualizada;
+}
+
+function getDadosItemPedidoParaEditarSAP(dados){
+    let query = `
+        SELECT
+            TBO."DocEntry" AS DOCENTRY,
+            TBDP.IDRESUMOPEDIDO,
+            TBDP.IDDETALHEPRODUTOPEDIDO,
+            '${dados.DSPRODUTO}' AS DSPRODUTO,
+            ${dados.QTDPRODUTO} AS QTDPRODUTO,
+            IFNULL(TBR."FATOR_ACRESCIMO_COMPRA", 1) * CAST( ${dados.VRCUSTO} AS DECIMAL(21, 6) )  AS VRCUSTO
+        FROM    
+            "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" TBDP
+        INNER JOIN "VAR_DB_NAME"."RESUMOPEDIDO" TBR ON 
+            TBDP.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+        LEFT JOIN ${dbNameSAP}.OPOR TBO ON
+            TO_VARCHAR(TBDP.IDRESUMOPEDIDO) = TBO."U_ID_VENDA_PDV"
+        WHERE
+            TBDP.STATIVO =  'True'
+            AND TBDP.STCANCELADO = 'False'
+            AND IFNULL(TBDP.IDPRODCADASTRO, 'NULL') <> 'NULL'
+            AND (
+                    TBDP.IDDETALHEPRODUTOPEDIDO = ${dados.IDDETALHEPRODUTOPEDIDO}
+                OR
+                    TBDP.IDDETALHEPRODUTOPEDIDOPRIMARIO = ${dados.IDDETALHEPRODUTOPEDIDO}
+            )
+            AND 1 = ?
+        ORDER BY 
+            TBDP.IDRESUMOPEDIDO
+    `;
+    
+    return api.sqlQuery(query, 1);
+}
+//
 function getIdDetalheProdutoPedidoSecundario(idDetProdPedido){
     let query = `
         SELECT
@@ -120,7 +248,565 @@ function getDadosDetalheProdutoPedido(idDetalheProdutoPedido){
 	return api.sqlQuery(queryProdutos, idDetalheProdutoPedido);
 }
 
-function fnAtualizarTabelaProduto(idDetalheProdutoPedido){
+function getStPedidoRN(idResumoPedido){
+    let query = `
+        SELECT
+            IDRESUMOPEDIDO
+        FROM    
+            "VAR_DB_NAME".RESUMOPEDIDO
+        WHERE
+            STPEDIDOPRIMARIO = 'True'
+            AND IDRESUMOPEDIDO = ${idResumoPedido}
+            AND 1 = ?
+    `;
+    
+    let reg = api.sqlQuery(query, 1);
+    
+    return reg.length > 0;
+}
+
+function getValoresPedidoQuandoCancelamentoTotalDetalhePedido(idResumoPedido, idDetalhePedido){
+    let query = `
+        SELECT 
+            IFNULL(COUNT(IDDETALHEPEDIDO), 0) TOTALITENS, 
+            IFNULL(SUM(QTDTOTAL), 0) QTDTOTAL, 
+            IFNULL(SUM(QTDTOTAL), 0) * IFNULL(SUM(VRUNITLIQUIDO), 0) AS  VRTOTAL
+        FROM
+            "VAR_DB_NAME".DETALHEPEDIDO
+        WHERE
+            IDRESUMOPEDIDO = ${idResumoPedido}
+            AND IDDETALHEPEDIDO <> ${idDetalhePedido}
+            AND STCANCELADO = 'False'
+            AND 1 = ?
+    `;
+
+	return api.sqlQuery(query, 1);
+}
+
+function getValoresPedidoQuandoCancelamentoParcialDetalhePedido(idResumoPedido, qtdParaSubtrair, vrParaSubtrair){
+    let query = `
+        SELECT 
+            IFNULL(COUNT(IDDETALHEPEDIDO), 0) TOTALITENS, 
+            IFNULL(SUM(QTDTOTAL) - ${qtdParaSubtrair}, 0) QTDTOTAL, 
+            IFNULL(SUM(VRTOTAL) - ${vrParaSubtrair}, 0) AS  VRTOTAL
+        FROM
+            "VAR_DB_NAME".DETALHEPEDIDO
+        WHERE
+            IDRESUMOPEDIDO = ${idResumoPedido}
+            AND STCANCELADO = 'False'
+            AND 1 = ?
+    `;
+
+	return api.sqlQuery(query, 1);
+}
+
+function getValoresAtualizadosDoPedido(idResumoPedido, idDetalhePedido, qtdRestante, qtdParaSubtrair, vrParaSubtrair){
+    if( qtdRestante > 0 ){
+        return getValoresPedidoQuandoCancelamentoParcialDetalhePedido(idResumoPedido, qtdParaSubtrair, vrParaSubtrair);
+    } else {
+        return getValoresPedidoQuandoCancelamentoTotalDetalhePedido(idResumoPedido, idDetalhePedido);
+    }
+}
+
+function getDadosProdutosParaRemoverPedido(dados){
+    let query = `
+        SELECT
+            TBO."DocEntry" AS DOCENTRY,
+            TBDP.IDDETALHEPRODUTOPEDIDO,
+            TBDP.IDRESUMOPEDIDO,
+            TBDP.IDDETALHEPEDIDO,
+            TBDP.QTDPRODUTO,
+            TBDP.IDTAMANHO,
+            '${dados.STCANCELADO}' AS STCANCELADO,
+            ${dados.IDRESPCANCELAMENTO} AS IDRESPCANCELAMENTO,
+            '${dados.TXTOBSCANCELAMENTO}' AS TXTOBSCANCELAMENTO
+        FROM    
+            "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" TBDP
+        LEFT JOIN ${dbNameSAP}.OPOR TBO ON
+            TO_VARCHAR(TBDP.IDRESUMOPEDIDO) = TBO."U_ID_VENDA_PDV"
+        WHERE
+            TBDP.STATIVO =  'True'
+            AND TBDP.STCANCELADO = 'False'
+            AND IFNULL(TBDP.IDPRODCADASTRO, 'NULL') <> 'NULL'
+            AND (
+                    TBDP.IDDETALHEPRODUTOPEDIDO = ${dados.IDDETALHEPRODUTOPEDIDO}
+                OR
+                    TBDP.IDDETALHEPRODUTOPEDIDOPRIMARIO = ${dados.IDDETALHEPRODUTOPEDIDO}
+            )
+            AND 1 = ?
+        ORDER BY 
+            TBDP.IDRESUMOPEDIDO
+    `;
+    
+    return api.sqlQuery(query, 1);
+}
+
+function getDadosDetalhePedido(dados){
+    let query = `
+        SELECT
+            TBDP.IDDETALHEPRODUTOPEDIDO,
+            TBDP.IDRESUMOPEDIDO,
+            TBDP.IDDETALHEPEDIDO,
+            TBD.QTDTOTAL,
+            TBD.VRUNITLIQUIDO,
+            ${dados.IDRESPCANCELAMENTO} AS IDRESPCANCELAMENTO,
+            '${dados.TXTOBSCANCELAMENTO}' AS TXTOBSCANCELAMENTO
+        FROM    
+            "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP
+        INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO TBD ON 
+            TBDP.IDDETALHEPEDIDO = TBD.IDDETALHEPEDIDO
+        WHERE 
+            TBDP.IDDETALHEPRODUTOPEDIDO = ${dados.IDDETALHEPRODUTOPEDIDO}
+            AND 1 = ?
+    `;
+    
+    let reg = api.sqlQuery(query, 1);
+    
+    return reg.length > 0 ? reg[0] : null;
+}
+
+function getValidacoesPedidoEntreQualitySAP(idResumoPedido){
+    let query = `
+        WITH SAP AS (
+            SELECT
+                TBP1."DocEntry",
+                TBO."DocStatus",
+                TBP1."LineNum",
+                TBP1."LineStatus",
+                TBP1."ItemCode", 
+                TBP1."Quantity" AS "QtdProdutoLinha",
+                TBP1."Price" AS "VrPrecoLinha",
+                IFNULL(TBP1."TrgetEntry", 0) AS "DocEntryNotaEntrada",
+                COUNT(TBP1."LineNum") OVER (PARTITION BY TBP1."DocEntry") AS "QtdTotalLinhas",
+                TBO."DocTotal" AS "VrTotalPedido",
+                ROW_NUMBER() OVER (
+                    PARTITION BY TBP1."ItemCode" ORDER BY TBP1."LineNum"
+                ) AS LINHA_SAP
+            FROM 
+            	${dbNameSAP}.POR1 TBP1
+            INNER JOIN ${dbNameSAP}.OPOR TBO ON 
+            	TBO."DocEntry" = TBP1."DocEntry"
+            INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO TBR ON 
+                TBR.DOCENTRY_PEDIDO_SAP = TBO."DocEntry" AND TO_VARCHAR(TBR.IDRESUMOPEDIDO) = TBO."U_ID_VENDA_PDV"
+            WHERE 
+                TBR.STCANCELADO = 'False'
+                AND TBR.IDRESUMOPEDIDO = ${idResumoPedido}
+        ),
+        APP AS (
+            SELECT
+                TBDP.IDRESUMOPEDIDO,
+                TBDP.IDDETALHEPRODUTOPEDIDO,
+                TBDP.IDPRODCADASTRO,
+                TBDP.QTDPRODUTO AS "QtdProdutoLinha",
+                TBDP.VRCUSTO AS "VrPrecoLinha",
+                COUNT(TBDP.IDDETALHEPRODUTOPEDIDO) OVER ( PARTITION BY TBDP.IDRESUMOPEDIDO ) AS "QtdTotalLinhas",
+                SUM(TBDP.VRTOTALCUSTO) OVER ( PARTITION BY TBDP.IDRESUMOPEDIDO ) AS "VrTotalPedido",
+                ROW_NUMBER() OVER (
+                    PARTITION BY TBDP.IDPRODCADASTRO
+                    ORDER BY TBDP.IDDETALHEPRODUTOPEDIDO
+                ) AS LINHA_APP
+            FROM 
+            	"VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP
+            WHERE 
+                TBDP.STCANCELADO = 'False'
+                AND TBDP.IDRESUMOPEDIDO = ${idResumoPedido}
+        )
+        SELECT
+            CASE 
+                WHEN SAP."DocStatus" <> 'O' THEN 'Y'
+                ELSE 'N'
+            END AS "IsPedidoFechado",
+            CASE 
+                WHEN SAP."LineStatus" <> 'O' AND SAP."DocEntryNotaEntrada" = 0 THEN 'Y'
+                ELSE 'N'
+            END AS "IsPedidoComLinhaFechadaSemRecepcao",
+            CASE 
+                WHEN SAP."VrPrecoLinha" <> IFNULL(APP."VrPrecoLinha", 0) THEN 'Y'
+                ELSE 'N'
+            END AS "IsDivergentePrecoPorLinhaEntrePedidos",
+            CASE 
+                WHEN SAP."QtdProdutoLinha" <> IFNULL(APP."QtdProdutoLinha", 0) THEN 'Y'
+                ELSE 'N'
+            END AS "IsDivergenteQtdPorLinhaEntrePedidos",
+            CASE 
+                WHEN SAP."QtdTotalLinhas" <> IFNULL(APP."QtdTotalLinhas", 0) THEN 'Y'
+                ELSE 'N'
+            END AS "IsDivergenteTotalLinhasEntrePedidos",
+            CASE 
+                WHEN SAP."VrTotalPedido" <> IFNULL(ROUND(APP."VrTotalPedido", 2), 0) THEN 'Y'
+                ELSE 'N'
+            END AS "IsDivergenteVrTotalEntrePedidos"
+        FROM 
+            SAP
+        LEFT JOIN APP ON 
+            SAP."ItemCode" = TO_VARCHAR(APP.IDPRODCADASTRO) /*AND SAP."Quantity" = APP.QTDPRODUTO*/ AND SAP.LINHA_SAP = APP.LINHA_APP
+        WHERE
+            1 = ?
+        ORDER BY 
+            CASE 
+                WHEN SAP."DocStatus" <> 'O' THEN 'Y'
+                ELSE 'N'
+            END DESC,
+            CASE 
+                WHEN SAP."LineStatus" <> 'O' AND SAP."DocEntryNotaEntrada" = 0 THEN 'Y'
+                ELSE 'N'
+            END DESC,
+            CASE 
+                WHEN SAP."VrPrecoLinha" <> APP."VrPrecoLinha" THEN 'Y'
+                ELSE 'N'
+            END DESC,
+            CASE 
+                WHEN SAP."QtdProdutoLinha" <> APP."QtdProdutoLinha" THEN 'Y'
+                ELSE 'N'
+            END  DESC,
+            CASE 
+                WHEN SAP."QtdTotalLinhas" <> APP."QtdTotalLinhas" THEN 'Y'
+                ELSE 'N'
+            END  DESC,
+            CASE 
+                WHEN SAP."VrTotalPedido" <> APP."VrTotalPedido" THEN 'Y'
+                ELSE 'N'
+            END DESC,
+            SAP."LineNum"
+    `;
+
+	return api.sqlQuery(query, 1);
+}
+
+function getDadosProdutoPedidoEntreQualitySAP(idResumoPedido, idDetalheProdutoPedido){
+    let query = `
+        WITH SAP AS (
+            SELECT
+                IFNULL(TBP1."TrgetEntry", 0) AS "DocEntryNotaEntrada",
+                TBP1."ItemCode",
+                TBP1."LineNum",
+                ROW_NUMBER() OVER (
+                    PARTITION BY TBP1."ItemCode"
+                    ORDER BY TBP1."LineNum"
+                ) AS LINHA_SAP
+            FROM 
+            	${dbNameSAP}.POR1 TBP1
+            INNER JOIN ${dbNameSAP}.OPOR TBO ON 
+            	TBO."DocEntry" = TBP1."DocEntry"
+            INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO TBR ON 
+                TBR.DOCENTRY_PEDIDO_SAP = TBO."DocEntry" AND TO_VARCHAR(TBR.IDRESUMOPEDIDO) = TBO."U_ID_VENDA_PDV"
+            WHERE 
+                TBR.STCANCELADO = 'False'
+                AND TBR.IDRESUMOPEDIDO = ${idResumoPedido}
+        ),
+        APP AS (
+            SELECT
+                TBDP.IDDETALHEPRODUTOPEDIDO,
+                TBDP.IDPRODCADASTRO,
+                ROW_NUMBER() OVER (
+                    PARTITION BY TBDP.IDPRODCADASTRO
+                    ORDER BY TBDP.IDDETALHEPRODUTOPEDIDO
+                ) AS LINHA_APP
+            FROM 
+            	"VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP
+            WHERE 
+                TBDP.STCANCELADO = 'False'
+                AND TBDP.IDRESUMOPEDIDO = ${idResumoPedido}
+        )
+        SELECT
+            SAP."DocEntryNotaEntrada"
+        FROM 
+            SAP
+        LEFT JOIN APP ON 
+            SAP."ItemCode" = TO_VARCHAR(APP.IDPRODCADASTRO) AND SAP.LINHA_SAP = APP.LINHA_APP /*AND SAP."Quantity" = APP.QTDPRODUTO */
+        WHERE
+            APP.IDDETALHEPRODUTOPEDIDO = ${idDetalheProdutoPedido}
+            AND 1 = ?
+        ORDER BY 
+            SAP."LineNum"
+    `;
+    
+    return api.sqlQuery(query, 1);
+}
+
+function getValidacoesEntrePedidoPrimarioSecundario(idResumoPedido){
+    let query = `
+        WITH PEDIDOPRIMARIO AS (
+            SELECT
+                TBDP.IDDETALHEPRODUTOPEDIDO,
+                TBDP.IDPRODCADASTRO,
+                TBDP.QTDPRODUTO AS "QtdProdutoLinha",
+                TBDP.VRCUSTO AS "VrPrecoLinha",
+                COUNT(TBDP.IDDETALHEPRODUTOPEDIDO) OVER ( PARTITION BY TBDP.IDRESUMOPEDIDO ) AS "QtdTotalLinhas",
+                SUM(TBDP.VRTOTALCUSTO) OVER ( PARTITION BY TBDP.IDRESUMOPEDIDO ) AS "VrTotalPedido"
+            FROM 
+                "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP
+            INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO TBR ON 
+                TBDP.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO 
+            WHERE 
+                TBR.STCANCELADO = 'False'
+                AND TBDP.STCANCELADO = 'False'
+                AND TBR.IDRESUMOPEDIDO = ${idResumoPedido}
+        ),
+        PEDIDOSECUNDARIO AS (
+            SELECT
+                TBR.FATOR_ACRESCIMO_COMPRA,
+                TBDP.IDDETALHEPRODUTOPEDIDOPRIMARIO,
+                TBDP.IDPRODCADASTRO,
+                TBDP.QTDPRODUTO AS "QtdProdutoLinha",
+                TBDP.VRCUSTO AS "VrPrecoLinha",
+                COUNT(TBDP.IDDETALHEPRODUTOPEDIDO) OVER ( PARTITION BY TBDP.IDRESUMOPEDIDO ) AS "QtdTotalLinhas",
+                SUM(TBDP.VRTOTALCUSTO) OVER ( PARTITION BY TBDP.IDRESUMOPEDIDO ) AS "VrTotalPedido"
+            FROM 
+                "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP
+            INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO TBR ON 
+                TBDP.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+            WHERE 
+                TBR.STCANCELADO = 'False'
+                AND TBDP.STCANCELADO = 'False'
+                AND TBR.IDPEDIDOPRIMARIO = ${idResumoPedido}
+        )
+        SELECT
+            CASE 
+                WHEN (PEDIDOPRIMARIO."VrPrecoLinha" * IFNULL(PEDIDOSECUNDARIO.FATOR_ACRESCIMO_COMPRA, 1)) <> IFNULL(PEDIDOSECUNDARIO."VrPrecoLinha", 0) THEN 'Y'
+                ELSE 'N'
+            END AS "IsDivergentePrecoPorLinhaEntrePedidos",
+            CASE 
+                WHEN PEDIDOPRIMARIO."QtdProdutoLinha" <> IFNULL(PEDIDOSECUNDARIO."QtdProdutoLinha", 0) THEN 'Y'
+                ELSE 'N'
+            END AS "IsDivergenteQtdPorLinhaEntrePedidos",
+            CASE 
+                WHEN PEDIDOPRIMARIO."QtdTotalLinhas" <> IFNULL(PEDIDOSECUNDARIO."QtdTotalLinhas", 0) THEN 'Y'
+                ELSE 'N'
+            END AS "IsDivergenteTotalLinhasEntrePedidos",
+            CASE 
+                WHEN (PEDIDOPRIMARIO."VrTotalPedido" * IFNULL(PEDIDOSECUNDARIO.FATOR_ACRESCIMO_COMPRA,  1)) <> IFNULL(PEDIDOSECUNDARIO."VrTotalPedido", 0) THEN 'Y'
+                ELSE 'N'
+            END AS "IsDivergenteVrTotalEntrePedidos"
+        FROM 
+            PEDIDOPRIMARIO
+        LEFT JOIN PEDIDOSECUNDARIO ON 
+            PEDIDOPRIMARIO.IDDETALHEPRODUTOPEDIDO = PEDIDOSECUNDARIO.IDDETALHEPRODUTOPEDIDOPRIMARIO
+        WHERE
+            1 = ?
+        ORDER BY 
+            PEDIDOPRIMARIO.IDDETALHEPRODUTOPEDIDO
+    `;
+
+	return api.sqlQuery(query, 1);
+}
+
+// Validação
+
+function validarDadosPedidoEntreQualitySAP(idResumoPedido){
+    let isValidPedido = false;
+    let existPedidoSAP = false;
+    let regValidacoesPedido = getValidacoesPedidoEntreQualitySAP(idResumoPedido);
+    let arrayMotivos = [
+        'Pedido fechado no SAP',
+        'Pedido com linha fechada e sem recepção no SAP',
+        'Pedido com valores de itens divergentes entre Quality e SAP',
+        'Pedido com quantidade de itens divergente entre Quality e SAP',
+        'Pedido com quantidade de linhas divergente entre Quality e SAP',
+        'Pedido com valor total divergente entre Quality e SAP',
+    ];
+    
+	if(regValidacoesPedido.length > 0){
+        existPedidoSAP = true;
+        
+        for(let registro of regValidacoesPedido) {
+            let { 
+                IsPedidoFechado, 
+                IsPedidoComLinhaFechadaSemRecepcao/*, 
+                IsDivergentePrecoPorLinhaEntrePedidos, 
+                IsDivergenteQtdPorLinhaEntrePedidos, 
+                IsDivergenteTotalLinhasEntrePedidos, 
+                IsDivergenteVrTotalEntrePedidos */
+            } = registro;
+            let arrayCondicoesDivergentes = [
+                IsPedidoFechado,
+                IsPedidoComLinhaFechadaSemRecepcao/*,
+                IsDivergentePrecoPorLinhaEntrePedidos, 
+                IsDivergenteQtdPorLinhaEntrePedidos,
+                IsDivergenteTotalLinhasEntrePedidos,
+                IsDivergenteVrTotalEntrePedidos*/
+            ];
+            let idMotivo = arrayCondicoesDivergentes.findIndex(v => v == "Y");
+            
+            if(idMotivo != -1){
+                let motivo =  arrayMotivos[idMotivo];
+                
+                return {
+                    msgWarningPedido: `Erro ao editar o Item no SAP, ${motivo}`,
+                    isValidPedido,
+                    existPedidoSAP
+                };
+            }
+            
+        }
+        
+        isValidPedido = true;
+	}
+	
+	return { isValidPedido, existPedidoSAP };
+}
+
+function validarSeProdutoExisteSeTemEntradaNoPedidoSap(idResumoPedido, idDetalheProdutoPedido){
+    let isValidProdToEditSAP = false;
+    let existProdPedidoSAP = false;
+	let regProd = getDadosProdutoPedidoEntreQualitySAP(idResumoPedido, idDetalheProdutoPedido)
+    
+    if(regProd.length > 0){
+        existProdPedidoSAP = true;
+        
+        for( let { DocEntryNotaEntrada } of regProd ) {
+            
+            if(DocEntryNotaEntrada != 0 ){
+                return {
+                    msgWarningProdPedido: `Erro ao cancelar o Item no SAP, Item com recepção total ou parcial no SAP`,
+                    isValidProdToEditSAP: false,
+                    existProdPedidoSAP
+                };
+            }
+            
+        }
+        
+        isValidProdToEditSAP = true;
+	}
+	
+	return { isValidProdToEditSAP, existProdPedidoSAP }
+}
+
+function validarPedidoPrimarioComSecundario(idResumoPedido){
+    let isValidPedidosPrimarioSecundario = false;
+    let existPedidosPrimarioSecundario = false;
+    let regValidacoes = getValidacoesEntrePedidoPrimarioSecundario(idResumoPedido);
+    let arrayMotivos = [
+        'Pedidos Primario e Secundario com preços de produtos das linhas divergente no Quality',
+        'Pedidos Primario e Secundario com quantidades de produtos das linhas divergente no Quality',
+        'Pedidos Primario e Secundario com quantidade de linhas divergente no Quality',
+        'Pedidos Primario e Secundario com valores totais divergentes no Quality',
+    ];
+	
+	if(regValidacoes.length > 0){
+        existPedidosPrimarioSecundario = true;
+        
+        for( let { IsDivergentePrecoPorLinhaEntrePedidos, IsDivergenteQtdPorLinhaEntrePedidos, IsDivergenteTotalLinhasEntrePedidos, IsDivergenteVrTotalEntrePedidos } of regValidacoes) {
+            let arrayCondicoesDivergentes = [
+                IsDivergentePrecoPorLinhaEntrePedidos, 
+                IsDivergenteQtdPorLinhaEntrePedidos,
+                IsDivergenteTotalLinhasEntrePedidos,
+                IsDivergenteVrTotalEntrePedidos
+            ];
+            let idMotivo = arrayCondicoesDivergentes.findIndex(v => v == "Y" );
+            
+            if(idMotivo != -1){
+                let motivo =  arrayMotivos[idMotivo];
+                
+                return {
+                    msgWarningValidacaoPedidosPrimarioSecundario: `Erro ao cancelar, ${motivo}`,
+                    isValidPedidosPrimarioSecundario: false,
+                    existPedidosPrimarioSecundario
+                };
+            }
+            
+        }
+        
+        isValidPedidosPrimarioSecundario = true;
+	}
+	
+	return { isValidPedidosPrimarioSecundario, existPedidosPrimarioSecundario };
+}
+
+function validarSeAptoParaEditarSapQuandoPedidoPadrao(dadosProdutoPedido){
+    let { IDRESUMOPEDIDO, IDDETALHEPRODUTOPEDIDO } = dadosProdutoPedido;
+    let { existPedidoSAP, isValidPedido, msgWarningPedido } = validarDadosPedidoEntreQualitySAP(IDRESUMOPEDIDO);
+    let { existProdPedidoSAP, isValidProdToEditSAP, msgWarningProdPedido } = validarSeProdutoExisteSeTemEntradaNoPedidoSap(IDRESUMOPEDIDO, IDDETALHEPRODUTOPEDIDO);
+    let msg = msgWarningPedido || msgWarningProdPedido || '';
+    let success = !msg.length;
+    
+    let stEditarSAP = !msg.length && isValidProdToEditSAP;
+    
+    return {
+        success,
+        stEditarSAP,
+        msg
+    }
+}
+
+function validarSeAptoParaEditarQuandoPedidoRN(dadosProdutoPedido){
+    let { IDRESUMOPEDIDO, IDDETALHEPRODUTOPEDIDO } = dadosProdutoPedido;
+    let { 
+        existPedidosPrimarioSecundario, 
+        isValidPedidosPrimarioSecundario, 
+        msgWarningValidacaoPedidosPrimarioSecundario 
+    } = validarPedidoPrimarioComSecundario(IDRESUMOPEDIDO);
+    let idPedidoPrimario;
+    let idPedidoSecundario;
+
+    let stEditarSAP = false;
+    
+    let ultimoEstadoExistPedidoSAP = null;
+    let ultimoEstadoIsValidPedido = null;
+    let ultimoEstadoExistProdPedidoSAP = null;
+    let ultimoEstadoisValidProdToEditSAP = null;
+    let ultimoEstadoMsgWarningPedido = null;
+    let ultimoEstadoMsgWarningProdPedido = null;
+    
+    if(!existPedidosPrimarioSecundario){
+        return returnWarning('Pedido Primario ou Secundario não encontrado no Quality');
+    }
+    
+    if(!isValidPedidosPrimarioSecundario){
+        return returnWarning(msgWarningValidacaoPedidosPrimarioSecundario);
+    }
+    
+    let dadosProdutosPedidos = getDadosItemPedidoParaEditarSAP(dadosProdutoPedido);
+    
+    for(let i = 0; i < dadosProdutosPedidos.length; i++){
+        let registro = dadosProdutosPedidos[i]
+        let { existPedidoSAP, isValidPedido, msgWarningPedido } = validarDadosPedidoEntreQualitySAP(registro.IDRESUMOPEDIDO);
+        let { existProdPedidoSAP, isValidProdToEditSAP, msgWarningProdPedido } = validarSeProdutoExisteSeTemEntradaNoPedidoSap(registro.IDRESUMOPEDIDO, registro.IDDETALHEPRODUTOPEDIDO);
+        
+        let stPrimario = i == 0;
+        
+        if(stPrimario){
+            idPedidoPrimario = registro.IDRESUMOPEDIDO;
+            ultimoEstadoExistPedidoSAP = existPedidoSAP;
+            ultimoEstadoIsValidPedido = isValidPedido;
+            ultimoEstadoExistProdPedidoSAP = existProdPedidoSAP;
+            ultimoEstadoisValidProdToEditSAP = isValidProdToEditSAP;
+            ultimoEstadoMsgWarningPedido = msgWarningPedido || '';
+            ultimoEstadoMsgWarningProdPedido = msgWarningProdPedido || '';
+        } else {
+            idPedidoSecundario = registro.IDRESUMOPEDIDO;
+        }
+        
+        let label = (isPrimario) => `Pedido ${isPrimario ? 'Primario' : 'Secundario'} (${isPrimario ? idPedidoPrimario : idPedidoSecundario}): `;
+        let msg = (msgWarningPedido || msgWarningProdPedido) ? label(stPrimario) + (msgWarningPedido || msgWarningProdPedido) : '';
+        
+        if(!msg.length && ultimoEstadoExistPedidoSAP != existPedidoSAP){
+            msg = label(!ultimoEstadoExistPedidoSAP) + 'Não migrado';
+        }
+        
+        if(!msg.length && ultimoEstadoExistProdPedidoSAP != existProdPedidoSAP){
+            msg = label(!ultimoEstadoExistProdPedidoSAP) + 'Produto não encontrado no Pedido SAP';
+        }
+        
+        if(msg.length > 0){
+            return {
+                success: false,
+                msg
+            };
+        }
+        
+        stEditarSAP = ultimoEstadoisValidProdToEditSAP && isValidProdToEditSAP;
+    }
+    
+    return {
+        success: true,
+        stEditarSAP
+    }
+}
+
+// Gravação de Dados no BD
+
+function atualizarTabelaProduto(idDetalheProdutoPedido){
     let dadosProdutoAtualizado = getDadosDetalheProdutoPedido(idDetalheProdutoPedido);
     
     let query = `
@@ -177,7 +863,7 @@ function fnAtualizarTabelaProduto(idDetalheProdutoPedido){
     conn.commit();
 }
 
-function fnAtualizarTabelaProduto_RN(idDetalheProdutoPedido){
+function atualizarTabelaProduto_RN(idDetalheProdutoPedido){
     let dadosProdutoAtualizado = getDadosDetalheProdutoPedido(idDetalheProdutoPedido);
     
     let query = `
@@ -234,7 +920,7 @@ function fnAtualizarTabelaProduto_RN(idDetalheProdutoPedido){
     conn.commit();
 }
 
-function fnAtualizarProdSAP(idDetProdPedido){
+function atualizarProdSAP(idDetProdPedido){
     let queryProdutos =  `
         SELECT
             TBR.IDGRUPOEMPRESARIAL AS IDGRUPOEMPRESARIAL,
@@ -301,17 +987,177 @@ function fnAtualizarProdSAP(idDetProdPedido){
 	
 	if(lstDeProdutos.length > 0){
         if(stPedidoPrimario){
-            fnAtualizarTabelaProduto_RN(lstDeProdutos, conn);
+            atualizarTabelaProduto_RN(lstDeProdutos, conn);
         } else {
-            fnAtualizarTabelaProduto(lstDeProdutos, conn);
+            atualizarTabelaProduto(lstDeProdutos, conn);
         }
         
         var retIntegracaoEditProdutoPedido = libEditProdutoPedido.executeProduto(idDetProdPedido); 
 	}
 }
 
-function fnAtualizarDetalheProdutoPedido(idDetalheProdutoPedido, registro) {
+function atualizarTabelaResumoPedido(registro, qtdDetalheAlterado){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."RESUMOPEDIDO" TBR
+        SET
+            TBR."DTMOVPEDIDO" = CURRENT_TIMESTAMP,
+            TBR."NUTOTALITENS" = (XA.TOTALITENS + XB.TOTALITENS),
+            TBR."QTDTOTPRODUTOS" = (XA.QTDTOTAL + XA.QTDTOTAL),
+            TBR."VRTOTALBRUTO" = (XA.VRTOTAL + XB.VRTOTAL),
+            TBR."VRTOTALLIQUIDO" = (XA.VRTOTAL + XB.VRTOTAL)
+        FROM 
+            "VAR_DB_NAME"."RESUMOPEDIDO" TBR
+        INNER JOIN (
+            SELECT
+                TBR.IDRESUMOPEDIDO,
+                COUNT(TBD.IDDETALHEPEDIDO) AS TOTALITENS,
+                SUM(IFNULL(TBD.QTDTOTAL,0)) AS QTDTOTAL,
+                SUM(IFNULL(TBD.QTDTOTAL,0) * IFNULL(TBD.VRUNITLIQUIDO,0)) AS VRTOTAL
+            FROM 
+                "VAR_DB_NAME"."RESUMOPEDIDO" TBR
+            INNER JOIN "VAR_DB_NAME"."DETALHEPEDIDO" TBD ON 
+                TBR.IDRESUMOPEDIDO = TBD.IDRESUMOPEDIDO
+            WHERE
+                TBD.STCANCELADO = 'False'
+                AND (
+                        TBR.IDRESUMOPEDIDO = ${registro.IDRESUMOPEDIDO}
+                    OR
+                        TBR.IDPEDIDOPRIMARIO =  ${registro.IDRESUMOPEDIDO}
+                )
+            AND NOT EXISTS (
+                SELECT 
+                    1
+                FROM 
+                    "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" TBDPP
+                WHERE 
+                    TBDPP.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+                    AND TBDPP.IDDETALHEPEDIDO = TBD.IDDETALHEPEDIDO
+                    AND (
+                            TBDPP.IDDETALHEPRODUTOPEDIDO = ${registro.IDDETALHEPRODUTOPEDIDO}
+                        OR 
+                            TBDPP.IDDETALHEPRODUTOPEDIDOPRIMARIO = ${registro.IDDETALHEPRODUTOPEDIDO}
+                    )
+                    AND TBDPP.STCANCELADO = 'False'
+            )
+            GROUP BY 
+                TBR.IDRESUMOPEDIDO
+        ) XA ON 
+            TBR.IDRESUMOPEDIDO = XA.IDRESUMOPEDIDO
+        INNER JOIN (
+            SELECT
+                TBR.IDRESUMOPEDIDO,
+                1 AS TOTALITENS,
+                ${qtdDetalheAlterado} AS QTDTOTAL,
+                ${qtdDetalheAlterado} * MAX(TBD.VRUNITLIQUIDO) AS VRTOTAL
+            FROM 
+                "VAR_DB_NAME"."RESUMOPEDIDO" TBR
+            INNER JOIN "VAR_DB_NAME"."DETALHEPEDIDO" TBD ON 
+                TBR.IDRESUMOPEDIDO = TBD.IDRESUMOPEDIDO
+            WHERE
+                TBD.STCANCELADO = 'False'
+                AND (
+                        TBR.IDRESUMOPEDIDO = ${registro.IDRESUMOPEDIDO}
+                    OR
+                        TBR.IDPEDIDOPRIMARIO =  ${registro.IDRESUMOPEDIDO}
+                )
+            AND EXISTS (
+                SELECT 
+                    1
+                FROM 
+                    "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" TBDPP
+                WHERE 
+                    TBDPP.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+                    AND TBDPP.IDDETALHEPEDIDO = TBD.IDDETALHEPEDIDO
+                    AND (
+                            TBDPP.IDDETALHEPRODUTOPEDIDO = ${registro.IDDETALHEPRODUTOPEDIDO}
+                        OR 
+                            TBDPP.IDDETALHEPRODUTOPEDIDOPRIMARIO = ${registro.IDDETALHEPRODUTOPEDIDO}
+                    )
+                    AND TBDPP.STCANCELADO = 'False'
+            )
+            GROUP BY 
+                TBR.IDRESUMOPEDIDO
+        ) XB ON 
+            TBR.IDRESUMOPEDIDO = XB.IDRESUMOPEDIDO
+        WHERE 
+            TBR.IDRESUMOPEDIDO = XA.IDRESUMOPEDIDO 
+            AND TBR.IDRESUMOPEDIDO = XB.IDRESUMOPEDIDO
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.executeUpdate();
+    pStmt.close();
+}
+
+function atualizarTabelaDetalheGrade(registro){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG
+        SET 
+            TBDG.QTD = ?,
+            TBDG.IDTAMANHO = ?
+        FROM 
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG
+        INNER JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDPP ON 
+            TBDG.IDDETALHEPEDIDO = TBDPP.IDDETALHEPEDIDO AND TBDG.IDTAMANHO = TBDPP.IDTAMANHO
+        WHERE
+            TBDG.STATIVO = 'True'
+            AND (
+                    TBDPP.IDDETALHEPRODUTOPEDIDO = ? 
+                OR 
+                    TBDPP.IDDETALHEPRODUTOPEDIDOPRIMARIO = ?
+            )
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setFloat(1, Number(registro.QTDPRODUTO));
+    pStmt.setInt(2, parseInt(registro.IDTAMANHO));
+    pStmt.setInt(3, parseInt(registro.IDDETALHEPRODUTOPEDIDO));
+    pStmt.setInt(4, parseInt(registro.IDDETALHEPRODUTOPEDIDO));
+    
+    pStmt.executeUpdate();
+    pStmt.close();
+}
+
+function atualizarTabelaDetalhePedido(registro, qtdDetalheAlterado){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME".DETALHEPEDIDO TBD 
+        SET
+            TBD.QTDTOTAL = ?,
+            TBD.VRTOTAL = (${qtdDetalheAlterado} * TBD.VRUNITLIQUIDO)
+        FROM 
+            "VAR_DB_NAME".DETALHEPEDIDO TBD 
+        INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO TBR ON 
+            TBD.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+        INNER JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDPP ON 
+            TBD.IDDETALHEPEDIDO = TBDPP.IDDETALHEPEDIDO AND TBR.IDRESUMOPEDIDO = TBDPP.IDRESUMOPEDIDO
+        WHERE
+            TBD.STCANCELADO = 'False'
+            AND TBDPP.STCANCELADO = 'False'
+            AND (
+                    TBDPP.IDDETALHEPRODUTOPEDIDO = ?
+                OR 
+                    TBDPP.IDDETALHEPRODUTOPEDIDOPRIMARIO = ?
+            )
+    `;
+    //return { query }
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setFloat(1, Number(qtdDetalheAlterado));
+    pStmt.setInt(2, parseInt(registro.IDDETALHEPRODUTOPEDIDO));
+    pStmt.setInt(3, parseInt(registro.IDDETALHEPRODUTOPEDIDO));
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
+function atualizarTabelaDetalheProdutoPedido(registro) {
     let steditcomp = 'True';
+    let vrTotalCusto = Number(registro.QTDPRODUTO) * Number(registro.VRCUSTO);
     
     let query = `
         UPDATE
@@ -352,7 +1198,8 @@ function fnAtualizarDetalheProdutoPedido(idDetalheProdutoPedido, registro) {
         LEFT JOIN "VAR_DB_NAME"."PRODUTO_RN" TBP_RN ON 
             TBDPP.IDPRODCADASTRO = TBP_RN.IDPRODUTO
         WHERE 
-            TBDPP."IDDETALHEPRODUTOPEDIDO" =  ?
+            TBDPP.IDDETALHEPRODUTOPEDIDO = ? 
+            OR TBDPP.IDDETALHEPRODUTOPEDIDOPRIMARIO = ?
     `;
   
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -371,23 +1218,28 @@ function fnAtualizarDetalheProdutoPedido(idDetalheProdutoPedido, registro) {
     pStmt.setString(12, registro.UND);
     pStmt.setFloat(13, registro.QTDPRODUTO);
     pStmt.setFloat(14, registro.VRCUSTO);
-    pStmt.setFloat(15, registro.VRTOTALCUSTO);
+    pStmt.setFloat(15, vrTotalCusto);
     pStmt.setString(16, registro.STECOMMERCE);
     pStmt.setString(17, registro.STREDESOCIAL);
     pStmt.setString(18, steditcomp);
     pStmt.setInt(19, registro.IDCATEGORIAPEDIDO);
-    pStmt.setInt(20, idDetalheProdutoPedido);
+    pStmt.setInt(20, registro.IDDETALHEPRODUTOPEDIDO);
+    pStmt.setInt(21, registro.IDDETALHEPRODUTOPEDIDO);
     
-    pStmt.execute();
+    pStmt.executeUpdate();
 	pStmt.close();
-	
-    conn.commit();
 }
 
-function fnAtualizarDadosProdutoPedido(idDetalheProdutoPedido, registro, stPedidoPrimario = false) {
-    fnAtualizarDetalheProdutoPedido(idDetalheProdutoPedido, registro);
+function atualizarDadosPedido(registro) {
+    let qtdDetalheAlterado = getQtdGradeDetalhePedidoAtualizada(registro.IDDETALHEPRODUTOPEDIDO, registro.IDTAMANHO, registro.QTDPRODUTO);
     
-    stPedidoPrimario ? fnAtualizarTabelaProduto_RN(idDetalheProdutoPedido) : fnAtualizarTabelaProduto(idDetalheProdutoPedido);
+    atualizarTabelaDetalheProdutoPedido(registro);
+    
+    atualizarTabelaDetalheGrade(registro);
+    
+    atualizarTabelaDetalhePedido(registro, qtdDetalheAlterado);
+    
+    atualizarTabelaResumoPedido(registro, qtdDetalheAlterado);
 }
 
 function fnHandleGet(byId) {
@@ -515,26 +1367,60 @@ function fnHandleGet(byId) {
 }
 
 function fnHandlePut() {
-    let bodyJson = JSON.parse($.request.body.asString()); 
-    
+    let bodyJson = JSON.parse($.request.body.asString());
+    //return bodyJson
     conn = $.db.getConnection();
 
     for (let registro of bodyJson) {
-		let idDetalheProdutoPedido = Number(registro.IDDETALHEPRODUTOPEDIDO);
-		let idDetalhePedidoSecundario = getIdDetalheProdutoPedidoSecundario(registro.IDDETALHEPRODUTOPEDIDO);
+        let stPedidoRN = registro.STPEDIDOPRIMARIO == 'True';
+        let successValidacao = false;
+        let msgValidacao = '';
+        let stEditarItemPedidoSAP = false;
         
-        if(idDetalhePedidoSecundario > 0){
-            fnAtualizarDadosProdutoPedido(idDetalheProdutoPedido, registro, true);
+        if(stPedidoRN){
+            let {success, stEditarSAP, msg } = validarSeAptoParaEditarQuandoPedidoRN(registro);
             
-            fnAtualizarDadosProdutoPedido(idDetalhePedidoSecundario, registro);
+            stEditarItemPedidoSAP = stEditarSAP;
+            successValidacao = success;
+            msgValidacao = msg;
+            
         } else {
-            fnAtualizarDadosProdutoPedido(idDetalheProdutoPedido, registro);
+            let {success, stEditarSAP, msg } = validarSeAptoParaEditarSapQuandoPedidoPadrao(registro);
+            
+            stEditarItemPedidoSAP = stEditarSAP;
+            successValidacao = success;
+            msgValidacao = msg;
+            
         }
         
-        conn.commit();
-        
-        //libEditProdutoPedido.executeProduto(idDetalheProdutoPedido);
+        if(!successValidacao){
+            registrarErrorLog(registro.IDDETALHEPRODUTOPEDIDO, msgValidacao);
+            
+            return returnWarning(msgValidacao);
+        }
+        //return registro
+        //let arrayResp = []
+        if(stEditarItemPedidoSAP){
+            let dadosItensParaEditar = getDadosItemPedidoParaEditarSAP(registro);
+            
+            for(let dadosItem of dadosItensParaEditar){
+                /*let resp = libEditItemPedido.editarItemPedidoSAP(dadosItem.DOCENTRY, dadosItem);
+                arrayResp.push(resp);
+                continue;*/
+                let { success, msg } = libEditItemPedido.editarItemPedidoSAP(dadosItem.DOCENTRY, dadosItem);
+                
+                if(!success){
+                    registrarErrorLog(registro.IDDETALHEPRODUTOPEDIDO, msg);
+                    
+                    return returnWarning(msg);
+                }
+            }
+        }
+        //return arrayResp
+		atualizarDadosPedido(registro);
     }
+    
+    conn.commit();
 	
     return {
         "msg": "Edição realizado com sucesso!"

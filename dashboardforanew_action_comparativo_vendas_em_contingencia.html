@@ -1,0 +1,74 @@
+<div>
+  <div class="subheader">
+    <h1 class="subheader-title">
+      <div class="row">
+        <div class="col-sm-6 col-xl-8">
+          <i class='subheader-icon fal fa-chart-area'></i> GTO <span class='fw-400'>Dashboard Vendas em
+            Contingência - <label class="parametro_dia"></label>
+        </div>
+      </div>
+    </h1>
+    <div>
+      <button type="button" class="btn btn-sm btn-outline-secondary mr-1" title="Atualizar Dashboard"
+        onclick="carregarDadosDashboardVendasContingencia()">
+        <i class='fal fa-redo'></i>
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" title="Configurar Atualização Automática"
+        onclick="alterarTempoRefreshAutomatico()">
+        <i class='fal fa-cog'></i>
+      </button>
+    </div>
+  </div>
+
+  <div id="cardsTotaisVendasContingenciaPorEstado" class="row">
+    <div class="col-sm-6 col-xl-6-">
+      <div class="card text-white bg-primary-500 mb-3">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1 text-left pl-2">
+              <div class="mb-3">
+                <h5 class="fw-500 mb-0 pb-0 text-truncate"> Total Vendas Em Contingência - Mês: <span
+                    id="mesAnoTotalGeralVendasContingenciaMes"></span> </h5>
+              </div>
+              <div class="mb-1">
+                <h2 id="totalGeralVendasContingenciaMes" class="display-3 d-inline-block l-h-n m-0 fw-500"> 0 </h2>
+              </div>
+            </div>
+            <div class="flex-grow-2 position-absolute pos-right text-right opacity-50 pr-2">
+              <span style="font-size: 3rem;font-family: 'Font Awesome 5 Pro'">Geral</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-6">
+      <div class="card text-white bg-primary-500 mb-3">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1 text-left pl-2">
+              <div class="mb-3">
+                <h5 class="fw-500 text-truncate"> Total Vendas Em Contingência - Hoje: <span
+                    id="diaTotalGeralVendasContingenciaDia"></span></h5>
+              </div>
+              <div class="mb-1">
+                <h2 id="totalGeralVendasContingenciaDiaAtual" class="display-3 d-inline-block l-h-n m-0 fw-500"> 0 </h2>
+              </div>
+            </div>
+            <div class="flex-grow-2 position-absolute pos-right text-right opacity-50 pr-2">
+              <span style="font-size: 3rem;font-family: 'Font Awesome 5 Pro'"> Geral </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cardsTotaisVendasContingenciaPorEstadoMesGeral" class="row"></div>
+
+  <div id="cardsTotaisVendasContingenciaPorEstadoMes" class="row"></div>
+
+  <div id="cardsTotaisVendasContingenciaPorEstadoDiaAtual" class="row"></div>
+
+  <div id="tabelaVendasContingencia" class="row"></div>
+
+</div>

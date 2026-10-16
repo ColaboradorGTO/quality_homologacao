@@ -49,12 +49,67 @@ function getValorTaxaAcrescimo(idResumoPedido){
     return regTaxa.length > 0 ? Number(regTaxa[0].FATOR_ACRESCIMO_COMPRA) : 1;
 }
 
+function obterLinhasDoDetalheGrade(idDetPedido, somenteGradeAtiva) {
+	let query = `
+        SELECT
+            TBDG.IDDETALHEPEDIDOGRADE,
+            TBDG.IDDETALHEPEDIDO,
+            TBDG.IDTAMANHO,
+            TBT.DSTAMANHO,
+            TBDG.INDICETAMANHO,
+            TBDG.QTD,
+            TBDG.STATIVO, 
+            TBDG.STDETALHEPRODUTOPEDIDOGERADO
+        FROM  
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG
+        INNER JOIN "VAR_DB_NAME".TAMANHO TBT ON
+            TBDG.IDTAMANHO = TBT.IDTAMANHO
+        WHERE  
+            TBDG.IDDETALHEPEDIDO = ?
+	`;
+	
+	if(somenteGradeAtiva == 'True'){
+	    query += " AND TBDG.STATIVO = 'True' ";
+	}
+	
+	query += ' ORDER BY TO_ALPHANUM(TBT.DSABREVIACAO)';
+
+    return api.sqlQuery(query, idDetPedido);
+}
+
+function obterStatusCriacaoDetalheProdutoPedidoNaoCriado(idDetPedido){
+    let query = `
+        SELECT DISTINCT
+            TBDG.STDETALHEPRODUTOPEDIDOGERADO
+        FROM
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG
+        INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO TBD ON 
+            TBDG.IDDETALHEPEDIDO = TBD.IDDETALHEPEDIDO
+        WHERE  
+            1 = ?
+            AND TBDG.STATIVO = 'True'
+            AND TBDG.STDETALHEPRODUTOPEDIDOGERADO = 'False'
+            AND (
+                    TBD.IDDETALHEPEDIDO = ${idDetPedido}
+                OR
+                    TBD.IDDETALHEPEDIDOPRIMARIO = ${idDetPedido}
+            )
+	`;
+
+    let reg = api.sqlQuery(query, 1);
+    
+    return reg.length > 0;
+}
+
 function fnHandleGet(byId) {
     let idPedido = $.request.parameters.get("idpedido");
     let dataPesquisaInicio = $.request.parameters.get("dataPesquisaInicio");
     let dataPesquisaFim = $.request.parameters.get("dataPesquisaFim");
     let sttransformado = $.request.parameters.get("sttransformado");
     let streposicao = $.request.parameters.get("streposicao");
+    let dsProduto = $.request.parameters.get("dsProduto");
+    let refProduto = $.request.parameters.get("refProduto");
+    let somenteGradeAtiva = $.request.parameters.get("somenteGradeAtiva");
 
     let query =  `
         SELECT
@@ -119,7 +174,11 @@ function fnHandleGet(byId) {
             TBP.IDFONTEPRODUTOFISCAL,
             TBDP.NUCODBARRAS,
             TBDP.IDPRODUTO,
-            TBDP.IDDETALHEPEDIDOPRIMARIO 
+            TBDP.IDDETALHEPEDIDOPRIMARIO,
+            IFNULL(TBP.NUNCM, TBDPP.NUNCM) AS NUNCM,
+            IFNULL(TBP.IDFONTEPRODUTOFISCAL, TBDPP.IDFONTEPRODUTOFISAL) AS IDFONTEPRODUTOFISAL,
+            IFNULL(TBP.IDTIPOPRODUTOFISCAL, TBDPP.IDTIPOPRODUTOFISCAL) AS IDTIPOPRODUTOFISCAL,
+            TBRP.STMIGRADOSAP
         FROM
             "VAR_DB_NAME".DETALHEPEDIDO TBDP
         INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO TBRP ON
@@ -149,9 +208,19 @@ function fnHandleGet(byId) {
         INNER JOIN "VAR_DB_NAME".CATEGORIAS TBC ON
             TBDP.IDCATEGORIAS = TBC.IDCATEGORIAS
         LEFT JOIN "VAR_DB_NAME".PRODUTO TBP ON
-            TBP.NUCODBARRAS = TBDP.NUCODBARRAS
+            TBP.IDPRODUTO = TBDP.IDPRODUTO AND TBP.NUCODBARRAS = TBDP.NUCODBARRAS
         LEFT JOIN "VAR_DB_NAME".DETALHEPEDIDO TBDP_SECUNDARIO ON
             TBDP.IDDETALHEPEDIDO = TBDP_SECUNDARIO.IDDETALHEPEDIDOPRIMARIO
+        LEFT JOIN (
+            SELECT DISTINCT
+                XA.IDDETALHEPEDIDO,
+                XA.NUNCM,
+                XA.IDFONTEPRODUTOFISAL,
+                XA.IDTIPOPRODUTOFISCAL
+            FROM 
+                "VAR_DB_NAME".DETALHEPRODUTOPEDIDO XA		
+        )TBDPP ON 
+            TBDP.IDDETALHEPEDIDO = TBDPP.IDDETALHEPEDIDO
         WHERE
             1 = ?
             AND TBRP.STCANCELADO = 'False'
@@ -165,13 +234,39 @@ function fnHandleGet(byId) {
         query += ` AND  TBDP.IDRESUMOPEDIDO = '${idPedido}' `;
     }
     if ( sttransformado ) {
-        query += ` AND TBDP.STTRANSFORMADO = '${sttransformado}' `;
+        query += ` 
+            AND (
+                TBDP.STTRANSFORMADO = '${sttransformado}' 
+                OR EXISTS(
+                    SELECT
+                        1
+                    FROM
+                        "VAR_DB_NAME".DETALHEPEDIDOGRADE XA
+                    INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO XB ON 
+                        XA.IDDETALHEPEDIDO = XB.IDDETALHEPEDIDO
+                    WHERE  
+                        XA.STATIVO = 'True'
+                        AND XA.STDETALHEPRODUTOPEDIDOGERADO = '${sttransformado}'
+                        AND (
+                                XB.IDDETALHEPEDIDO = TBDP.IDDETALHEPEDIDO
+                            OR
+                                XB.IDDETALHEPEDIDOPRIMARIO = TBDP.IDDETALHEPEDIDO
+                        )    
+                )
+            )
+        `;
     }
     if ( streposicao ) {
         query += ` AND TBDP.STREPOSICAO = '${streposicao}' `;
     }
     if(dataPesquisaInicio && dataPesquisaFim) {
-        query += `  AND (TO_DATE(TBRP.DTPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}') `;
+        query += ` AND (TO_DATE(TBRP.DTPEDIDO) BETWEEN '${dataPesquisaInicio}' AND '${dataPesquisaFim}') `;
+    }
+    if(dsProduto) {
+        query += ` AND CONTAINS(tbdp.DSPRODUTO, '${dsProduto}') `;
+    }
+    if(refProduto) {
+        query += ` AND CONTAINS(tbdp.NUREF, '${refProduto}') `;
     }
     
     query += ' ORDER BY tbdp.NUREF, tbdp.DSPRODUTO ';
@@ -181,7 +276,28 @@ function fnHandleGet(byId) {
         pageSize:  $.request.parameters.get("pageSize")
     };
     
-    api.responseWithQuery(query, request, 1);
+    let response = api.sqlQueryPage(query, request, 1);
+	let data = [];
+
+	for (let i = 0; i < response.data.length; i++) {
+		let registro = JSON.parse(JSON.stringify(response.data[i]));
+		let existeProdutosParaTransformar = obterStatusCriacaoDetalheProdutoPedidoNaoCriado(registro.IDDETPEDIDO);
+		
+		if(existeProdutosParaTransformar){
+		    if(registro.STTRANSFORMADO == 'True'){
+                registro.STNOVOTAMANHOADICIONADO = 'True'
+		    }
+		    
+		}
+		
+        registro.DETALHEPEDIDOGRADE = obterLinhasDoDetalheGrade(registro.IDDETPEDIDO, somenteGradeAtiva);
+        
+        data.push(registro);
+	}
+
+	response.data = data;
+
+	return response;
 }
 
 function fnUpdatProdPedido(conn, idDetalhePedido) {
@@ -220,7 +336,7 @@ function fnUpdatProdPedido(conn, idDetalhePedido) {
         INNER JOIN "VAR_DB_NAME".UNIDADEMEDIDA TBU ON
             TBD.UND = TBU.IDUNIDADEMEDIDA
         INNER JOIN "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG ON
-            TBD.IDDETALHEPEDIDO = TBDG.IDDETALHEPEDIDO AND TBDG.STATIVO = 'True'
+            TBD.IDDETALHEPEDIDO = TBDG.IDDETALHEPEDIDO AND TBDP.IDTAMANHO = TBDG.IDTAMANHO AND TBDG.STATIVO = 'True'
         INNER JOIN "VAR_DB_NAME".TAMANHO TBT ON
             TBDG.IDTAMANHO = TBT.IDTAMANHO
         WHERE
@@ -252,7 +368,9 @@ function fnUpdatProdPedido(conn, idDetalhePedido) {
             "IDFORNECEDOR" = ?,
             --"STREPOSICAO" = ?,
             "STEDITADOCOMPRAS" = 'True',
-            "STMIGRADOSAP" = 'False'
+            "STATIVO" = 'True',
+            "STCANCELADO" = 'False'/*,
+            "STMIGRADOSAP" = 'False'*/
         WHERE
             "IDDETALHEPRODUTOPEDIDO" = ?
     `;
@@ -329,7 +447,7 @@ function fnUpdatProdPedidoSecundario(conn, idDetalhePedido) {
         INNER JOIN "VAR_DB_NAME".UNIDADEMEDIDA TBU ON
             TBD.UND = TBU.IDUNIDADEMEDIDA
         INNER JOIN "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG ON
-            TBD.IDDETALHEPEDIDO = TBDG.IDDETALHEPEDIDO AND TBDG.STATIVO = 'True'
+            TBD.IDDETALHEPEDIDO = TBDG.IDDETALHEPEDIDO AND TBDP.IDTAMANHO = TBDG.IDTAMANHO AND TBDG.STATIVO = 'True'
         INNER JOIN "VAR_DB_NAME".TAMANHO TBT ON
             TBDG.IDTAMANHO = TBT.IDTAMANHO
         WHERE
@@ -361,7 +479,9 @@ function fnUpdatProdPedidoSecundario(conn, idDetalhePedido) {
             "IDFORNECEDOR" = ?,
             --"STREPOSICAO" = ?,
             "STEDITADOCOMPRAS" = 'True',
-            "STMIGRADOSAP" = 'False'
+            "STMIGRADOSAP" = 'False',
+            "STATIVO" = 'True',
+            "STCANCELADO" = 'False'
         WHERE
             "IDDETALHEPRODUTOPEDIDO" = ?
     `;
@@ -420,7 +540,7 @@ function fnUpdateDetalhesPedidoGradeParaFalse(conn, idDetalhePedido) {
     pStmt.close();
 }
 
-function fnEditDetalhesPedidoGradeSecundario(conn, grade, idDetalhePedido) {
+function editarDetalhesPedidoGradeSecundario(conn, grade, idDetalhePedido) {
     let query = `
         SELECT
             TBD.IDDETALHEPEDIDO
@@ -432,43 +552,18 @@ function fnEditDetalhesPedidoGradeSecundario(conn, grade, idDetalhePedido) {
     
     let regDetPedido = api.sqlQuery(query, idDetalhePedido);
     
-    regDetPedido.length > 0 && fnEditDetalhesPedidoGrade(conn, grade, parseInt(regDetPedido[0].IDDETALHEPEDIDO));
+    regDetPedido.length > 0 && editarDetalhesPedidoGrade(conn, grade, parseInt(regDetPedido[0].IDDETALHEPEDIDO));
     
 }
 
-function fnEditDetalhesPedidoGrade(conn, lstDetGradEdit, idDetalhePedido) {
-	let query = `
-        INSERT INTO 
-            "VAR_DB_NAME"."DETALHEPEDIDOGRADE"
-        (
-            "IDDETALHEPEDIDOGRADE",
-            "IDDETALHEPEDIDO",
-            "IDTAMANHO",
-            "INDICETAMANHO",
-            "QTD",
-            "STATIVO"
-        )
-        VALUES(?,?,?,?,?, 'True') 
-	`;
-
-	let pStmt = conn.prepareStatement(api.replaceDbName(query));
-
-    fnUpdateDetalhesPedidoGradeParaFalse(conn, idDetalhePedido);
+function editarDetalhesPedidoGrade(conn, gradeamento, idDetalhePedido) {
+    let gradeamentoParaInsert = gradeamento.filter((reg) => reg.IDDETALHEPEDIDOGRADE == null);
+    let gradeamentoParaUpdate = gradeamento.filter((reg) => reg.IDDETALHEPEDIDOGRADE != null);
     
-	for (let i = 0; i < lstDetGradEdit.length; i++) {
-		let registroedit = lstDetGradEdit[i];
-		let idDetalhePedidoGradeEdit = api.executeScalar('SELECT "VAR_DB_NAME"."SEQ_DETALHEPEDIDOGRADE".NEXTVAL FROM DUMMY WHERE 1 = ? ', 1);
-        
-		pStmt.setInt(1, idDetalhePedidoGradeEdit);
-		pStmt.setInt(2, idDetalhePedido);
-		pStmt.setInt(3, registroedit.idgrade);
-		pStmt.setInt(4, registroedit.vlrgrade);
-		pStmt.setFloat(5, registroedit.qtdgrade);
-        
-		pStmt.execute();
-	}
-	
-	pStmt.close();
+    updateStAtivoDetalhePedidoGrade (idDetalhePedido);
+    
+    insertDetalhePedidoGrade (conn, gradeamentoParaInsert, idDetalhePedido);
+    updateDetalhePedidoGrade (conn, gradeamentoParaUpdate, idDetalhePedido);
 }
 
 function fnEditarDetalhesPedidoSecundario(registro, conn) {
@@ -504,7 +599,8 @@ function fnEditarDetalhesPedidoSecundario(registro, conn) {
             TBD."NUCODBARRAS" = ?,
             TBD."IDPRODUTO" = ?,
             TBD."DTATUALIZACAO" = CURRENT_TIMESTAMP,
-            TBD."IDRESPATUALIZACAO" = ?
+            TBD."IDRESPATUALIZACAO" = ?,
+            TBD."IDCATEGORIAPEDIDO" = ?
         FROM 
             "VAR_DB_NAME"."DETALHEPEDIDO" TBD 
         INNER JOIN "VAR_DB_NAME"."RESUMOPEDIDO" TBR ON 
@@ -543,17 +639,94 @@ function fnEditarDetalhesPedidoSecundario(registro, conn) {
     setStringOrNull(pStmt, 26, registro.NUCODBARRAS);
     setStringOrNull(pStmt, 27, registro.IDPRODUTO);
     pStmt.setInt(28, registro.IDRESPATUALIZACAO);
-    pStmt.setInt(29, registro.idDetPedido);
+    pStmt.setInt(29, registro.IDCATEGORIAPEDIDO);
+    pStmt.setInt(30, registro.idDetPedido);
     
     pStmt.execute();
     
-    fnEditDetalhesPedidoGradeSecundario(conn, registro.GRADE, registro.idDetPedido);
+    editarDetalhesPedidoGradeSecundario(conn, registro.GRADE, registro.idDetPedido);
     
 	pStmt.close();
 
     conn.commit()
 
     fnUpdatProdPedidoSecundario(conn, registro.idDetPedido);
+}
+
+function insertDetalhePedidoGrade (conn, gradeamento, idDetalhePedido){
+    let query = `
+        INSERT INTO 
+            "VAR_DB_NAME"."DETALHEPEDIDOGRADE"
+        (
+            "IDDETALHEPEDIDOGRADE",
+            "IDDETALHEPEDIDO",
+            "IDTAMANHO",
+            "INDICETAMANHO",
+            "QTD",
+            "STATIVO"
+        )
+        VALUES("VAR_DB_NAME"."SEQ_DETALHEPEDIDOGRADE".NEXTVAL, ?,?,?,?, 'True') 
+	`;
+
+	let pStmt = conn.prepareStatement(api.replaceDbName(query));
+
+	for (let registro of gradeamento) {
+		pStmt.setInt(1, idDetalhePedido);
+		pStmt.setInt(2, registro.IDTAMANHO);
+		pStmt.setInt(3, registro.INDICETAMANHO);
+		pStmt.setFloat(4, registro.QTD);
+        
+		pStmt.execute();
+	}
+	
+	pStmt.close();
+}
+
+function updateDetalhePedidoGrade (conn, gradeamento, idDetalhePedido){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."DETALHEPEDIDOGRADE"
+        SET
+            "INDICETAMANHO" = ?,
+            "QTD" = ?,
+            "STATIVO" = 'True'
+        WHERE 
+            "IDTAMANHO" = ?
+            AND "IDDETALHEPEDIDO" = ?
+	`;
+
+	let pStmt = conn.prepareStatement(api.replaceDbName(query));
+
+	for (let registro of gradeamento) {
+		pStmt.setInt(1, registro.INDICETAMANHO);
+		pStmt.setFloat(2, registro.QTD);
+		pStmt.setInt(3, registro.IDTAMANHO);
+		pStmt.setInt(4, idDetalhePedido);
+        
+		pStmt.execute();
+	}
+	
+	pStmt.close();
+}
+
+function updateStAtivoDetalhePedidoGrade (idDetalhePedido){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."DETALHEPEDIDOGRADE"
+        SET
+            "STATIVO" = 'False'
+        WHERE
+            "IDDETALHEPEDIDO" = ?
+	`;
+
+	let pStmt = conn.prepareStatement(api.replaceDbName(query));
+	
+	pStmt.setInt(1, idDetalhePedido);
+	
+	pStmt.execute();
+	pStmt.close();
+	
+	conn.commit();
 }
 
 function fnHandlePut() {
@@ -591,7 +764,8 @@ function fnHandlePut() {
             TBD."NUCODBARRAS" = ?,
             TBD."IDPRODUTO" = ?,
             TBD."DTATUALIZACAO" = CURRENT_TIMESTAMP,
-            TBD."IDRESPATUALIZACAO" = ?
+            TBD."IDRESPATUALIZACAO" = ?,
+            TBD."IDCATEGORIAPEDIDO" = ?
         FROM 
             "VAR_DB_NAME"."DETALHEPEDIDO" TBD 
         INNER JOIN "VAR_DB_NAME"."RESUMOPEDIDO" TBR ON 
@@ -602,7 +776,7 @@ function fnHandlePut() {
     
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
     let bodyJson = JSON.parse($.request.body.asString()); 
-
+    
     for (let i = 0; i < bodyJson.length; i++) {
 		let registro = bodyJson[i];
         
@@ -634,11 +808,13 @@ function fnHandlePut() {
         setStringOrNull(pStmt, 26, registro.NUCODBARRAS);
         setStringOrNull(pStmt, 27, registro.IDPRODUTO);
         pStmt.setInt(28, registro.IDRESPATUALIZACAO);
-        pStmt.setInt(29, registro.idDetPedido);
+        pStmt.setInt(29, registro.IDCATEGORIAPEDIDO);
+        pStmt.setInt(30, registro.idDetPedido);
         
         pStmt.execute();
         
-        fnEditDetalhesPedidoGrade(conn, registro.GRADE, registro.idDetPedido);
+        editarDetalhesPedidoGrade(conn, registro.GRADE, registro.idDetPedido);
+        
         registro.STPEDIDOPORINTEMEDIARIO == 'True' && fnEditarDetalhesPedidoSecundario(registro, conn);
         
         conn.commit();
@@ -647,7 +823,7 @@ function fnHandlePut() {
     }
     
 	pStmt.close();
-
+ 
 	conn.commit();
 	
 	return 'realizado com sucesso';
@@ -666,20 +842,20 @@ function fnIncluirDetalhesPedidoGrade(conn, lstDetGrad, idDetalhePedido) {
             "QTD",
             "STATIVO"
         )
-        VALUES(?,?,?,?,?, 'True') 
+        VALUES("VAR_DB_NAME"."SEQ_DETALHEPEDIDOGRADE".NEXTVAL,?,?,?,?, 'True') 
 	`;
 
 	let pStmt = conn.prepareStatement(api.replaceDbName(query));
 
 	for (var i = 0; i < lstDetGrad.length; i++) {
 		let registro = lstDetGrad[i];
-		let idDetalhePedidoGrade = api.executeScalar('SELECT "VAR_DB_NAME"."SEQ_DETALHEPEDIDOGRADE".NEXTVAL FROM DUMMY WHERE 1 = ? ', 1);
+		/*let idDetalhePedidoGrade = api.executeScalar('SELECT "VAR_DB_NAME"."SEQ_DETALHEPEDIDOGRADE".NEXTVAL FROM DUMMY WHERE 1 = ? ', 1);
         
-		pStmt.setInt(1, idDetalhePedidoGrade);
-		pStmt.setInt(2, idDetalhePedido);
-		pStmt.setInt(3, registro.idgrade);
-		pStmt.setInt(4, registro.vlrgrade);
-		pStmt.setFloat(5, registro.qtdgrade);
+		//pStmt.setInt(1, idDetalhePedidoGrade);*/
+		pStmt.setInt(1, idDetalhePedido);
+		pStmt.setInt(2, registroedit.IDTAMANHO);
+		pStmt.setInt(3, registroedit.INDICETAMANHO);
+		pStmt.setFloat(4, registroedit.QTD);
         
 		pStmt.execute();
 	}
@@ -786,7 +962,7 @@ function fnIncluirDetalhesPedidoSecundario(registro, idDetalhePedidoPrimario, co
     pStmt.execute();
 	pStmt.close();
 
-    fnIncluirDetalhesPedidoGrade(conn, registro.GRADE, idDetalhePedido);
+    insertDetalhePedidoGrade(conn, registro.GRADE, idDetalhePedido);
 }
 
 function fnHandlePost(){
@@ -828,15 +1004,15 @@ function fnHandlePost(){
             "STREPOSICAO",
             "NUCODBARRAS",
             "IDPRODUTO",
-            "DTCADASTRO",
-            "IDRESPCADASTRO"
+            "IDRESPCADASTRO",
+            "DTCADASTRO"
         )
-		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now(), ?)
+		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now())
 	`;
   
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());
-
+   
 	for (var i = 0; i < bodyJson.length; i++) {
 		var registro = bodyJson[i];
 		var idDetalhePedido = api.executeScalar('SELECT "VAR_DB_NAME"."SEQ_DETALHEPEDIDO".NEXTVAL FROM DUMMY WHERE 1 = ? ', 1);
@@ -879,7 +1055,7 @@ function fnHandlePost(){
         
         pStmt.execute();
         
-        fnIncluirDetalhesPedidoGrade(conn, registro.GRADE, idDetalhePedido);
+        insertDetalhePedidoGrade(conn, registro.GRADE, idDetalhePedido);
         
         registro.STPEDIDOPORINTEMEDIARIO == 'True' && fnIncluirDetalhesPedidoSecundario(registro, idDetalhePedido, conn);
 	}
@@ -887,7 +1063,7 @@ function fnHandlePost(){
 	pStmt.close();
 
 	conn.commit();
-	
+// 	return bodyJson;
     return {
 	    "msg": "Inclusão realizada com sucesso!"
 	};
@@ -907,7 +1083,9 @@ try {
         //Handle your GET calls here
         case $.net.http.GET:
             var id = $.request.parameters.get("id");
-            fnHandleGet(id);
+            var docReturn = fnHandleGet(id);
+            $.response.setBody(JSON.stringify(docReturn));
+          //  fnHandleGet(id);
             break;
             
         //Handle your POST calls here

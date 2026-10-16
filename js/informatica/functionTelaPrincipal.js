@@ -353,78 +353,350 @@ function mCPF(cpf){
 function RetiraMascara(ObjCPF) {
     return ObjCPF.value.replace(/\D/g, '');
 }
+
+function capitalizeWords(valor) {
+  valor = String(valor)?.toLowerCase()?.replace(/(^|(?<=\s)|(?<=\())\S/g, letra => letra.toUpperCase())?.replace(/\s+/g, ' ')?.trim() || "";
+
+  return valor
+}
 //////////////// Página Inicial //////////////////
 
-$(document).ready(function() {
+$(document).ready(async function () {
+  try {
+    animationLoadingStart();
 
-    $('#parametro_dia').val(dataAtualCampo);
-    $('.dataAtual').text(dataAtual);
-    $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
-    $('.NoEmpresaTitulo').text(NOEmpresaLogin);
+    let htmlPage = await $.get('informatica_action_tela_principal.html');
+    let listaMarcas = await ajaxGetAllData('api/informatica/marca.xsjs', false);
+    let listaEmpresas = await ajaxGetAllData('api/informatica/empresa.xsjs', false);
 
-    /////////////Lista de Empresas ///////////////////////////////////////////
+    $("#js-page-content").html(htmlPage);
 
-    ajaxGet('api/informatica/empresa.xsjs')
-        .then(retornoListaEmpresas)
-        .catch(funcErrorListaEmpresas);
-        
-	ajaxGet('http://ipwho.is/')
-	.then(retornoIp)
-	.catch(funcError);
+    await retornoSelectListaMarca(listaMarcas);
+    await retornoSelectListaEmpresas(listaEmpresas);
+    await retornoTabelaListaEmpresas(listaEmpresas);
 
+    $('#ufFilial, #stAbertoFilial, #stAtivoFilial').select2();
+
+  } catch (error) {
+    console.log(error);
+
+    msgError();
+  }
+
+  $('#parametro_dia').val(dataAtualCampo);
+  $('.dataAtual').text(dataAtual);
+  $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
+  $('.NoEmpresaTitulo').text(NOEmpresaLogin);
+
+  animationLoadingStop();
+
+  ajaxGet('http://ipwho.is/')
+    .then(retornoIp)
+    .catch(error => console.log(error));
 });
 
-function retornoIp(resp){
-    ipCliente = resp.ip;
+function retornoIp(resp) {
+  ipCliente = resp.ip;
 }
 
-function retornoListaEmpresas(respostaListaEmpresas) {
+async function pesquisarListaEmpresas() {
+  let ufFiliais = $('#ufFilial').val() || '';
+  let marcaEmpresa = $("#idmarca").val() || '';
+  let idFilial = $("#idFilial").val() || '';
+  let stAtivo = $('#stAtivoFilial').val() || '';
+  let stAberto = $('#stAbertoFilial').val() || '';
 
-    var tableListaEmpresas = $('#dt-basic-lista_empresas').DataTable();
+  try {
+    await ajaxGetAllData(`api/informatica/empresa.xsjs?uf=${ufFiliais}&marcaEmpresa=${marcaEmpresa}&id=${idFilial}&stAtivo=${stAtivo}&stAberto=${stAberto}`, "Buscando Dados, Aguarde...")
+      .then(retornoTabelaListaEmpresas)
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
+}
 
-    tableListaEmpresas.rows().remove().draw();
+$(document).ready(async function () {
+  try {
+    animationLoadingStart();
 
-    if (respostaListaEmpresas['rows'] > 0) {
+    let htmlPage = await $.get('informatica_action_tela_principal.html');
+    let listaUfLojas = await ajaxGetAllData('api/informatica/uf-empresa.xsjs', false);
+    let listaMarcas = await ajaxGetAllData('api/informatica/marca.xsjs', false);
+    let listaEmpresas = await ajaxGetAllData('api/informatica/empresa.xsjs', false);
 
-        var ContadorEmpresas = 0;
+    $("#js-page-content").html(htmlPage);
 
-        for (var i = 0; i < respostaListaEmpresas['data'].length; i++) {
+    await retornoSelectListaUfs(listaUfLojas);
+    await retornoSelectListaMarca(listaMarcas);
+    await retornoSelectListaEmpresas(listaEmpresas);
+    await retornoTabelaListaEmpresas(listaEmpresas);
 
-            ContadorEmpresas = ContadorEmpresas + 1;
+    $('#ufFilial, #stAbertoFilial, #stAtivoFilial').select2();
 
-            IDEmpresa = respostaListaEmpresas.data[i]['IDEMPRESA'];
-            NoEmpresa = respostaListaEmpresas.data[i]['NOFANTASIA'];
-            NuCNPJEmpresa = respostaListaEmpresas.data[i]['NUCNPJ'];
-            NuIEEmpresa = respostaListaEmpresas.data[i]['NUINSCESTADUAL'];
-            IDConfiguracaoEmpresa = respostaListaEmpresas.data[i]['IDCONFIGURACAO'];
-            NuCertificadoEmpresa = respostaListaEmpresas.data[i]['DSNOMEPFX'];
-            DTValidadeCertificadoEmpresa = respostaListaEmpresas.data[i]['DTVALIDADECERTIFICADO'];
+  } catch (error) {
+    console.log(error);
 
-            if (IDConfiguracaoEmpresa > 0) {
-                SituacaoConfEmpresa = '<div class="btn-group btn-group-xs">' +
-                    '<button type="button" class="btn btn-primary btn-xs" title="Atualizar Certificado" id="' + IDConfiguracaoEmpresa + '" onclick="modal_Atualiza_Cerfificado(this.id)">Certificado</button>' +
-                    '<button type="button" class="btn btn-warning btn-xs" title="Editar Status de Atualização Diaria" id="' + IDEmpresa + '" onclick="modal_Editar_Empresa(this.id)">Editar</button>' +
-                    '<button type="button" class="btn btn-success btn-xs" title="Listar Caixas" id="' + IDEmpresa + '" onclick="ListaCaixas(this.id)" >Caixas - PDV</button></div>';
-            } else {
-                SituacaoConfEmpresa = '';
-            }
+    msgError();
+  }
 
-            tableListaEmpresas.row.add([
-                `<label style="color: blue; font-size: 11px;">` + ContadorEmpresas + `</label>`,
-                `<label style="color: blue; font-size: 11px;">` + NoEmpresa + `</label>`,
-                `<label style="color: blue; font-size: 11px;">` + NuCNPJEmpresa + `</label>`,
-                `<label style="color: blue; font-size: 11px;">` + NuIEEmpresa + `</label>`,
-                `<label style="color: blue; font-size: 11px;">` + NuCertificadoEmpresa + `</label>`,
-                `<label style="color: blue; font-size: 11px;">` + DTValidadeCertificadoEmpresa + `</label>`,
-                SituacaoConfEmpresa,
-            ]).draw(false);
+  $('#parametro_dia').val(dataAtualCampo);
+  $('.dataAtual').text(dataAtual);
+  $('.NoFuncionarioTitulo').text(NomeFuncionarioLogin);
+  $('.NoEmpresaTitulo').text(NOEmpresaLogin);
 
-        }
+  animationLoadingStop();
 
+  ajaxGet('http://ipwho.is/')
+    .then(retornoIp)
+    .catch(error => console.log(error));
+});
+
+function retornoIp(resp) {
+  ipCliente = resp.ip;
+}
+
+async function pesquisarListaEmpresas() {
+  let ufFiliais = $('#ufFilial').val() || '';
+  let marcaEmpresa = $("#idmarca").val() || '';
+  let idFilial = $("#idFilial").val() || '';
+  let stAtivo = $('#stAtivoFilial').val() || '';
+  let stAberto = $('#stAbertoFilial').val() || '';
+
+  try {
+    await ajaxGetAllData(`api/informatica/empresa.xsjs?uf=${ufFiliais}&marcaEmpresa=${marcaEmpresa}&id=${idFilial}&stAtivo=${stAtivo}&stAberto=${stAberto}`, "Buscando Dados, Aguarde...")
+      .then(retornoTabelaListaEmpresas)
+  } catch (error) {
+    console.log(error);
+    msgError();
+  }
+}
+
+async function retornoTabelaListaEmpresas(respostaListaEmpresas) {
+  let { data } = respostaListaEmpresas || [];
+  let dadosTabela = [];
+  let contador = 0;
+
+  for (let registro of data) {
+    let idEmpresa = registro.IDEMPRESA;
+    let noFantasiaEmpresa = registro.NOFANTASIA;
+    let nuCnpjEmpresa = maskCnpj(registro.NUCNPJ);
+    let nuInscEstadualEmpresa = maskIE(registro.NUINSCESTADUAL, registro?.SGUF);
+    let idConfiguracaoEmpresa = registro.IDCONFIGURACAO;
+    let nuCertificadoEmpresa = registro.DSNOMEPFX;
+    let dtValidadeCertificadoEmpresa = registro.DTVALIDADECERTIFICADOFORMATADA;
+    let nuCep = maskCep(registro.NUCEP);
+    let bairro = capitalizeWords(registro?.EBAIRRO);
+    let cidade = capitalizeWords(registro?.ECIDADE);
+    let uf = registro?.SGUF;
+    let endereco = capitalizeWords(registro?.EENDERECO) + ' - ' + bairro + ' - ' + nuCep;
+    let municipioUf = cidade + ' / ' + uf;
+    let stLojaAberta = registro.STLOJAABERTA || '';
+    let containerButtons = '';
+
+    if (stLojaAberta == 'True') {
+      stLojaAberta = `<label class="text-info fw-700" style="font-size: 11px;"> ABERTA </label>`;
     } else {
-
-
+      stLojaAberta = `<label class="text-danger fw-700" style="font-size: 11px;"> ${stLojaAberta == 'False' ? 'FECHADA' : ''} </label>`;
     }
+
+    if (idConfiguracaoEmpresa > 0) {
+      containerButtons = `
+        <div class="d-flex justify-content-center">
+          <button type="button" class="btn btn-primary btn-xs ml-1" title="Atualizar Certificado" id="${idConfiguracaoEmpresa}" onclick="modal_Atualiza_Cerfificado(this.id)">Certificado</button>
+          <button type="button" class="btn btn-warning btn-xs ml-1" title="Editar Status de Atualização Diaria" id="${idEmpresa}" onclick="modal_Editar_Empresa(this.id)">Editar</button>
+          <button type="button" class="btn btn-success btn-xs ml-1" title="Listar Caixas" id="${idEmpresa}" onclick="ListaCaixas(this.id)">Caixas - PDV</button>
+        </div>
+      `;
+    }
+
+    contador++
+
+    dadosTabela.push([
+      `<label style="color: blue; font-size: 11px;">` + contador + `</label>`,
+      `<label style="color: blue; font-size: 11px;">` + noFantasiaEmpresa + `</label>`,
+      `<label style="color: blue; font-size: 11px;">` + nuCnpjEmpresa + `</label>`,
+      `<label style="color: blue; font-size: 11px;">` + nuInscEstadualEmpresa + `</label>`,
+      `<label style="color: blue; font-size: 11px;">` + endereco + `</label>`,
+      `<label style="color: blue; font-size: 11px;">` + municipioUf + `</label>`,
+      `<label style="color: blue; font-size: 11px;">` + nuCertificadoEmpresa + `</label>`,
+      `<label style="color: blue; font-size: 11px;">` + dtValidadeCertificadoEmpresa + `</label>`,
+      stLojaAberta,
+      containerButtons,
+    ]);
+
+  }
+
+  $('#resultado').html(`
+    <table id="dt-basic-lista_empresas" class="table table-bordered table-hover table-striped w-100">
+      <thead class="bg-primary-600">
+        <tr>
+          <th class="text-center">Nº</th>
+          <th class="text-center">Empresa</th>
+          <th class="text-center">CNPJ</th>
+          <th class="text-center">IE</th>
+          <th class="text-center">Endereço</th>
+          <th class="text-center">Municipio/UF</th>
+          <th class="text-center">Certificado</th>
+          <th class="text-center">Dt. Validade</th>
+          <th class="text-center">St. Loja</th>
+          <th class="text-center">Opções</th>
+        </tr>
+      </thead>
+      <tbody id="resultadoListEmpresas"></tbody>
+    </table>  
+  `);
+
+  $('#dt-basic-lista_empresas').DataTable({
+    data: dadosTabela,
+    deferRender: true,
+    ordering: true,
+    responsive: true,
+    columnDefs: [
+      {
+        targets: [2, 7, 9],
+        className: 'text-center'
+      }
+    ],
+    /*columns: [
+      { width: '5%' },
+      { width: '20%' },
+      { width: '10%' },
+      { width: '10%' },
+      { width: '25%' },
+      { width: '10%' },
+      { width: '10%' },
+      { width: '10%' }
+    ],*/
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Generate Excel',
+        className: 'btn-outline-success btn-sm mr-1'
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ]
+  });
+
+}
+
+async function carregarFiliaisPorUFMarcaStAtivoAlvaras() {
+  let ufFiliais = $('#ufFilial').val() || '';
+  let idMarca = $('#idmarca').val() || ''
+  let stAtivo = $('#stFilial').val() || '';
+
+  await ajaxGetAllData(`api/empresa.xsjs?uf=${ufFiliais}&idSubGrupoEmpresa=${idMarca}&stAtivo=${stAtivo}`, "Carregando Filiais por Marca, Aguarde...")
+    .then(retornoSelectFiliaisAlvarasEmpresas);
+
+}
+
+async function retornoSelectListaUfs(respostaListaUfs) {
+  let { data } = respostaListaUfs || [];
+
+  $('#ufFilial').html('<option value=""> Todas </option>');
+
+  for (let { SGUF } of data) {
+    $('#ufFilial').append(`<option value="${SGUF}"> ${SGUF}</option>`);
+  }
+
+  $('#ufFilial').select2();
+}
+
+async function retornoSelectListaMarca(respostaListaMarcas) {
+  let { data } = respostaListaMarcas || [];
+
+  $('#idmarca').html('<option value=""> Todas </option>');
+
+  if (data.length > 0) {
+    for (let { IDGRUPOEMPRESARIAL, DSGRUPOEMPRESARIAL } of data) {
+      $('#idmarca').append(`<option value="${IDGRUPOEMPRESARIAL}"> ${DSGRUPOEMPRESARIAL}</option>`);
+    }
+
+    $('#idmarca').append(`<option value="OUTLET">OT - OUTLET </option>`);
+  }
+
+
+  $('#idmarca').select2();
+}
+
+async function retornoSelectListaEmpresas(listaEmpresas) {
+  let { data } = listaEmpresas || [];
+
+  $("#idFilial").html(`<option value=""> Todas </option>`);
+
+  for (let { IDEMPRESA, NOFANTASIA } of data) {
+    $("#idFilial").append(`<option value="${IDEMPRESA}"> ${NOFANTASIA} </option>`);
+  }
+
+  $("#idFilial").select2();
+
+}
+
+async function carregarFiliaisPorUFMarcaStAtivoAlvaras() {
+  let ufFiliais = $('#ufFilial').val() || '';
+  let idMarca = $('#idmarca').val() || ''
+  let stAtivo = $('#stFilial').val() || '';
+
+  await ajaxGetAllData(`api/empresa.xsjs?uf=${ufFiliais}&idSubGrupoEmpresa=${idMarca}&stAtivo=${stAtivo}`, "Carregando Filiais por Marca, Aguarde...")
+    .then(retornoSelectFiliaisAlvarasEmpresas);
+
+}
+
+function retornoSelectFiliaisAlvarasEmpresas(listaEmpresas) {
+  let { data } = listaEmpresas || [];
+
+  $("#idFilial").html(`<option value=""> Todas </option>`);
+
+  for (let { IDEMPRESA, NOFANTASIA } of data) {
+    $("#idFilial").append(`<option value="${IDEMPRESA}"> ${NOFANTASIA} </option>`);
+  }
+
+  $("#idFilial").select2();
+
+}
+
+async function retornoSelectListaMarca(respostaListaMarcas) {
+  let { data } = respostaListaMarcas || [];
+
+  $('#idmarca').html('<option value=""> Todas </option>');
+
+  if (data.length > 0) {
+    for (let { IDGRUPOEMPRESARIAL, DSGRUPOEMPRESARIAL } of data) {
+      $('#idmarca').append(`<option value="${IDGRUPOEMPRESARIAL}"> ${DSGRUPOEMPRESARIAL}</option>`);
+    }
+
+    $('#idmarca').append(`<option value="OUTLET">OT - OUTLET </option>`);
+  }
+
+
+  $('#idmarca').select2();
+}
+
+async function retornoSelectListaEmpresas(listaEmpresas) {
+  let { data } = listaEmpresas || [];
+
+  $("#idFilial").html(`<option value=""> Todas </option>`);
+
+  for (let { IDEMPRESA, NOFANTASIA } of data) {
+    $("#idFilial").append(`<option value="${IDEMPRESA}"> ${NOFANTASIA} </option>`);
+  }
+
+  $("#idFilial").select2();
 
 }
 

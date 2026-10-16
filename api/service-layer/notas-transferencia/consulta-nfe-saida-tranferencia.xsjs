@@ -4,7 +4,7 @@ function fnAtualizaCamposNota(idSapOrigem, data){
 
     var conn = $.db.getConnection();
     
-    var query = 'UPDATE "QUALITY_CONC_HML"."RESUMOORDEMTRANSFERENCIA" '+
+    var query = 'UPDATE "VAR_DB_NAME"."RESUMOORDEMTRANSFERENCIA" '+
     'SET IDSTATUSSEFAZ = ?, '+
     'CODIGORETORNOSEFAZ = ?, '+
     'CHAVESEFAZ = ?, '+
@@ -46,8 +46,8 @@ function fnHandleGet(byId){
                 '     a."U_msgSEFAZ" AS "MSGSEFAZ", '+
                 '   TO_VARCHAR(a."U_CreateDate",\'YYYY-MM-DD HH24:MI:SS\') AS DATAEMISSAO, ' +
                 '     substring(a."U_ChaveAcesso", 26,9) as "NUMERONOTA" '+
-                ' from "SBO_GTO_TESTE1"."@SKL25NFE" a '+
-                ' inner join "SBO_GTO_TESTE1"."OINV" b on b."DocEntry" = a."U_DocEntry" '+
+                ' from "SBO_GTO_TESTE4"."@SKL25NFE" a '+
+                ' inner join "SBO_GTO_TESTE4"."OINV" b on b."DocEntry" = a."U_DocEntry" '+
                 ' where 1=? and a."U_tipoDocumento" = \'NS\' '+
                 '     AND b."DocNum" = '+idSapOrigem + ' order by a."Code" desc';
                 

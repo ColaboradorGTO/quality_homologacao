@@ -1,0 +1,6 @@
+description = "ViaCEP API";
+host = "viacep.com.br";
+port = 443;
+useSSL = true;
+sslHostCheck = false;
+sslAuth = anonymous;

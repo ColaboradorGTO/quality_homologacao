@@ -8,10 +8,10 @@ function errorLogNotaSaida(p_IdResumoOT, p_Error, p_IdStatus){
 
     var query = '';
     if(p_IdStatus === 1){
-        query = 'UPDATE "QUALITY_CONC_HML"."RESUMOORDEMTRANSFERENCIA" ' +
+        query = 'UPDATE "VAR_DB_NAME"."RESUMOORDEMTRANSFERENCIA" ' +
                     'SET ERRORLOGSAP = ?, QTDCONFERENCIA = 0, IDSTATUSOT = 1 WHERE IDRESUMOOT = ?';
     } else {
-        query = 'UPDATE "QUALITY_CONC_HML"."RESUMOORDEMTRANSFERENCIA" ' +
+        query = 'UPDATE "VAR_DB_NAME"."RESUMOORDEMTRANSFERENCIA" ' +
                     'SET ERRORLOGSAP = ? WHERE IDRESUMOOT = ?';
     }
 	var pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -28,7 +28,7 @@ function errorLogNotaSaida(p_IdResumoOT, p_Error, p_IdStatus){
 
 function atualizaMigracaoNotaSaida(idResumoOT, idSap){
     var conn = $.db.getConnection();
-    var query = 'UPDATE "QUALITY_CONC_HML"."RESUMOORDEMTRANSFERENCIA" SET' +
+    var query = 'UPDATE "VAR_DB_NAME"."RESUMOORDEMTRANSFERENCIA" SET' +
 		'  IDSAPORIGEM = ?, '+
 		'  STMIGRADOSAPORIGEM = \'True\''+
 		' WHERE IDRESUMOOT = ?';
@@ -75,8 +75,8 @@ function obterLinhasDoDetalhe(idResumoOt, codigoDeposito) {
             	' t1."STATIVO", '+
             	' t1."STFALTA", '+
             	' t1."STSOBRA" '+
-            ' FROM "QUALITY_CONC_HML"."DETALHEORDEMTRANSFERENCIA" t1' +
-    		'   INNER JOIN "QUALITY_CONC_HML".PRODUTO t2 ON t2.IDPRODUTO = t1.IDPRODUTO ' +
+            ' FROM "VAR_DB_NAME"."DETALHEORDEMTRANSFERENCIA" t1' +
+    		'   INNER JOIN "VAR_DB_NAME".PRODUTO t2 ON t2.IDPRODUTO = t1.IDPRODUTO ' +
     		'  WHERE t1.IDRESUMOOT=? ';
     		
 	var linhas = api.sqlQuery(query, idResumoOt);
@@ -134,8 +134,8 @@ function excuteSaidaNfe(idResumoOt){
     	' t1."DTAJUSTE",' +
     	' t1."QTDTOTALITENSAJUSTE",' +
     	' t2."WAREHOUSECODE"' +
-        ' FROM "QUALITY_CONC_HML"."RESUMOORDEMTRANSFERENCIA" t1' +
-        '   INNER JOIN "QUALITY_CONC_HML".EMPRESA t2 ON t2.IDEMPRESA = t1.IDEMPRESAORIGEM ' +
+        ' FROM "VAR_DB_NAME"."RESUMOORDEMTRANSFERENCIA" t1' +
+        '   INNER JOIN "VAR_DB_NAME".EMPRESA t2 ON t2.IDEMPRESA = t1.IDEMPRESAORIGEM ' +
 		' WHERE ' +
 		'	1 = ? AND t1."IDSTATUSOT" = 9 AND t1."STEMISSAONFE" = \'True\' AND (t1."STMIGRADOSAPORIGEM" IS NULL OR t1."STMIGRADOSAPORIGEM" = \'False\')'+
         ' AND t1."IDRESUMOOT" = '+parseInt(idResumoOt);
@@ -150,7 +150,7 @@ function excuteSaidaNfe(idResumoOt){
 		
 		var retCardCode = api.sqlQuery('select "U_IS_PN_SAIDA" from "SBO_GTO_PRD".OBPL WHERE "BPLId" = ?',det.IDEMPRESADESTINO); 
         //var retSequenceCode = api.sqlQuery('select "SeqCode" as SEQCOD from "SBO_GTO_PRD".NFN1 where "Model" = 39 and "Locked" = \'N\' and "BPLId" = ?',det.IDEMPRESAORIGEM); 
-        var retSequenceCode = api.sqlQuery('select "SeqCode" as SEQCOD from "SBO_GTO_TESTE1".NFN1 where "Model" = 39 and "Locked" = \'N\' and "BPLId" = ?',det.IDEMPRESAORIGEM); 
+        var retSequenceCode = api.sqlQuery('select "SeqCode" as SEQCOD from "SBO_GTO_TESTE4".NFN1 where "Model" = 39 and "Locked" = \'N\' and "BPLId" = ?',det.IDEMPRESAORIGEM); 
 		var transferenciaSaida = {
 				"DocType": "dDocument_Items",
 				"U_ID_VENDA_PDV": det.IDRESUMOOT,
@@ -188,7 +188,7 @@ function excuteSaidaNfe(idResumoOt){
 		    errorLogNotaSaida(det.IDRESUMOOT, '', 0);
 		}
 	
-        var resultMigracao = api.sqlQuery('select "DocNum" as IDSAP from "SBO_GTO_TESTE1".OINV where 1=? AND "U_ID_VENDA_PDV" = \''+ det.IDRESUMOOT+'\'', 1);
+        var resultMigracao = api.sqlQuery('select "DocNum" as IDSAP from "SBO_GTO_TESTE4".OINV where 1=? AND "U_ID_VENDA_PDV" = \''+ det.IDRESUMOOT+'\'', 1);
         if(resultMigracao.length > 0){
 	       //return resultMigracao[0].MARCACOD;
 	       atualizaMigracaoNotaSaida(det.IDRESUMOOT, resultMigracao[0].IDSAP);

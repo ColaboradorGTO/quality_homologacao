@@ -155,28 +155,43 @@
                                         <span class="nav-link-text" data-i18n="nav.cad_lista_produto">Lista de Produtos Quality</span>
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="javascript:ListaProdutosSAP();" title="Lista de Produtos" data-filter-tags="cad_lista_produto">
-                                        <span class="nav-link-text" data-i18n="nav.cad_lista_produto">Lista de Produtos SAP</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:ListaProdutosEtiqueta();" title="Impressão de Etiquetas de Produtos" data-filter-tags="list_prod"
-                                        class=" waves-effect waves-themed">
-                                        <span class="nav-link-text" data-i18n="nav.list_prod">Etiquetas de Produtos</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:TelaEtiquetaRemarcacao();" title="Impressão de Etiquetas de Remarcação" data-filter-tags="list_prod"
-                                        class=" waves-effect waves-themed">
-                                        <span class="nav-link-text" data-i18n="nav.list_prod">Etiquetas de Remarcação</span>
-                                    </a>
-                                </li>
-                                <li>
-                                  <a href="javascript:TelaEtiquetaVolumes();" title="Imprimir Etiquetas de Volumes" data-filter-tags="EtiquetaVolumes" class=" waves-effect waves-themed">
-                                    <span class="nav-link-text" data-i18n="nav.EtiquetaVolumes">Etiquetas Volumes</span>
-                                  </a>
-                                </li>
+                                <!--<li>-->
+                                <!--    <a href="javascript:ListaProdutosSAP();" title="Lista de Produtos" data-filter-tags="cad_lista_produto">-->
+                                <!--        <span class="nav-link-text" data-i18n="nav.cad_lista_produto">Lista de Produtos SAP</span>-->
+                                <!--    </a>-->
+                                <!--</li>-->
+                                
+                                <!--<li>-->
+                                <!--    <a href="javascript:ListaProdutosEtiqueta();" title="Impressão de Etiquetas de Produtos" data-filter-tags="list_prod"-->
+                                <!--        class=" waves-effect waves-themed">-->
+                                <!--        <span class="nav-link-text" data-i18n="nav.list_prod">Etiquetas de Produtos</span>-->
+                                <!--    </a>-->
+                                <!--</li>-->
+                                
+                                <!--<li>-->
+                                <!--    <a href="javascript:TelaEtiquetaRemarcacao();" title="Impressão de Etiquetas de Remarcação" data-filter-tags="list_prod"-->
+                                <!--        class=" waves-effect waves-themed">-->
+                                <!--        <span class="nav-link-text" data-i18n="nav.list_prod">Etiquetas de Remarcação</span>-->
+                                <!--    </a>-->
+                                <!--</li>-->
+                                
+                      
+                                
+                             <li>
+                                <a href="javascript:ListaEtiquetaRemarcacao();" title="Remarcacao" data-filter-tags="visualizar_etiqueta_remarcacao">
+                                    <span class="nav-link-text" data-i18n="nav.visualizar_etiqueta_remarcacao">Etiquetas de Remarcacao </span>
+                                </a>
+                            </li>
+                             <li>
+                                <a href="javascript:ListaEtiquetaVolume();" title="Volume" data-filter-tags="visualizar_etiqueta_volume">
+                                    <span class="nav-link-text" data-i18n="nav.visualizar_etiqueta_volume">Etiquetas Volumes</span>
+                                </a>
+                            </li>
+                             <li>
+                                <a href="javascript:ListaEtiquetaProduto();" title="Produto" data-filter-tags="visualizar_etiqueta_produto">
+                                    <span class="nav-link-text" data-i18n="nav.visualizar_etiqueta_produto">Etiquetas de Produtos </span>
+                                </a>
+                            </li> 
                             </li>
                             <li class="nav-title">Lançamentos</li>
                             <li>
@@ -196,7 +211,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="javascript:ListaValeTranspLoja();" title="Lançar Vale Transporte da Loja" data-filter-tags="lanc_vale_transporte">
+                                    <a href="javascript:listarValeTransporteLoja();" title="Lançar Vale Transporte da Loja" data-filter-tags="lanc_vale_transporte">
                                         <span class="nav-link-text" data-i18n="nav.lanc_vale_transporte">Vale Transporte</span>
                                     </a>
                                 </li>
@@ -264,7 +279,7 @@
                                         <span class="nav-link-text" data-i18n="nav.pesq_vendas_loja">Vendas Loja</span>
                                     </a>
                                 </li>
-
+                                
                                 <li>
                                     <a href="javascript:listarVendasDigitais();" title="Relatório Vendas Digitais por Marca" data-filter-tags="visualizar_vendas_digitais_marca">
                                         <span class="nav-link-text" data-i18n="nav.visualizar_vendas_digitais_marca">Vendas Digitais</span>
@@ -305,6 +320,12 @@
                                         <span class="nav-link-text" data-i18n="nav.visualizar_empresas">Empresas</span>
                                     </a>
                                 </li>
+                            </li>
+                            
+                             <li>
+                                <a href="javascript:ListaMetasLojaPeriodo();" title="Visualizar Metas" data-filter-tags="visualizar_metas">
+                                    <span class="nav-link-text" data-i18n="nav.visualizar_metas">Metas por Período</span>
+                                </a>
                             </li>
                             <!--
                             <li class="nav-title">Pesquisas</li>

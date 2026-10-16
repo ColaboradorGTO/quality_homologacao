@@ -1,4 +1,4 @@
-var api = $.import("quality.concentrador_node.api.apiResponse", "int_api");
+var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function fnHandleGetPerfilUsuarioMenuFilho() {
     try {

@@ -1,7 +1,7 @@
 let dbNameSAP = "SBO_GTO_TESTE4";
 let filePath = "quality.concentrador_homologacao.api";
 
-let filePathLibs = `${filePath}.service-layer.devolucao.devolucao-produtos-voucher.libs`;
+let filePathLibs = `${filePath}.service-layer.devolucao.devolucao-produtos-voucher-nova.libs`;
 
 let api = $.import(`${filePath}.apiResponse`, "int_api");
 let libGeraNotaSaidaTransferenciaProduto = $.import(filePathLibs, "nfe-saida-transferencia"); 
@@ -111,6 +111,8 @@ function executeGerarNotaSaidaTransferencia(connDB, session, idVoucher, stMsgRet
         queryVoucher += `
             AND TO_DATE(TBR.DTINVOUCHER) >= '2025-01-01'
             AND ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) > 3
+            --AND TBR.ERRORLOGSAP IS NULL
+            /*--AND TO_DATE(TBR.DTINVOUCHER) <= '2025-05-31' */
         `;
     }
     

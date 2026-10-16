@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" translate="no">
     <head>
         <meta charset="utf-8">
         <title>
@@ -137,9 +137,15 @@
                         </div>
                         <ul id="js-nav-menu" class="nav-menu">
                             <li class="active open">
-                                <a href="javascript:ListaProdutosEtiqueta();" title="Tela Principal">
+                                <a href="javascript:telaEtiquetagemProdutos();" title="Tela Principal">
                                     <i class="fal fa-home"></i>
                                     <span class="nav-link-text">Home</span>
+                                </a>
+                            </li>
+                            
+                            <li class="active open">
+                                <a href="javascript:ListaEtiquetaOculos();" title="Tela Principal">
+                                    <span class="nav-link-text">Etiquetas de Produtos</span>
                                 </a>
                             </li>
                         <div class="filter-message js-filter-message bg-success-600"></div>
@@ -460,6 +466,7 @@
 			build.json file to deselect any components you do not need under "export" -->
         <script src="js/datagrid/datatables/datatables.export.js"></script>
         <script src="js/utils/dataTable-especial-orders.js"></script>
+        <script src="js/utils/general-masks.js"></script>
         <script src="js/utils/masks-values-decimals.js"></script>
         <script src="js/utils/ean13-codebars-validator.js"></script>
         <script src="js/utils/label-printer-service.js"></script>

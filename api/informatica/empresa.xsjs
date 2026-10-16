@@ -1,9 +1,13 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function fnHandleGet(byId) {
-    
-    var idSubGrupoEmpresa = $.request.parameters.get("idSubGrupoEmpresa");
-    var nuCnpj = $.request.parameters.get("cnpj");
+    let idEmpresa = $.request.parameters.get("idEmpresa");
+    let idSubGrupoEmpresa = $.request.parameters.get("idSubGrupoEmpresa");
+    let marcaEmpresa = $.request.parameters.get("marcaEmpresa");
+    let nuCnpj = $.request.parameters.get("cnpj");
+    let uf = $.request.parameters.get("uf");
+    let stAtivo = $.request.parameters.get("stAtivo");
+    let stAberto = $.request.parameters.get("stAberto");
     
     var query = ' SELECT ' + 
     '   tbe.IDEMPRESA,' +
@@ -41,41 +45,49 @@ function fnHandleGet(byId) {
     '   tbe.ALIQPIS,' +
     '   tbe.ALIQCOFINS,' +
     '	tbc.IDCONFIGURACAO,' +
-    '	tbc.TPFORMAEMISSAO,' +
-    '	tbc.TPMODELODOCFISCAL,' +
-    '	tbc.TPEMISSAO,' +
-    '	tbc.TPAMBIENTE,' +
-    '	tbc.NUCERTIFICADO,' +
-    '	tbc.DSCRT,' +
-    '	tbc.IDTOKEN,' +
-    '	tbc.TOKENCSC,' +
-    '	tbc.DTULTALTERACAO,' +
     '	tbc.DSNOMEPFX,' +
-    '	tbc.STCERTIFICADO,' +
-    '   TO_VARCHAR(tbc.DTVALIDADECERTIFICADO,\'YYYY-MM-DD\') AS DTVALIDADECERTIFICADO' +
+    '   TO_VARCHAR(tbc.DTVALIDADECERTIFICADO,\'YYYY-MM-DD\') AS DTVALIDADECERTIFICADO,' +
+    '   TO_VARCHAR(tbc.DTVALIDADECERTIFICADO,\'DD/MM/YYYY\') AS DTVALIDADECERTIFICADOFORMATADA,' +
+    '	tbe.STLOJAABERTA' +
     ' FROM ' + 
     '   "VAR_DB_NAME".EMPRESA tbe' +
     '   LEFT JOIN "VAR_DB_NAME".CONFIGURACAO tbc on tbe.IDEMPRESA = tbc.IDEMPRESA' +
     ' WHERE ' +
-        '	1 = ?' + 
-        'AND tbe.STATIVO=\'True\'';
-    /*'   tbe.ALIQCOFINS' +
-    ' FROM ' + 
-    '   "VAR_DB_NAME".EMPRESA tbe' +
-    ' WHERE ' +
-        '	1 = ?';*/
+        '	1 = ?';
     
-   if ( byId ) {
+    if ( byId ) {
         query = query + ' And  tbe.IDEMPRESA = \'' + byId + '\' ';
     }
     
-    if ( idSubGrupoEmpresa ) {
-        query = query + ' And  tbe.IDSUBGRUPOEMPRESARIAL = \'' + idSubGrupoEmpresa + '\' ';
+    if (idSubGrupoEmpresa) {
+        query += `AND TBE.IDSUBGRUPOEMPRESARIAL = '${idSubGrupoEmpresa}'`;
     }
     
-    if ( nuCnpj ) {
-        query = query + ' And  tbe.NUCNPJ = \'' + nuCnpj + '\' ';
+    if (marcaEmpresa) {
+        if( marcaEmpresa == 'OUTLET'){
+            query += `AND (UPPER(TBE.NOFANTASIA) LIKE '%OUTLET%' OR UPPER(TBE.NOFANTASIA) LIKE '% - OF -%')`
+        } else {
+            query += `AND TBE.IDSUBGRUPOEMPRESARIAL = '${marcaEmpresa}' AND UPPER(TBE.NOFANTASIA) NOT LIKE '%OUTLET%' AND UPPER(TBE.NOFANTASIA) NOT LIKE '% - OF -%' `;
+        }
     }
+    
+    if (nuCnpj) {
+        query += `AND TBE.NUCNPJ = '${nuCnpj}' `;
+    }
+    
+    if(uf){
+        query += ` AND  TRIM(UPPER(TBE.SGUF)) = UPPER('${uf}') `;
+    }
+
+    if(stAtivo){
+        query += `AND TBE.STATIVO = '${stAtivo}' `;
+    }
+    
+    if(stAberto){
+        query += `AND TBE.STLOJAABERTA = '${stAberto}' `;
+    }
+    
+    query = query + ' ORDER BY tbe.IDEMPRESA ';
     
     var request = { 
         page:  $.request.parameters.get("page"),
@@ -217,7 +229,7 @@ function fnHandlePost()
         ' "ALIQPIS", ' +
         ' "ALIQCOFINS" ' + 
     	' ) ' +
-		' VALUES(QUALITY_CONC_HML.SEQ_EMPRESA.NEXTVAL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ';
+		' VALUES(QUALITY_CONC.SEQ_EMPRESA.NEXTVAL,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ';
 		
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());

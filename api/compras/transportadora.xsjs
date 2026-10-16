@@ -2,13 +2,19 @@ try {
     
    var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
     
+    var id = $.request.parameters.get("id");
     var idMarca = $.request.parameters.get("idMarca");
-        
+      
     var query = ' SELECT A."IDTRANSPORTADORA", A."NOFANTASIA", A."NUCNPJ" FROM "VAR_DB_NAME"."TRANSPORTADORA" A WHERE 1=?';
 
+    if(id){
+        query += ` AND A."IDTRANSPORTADORA" = ${id} `; 
+    }
+    
     if(idMarca){
         query = query + ' And  A."ID_MARCA" IN ( ' + idMarca + ')  '; 
     }
+    
     var request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")

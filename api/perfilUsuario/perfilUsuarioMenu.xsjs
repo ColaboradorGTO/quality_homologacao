@@ -788,11 +788,11 @@ function createPerfilUsuarioMenu() {
 
         var createStmt = conn.prepareStatement(api.replaceDbName(createQuery));
         var bodyJson = JSON.parse($.request.body.asString());
-
+      
         // Permitir tanto array quanto objeto único
-        if (!Array.isArray(bodyJson)) {
-            bodyJson = [bodyJson];
-        }
+        // if (!Array.isArray(bodyJson)) {
+        //     bodyJson = [bodyJson];
+        // }
 
         for (var i = 0; i < bodyJson.length; i++) {
             var registro = bodyJson[i];

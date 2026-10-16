@@ -84,7 +84,7 @@ function fnIntegrarVenda(idVenda) {
 
 function executeIntegrarVendaDevolucao(connDB, session, idVoucher, stMsgRetorno){
     let queryVendaVoucher = `
-        SELECT TOP 50 DISTINCT
+        SELECT TOP 100 DISTINCT
             TBV.IDVENDA,
             TBR.IDVOUCHER
         FROM
@@ -113,6 +113,8 @@ function executeIntegrarVendaDevolucao(connDB, session, idVoucher, stMsgRetorno)
         queryVendaVoucher += `
             AND TO_DATE(TBR.DTINVOUCHER) >= '2025-01-01'
             AND ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) > 3
+            
+           
         `;
     }
     

@@ -9,7 +9,7 @@ function errorLogAcertoNota(p_IdResumoOT, p_Error){
 
     var conn = $.db.getConnection();
 
-    var query = 'UPDATE "QUALITY_CONC_HML"."RESUMOORDEMTRANSFERENCIA" ' +
+    var query = 'UPDATE "VAR_DB_NAME"."RESUMOORDEMTRANSFERENCIA" ' +
                     'SET ERRORLOGSAP = ? WHERE IDRESUMOOT = ?';
 
 	var pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -52,8 +52,8 @@ function obterLinhasDoDetalhe(idResumoOt, codigoDeposito) {
             	' t1."STATIVO", '+
             	' t1."STFALTA", '+
             	' t1."STSOBRA" '+
-            ' FROM "QUALITY_CONC_HML"."DETALHEORDEMTRANSFERENCIA" t1' +
-    		'   INNER JOIN "QUALITY_CONC_HML".PRODUTO t2 ON t2.IDPRODUTO = t1.IDPRODUTO ' +
+            ' FROM "VAR_DB_NAME"."DETALHEORDEMTRANSFERENCIA" t1' +
+    		'   INNER JOIN "VAR_DB_NAME".PRODUTO t2 ON t2.IDPRODUTO = t1.IDPRODUTO ' +
     		'  WHERE t1.STSOBRA = \'True\' and t1.IDRESUMOOT=? ';
     		
 	var linhas = api.sqlQuery(query, idResumoOt);
@@ -116,8 +116,8 @@ function saidaAcertoSobraNfe(idResumoOt,sessionSl) {
     	' t1."DTAJUSTE",' +
     	' t1."QTDTOTALITENSAJUSTE",' +
     	' t2."WAREHOUSECODE"' +
-        ' FROM "QUALITY_CONC_HML"."RESUMOORDEMTRANSFERENCIA" t1' +
-        '   INNER JOIN "QUALITY_CONC_HML".EMPRESA t2 ON t2.IDEMPRESA = t1.IDEMPRESAORIGEM ' +
+        ' FROM "VAR_DB_NAME"."RESUMOORDEMTRANSFERENCIA" t1' +
+        '   INNER JOIN "VAR_DB_NAME".EMPRESA t2 ON t2.IDEMPRESA = t1.IDEMPRESAORIGEM ' +
 		' WHERE ' +
 		'	1 = ?';
 
@@ -133,8 +133,8 @@ function saidaAcertoSobraNfe(idResumoOt,sessionSl) {
         
 		var det = response[i];
 		
-		var retCardCode = api.sqlQuery('select "U_IS_PN_SAIDA" from "SBO_GTO_TESTE1".OBPL WHERE "BPLId" = ?',det.IDEMPRESADESTINO); 
-        var retSequenceCode = api.sqlQuery('select "SeqCode" as SEQCOD from "SBO_GTO_TESTE1".NFN1 where "Model" = 39 and "Locked" = \'N\' and "BPLId" = ?',det.IDEMPRESAORIGEM); 
+		var retCardCode = api.sqlQuery('select "U_IS_PN_SAIDA" from "SBO_GTO_TESTE4".OBPL WHERE "BPLId" = ?',det.IDEMPRESADESTINO); 
+        var retSequenceCode = api.sqlQuery('select "SeqCode" as SEQCOD from "SBO_GTO_TESTE4".NFN1 where "Model" = 39 and "Locked" = \'N\' and "BPLId" = ?',det.IDEMPRESAORIGEM); 
 		var transferenciaSaida = {
 				"DocType": "dDocument_Items",
 				"U_ID_VENDA_PDV": det.IDRESUMOOT,

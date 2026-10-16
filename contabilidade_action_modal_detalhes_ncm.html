@@ -1,0 +1,193 @@
+  <div class="panel-container show">
+    <div class="panel-content">
+      <header class="mb-4">
+        <h3 class="fw-500 text-muted">
+          <i class="fal fa-edit mr-2"></i>
+          Atualizar NCM Exceção
+        </h3>
+      </header>
+
+      <form id="formEditarNcmExcecao">
+        <div class="row">
+          <div class="col-sm-2 col-xl-2">
+            <div class="form-group">
+              <label for="idNcmExcecaoModal">
+                ID NCM Exceção
+              </label>
+              <input id="idNcmExcecaoModal" class="form-control" readonly />
+            </div>
+          </div>
+
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="numNcmExcecaoModal">
+                Número NCM
+              </label>
+              <input id="numNcmExcecaoModal" class="form-control" />
+            </div>
+          </div>
+
+          <div class="col-sm-2 col-xl-2">
+            <div class="form-group">
+              <label for="exModal">
+                EX
+              </label>
+              <input id="exModal" class="form-control" />
+            </div>
+          </div>
+          <div class="col-sm-4 col-xl-4">
+
+            <div class="form-group">
+              <label for="tipoModal">
+                Tipo
+              </label>
+              <input id="tipoModal" class="form-control" />
+
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="dscNcmExcecaoModal">
+                Descrição NCM
+              </label>
+              <input id="dscNcmExcecaoModal" class="form-control" />
+            </div>
+          </div>
+
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="impNacionalModal">
+                Imposto Nacional
+              </label>
+              <input id="impNacionalModal" class="form-control" />
+            </div>
+          </div>
+
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="ImpImportacaoFederalModal">
+                Imposto Importação Federal
+              </label>
+              <input id="ImpImportacaoFederalModal" class="form-control" />
+            </div>
+          </div>
+
+        </div>
+        <div class="row mt-3">
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="ImpEstadualModal">
+                Imposto Estadual
+              </label>
+              <input id="ImpEstadualModal" class="form-control" />
+            </div>
+          </div>
+
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="impMunicipalModal">
+                Imposto Municipal
+              </label>
+              <input id="impMunicipalModal" class="form-control" />
+            </div>
+          </div>
+
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="InicioVigenciaModal">
+                Início Vigência
+              </label>
+              <input id="InicioVigenciaModal" type="date" class="form-control" />
+
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="FimVigenciaModal">
+                Fim Vigência
+              </label>
+              <input id="FimVigenciaModal" type="date" class="form-control" />
+            </div>
+          </div>
+
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="chaveModal">
+                Chave
+              </label>
+              <input id="chaveModal" class="form-control" />
+            </div>
+          </div>
+
+          <div class="col-sm-4 col-xl-4">
+            <div class="form-group">
+              <label for="numVersaoModal">
+                Número Versão
+              </label>
+              <input id="numVersaoModal" class="form-control" />
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-sm-4 col-xl-5">
+            <div class="form-group">
+              <label for="fonteModal">
+                Fonte
+              </label>
+              <input id="fonteModal" class="form-control" />
+            </div>
+          </div>
+          <div class="col-sm-4 col-xl-3">
+            <div class="form-group">
+              <label for="ufModal">
+                UF
+              </label>
+
+              <select id="ufModal" class="form-control">
+                <option value="">Selecione</option>
+                <option value="DF"> DF </option>
+                <option value="GO"> GO </option>
+                <option value="MG">MG </option>
+
+              </select>
+            </div>
+          </div>
+          <div class="col-sm-4 col-xl-4">
+
+            <div class="form-group">
+              <label for="percIbptModal">
+                PERCIBPT
+              </label>
+              <input id="percIbptModal" class="form-control" />
+            </div>
+
+          </div>
+
+        </div>
+        <div class="row mt-4">
+          <div class="col-12 d-flex justify-content-end">
+
+            <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
+              Fechar
+            </button>
+
+            <button type="button" class="btn btn-success" onclick="salvarEditarNcmExcecao()">
+              Atualizar
+            </button>
+
+          </div>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>

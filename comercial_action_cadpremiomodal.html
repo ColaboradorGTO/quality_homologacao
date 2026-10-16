@@ -1,0 +1,115 @@
+
+                            <div id="resultadopremiocad"></div>
+                            
+                            <div class="form-group">
+                                    <input type="hidden" name="IDMarcaPremio" id="IDMarcaPremio" value="">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="marcaempresa">Grupo Empresarial</label>
+                                        <div class="input-group">
+                                            <input type="text" id="nomegrupempresa" name="nomegrupempresa" class="form-control input" value="" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="tpdateini">Data Início</label>
+                                        <input class="form-control" id="dtpremioinicio" type="date" name="dtpremioinicio" value="" readonly>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="tpdatefim">Data Fim</label>
+                                        <input class="form-control" id="dtpremiofim" type="date" name="dtpremiofim" value="" readonly>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="lstfuncao">Função</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="dsfuncaopremio" id="dsfuncaopremio" onChange="selecaofuncao();">
+                                                <option value="GERENTE">GERENTE</option>
+                                                <option value="LIDER DE LOJA">LIDER DE LOJA</option>
+                                                <option value="LIDER DE CAIXA">LIDER DE CAIXA</option>
+                                                <option value="LIDER SUBGERENTE">LIDER / SUBGERENTE</option>
+                                                <option value="OPERADOR DE CAIXA">OPERADOR DE CAIXA</option>
+                                                <option value="ASSISTENTES">ASSISTENTES</option>
+                                                <option value="MULTIPLICADOR">MULTIPLICADOR</option>
+                                                <option value="PROVADOR">PROVADOR</option>
+                                                <option value="FISCAL">FISCAL</option>
+                                                <option value="VENDEDOR">VENDEDOR</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="lstindicador">Indicadores</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="dsindicadorpremio" id="dsindicadorpremio">
+                                                <option value="CONFECÇÃO">CONFECÇÃO</option>
+                                                <option value="CALÇADOS">CALÇADOS</option>
+                                                <option value="TICKET-MÉDIO">TICKET-MÉDIO</option>
+                                                <option value="CARTÃO/ATIVAÇÃO">CARTÃO/ATIVAÇÃO</option>
+                                                <option value="CARTÃO PCJ 30%">CARTÃO PCJ 30%</option>
+                                                <option value="CARTÃO/RECOMPRA">CARTÃO/RECOMPRA</option>
+                                                <option value="CARTÃO/SEGURO">CARTÃO/SEGURO</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="lstapuracao">Apuração</label>
+                                        <div class="input-group">
+                                            <select class="select2 form-control" name="dsapuracao" id="dsapuracao">
+                                                <option value="NENHUMA">NENHUMA</option>
+                                                <option value="INDIVIDUAL">INDIVIDUAL</option>
+                                                <option value="GERAL DA LOJA">GERAL DA LOJA</option>
+                                                <option value="GERAL DA CONFEÇÇÃO">GERAL DA CONFEÇÇÃO</option>
+                                                <option value="INDIVIDUAL / GERAL">INDIVIDUAL / GERAL</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="vrbonussenior">Valor Bônus Senior</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrBonusPremioSenior" name="VrBonusPremioSenior" class="form-control" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="vrbonuspleno">Valor Bônus Pleno</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrBonusPremioPleno" name="VrBonusPremioPleno" class="form-control" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="vrbonusjunior">Valor Bônus Junior</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrBonusPremioJunior" name="VrBonusPremioJunior" class="form-control" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-2">
+                                        <label class="form-label" for="vrbonustodos">Valor Bônus Todos</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrBonusPremioTodos" name="VrBonusPremioTodos" class="form-control" value="0" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="listpremiocad">PREMIAÇÕES CADASTRADAS</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12 col-xl-12">                                        
+                                        <div id="resultadolistpremiocad">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+        <script>
+            $("#VrBonusPremioSenior").mask('#.##0,00', {reverse: true});
+            $("#VrBonusPremioPleno").mask('#.##0,00', {reverse: true});
+            $("#VrBonusPremioJunior").mask('#.##0,00', {reverse: true});
+            $("#VrBonusPremioTodos").mask('#.##0,00', {reverse: true});
+        </script>

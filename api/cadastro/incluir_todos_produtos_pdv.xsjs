@@ -1,4 +1,6 @@
-var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+
+let conn;
 
 function setTimestampOrNull(stmt, fieldId, value) {
 	if (!value) {
@@ -37,7 +39,7 @@ function getDadosPedidoSecundario(idResumoPedido){
     return api.sqlQuery(query, idResumoPedido);
 }
 
-function atualizaDetalheProdutoPedido(idResumoPedido, conn){
+function atualizaDetalheProdutoPedido(idResumoPedido){
     let query = `
         UPDATE 
             "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" 
@@ -55,7 +57,7 @@ function atualizaDetalheProdutoPedido(idResumoPedido, conn){
     pStmt.close();
 }
 
-function atualizaDetalheProdutoPedidoPrimario(idResumoPedido, conn){
+function atualizaDetalheProdutoPedidoPrimario(idResumoPedido){
     let query = `
         UPDATE 
             "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" TBDPP
@@ -80,7 +82,7 @@ function atualizaDetalheProdutoPedidoPrimario(idResumoPedido, conn){
     pStmt.close();
 }
 
-function criarProdutosTabelaProduto_RN (idResumoPedido, conn, dados) {
+function criarProdutosTabelaProduto_RN (idResumoPedido) {
     let queryInsertProduto = `
         INSERT INTO 
             "VAR_DB_NAME"."PRODUTO_RN" 
@@ -201,145 +203,152 @@ function criarProdutosTabelaProduto_RN (idResumoPedido, conn, dados) {
     pStmt.execute();
     pStmt.close();
     
-    atualizaDetalheProdutoPedidoPrimario(idResumoPedido, conn);
+    atualizaDetalheProdutoPedidoPrimario(idResumoPedido);
 }
- 
-function execute (idResumoPedido) {
-    if(idResumoPedido){
-        let conn = $.db.getConnection();
-        	    
-        let dadosPedidoSecundario = getDadosPedidoSecundario(idResumoPedido);
-        let stPedidoPrimario = dadosPedidoSecundario.length > 0;
-        let idResumoPedidoPrimario = parseInt(idResumoPedido);
+
+function criarProdutosTabelaProduto (idResumoPedido){
+    let queryInsertProduto = `
+        INSERT INTO 
+            "VAR_DB_NAME"."PRODUTO" 
+        (
+            "IDPRODUTO", 
+            "IDGRUPOEMPRESARIAL", 
+            "NUNCM", 
+            "NUCEST", 
+            "NUCST_ICMS", 
+            "NUCFOP", 
+            "PERC_OUT", 
+            "NUCODBARRAS", 
+            "DSNOME", 
+            "STGRADE", 
+            "UND", 
+            "PRECOCUSTO", 
+            "PRECOVENDA", 
+            "QTDENTRADA", 
+            "QTDCOMERCIALIZADA", 
+            "QTDPERDA", 
+            "QTDDISPONIVEL", 
+            "PERCICMS", 
+            "PERCISS", 
+            "PERCPIS", 
+            "PERCCOFINS", 
+            "COD_CSOSN", 
+            "PERCCSOSC", 
+            "NUCST_IPI", 
+            "NUCST_PIS", 
+            "NUCST_COFINS", 
+            "PERCIPI", 
+            "STPESAVEL", 
+            "GRP_MATERIAIS", 
+            "IDSUBGRUPO", 
+            "IDFABRICANTE", 
+            "IDFORNECEDOR", 
+            "NUREFERENCIA", 
+            "STATIVO", 
+            "IDCOR", 
+            "IDTAMANHO", 
+            "IDCATEGORIAPEDIDO", 
+            "IDTIPOTECIDO", 
+            "IDESTILO", 
+            "IDLOCALEXPOSICAO", 
+            "IDCATEGORIAS", 
+            "IDDETALHEPRODUTOPEDIDO", 
+            "IDTIPOPRODUTOFISCAL", 
+            "IDFONTEPRODUTOFISCAL",
+            "DTULTALTERACAO",
+            "STECOMMERCE"
+        )
+        SELECT
+            "VAR_DB_NAME".SEQ_PRODUTOPEDIDO.NEXTVAL AS IDPRODUTO,
+            TBR.IDGRUPOEMPRESARIAL AS IDGRUPOEMPRESARIAL,
+            TBDPP.NUNCM AS NUNCM,
+            '' AS NUCEST,
+            '' AS NUCST_ICMS,
+            '' AS NUCFOP,
+            '' AS PERC_OUT,
+            TBDPP.CODBARRAS AS NUCODBARRAS,
+            TBDPP.DSPRODUTO AS DSNOME,
+            1 AS STGRADE,
+            TBDPP.UND AS UND,
+            TBDPP.VRCUSTO AS PRECOCUSTO,
+            TBDPP.VRVENDA AS PRECOVENDA,
+            0 AS QTDENTRADA,
+            0 AS QTDCOMERCIALIZADA,	
+            0 AS QTDPERDA,
+            0 AS QTDDISPONIVEL,
+            0.0 AS PERCICMS,
+            0.0 AS PERCISS,
+            0.0 AS PERCPIS,
+            0.0 AS PERCCOFINS,
+            '' AS COD_CSOSN,
+            0.0 AS PERCCSOSC,
+            '' AS NUCST_IPI,
+            '' AS NUCST_PIS,
+            '' AS NUCST_COFINS,
+            0.0 AS PERCIPI,
+            0 AS STPESAVEL,
+            1 AS GRP_MATERIAIS,
+            TBDPP.IDSUBGRUPOESTRUTURA AS IDSUBGRUPO,
+            TBDPP.IDFABRICANTE AS IDFABRICANTE,
+            TBR.IDFORNECEDOR AS IDFORNECEDOR,
+            TBDPP.NUREF AS NUREFERENCIA,
+            'True' AS STATIVO,
+            TBDPP.IDCOR AS IDCOR,
+            TBDPP.IDTAMANHO AS IDTAMANHO,
+            TBDPP.IDCATEGORIAPEDIDO AS IDCATEGORIAPEDIDO,
+            TBDPP.IDTIPOTECIDO AS IDTIPOTECIDO,
+            TBDPP.IDESTILO AS IDESTILO,
+            TBDPP.IDLOCALEXPOSICAO AS IDLOCALEXPOSICAO,
+            TBDPP.IDCATEGORIAS AS IDCATEGORIAS,
+            TBDPP.IDDETALHEPRODUTOPEDIDO AS IDDETALHEPRODUTOPEDIDO,
+            TBDPP.IDTIPOPRODUTOFISCAL AS IDTIPOPRODUTOFISCAL,
+            TBDPP.IDFONTEPRODUTOFISAL AS IDFONTEPRODUTOFISCAL,
+            CURRENT_TIMESTAMP  AS DTULTALTERACAO,
+            TBDPP.STECOMMERCE
+        FROM 
+            "VAR_DB_NAME".DETALHEPRODUTOPEDIDO AS TBDPP 
+        INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO AS TBD ON 
+            TBDPP.IDDETALHEPEDIDO = TBD.IDDETALHEPEDIDO 
+        INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO AS TBR ON 
+            TBD.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+        WHERE
+            TBDPP.STCANCELADO ='False' 
+            AND TBDPP.STCADASTRADO <> 'True' 
+            AND TBDPP.STREPOSICAO <> 'True'
+            AND TBDPP.IDRESUMOPEDIDO = ?
+    `;
+    		
+    let pStmt = conn.prepareStatement(api.replaceDbName(queryInsertProduto));
+    
+    pStmt.setInt(1, parseInt(idResumoPedido));
+    
+    pStmt.execute();
+    pStmt.close();
+    
+    atualizaDetalheProdutoPedido(parseInt(idResumoPedido));
+}
+
+function fnHandlePost() {
+    var bodyJson = JSON.parse($.request.body.asString());
+    
+    if(bodyJson.length > 0){
+        conn = $.db.getConnection();
         
-        if(stPedidoPrimario){
-            idResumoPedido = parseInt(dadosPedidoSecundario[0].IDRESUMOPEDIDO);
-        }
-        
-        let queryInsertProduto = `
-            INSERT INTO 
-                "VAR_DB_NAME"."PRODUTO" 
-            (
-                "IDPRODUTO", 
-                "IDGRUPOEMPRESARIAL", 
-                "NUNCM", 
-                "NUCEST", 
-                "NUCST_ICMS", 
-                "NUCFOP", 
-                "PERC_OUT", 
-                "NUCODBARRAS", 
-                "DSNOME", 
-                "STGRADE", 
-                "UND", 
-                "PRECOCUSTO", 
-                "PRECOVENDA", 
-                "QTDENTRADA", 
-                "QTDCOMERCIALIZADA", 
-                "QTDPERDA", 
-                "QTDDISPONIVEL", 
-                "PERCICMS", 
-                "PERCISS", 
-                "PERCPIS", 
-                "PERCCOFINS", 
-                "COD_CSOSN", 
-                "PERCCSOSC", 
-                "NUCST_IPI", 
-                "NUCST_PIS", 
-                "NUCST_COFINS", 
-                "PERCIPI", 
-                "STPESAVEL", 
-                "GRP_MATERIAIS", 
-                "IDSUBGRUPO", 
-                "IDFABRICANTE", 
-                "IDFORNECEDOR", 
-                "NUREFERENCIA", 
-                "STATIVO", 
-                "IDCOR", 
-                "IDTAMANHO", 
-                "IDCATEGORIAPEDIDO", 
-                "IDTIPOTECIDO", 
-                "IDESTILO", 
-                "IDLOCALEXPOSICAO", 
-                "IDCATEGORIAS", 
-                "IDDETALHEPRODUTOPEDIDO", 
-                "IDTIPOPRODUTOFISCAL", 
-                "IDFONTEPRODUTOFISCAL",
-                "DTULTALTERACAO",
-                "STECOMMERCE"
-            )
-            SELECT
-                "VAR_DB_NAME".SEQ_PRODUTOPEDIDO.NEXTVAL AS IDPRODUTO,
-                TBR.IDGRUPOEMPRESARIAL AS IDGRUPOEMPRESARIAL,
-                TBDPP.NUNCM AS NUNCM,
-                '' AS NUCEST,
-                '' AS NUCST_ICMS,
-                '' AS NUCFOP,
-                '' AS PERC_OUT,
-                TBDPP.CODBARRAS AS NUCODBARRAS,
-                TBDPP.DSPRODUTO AS DSNOME,
-                1 AS STGRADE,
-                TBDPP.UND AS UND,
-                TBDPP.VRCUSTO AS PRECOCUSTO,
-                TBDPP.VRVENDA AS PRECOVENDA,
-                0 AS QTDENTRADA,
-                0 AS QTDCOMERCIALIZADA,	
-                0 AS QTDPERDA,
-                0 AS QTDDISPONIVEL,
-                0.0 AS PERCICMS,
-                0.0 AS PERCISS,
-                0.0 AS PERCPIS,
-                0.0 AS PERCCOFINS,
-                '' AS COD_CSOSN,
-                0.0 AS PERCCSOSC,
-                '' AS NUCST_IPI,
-                '' AS NUCST_PIS,
-                '' AS NUCST_COFINS,
-                0.0 AS PERCIPI,
-                0 AS STPESAVEL,
-                1 AS GRP_MATERIAIS,
-                TBDPP.IDSUBGRUPOESTRUTURA AS IDSUBGRUPO,
-                TBDPP.IDFABRICANTE AS IDFABRICANTE,
-                TBR.IDFORNECEDOR AS IDFORNECEDOR,
-                TBDPP.NUREF AS NUREFERENCIA,
-                'True' AS STATIVO,
-                TBDPP.IDCOR AS IDCOR,
-                TBDPP.IDTAMANHO AS IDTAMANHO,
-                TBDPP.IDCATEGORIAPEDIDO AS IDCATEGORIAPEDIDO,
-                TBDPP.IDTIPOTECIDO AS IDTIPOTECIDO,
-                TBDPP.IDESTILO AS IDESTILO,
-                TBDPP.IDLOCALEXPOSICAO AS IDLOCALEXPOSICAO,
-                TBDPP.IDCATEGORIAS AS IDCATEGORIAS,
-                TBDPP.IDDETALHEPRODUTOPEDIDO AS IDDETALHEPRODUTOPEDIDO,
-                TBDPP.IDTIPOPRODUTOFISCAL AS IDTIPOPRODUTOFISCAL,
-                TBDPP.IDFONTEPRODUTOFISAL AS IDFONTEPRODUTOFISCAL,
-                CURRENT_TIMESTAMP  AS DTULTALTERACAO,
-                TBDPP.STECOMMERCE
-            FROM 
-                "VAR_DB_NAME".DETALHEPRODUTOPEDIDO AS TBDPP 
-            INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO AS TBD ON 
-                TBDPP.IDDETALHEPEDIDO = TBD.IDDETALHEPEDIDO 
-            INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO AS TBR ON 
-                TBD.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
-            WHERE
-                TBDPP.STCANCELADO ='False' 
-                AND TBDPP.STCADASTRADO <> 'True' 
-                AND TBDPP.STREPOSICAO <> 'True'
-                AND TBDPP.IDRESUMOPEDIDO = ?
-        `;
-        		
-        let pStmt = conn.prepareStatement(api.replaceDbName(queryInsertProduto));
-        
-        pStmt.setInt(1, parseInt(idResumoPedido));
-        
-        pStmt.execute();
-        pStmt.close();
-        
-        conn.commit();
-        
-        atualizaDetalheProdutoPedido(parseInt(idResumoPedido), conn);
-        
-        if(stPedidoPrimario){
-            criarProdutosTabelaProduto_RN(parseInt(idResumoPedidoPrimario), conn);
+        for(let registro of bodyJson){
+            let idResumoPedidoPrimario;
+            let idResumoPedido = registro.IDRESUMOPEDIDO;
+            let dadosPedidoSecundario = getDadosPedidoSecundario(idResumoPedido);
+            let stPedidoPrimario = dadosPedidoSecundario.length > 0;
+            
+            if(stPedidoPrimario){
+                idResumoPedido = parseInt(dadosPedidoSecundario[0].IDRESUMOPEDIDO);
+                idResumoPedidoPrimario = registro.IDRESUMOPEDIDO;
+            }
+            
+            criarProdutosTabelaProduto(idResumoPedido);
+            
+            stPedidoPrimario && criarProdutosTabelaProduto_RN(parseInt(idResumoPedidoPrimario));
+            
         }
         
         conn.commit();
@@ -355,12 +364,11 @@ $.response.status = $.net.http.OK;
 
 try {
     switch ( $.request.method ) {
-        //Handle your GET calls here
+        //Handle your POST calls here
         case $.net.http.POST:
-            let codPedido = $.request.parameters.get("codPedido");
+            var result = fnHandlePost();
             
-            var doc = execute(codPedido);
-             $.response.setBody(JSON.stringify({ result : doc }));
+            $.response.setBody(JSON.stringify(result));
             break;
             
         default:

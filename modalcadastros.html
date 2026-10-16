@@ -634,3 +634,51 @@
       </div>
   </div>
 </div>
+
+<!-- Modal Cadastro Produto Novo -->
+<div class="modal fade" id="modalCadastrarProdutoNovo" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Produto
+                    <small class="m-0 text-muted">
+                        Cadastro de Produto
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body" id="resultadoModalCadastroProdutoNovo"></div>
+            <div class="modal-footer" id="footeraddproduto">
+                <button type="button" class="btn btn-success d-none" onclick="cadastrarProdutoNovo()">Cadastrar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Produto -->
+<div class="modal fade" id="modalEditarProduto" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modaltitulopedido">
+                    Produto
+                    <small class="m-0 text-muted">
+                        Cadastro de Produto
+                    </small>
+                </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="fal fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body" id="resultadoModalEditarProduto"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="editarDadosProduto()">Editar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>

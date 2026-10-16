@@ -8,128 +8,103 @@ function getConnection(){
     return conn;
 }
 
-function sqlQueryTst(query, args){
-    
-    var conn = getConnection();
+function getParameters(query, args) {
+    query = replaceDbName(query);
     
     var parameters = [query];
-    
-    for (var i = 0; i < args.length; i++) {
-       parameters.push(args[i]);
+
+    if (args === undefined || args === null) {
+        return parameters;
     }
     
-    var res = conn.executeQuery.apply(conn, parameters);
+    if (!Array.isArray(args)) {
+        args = [args];
+    }
     
-    var iterator = res.getIterator();
-	var data = [];
-	
-    while (iterator.next()) {
-		var currentRow = iterator.value();
-		data.push(currentRow);
-	}
+    for (var i = 0; i < args.length; i++) {
+        parameters.push(args[i]);
+    }
     
-    return data;
+    return parameters;
+}
+
+function sqlQueryTst(query, args){
+    var conn = getConnection();
+    try {
+        var parameters = [query];
+        for (var i = 0; i < args.length; i++) {
+           parameters.push(args[i]);
+        }
+        
+        // Retorna os dados diretamente sem usar o Iterator instável
+        var res = conn.executeQuery.apply(conn, parameters);
+        return Array.prototype.slice.call(res); 
+    } finally {
+        conn.close(); 
+    }
 }
 
 function totalOfRecords(query, queryParams) {
-
 	var conn = getConnection();
-
-	var res = conn.executeQuery("SELECT COUNT(*) AS QTD FROM (" + replaceDbName(query).replace("$RECORDS", "") + ")", queryParams);
-	var iterator = res.getIterator();
-	var data = [];
-
-	while (iterator.next()) {
-		var currentRow = iterator.value();
-		data.push(currentRow);
-	}
-
-	return Number(data[0].QTD.toString());
-
+    try {
+        var res = conn.executeQuery("SELECT COUNT(*) AS QTD FROM (" + replaceDbName(query).replace("$RECORDS", "") + ")", queryParams);
+        
+        // Transforma o resultado diretamente em Array segura na memória
+        var data = Array.prototype.slice.call(res);
+        
+        if (data && data.length > 0) {
+            return Number(data[0].QTD.toString());
+        }
+        return 0;
+    } finally {
+        conn.close(); 
+    }
 }
 
 function executeScalar(query, queryParams) {
-
 	var conn = getConnection();
-
-	var res = conn.executeQuery(replaceDbName(query), queryParams);
-	var iterator = res.getIterator();
-	var data = [];
-
-	while (iterator.next()) {
-		var currentRow = iterator.value();
-		data.push(currentRow[0]);
-	}
-
-	return Number(data[0].toString());
+    try {
+        var res = conn.executeQuery(replaceDbName(query), queryParams);
+        var data = Array.prototype.slice.call(res);
+        
+        if (data && data.length > 0) {
+            // Captura dinamicamente a primeira coluna independente do nome
+            for (var key in data[0]) {
+                return Number(data[0][key].toString());
+            }
+        }
+        return 0;
+    } finally {
+        conn.close(); 
+    }
 }
 
 function sqlQuery(query, queryParams) {
-
 	var conn = getConnection();
-    
-	var res = conn.executeQuery(replaceDbName(query), queryParams);
-	var iterator = res.getIterator();
-	var data = [];
-
-	while (iterator.next()) {
-		var currentRow = iterator.value();
-		data.push(currentRow);
-	}
-
-	return data;
-}
-
-function sqlQuery_Prepare(query, params) {
-	let conn = $.db.getConnection();
-	let pstmt = conn.prepareStatement(replaceDbName(query));
-	   
-	pstmt.setInt(1, params);
-	
-	let res = pstmt.executeQuery();
-	let data = [];
-	
-    while (res.next()) {
-        let md = res.getMetaData();
-        let count = md.getColumnCount();
-        let row = {};
-        
-        for (let c = 1; c <= count; c++) {
-            row[md.getColumnLabel(c)] = res.getString(c);
-        }
-        
-        data.push(row);
+    try {
+        var res = conn.executeQuery(replaceDbName(query), queryParams);
+        return Array.prototype.slice.call(res);
+    } finally {
+        conn.close(); 
     }
-
-    pstmt.close();
-    
-    return data;
 }
 
 function responseWithQuery(query, responsePage, queryParams) {
-
+    var conn = null;
 	try {
-
 		responsePage.rows = totalOfRecords(query, queryParams);
 		responsePage.page = responsePage.page || 1;
 		responsePage.pageSize = responsePage.pageSize || 1000;
 
 		const rowStart = (responsePage.page - 1) * responsePage.pageSize;
 
-		var conn = $.hdb.getConnection();
-		var queryTop = replaceDbName(query) + " LIMIT " + responsePage.pageSize + " OFFSET " + rowStart; //.replace("$RECORDS", "TOP " + responsePage.pageSize);
+		conn = getConnection(); 
+		var queryTop = replaceDbName(query) + " LIMIT " + responsePage.pageSize + " OFFSET " + rowStart;
 
 		var res = conn.executeQuery(queryTop, queryParams);
-
-		var iterator = res.getIterator();
-		var data = [];
-
-		while (iterator.next()) {
-			var currentRow = iterator.value();
-			data.push(currentRow);
-		}
-
-		responsePage.data = data;
+		
+		// Converte diretamente sem risco de fechar metadados no laço 'while'
+		responsePage.data = Array.prototype.slice.call(res);
 
 		$.response.contentType = 'application/json';
 		$.response.setBody(JSON.stringify(responsePage));
@@ -138,33 +113,29 @@ function responseWithQuery(query, responsePage, queryParams) {
 		$.response.contentType = 'application/json';
 		$.response.setBody(JSON.stringify(e.message));
 		$.response.status = 400;
+	} finally {
+	    if (conn) {
+	        conn.close();
+	    }
 	}
-
 }
 
 function sqlQueryPage(query, responsePage, queryParams) {
-
 	responsePage.rows = totalOfRecords(query, queryParams);
 	responsePage.page = responsePage.page || 1;
 	responsePage.pageSize = responsePage.pageSize || 1000;
 
 	const rowStart = (responsePage.page - 1) * responsePage.pageSize;
 
-	var conn = $.hdb.getConnection();
-	var queryTop = replaceDbName(query) + " LIMIT " + responsePage.pageSize + " OFFSET " + rowStart; //.replace("$RECORDS", "TOP " + responsePage.pageSize);
-
-	var res = conn.executeQuery(queryTop, queryParams);
-
-	var iterator = res.getIterator();
-	var data = [];
-
-	while (iterator.next()) {
-		var currentRow = iterator.value();
-		data.push(currentRow);
-	}
-
-	responsePage.data = data;
-
-	return responsePage;
-
+	var conn = getConnection();
+    try {
+    	var queryTop = replaceDbName(query) + " LIMIT " + responsePage.pageSize + " OFFSET " + rowStart;
+    
+    	var res = conn.executeQuery(queryTop, queryParams);
+    	responsePage.data = Array.prototype.slice.call(res);
+    	
+    	return responsePage;
+    } finally {
+        conn.close();
+    }
 }

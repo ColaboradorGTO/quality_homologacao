@@ -84,7 +84,7 @@ function getValoresPedidoQuandoCancelamentoTotalDetalhePedido(idResumoPedido, id
         SELECT 
             IFNULL(COUNT(IDDETALHEPEDIDO), 0) TOTALITENS, 
             IFNULL(SUM(QTDTOTAL), 0) QTDTOTAL, 
-            IFNULL(SUM(QTDTOTAL), 0) * IFNULL(SUM(VRUNITLIQUIDO), 0) AS  VRTOTAL
+            SUM(IFNULL(QTDTOTAL, 0) * IFNULL(VRUNITLIQUIDO, 0)) AS  VRTOTAL
         FROM
             "VAR_DB_NAME".DETALHEPEDIDO
         WHERE
@@ -141,7 +141,7 @@ function getDadosProdutosParaRemoverPedido(dados){
         WHERE
             TBDP.STATIVO =  'True'
             AND TBDP.STCANCELADO = 'False'
-            AND IFNULL(TBDP.IDPRODCADASTRO, 'NULL') <> 'NULL'
+            --AND IFNULL(TBDP.IDPRODCADASTRO, 'NULL') <> 'NULL'
             AND (
                     TBDP.IDDETALHEPRODUTOPEDIDO = ${dados.IDDETALHEPRODUTOPEDIDO}
                 OR
@@ -247,7 +247,7 @@ function getValidacoesPedidoEntreQualitySAP(idResumoPedido){
                 ELSE 'N'
             END AS "IsDivergenteTotalLinhasEntrePedidos",
             CASE 
-                WHEN SAP."VrTotalPedido" <> IFNULL(APP."VrTotalPedido", 0) THEN 'Y'
+                WHEN SAP."VrTotalPedido" <> ROUND(IFNULL(APP."VrTotalPedido", 0), 2) THEN 'Y'
                 ELSE 'N'
             END AS "IsDivergenteVrTotalEntrePedidos"
         FROM 
@@ -797,13 +797,13 @@ function cancelarProdutoPedido(dadosProdutoPedido, stCancelarSAP){
     
     if(stCancelarSAP){
         let respRemocaoProdPedidoSAP = libRemove.removerProdutoPedidoSAP(DOCENTRY, IDRESUMOPEDIDO, IDDETALHEPRODUTOPEDIDO);
-        
+        //return respRemocaoProdPedidoSAP
         if(!respRemocaoProdPedidoSAP.success){
             return respRemocaoProdPedidoSAP;
         }
     }
     
-   // return { success };
+    //return { success: 'Teste' };
     
     if(qtdRestante == 0){
         cancelarDetalhePedido(dadosProdutoPedido);
@@ -829,67 +829,65 @@ function cancelarProdutoPedido(dadosProdutoPedido, stCancelarSAP){
 
 function fnHandlePut() {
     let bodyJson = JSON.parse($.request.body.asString());
-    
+    //return bodyJson
     if(bodyJson.length > 0){
         conn = $.db.getConnection();
         
-        for(let i = 0; i < bodyJson.length; i++){
-            let registro = bodyJson[i];
+        for(let registro of bodyJson){
             let stPedidoRN = getStPedidoRN(registro.IDRESUMOPEDIDO);
             let listaProdutosParaRemoverPedidos = getDadosProdutosParaRemoverPedido(registro);
-            //return listaProdutosParaRemoverPedidos
+            let successValidacao = true//false;
+            let msgValidacao = '';
+            let stCancelarSAPValidacao = true//false;
+            //return {listaProdutosParaRemoverPedidos}
             
             if(listaProdutosParaRemoverPedidos.length){
-                let dadosProdutoPedido = listaProdutosParaRemoverPedidos[0];
-                //return dadosProdutoPedido;
-                if(stPedidoRN){
+                
+                /**/if(stPedidoRN){
                     if(listaProdutosParaRemoverPedidos.length > 2){
                         return returnWarning('Pedido Primario ou Secundario com duplicidade de numeração no SAP');
                     }
-                    //return validarSeAptoParaCancelarQuandoPedidoRN(dadosProdutoPedido.IDRESUMOPEDIDO, listaProdutosParaRemoverPedidos);
-                    let { success, stCancelarSAP, msg } = validarSeAptoParaCancelarQuandoPedidoRN(dadosProdutoPedido.IDRESUMOPEDIDO, listaProdutosParaRemoverPedidos);
                     
-                    if(!success){
-                        registrarErrorLog(dadosProdutoPedido.IDDETALHEPRODUTOPEDIDO, msg);
-                        
-                        return returnWarning(msg);
-                    }
+                    let { success, stCancelarSAP, msg } = validarSeAptoParaCancelarQuandoPedidoRN(registro.IDRESUMOPEDIDO, listaProdutosParaRemoverPedidos);
                     
-                    for(let registros of listaProdutosParaRemoverPedidos){
-                        let respCancel = cancelarProdutoPedido(registros, stCancelarSAP);
-                        //return respCancel
-                        if(!respCancel.success){
-                            registrarErrorLog(dadosProdutoPedido.IDDETALHEPRODUTOPEDIDO, respCancel.msg);
-                            
-                            return returnWarning(respCancel.msg);
-                        }
-                        
-                    }
+                    stCancelarSAPValidacao = stCancelarSAP;
+                    successValidacao = success;
+                    msgValidacao = msg;
+                    
                 } else {
                     if(listaProdutosParaRemoverPedidos.length > 1){
                         return returnWarning('Pedido com duplicidade de numeração no SAP');
                     }
-                    //return validarSeAptoParaCancelarSapQuandoPedidoPadrao(dadosProdutoPedido);
-                    let {success, stCancelarSAP, msg } = validarSeAptoParaCancelarSapQuandoPedidoPadrao(dadosProdutoPedido);
                     
+                    let { success, stCancelarSAP, msg } = validarSeAptoParaCancelarSapQuandoPedidoPadrao(listaProdutosParaRemoverPedidos[0]);
+                    
+                    stCancelarSAPValidacao = stCancelarSAP;
+                    successValidacao = success;
+                    msgValidacao = msg;
+                    
+                }/**/
+                
+                if(!successValidacao){
+                    registrarErrorLog(registro.IDDETALHEPRODUTOPEDIDO, msgValidacao);
+                    
+                    return returnWarning(msgValidacao);
+                }
+                let arrayResp = [];
+                for(let produtoParaRemover of listaProdutosParaRemoverPedidos){
+                    /*let resp = cancelarProdutoPedido(produtoParaRemover, stCancelarSAPValidacao);
+                    arrayResp.push(resp);
+                    continue;*/
+                    let { success, msg } = cancelarProdutoPedido(produtoParaRemover, stCancelarSAPValidacao);
+                    //return respCancel
                     if(!success){
-                        registrarErrorLog(dadosProdutoPedido.IDDETALHEPRODUTOPEDIDO, msg);
+                        registrarErrorLog(registro.IDDETALHEPRODUTOPEDIDO, msg);
                         
                         return returnWarning(msg);
                     }
                     
-                    let respCancel = cancelarProdutoPedido(dadosProdutoPedido, stCancelarSAP);
-                    //return respCancel
-                    if(!respCancel.success){
-                        registrarErrorLog(dadosProdutoPedido.IDDETALHEPRODUTOPEDIDO, respCancel.msg);
-                        
-                        return returnWarning(respCancel.msg);
-                    }
                 }
-                
+                //return arrayResp
             } else {
-                //registrarErrorLog(registro.IDDETALHEPRODUTOPEDIDO, 'Dados não encontrados ou produto já cancelado');
-                
                 return returnWarning('Dados não encontrados ou produto já cancelado');
             }
             

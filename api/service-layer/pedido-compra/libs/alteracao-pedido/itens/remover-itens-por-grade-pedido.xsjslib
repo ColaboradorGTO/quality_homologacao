@@ -35,7 +35,10 @@ function getProdutosPedidoQuePermanecerao(idResumoPedido, idDetalhePedido){
                 TBDP.IDDETALHEPEDIDO,
                 TBDP.IDDETALHEPRODUTOPEDIDO,
                 TBDP.IDPRODCADASTRO,
+                TBDP.DSPRODUTO,
                 TBDP.QTDPRODUTO,
+                TBDP.NUREF,
+                TBDP.DSTAMANHO,
                 TBDP.VRCUSTO,
                 ROW_NUMBER() OVER (
                     PARTITION BY TBDP.IDPRODCADASTRO
@@ -51,19 +54,45 @@ function getProdutosPedidoQuePermanecerao(idResumoPedido, idDetalhePedido){
             APP.IDRESUMOPEDIDO,
             APP.IDDETALHEPRODUTOPEDIDO,
             APP.IDPRODCADASTRO,
+            APP.DSPRODUTO,
             APP.QTDPRODUTO,
+            APP.NUREF,
+            APP.DSTAMANHO,
             APP.VRCUSTO,
             SAP."LineNum",
             SAP."TrgetEntry",
             SAP."Price"
         FROM 
             SAP
-        INNER JOIN APP ON
+        /**/INNER JOIN APP ON
             SAP."ItemCode" = TO_VARCHAR(APP.IDPRODCADASTRO) AND SAP.LINHA_SAP = APP.LINHA_APP
         WHERE
-            APP.IDDETALHEPEDIDO <> ${idDetalhePedido}
-            AND 1 = ?
+            APP.IDDETALHEPEDIDO <> ${idDetalhePedido} AND
+        /*RIGHT JOIN APP ON
+            SAP."ItemCode" = TO_VARCHAR(APP.IDPRODCADASTRO) AND SAP.LINHA_SAP = APP.LINHA_APP
+        WHERE/**/
+            1 = ?
         ORDER BY 
+            APP.NUREF, 
+            SUBSTRING(APP.DSPRODUTO, 0, LENGTH(APP.DSPRODUTO)-2),
+            CASE 
+                WHEN APP.DSTAMANHO BETWEEN '0' AND '99999' THEN TO_INTEGER(APP.DSTAMANHO)
+                WHEN APP.DSTAMANHO = 'PP' THEN 1
+                WHEN APP.DSTAMANHO = 'P'  THEN 2
+                WHEN APP.DSTAMANHO = 'M'  THEN 3
+                WHEN APP.DSTAMANHO = 'G'  THEN 4
+                WHEN APP.DSTAMANHO = 'GG' THEN 5
+                WHEN APP.DSTAMANHO = 'EG' THEN 6
+                WHEN APP.DSTAMANHO = 'EGG' THEN 7
+                WHEN APP.DSTAMANHO = 'G1'  THEN 8
+                WHEN APP.DSTAMANHO = 'G2'  THEN 9
+                WHEN APP.DSTAMANHO = 'G3'  THEN 10
+                WHEN APP.DSTAMANHO = 'G4'  THEN 11
+                WHEN APP.DSTAMANHO = 'G5'  THEN 12
+                WHEN APP.DSTAMANHO = 'XG' THEN 13
+                WHEN APP.DSTAMANHO = 'XGG' THEN 14
+                ELSE 999
+            END,
             SAP."LineNum"
     `;
 
@@ -81,6 +110,7 @@ function montarJsonDocumentLines(listaProdutosPedido){
         let quantity = Number(dados.QTDPRODUTO);
         let unitPrice = Number(dados.VRCUSTO);
         let docEntryNfeEntrada = dados.TrgetEntry;
+        let idDetalheProdutoPedido = Number(dados.IDDETALHEPRODUTOPEDIDO)
         
         if(linesNumComEntrada.includes(dados.LineNum)){
             if(contador == dados.LineNum){
@@ -106,6 +136,7 @@ function montarJsonDocumentLines(listaProdutosPedido){
             ,"UnitPrice": unitPrice
             ,"CostingCode": "ALOCREC"
             ,"ProjectCode": "PDV_SOFTQUALITY"
+            ,"U_IdDetalheProdutoPedido": idDetalheProdutoPedido
         }
         
         lines.push(jsonLine);

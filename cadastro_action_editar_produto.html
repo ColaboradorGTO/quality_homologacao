@@ -1,0 +1,218 @@
+<div id="form-editar-produto">
+  <style>
+    .tooltip-box {
+      position: absolute;
+      background: #333;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+      pointer-events: none;
+      z-index: 9999;
+    }
+  
+    .tooltip-box.show {
+      opacity: 1;
+    }
+  </style>
+  <span class="tooltip-box" id="tooltipBox">0 caracteres</span>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-4">
+        <label class="form-label" for="idMarcaModalEditarProdutoCadastrado">Marca do Grupo</label>
+        <div class="input-group">
+          <select class="select form-control" name="idMarcaModalEditarProdutoCadastrado" id="idMarcaModalEditarProdutoCadastrado"> </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="idProdutoModalEditarProdutoCadastrado">ID.Produto</label>
+        <div class="input-group">
+          <input type="text" id="idProdutoModalEditarProdutoCadastrado" name="idProdutoModalEditarProdutoCadastrado" class="form-control" value="" readonly disabled/>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="codBarrasModalEditarProdutoCadastrado">Cod.Barras</label>
+        <div class="input-group">
+          <input type="text" id="codBarrasModalEditarProdutoCadastrado" name="codBarrasModalEditarProdutoCadastrado" class="form-control" value="" readonly disabled/>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-5">
+        <label class="form-label" for="descricaoProdutoModalEditarProdutoCadastrado">Descrição Produto</label>
+        <div class="input-group">
+          <input type="text" id="descricaoProdutoModalEditarProdutoCadastrado" name="descricaoProdutoModalEditarProdutoCadastrado" class="form-control" value="" onblur="replaceSpecialChars(this);" oninput="mostraTooltipNumeroCaracteresDigitadosNoModal(this)" autocomplete="off"/>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="referenciaModalEditarProdutoCadastrado">Referência</label>
+        <div class="input-group">
+          <input type="text" id="referenciaModalEditarProdutoCadastrado" name="referenciaModalEditarProdutoCadastrado" class="form-control" value="" autocomplete="off" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-9">
+        <label class="form-label" for="idFornecedorModalEditarProdutoCadastrado">Fornecedor</label>
+        <div class="input-group">
+          <select class="select form-control" name="idFornecedorModalEditarProdutoCadastrado" id="idFornecedorModalEditarProdutoCadastrado" onChange="buscarListaFabricanteFornecedor(this.value);"> </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idFabricanteModalEditarProdutoCadastrado">Fabricante</label>
+        <div class="input-group">
+          <select class="select form-control" name="idFabricanteModalEditarProdutoCadastrado" id="idFabricanteModalEditarProdutoCadastrado"> </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="idUnidadeModalEditarProdutoCadastrado">Unidade</label>
+        <div class="input-group">
+          <select class="select form-control" name="idUnidadeModalEditarProdutoCadastrado" id="idUnidadeModalEditarProdutoCadastrado"> </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idCorModalEditarProdutoCadastrado">Cor</label>
+        <div class="input-group">
+          <select class="select form-control" name="idCorModalEditarProdutoCadastrado" id="idCorModalEditarProdutoCadastrado"> </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idMaterialFabricacaoModalEditarProdutoCadastrado">Tipo de Material</label>
+        <div class="input-group">
+          <select class="select form-control" name="idMaterialFabricacaoModalEditarProdutoCadastrado" id="idMaterialFabricacaoModalEditarProdutoCadastrado"></select>
+        </div>
+      </div>
+      <div class="col-sm-4 col-xl-4">
+        <label class="form-label" for="idCategoriaGradeModalEditarProdutoCadastrado">Categoria Grade</label>
+        <div class="input-group">
+          <select class="select form-control" name="idCategoriaGradeModalEditarProdutoCadastrado" id="idCategoriaGradeModalEditarProdutoCadastrado" onChange="buscarTamanhosVinculadosCategoriaGrade(this.value);"></select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="idTamanhoModalEditarProdutoCadastrado">Tamanho</label>
+        <div class="input-group">
+          <select class="select form-control" name="idTamanhoModalEditarProdutoCadastrado" id="idTamanhoModalEditarProdutoCadastrado">
+            <option value="">Selecione</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-4">
+        <label class="form-label" for="idEstruturaModalEditarProdutoCadastrado">Estrutura</label>
+        <div class="input-group">
+          <select class="select form-control" name="idEstruturaModalEditarProdutoCadastrado" id="idEstruturaModalEditarProdutoCadastrado" onChange="selecionaestilogrupo();">
+            <option value=""> </option>
+
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idEstiloModalEditarProdutoCadastrado">Estilos</label>
+        <div class="input-group">
+          <select class="select form-control" name="idEstiloModalEditarProdutoCadastrado" id="idEstiloModalEditarProdutoCadastrado">
+            <option value=""> </option>
+
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idCategoriasModalEditarProdutoCadastrado">Categorias</label>
+        <div class="input-group">
+          <select class="select form-control" name="idCategoriasModalEditarProdutoCadastrado" id="idCategoriasModalEditarProdutoCadastrado">
+            <option value=""> </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idLocalExposicaoModalEditarProdutoCadastrado">Local Exposição</label>
+        <div class="input-group">
+          <select class="select form-control" name="idLocalExposicaoModalEditarProdutoCadastrado" id="idLocalExposicaoModalEditarProdutoCadastrado">
+            <option value=""> </option>
+
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="stEcommerceModalEditarProdutoCadastrado">E-commerce</label>
+        <div class="input-group">
+          <select class="select form-control" name="stEcommerceModalEditarProdutoCadastrado" id="stEcommerceModalEditarProdutoCadastrado">
+            <option value="True">SIM</option>
+            <option value="False">NÃO</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="stRedeSocialModalEditarProdutoCadastrado">Rede Social</label>
+        <div class="input-group">
+          <select class="select form-control" name="stRedeSocialModalEditarProdutoCadastrado" id="stRedeSocialModalEditarProdutoCadastrado">
+            <option value="True">SIM</option>
+            <option value="False">NÃO</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="idNcmModalEditarProdutoCadastrado">NCM</label>
+        <div class="input-group">
+          <select class="select2 form-control" name="idNcmModalEditarProdutoCadastrado" id="idNcmModalEditarProdutoCadastrado">
+            <option value=""> </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idTipoProdutoFiscalModalEditarProdutoCadastrado">Tipo Produto</label>
+        <div class="input-group">
+          <select class="select2 form-control" name="idTipoProdutoFiscalModalEditarProdutoCadastrado" id="idTipoProdutoFiscalModalEditarProdutoCadastrado">
+            <option value=""> </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-8">
+        <label class="form-label" for="idTipoFonteFiscalModalEditarProdutoCadastrado">Tipo Fiscal</label>
+        <div class="input-group">
+          <select class="select2 form-control" name="idTipoFonteFiscalModalEditarProdutoCadastrado" id="idTipoFonteFiscalModalEditarProdutoCadastrado">
+            <option value=""> </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="vrUnitarioModalEditarProdutoCadastrado">Vr Custo</label>
+        <div class="input-group">
+          <input type="text" id="vrUnitarioModalEditarProdutoCadastrado" name="vrUnitarioModalEditarProdutoCadastrado" class="form-control" value="0">
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="vrVendaModalEditarProdutoCadastrado">Vr Venda</label>
+        <div class="input-group">
+          <input type="text" id="vrVendaModalEditarProdutoCadastrado" name="vrVendaModalEditarProdutoCadastrado" class="form-control" value="0">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $("#vrUnitarioModalEditarProdutoCadastrado").mask('#.##0,00', { reverse: true,  placeholder: '0,00' }).data('mask-applied', true);
+    $("#vrVendaModalEditarProdutoCadastrado").mask('#.##0,00', { reverse: true,  placeholder: '0,00' }).data('mask-applied', true);
+  </script>
+</div>

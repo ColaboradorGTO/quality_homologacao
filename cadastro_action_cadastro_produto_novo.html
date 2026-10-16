@@ -1,0 +1,235 @@
+<div id="form-produto-novo">
+  <style>
+    .tooltip-box {
+      position: absolute;
+      background: #333;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+      pointer-events: none;
+      z-index: 9999;
+    }
+  
+    .tooltip-box.show {
+      opacity: 1;
+    }
+  </style>
+  <span class="tooltip-box" id="tooltipBox">0 caracteres</span>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="pesqrefprodpedido">Pesquisar Referencia/Produto</label>
+        <div class="input-group">
+          <input type="text" id="pesqrefprodpedido" name="pesqrefprodpedido" class="form-control input" value="" autocomplete="off"  onChange="buscarProdutosParaPreencherSelect();">
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-6">
+        <label class="form-label" for="listprodpesqped">Lista dos Produtos da Pesquisa</label>
+        <div class="input-group">
+          <select class="select form-control" name="listprodpesqped" id="listprodpesqped" onChange="preencherDadosDeProdutoModeloNoModal();"> </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idMarcaModalCadastrarProdutoNovo">Marca do Grupo</label>
+        <div class="input-group">
+          <select class="select form-control" name="idMarcaModalCadastrarProdutoNovo" id="idMarcaModalCadastrarProdutoNovo"> </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-6">
+        <label class="form-label" for="descInicialModalCadastrarProdutoNovo">Descrição Produto</label>
+        <div class="input-group">
+          <input type="text" id="descInicialModalCadastrarProdutoNovo" name="descInicialModalCadastrarProdutoNovo" class="form-control" value=""
+            onblur="replaceSpecialChars(this);" autocomplete="off">
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="referenciaModalCadastrarProdutoNovo">Referência</label>
+        <div class="input-group">
+          <input type="text" id="referenciaModalCadastrarProdutoNovo" name="referenciaModalCadastrarProdutoNovo" class="form-control" value="" autocomplete="off">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-9">
+        <label class="form-label" for="idFornecedorModalCadastrarProdutoNovo">Fornecedor</label>
+        <div class="input-group">
+          <select class="select form-control" name="idFornecedorModalCadastrarProdutoNovo" id="idFornecedorModalCadastrarProdutoNovo" onChange="buscarListaFabricanteFornecedor(this.value, '#idFabricanteModalCadastrarProdutoNovo');"> </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idFabricanteModalCadastrarProdutoNovo">Fabricante</label>
+        <div class="input-group">
+          <select class="select form-control" name="idFabricanteModalCadastrarProdutoNovo" id="idFabricanteModalCadastrarProdutoNovo"> </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="idUnidadeModalCadastrarProdutoNovo">Unidade</label>
+        <div class="input-group">
+          <select class="select form-control" name="idUnidadeModalCadastrarProdutoNovo" id="idUnidadeModalCadastrarProdutoNovo"> </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idCorModalCadastrarProdutoNovo">Cor</label>
+        <div class="input-group">
+          <select class="select form-control" name="idCorModalCadastrarProdutoNovo" id="idCorModalCadastrarProdutoNovo"> </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idMaterialFabricacaoModalCadastrarProdutoNovo">Tipo de Material</label>
+        <div class="input-group">
+          <select class="select form-control" name="idMaterialFabricacaoModalCadastrarProdutoNovo" id="idMaterialFabricacaoModalCadastrarProdutoNovo"></select>
+        </div>
+      </div>
+      <div class="col-sm-4 col-xl-4">
+        <label class="form-label" for="idCategoriaGradeModalCadastrarProdutoNovo">Categoria Grade</label>
+        <div class="input-group">
+          <select class="select form-control" name="idCategoriaGradeModalCadastrarProdutoNovo" id="idCategoriaGradeModalCadastrarProdutoNovo" onChange="buscarTamanhosVinculadosCategoriaGrade(this.value, '#idTamanhoModalCadastrarProdutoNovo');"></select>
+        </div>
+      </div>
+    </div>
+  </div> 
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="idTamanhoModalCadastrarProdutoNovo">Tamanho</label>
+        <div class="input-group">
+          <select class="select form-control" name="idTamanhoModalCadastrarProdutoNovo" id="idTamanhoModalCadastrarProdutoNovo">
+            <option value="">Selecione</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-4">
+        <label class="form-label" for="idEstruturaModalCadastrarProdutoNovo">Estrutura</label>
+        <div class="input-group">
+          <select class="select form-control" name="idEstruturaModalCadastrarProdutoNovo" id="idEstruturaModalCadastrarProdutoNovo" onChange="buscarEstilosVinculadosGrupoEstrutura(this.value, '#idEstiloModalCadastrarProdutoNovo');">
+            <option value=""> </option>
+
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idEstiloModalCadastrarProdutoNovo">Estilos</label>
+        <div class="input-group">
+          <select class="select form-control" name="idEstiloModalCadastrarProdutoNovo" id="idEstiloModalCadastrarProdutoNovo">
+            <option value=""> </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idCategoriasModalCadastrarProdutoNovo">Categorias</label>
+        <div class="input-group">
+          <select class="select form-control" name="idCategoriasModalCadastrarProdutoNovo" id="idCategoriasModalCadastrarProdutoNovo">
+            <option value=""> </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idLocalExposicaoModalCadastrarProdutoNovo">Local Exposição</label>
+        <div class="input-group">
+          <select class="select form-control" name="idLocalExposicaoModalCadastrarProdutoNovo" id="idLocalExposicaoModalCadastrarProdutoNovo">
+            <option value=""> </option>
+
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="stEcommerceModalCadastrarProdutoNovo">E-commerce</label>
+        <div class="input-group">
+          <select class="select form-control" name="stEcommerceModalCadastrarProdutoNovo" id="stEcommerceModalCadastrarProdutoNovo">
+            <option value="True">SIM</option>
+            <option value="False">NÃO</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="stRedeSocialModalCadastrarProdutoNovo">Rede Social</label>
+        <div class="input-group">
+          <select class="select form-control" name="stRedeSocialModalCadastrarProdutoNovo" id="stRedeSocialModalCadastrarProdutoNovo">
+            <option value="True">SIM</option>
+            <option value="False">NÃO</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="idNcmModalCadastrarProdutoNovo">NCM</label>
+        <div class="input-group">
+          <select class="select2 form-control" name="idNcmModalCadastrarProdutoNovo" id="idNcmModalCadastrarProdutoNovo">
+            <option value=""> </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <label class="form-label" for="idTipoProdutoFiscalModalCadastrarProdutoNovo">Tipo Produto</label>
+        <div class="input-group">
+          <select class="select2 form-control" name="idTipoProdutoFiscalModalCadastrarProdutoNovo" id="idTipoProdutoFiscalModalCadastrarProdutoNovo">
+            <option value=""> </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-8">
+        <label class="form-label" for="idTipoFonteFiscalModalCadastrarProdutoNovo">Tipo Fiscal</label>
+        <div class="input-group">
+          <select class="select2 form-control" name="idTipoFonteFiscalModalCadastrarProdutoNovo" id="idTipoFonteFiscalModalCadastrarProdutoNovo">
+            <option value=""> </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="vrUnitarioModalCadastrarProdutoNovo">Vr Custo</label>
+        <div class="input-group">
+          <input type="text" id="vrUnitarioModalCadastrarProdutoNovo" name="vrUnitarioModalCadastrarProdutoNovo" class="form-control" value="">
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-2">
+        <label class="form-label" for="vrVendaModalCadastrarProdutoNovo">Vr Venda</label>
+        <div class="input-group">
+          <input type="text" id="vrVendaModalCadastrarProdutoNovo" name="vrVendaModalCadastrarProdutoNovo" class="form-control" value="">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row">
+      <div class="col-sm-6 col-xl-4">
+        <label class="form-label">PRÉVIA NOME PRODUTO</label>
+      </div>
+      <div class="col-sm-6 col-xl-8">
+        <button type="button" class="btn btn-danger btn-xs" title="Gerar Nome Produto" onclick="gerarNomeModalCadastrarProdutoNovo()" >
+          <i class="fal fa-bars mr-1"></i> Gerar Nome Produto
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="row" id="resultadoPreviaProdutoGerada">
+    </div>
+  </div>
+
+  <script>
+    $("#vrUnitarioModalCadastrarProdutoNovo").mask('#.##0,00', { reverse: true,  placeholder: '0,00' }).data('mask-applied', true);
+    $("#vrVendaModalCadastrarProdutoNovo").mask('#.##0,00', { reverse: true,  placeholder: '0,00' }).data('mask-applied', true);
+  </script>
+</div>

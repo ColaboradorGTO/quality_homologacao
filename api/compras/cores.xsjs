@@ -1,40 +1,93 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
-function fnHandleGet(byId) {
-
-    var idCor = $.request.parameters.get("idCor");
-    var descCor = $.request.parameters.get("descCor");
-    var idGrupoCor = $.request.parameters.get("idGrupoCor");
+function validarSeExisteDescricaoOuSiglaAntesDeInserir(descricao, sigla){
+    let query = ` 
+        SELECT 
+            1
+        FROM 
+            "VAR_DB_NAME".COR
+        WHERE
+            1 = ? 
+            AND (
+                UPPER(TRIM(DSCOR)) = UPPER(TRIM('${descricao}'))
+                OR UPPER(TRIM(DSSIGLA)) = UPPER(TRIM('${sigla}'))
+            )
+            AND STBLOQUEADOPARACADASTROPRODUTONOVO = 'False'
+    `;
     
-    var query = ' SELECT ' + 
-    '   A.IDCOR ID_COR, ' + 
-    '   A.IDGRUPOCOR ID_GRUPOCOR, ' + 
-    '   A.DSCOR DS_COR, ' + 
-    '   A.STATIVO, ' + 
-    '   B.DSGRUPOCOR DS_GRUPOCOR ' + 
-    '   FROM "VAR_DB_NAME".COR A ' + 
-    '   INNER JOIN "VAR_DB_NAME".GRUPOCOR B on A.IDGRUPOCOR = B.IDGRUPOCOR' +
-    ' WHERE ' +
-        '	1 = ?';
+    let reg = api.sqlQuery(query, 1) || [];
+    
+    return reg.length > 0;
+}
+
+function validarSeExisteDescricaoOuSiglaAntesDeAtualizar(id, descricao, sigla){
+    let query = ` 
+        SELECT 
+            1
+        FROM 
+            "VAR_DB_NAME".COR
+        WHERE
+            1 = ? 
+            AND (
+                UPPER(TRIM(DSCOR)) = UPPER(TRIM('${descricao}'))
+                OR UPPER(TRIM(DSSIGLA)) = UPPER(TRIM('${sigla}'))
+            )
+            AND IDCOR <> '${id}'
+            AND STBLOQUEADOPARACADASTROPRODUTONOVO = 'False'
+    `;
+    
+    let reg = api.sqlQuery(query, 1) || [];
+    
+    return reg.length > 0;
+}
+
+function fnHandleGet(byId) {
+    let idCor = $.request.parameters.get("idCor");
+    let descCor = $.request.parameters.get("descCor");
+    let idGrupoCor = $.request.parameters.get("idGrupoCor");
+    
+    let query = `
+        SELECT 
+            A.IDCOR AS ID_COR, 
+            A.IDGRUPOCOR AS ID_GRUPOCOR, 
+            A.DSCOR AS DS_COR, 
+            A.DSSIGLA,
+            A.STBLOQUEADOPARACADASTROPRODUTONOVO,
+            A.STATIVO, 
+            B.DSGRUPOCOR DS_GRUPOCOR 
+        FROM 
+            "VAR_DB_NAME".COR A 
+        INNER JOIN "VAR_DB_NAME".GRUPOCOR B ON
+            A.IDGRUPOCOR = B.IDGRUPOCOR
+        WHERE
+            1 = ?
+    `;
     
     if(idGrupoCor){
-        query = query + ' And  A.IDGRUPOCOR IN ( ' + idGrupoCor + ')  ';
+        query += ` AND A.IDGRUPOCOR IN ( '${idGrupoCor}')  `;
     }
     
-        if ( byId ) {
-        query = query + ' And  A.IDCOR = \'' + byId + '\' ';
+    if ( byId ) {
+        query += ` AND A.IDCOR = '${byId}' `;
     }
 
     if ( idCor ) {
-        query = query + ' And  A.IDCOR = \'' + idCor + '\' ';
+        query += ` AND A.IDCOR = '${idCor}' `;
     }
 
     if ( descCor ) {
-        query = query + ' And  (A.DSCOR LIKE \'%'+descCor+'%\' OR A.DSCOR LIKE \'%'+descCor+'%\' ) ';
+        query += ` AND CONTAINS((A.DSCOR, A.DSSIGLA),'%${descCor}%') `;
     }
     
 
-    query = query + ' ORDER BY A."IDGRUPOCOR",  A."DSCOR"';
+    query += `
+        ORDER BY 
+            CASE 
+                WHEN UPPER(B.DSGRUPOCOR) = 'NOVO PADRÃO' THEN 0
+                ELSE B.IDGRUPOCOR
+            END,
+            A.DSCOR 
+    `;
 
     
     var request = { 
@@ -46,27 +99,41 @@ function fnHandleGet(byId) {
 }
 
 function fnHandlePut() {
-    var conn = $.db.getConnection();
-    var query = 'UPDATE "VAR_DB_NAME"."COR" SET ' + 
-        ' "IDGRUPOCOR" = ?, ' +
-        ' "DSCOR" = ?, ' +
-        ' "STATIVO" = ? ' +
-    	' WHERE "IDCOR" =  ? ';
-        
-    var pStmt = conn.prepareStatement(api.replaceDbName(query));
-    var bodyJson = JSON.parse($.request.body.asString()); 
+    let conn = $.db.getConnection();
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."COR" 
+        SET
+            "IDGRUPOCOR" = ?,
+            "DSCOR" = ?,
+            "DSSIGLA" = ?,
+            "STATIVO" = ?,
+            "IDUSRULTIMAALTERACAO" = ?,
+            "DTHORAULTIMAALTERACAO" = CURRENT_TIMESTAMP
+        WHERE 
+            "IDCOR" =  ? 
+    `;
     
-    for (var i = 0; i < bodyJson.length; i++) {
-
-		var registro = bodyJson[i];
-
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    let bodyJson = JSON.parse($.request.body.asString()); 
+    
+    for (let registro of bodyJson) {
+        let exist = validarSeExisteDescricaoOuSiglaAntesDeAtualizar(registro.IDCOR, registro.DSCOR, registro.DSSIGLA);
+        
+        if(exist){
+            throw new Error('Já existe uma Cor com essa mesma DESCRIÇÃO ou SIGLA');
+        }
+        
         pStmt.setInt(1, registro.IDGRUPOCOR);
         pStmt.setString(2, registro.DSCOR);
-        pStmt.setString(3, registro.STATIVO);
-        pStmt.setInt(4, registro.IDCOR);
-                    
-    	pStmt.execute();
+        pStmt.setString(3, registro.DSSIGLA);
+        pStmt.setString(4, registro.STATIVO);
+        pStmt.setInt(5, registro.IDFUNCIONARIO);
+        pStmt.setInt(6, registro.IDCOR);
+        
+        pStmt.execute();
     }
+    
 	pStmt.close();
 
 	conn.commit();
@@ -76,33 +143,37 @@ function fnHandlePut() {
 	};
 }
 
-function fnHandlePost() 
-{
-    var conn = $.db.getConnection();
-    var queryId = 'SELECT IFNULL(MAX(TO_INT("IDCOR")),0) + 1 FROM "VAR_DB_NAME"."COR" WHERE 1 = ? ';
+function fnHandlePost(){
+    let conn = $.db.getConnection();
+    let query = `
+        INSERT INTO 
+            "VAR_DB_NAME"."COR"
+        (
+            "IDGRUPOCOR",
+            "DSCOR",
+            "DSSIGLA",
+            "IDUSRCRIACAO",
+            "IDUSRULTIMAALTERACAO"
+        )
+        VALUES(?, ?, ?, ?, ?) 
+    `;
+	
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+	let bodyJson = JSON.parse($.request.body.asString());
     
-    var query = 'INSERT INTO "VAR_DB_NAME"."COR" ' +
-		" ( " +
-		' "IDCOR", ' +
-		' "IDGRUPOCOR", ' +
-        ' "DSCOR", ' +
-        ' "STATIVO" ' +
-    	' ) ' +
-		' VALUES(?,?,?,?) ';
-		
-    var pStmt = conn.prepareStatement(api.replaceDbName(query));
-	var bodyJson = JSON.parse($.request.body.asString());
-    
-	for (var i = 0; i < bodyJson.length; i++) {
+	for (let registro of bodyJson) {
+        let exist = validarSeExisteDescricaoOuSiglaAntesDeInserir(registro.DSCOR, registro.DSSIGLA);
         
-		var registro = bodyJson[i];
-		var IdCor = api.executeScalar(queryId,1);
-
-	    pStmt.setInt(1, parseInt(IdCor));
-        pStmt.setInt(2, registro.IDGRUPOCOR);
-        pStmt.setString(3, registro.DSCOR);
-        pStmt.setString(4, registro.STATIVO);
-    	
+        if(exist){
+            throw new Error('Já existe uma Cor com essa mesma DESCRIÇÃO ou SIGLA');
+        }
+        
+        pStmt.setInt(1, registro.IDGRUPOCOR);
+        pStmt.setString(2, registro.DSCOR);
+        pStmt.setString(3, registro.DSSIGLA);
+        pStmt.setInt(4, registro.IDFUNCIONARIO);
+        pStmt.setInt(5, registro.IDFUNCIONARIO);
+        	
         pStmt.execute();
 	}
 

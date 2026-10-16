@@ -1,0 +1,40 @@
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="idMaterialFabricacaoEdicao">ID</label>
+      <div class="input-group">
+        <input type="text" id="idMaterialFabricacaoEdicao" name="idMaterialFabricacaoEdicao" class="form-control input" value="" readonly />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-4">
+      <label class="form-label" for="descMaterialFabricacaoEdicao">Descrição *</label>
+      <div class="input-group">
+        <input type="text" id="descMaterialFabricacaoEdicao" name="descMaterialFabricacaoEdicao" class="form-control input" placeholder="Digite a descrição..." value="" autocomplete="off" oninput="formatarCampoElementoSomenteLetrasNormalize(this)" />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="siglaMaterialFabricacaoEdicao">Sigla *</label>
+      <div class="input-group">
+        <input type="text" id="siglaMaterialFabricacaoEdicao" name="siglaMaterialFabricacaoEdicao" class="form-control input" placeholder="Digite a sigla..." value="" autocomplete="off" oninput="formatarCampoElementoSomenteLetrarMaiusculas(this)" />
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="stAtivoMaterialFabricacaoEdicao">Situação *</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="stAtivoMaterialFabricacaoEdicao" id="stAtivoMaterialFabricacaoEdicao">
+          <option value="" disabled>Selecione...</option>
+          <option value="True">ATIVO</option>
+          <option value="False">INATIVO</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-12">
+      <label class="form-label" for="vrfat">* Campos Obrigatórios *</label>
+      <div id="tudo"></div>
+    </div>
+  </div>
+</div>

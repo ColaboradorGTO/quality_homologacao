@@ -10,25 +10,26 @@ function setIntOrNull(stmt, fieldId, value) {
 
 function fnHandleGet(byId) {
 
-    var idImgProd = $.request.parameters.get("idImgProd");
-    var NuRefImgProd = $.request.parameters.get("NuRefImgProd");
-    var IdFabricante = $.request.parameters.get("IDFabImagem");
-    var IdSubEst = $.request.parameters.get("IDSubEstImagem");
-    var idPedido = $.request.parameters.get("idPedido");
+    let idImgProd = $.request.parameters.get("idImgProd");
+    let NuRefImgProd = $.request.parameters.get("NuRefImgProd");
+    let IdFabricante = $.request.parameters.get("IDFabImagem");
+    let IdSubEst = $.request.parameters.get("IDSubEstImagem");
+    let idPedido = $.request.parameters.get("idPedido");
+    let idNomeCodBarrasProd = $.request.parameters.get("idNomeCodBarrasProd");
     
-    var query = `
-        SELECT 
-            A.IDIMAGEM, 
-            A.IDRESUMOPEDIDO, 
-            A.NUREF, 
-            CAST(BINTOSTR(CAST(A.IMAGEM AS BINARY)) AS VARCHAR) AS IMAGEM, 
-            A.DTINCLUSAO, 
-            TO_VARCHAR(A.DTINCLUSAO, 'DD/MM/YYYY HH24:MI:SS') AS DTINCLUSAOFORMAT, 
-            A.STATIVO 
+    let query = `
+        SELECT
+            A.IDIMAGEM,
+            A.IDRESUMOPEDIDO,
+            A.NUREF,
+            CAST(BINTOSTR(CAST(A.IMAGEM AS BINARY)) AS VARCHAR) AS IMAGEM,
+            A.DTINCLUSAO,
+            TO_VARCHAR( A.DTINCLUSAO, 'DD/MM/YYYY HH24:MI:SS') AS DTINCLUSAOFORMAT,
+            A.STATIVO
         FROM 
-            "VAR_DB_NAME".TBIMAGEM A 
-        WHERE 
-            1 = ? 
+            "VAR_DB_NAME".TBIMAGEM A
+        WHERE
+            1 = ?
             AND A.STATIVO = 'True'
     `;
     
@@ -78,10 +79,27 @@ function fnHandleGet(byId) {
         `;
     }
     
+    if( idNomeCodBarrasProd ){
+        query += `
+            AND A.IDIMAGEM IN 
+            (
+                SELECT
+                    T1.IDIMAGEM
+                FROM 
+                    "VAR_DB_NAME".TBIMAGEMPRODUTO T1
+                INNER JOIN "VAR_DB_NAME".PRODUTO T2 ON
+                    T1.IDPRODUTO = T2.IDPRODUTO
+                WHERE
+                    T1.STATIVO = 'True'
+                    AND CONTAINS((T2.IDPRODUTO, T2.DSNOME, T2.NUCODBARRAS),'${idNomeCodBarrasProd}%')
+            )
+        `;
+    }
+    
     query = query + ' ORDER BY A.DTINCLUSAO, A.IDRESUMOPEDIDO, A."NUREF" ';
 
     
-    var request = { 
+    let request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  ($.request.parameters.get("pageSize") || 5)
     };
@@ -100,7 +118,7 @@ function fnHandlePut() {
         
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
     var bodyJson = JSON.parse($.request.body.asString()); 
-    if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
+
     for (var i = 0; i < bodyJson.length; i++) {
 
 		var registro = bodyJson[i];
@@ -153,7 +171,7 @@ function fnHandlePost() {
 		
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());
-    if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
+
 	for (var i = 0; i < bodyJson.length; i++) {
         
 		var registro = bodyJson[i];
@@ -222,8 +240,7 @@ function fnHandlePost() {
 	conn.commit();
 	
     return {
-	    "msg": "Inclusão realizada com sucesso!",
-	    "data": bodyJson
+	    "msg": "Inclusão realizada com sucesso!"
 	};
 }
 

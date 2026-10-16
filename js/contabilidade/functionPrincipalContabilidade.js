@@ -4072,3 +4072,22 @@ async function cancelarArquivoAlvaraEmpresa(idVinculoAlvara, idArquivoAlvara) {
 
 //? =================== FIM ROTINA DE ALVARAS DE EMPRESAS ===================//
 
+//? =================== INICIO ROTINA DE NCM EXCECAO ===================//
+function TelaConfiguracaoNCMExcecao() {
+  if (window.XMLHttpRequest) {
+    xmlhttp = new XMLHttpRequest();
+  } else {
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
+
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      document.getElementById("js-page-content").innerHTML = `
+        <iframe src="https://ncm-ashy.vercel.app/" style="width:100%;height:200vh;border:none;"></iframe>
+      `;
+    }
+  };
+
+  xmlhttp.open("GET", "contabilidade_action_tela_ncm_excecao.html", true);
+  xmlhttp.send();
+}

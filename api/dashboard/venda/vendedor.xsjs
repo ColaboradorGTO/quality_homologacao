@@ -75,7 +75,7 @@ function fnHandleGet(byId) {
     var query = ' SELECT ' +
         '   DISTINCT IFNULL(tbvd.VENDEDOR_MATRICULA, 0) AS VENDEDOR_MATRICULA, ' +
 		'	TRIM(tbvd.VENDEDOR_NOME) AS VENDEDOR_NOME, ' +
-		'	IFNULL(tbvd.VENDEDOR_CPF, 0) AS VENDEDOR_CPF ' +
+		'	TRIM(tbvd.VENDEDOR_CPF) AS VENDEDOR_CPF ' +
     	' FROM ' +
         '	"VAR_DB_NAME".VENDADETALHE tbvd ' +
         '	INNER JOIN "VAR_DB_NAME".VENDA tbv ON  tbvd.IDVENDA = tbv.IDVENDA ' +
@@ -96,7 +96,7 @@ function fnHandleGet(byId) {
         query = query + ' AND (tbv.DTHORAFECHAMENTO  BETWEEN \'' + dataFechamento + ' 00:00:00\' AND \'' + dataFechamento + ' 23:59:59\')';
     }
     
-    query = query + 'GROUP BY tbvd.VENDEDOR_MATRICULA, tbvd.VENDEDOR_NOME, tbvd.VENDEDOR_CPF ';
+    query = query + 'GROUP BY tbvd.VENDEDOR_MATRICULA, tbvd.VENDEDOR_NOME, TRIM(tbvd.VENDEDOR_CPF) ';
 
 	var request = {
 		page: $.request.parameters.get("page"),

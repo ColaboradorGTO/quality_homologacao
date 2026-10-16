@@ -23,7 +23,23 @@ function getPedidoNoSAP(idResumoPedido){
     return api.sqlQuery(query, 1);
 }
 
-function updateLogErrorMigracao(idResumoPedido, msgError){
+function getLinhaPedidoNoSAP(idDetalheProdutoPedido){
+    let query = `
+        SELECT
+            "DocEntry"
+        FROM 
+            ${dbNameSAP}.POR1 
+        WHERE 
+            "U_IdDetalheProdutoPedido = '${idDetalheProdutoPedido}'
+            AND 1 = ?
+    `;
+    
+    let reg = api.sqlQuery(query, 1) || [];
+    
+    return reg.length > 0;
+}
+
+function updateLogErrorMigracaoPedido(idResumoPedido, msgError){
     let query = `
         UPDATE 
             "VAR_DB_NAME".RESUMOPEDIDO 
@@ -37,15 +53,15 @@ function updateLogErrorMigracao(idResumoPedido, msgError){
 	let pStmt = conn.prepareStatement(api.replaceDbName(query));
     
     pStmt.setString(1, msgError);
-	pStmt.setInt(2, (idResumoPedido));
+	pStmt.setInt(2, Number(idResumoPedido));
 	
-	pStmt.execute();
+	pStmt.executeUpdate();
 	pStmt.close();
 
 	conn.commit();
 }
 
-function updateLogSuccessMigracao(idResumoPedido, docEntrySAP){
+function updateLogSuccessMigracaoPedido(idResumoPedido, docEntrySAP){
     let query = `
          UPDATE 
             "VAR_DB_NAME"."RESUMOPEDIDO" 
@@ -60,34 +76,57 @@ function updateLogSuccessMigracao(idResumoPedido, docEntrySAP){
 	let pStmt = conn.prepareStatement(api.replaceDbName(query));
     
     pStmt.setInt(1, (docEntrySAP));
-	pStmt.setInt(2, (idResumoPedido));
+	pStmt.setInt(2, Number(idResumoPedido));
 	
-	pStmt.execute();
+	pStmt.executeUpdate();
+	pStmt.close();
+
+	conn.commit();
+}
+
+function updateLogSuccessMigracaoLinhaPedido(dadosProdutosPedido){
+    let query = `
+         UPDATE 
+            "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" 
+        SET
+            STLINHAPRODUTOMIGRADAPARAPEDIDOSAP =  'True'
+		WHERE 
+            IDDETALHEPRODUTOPEDIDO = ?
+    `;
+	
+	let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    for(let registro of dadosProdutosPedido){
+        let idDetalheProdutoPedido = Number(registro["U_IdDetalheProdutoPedido"]);
+        
+        pStmt.setInt(1, idDetalheProdutoPedido);
+        
+        pStmt.executeUpdate();
+    }
+    
 	pStmt.close();
 
 	conn.commit();
 }
 
 function postSl(idResumoPedido, data) {
-    if(!session){
-        session = slApi.loginServiceLayer(true);
-    }
-    
     var response = slApi.post('/PurchaseOrders',data,session);
     
     if (response.status !== 204) {
         let responseJson = JSON.parse(response.body.asString());
         let msgReturnError = responseJson.error.message.value || responseJson.message['Store.store'] || 'Erro ao tentar integrar o Pedido';
         
-        return updateLogErrorMigracao(idResumoPedido, msgReturnError);
+        return updateLogErrorMigracaoPedido(idResumoPedido, msgReturnError);
     }
     
     let dadosMigrados = getPedidoNoSAP(idResumoPedido);
     
     if(dadosMigrados.length > 0){
-        return updateLogSuccessMigracao(idResumoPedido, dadosMigrados[0].DocEntry);
+        return updateLogSuccessMigracaoPedido(idResumoPedido, dadosMigrados[0].DocEntry);
+        
+        //return  updateLogSuccessMigracaoLinhaPedido(data["DocumentLines"]);
     } else {
-        return updateLogErrorMigracao(idResumoPedido, 'Erro ao tentar integrar o Pedido');
+        return updateLogErrorMigracaoPedido(idResumoPedido, 'Erro ao tentar integrar o Pedido');
     }
 }
 
@@ -187,6 +226,7 @@ function getCodigoComprador(idComprador){
 function getDadosProdutosPedido(idResumoPedido){
     let query = `
         SELECT
+            IDDETALHEPRODUTOPEDIDO,
             IDPRODCADASTRO,
             QTDPRODUTO,
             VRCUSTO,
@@ -292,6 +332,7 @@ function montarJsonDocLines(idResumoPedido, idFilialCliente, usoPrincipal){
                 ,"ProjectCode": "PDV_SOFTQUALITY"
                 ,"BarCode": dados.CODBARRAS
                 ,"Usage": usoPrincipal
+                ,"U_IdDetalheProdutoPedido": Number(dados.IDDETALHEPRODUTOPEDIDO)
             }
         )
         
@@ -327,7 +368,7 @@ function montarJsonPedido(dados, BplIdCliente = 101, stPedidoSecundario = false)
         ,"Project": "PDV_SOFTQUALITY"
         ,"BPL_IDAssignedToInvoice": BplIdCliente
         ,"U_GrupoEmpresarial": Number(dados.IDGRUPOEMPRESARIAL)
-        ,"U_tipoproduto": Number(dados.MODPEDIDO)
+        ,"U_tipoproduto": dados.MODPEDIDO
         ,"PaymentMethod": paymentMethod
         ,"DocumentLines": montarJsonDocLines(dados.IDRESUMOPEDIDO, BplIdCliente, usoPrincipal)
         ,"TaxExtension": { 
@@ -341,7 +382,7 @@ function executeMigracaoPedidoCompra(idResumoPedido, idFilial = 101, stPedidoSec
     let dadosMigrados = getPedidoNoSAP(idResumoPedido);
     
     if(dadosMigrados.length > 0){
-        return updateLogSuccessMigracao(idResumoPedido, dadosMigrados[0].DocEntry);     
+        return updateLogSuccessMigracaoPedido(idResumoPedido, dadosMigrados[0].DocEntry);     
     }
     
     let dadosPedido = getDadosPedido(idResumoPedido);
@@ -357,25 +398,31 @@ function executeMigracaoPedidoCompra(idResumoPedido, idFilial = 101, stPedidoSec
     }
 }
 
-function sleep(ms) {
-    var start = new Date().getTime();
-    while (new Date().getTime() < start + ms) {}
-}
-
-function executePedidoCompra(){
-    let idResumoPedido = Number($.request.parameters.get("codPedido"));
-    let idResumoPedidoSecundario = getIdResumoPedidoSecundario(idResumoPedido);
+function fnHandlePost(){
+    let bodyJson = JSON.parse($.request.body.asString());
     
-    conn = $.db.getConnection();
-	
-	if(idResumoPedidoSecundario > 0){
-        executeMigracaoPedidoCompra(idResumoPedido, idFilialIntermediaria);
+    if(bodyJson.length > 0){
         
-        executeMigracaoPedidoCompra(idResumoPedidoSecundario, idFilialPadrao, true);
-        
-	} else{
-        executeMigracaoPedidoCompra(idResumoPedido, idFilialPadrao);
-	}
+        for(let registro of bodyJson){
+            let idResumoPedido = registro.IDRESUMOPEDIDO;
+            let idResumoPedidoSecundario = getIdResumoPedidoSecundario(idResumoPedido);
+            let stPedidoPrimario = idResumoPedidoSecundario > 0
+            
+            conn = $.db.getConnection();
+            session = slApi.loginServiceLayer(true);
+            slApi.loginServiceLayer(true);
+            	
+            if(stPedidoPrimario){
+                executeMigracaoPedidoCompra(idResumoPedido, idFilialIntermediaria);
+                
+                executeMigracaoPedidoCompra(idResumoPedidoSecundario, idFilialPadrao, true);
+                
+            } else{
+                
+                executeMigracaoPedidoCompra(idResumoPedido, idFilialPadrao);
+            }
+        }
+    }
     
     return {
         "msg": 'Migração do Pedido realizada com sucesso!'
@@ -390,7 +437,7 @@ if($.response) {
         switch ( $.request.method ) {
             //Handle your GET calls here
             case $.net.http.POST:
-                var doc = executePedidoCompra();
+                var doc = fnHandlePost();
                  $.response.setBody(JSON.stringify(doc));
                 break;
                 

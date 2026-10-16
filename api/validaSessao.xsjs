@@ -181,7 +181,7 @@ function obterCodigoDeRetorno(modulo, user) {
 }
 
 function validaUsuario(modulo, user){
-    let query = "SELECT tbf.IDSUBGRUPOEMPRESARIAL, tbf.DSFUNCAO, tbf.IDFUNCIONARIO FROM FUNCIONARIO tbf WHERE tbf.STATIVO=\'True\' AND tbf.IDFUNCIONARIO = ?";
+    let query = "SELECT tbf.IDSUBGRUPOEMPRESARIAL, tbf.DSFUNCAO, tbf.IDFUNCIONARIO FROM QUALITY_CONC_HML.FUNCIONARIO tbf WHERE tbf.STATIVO=\'True\' AND tbf.IDFUNCIONARIO = ?";
     let dadosFunc = hdb.sqlQuery(query, user.id);
     
     if(dadosFunc.length > 0) {

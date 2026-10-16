@@ -28,6 +28,7 @@ function fnHandleGet(byId) {
     var idEmpresa = $.request.parameters.get("idEmpresa");
     var nuCPF = $.request.parameters.get("nuCPF");
     var NoFuncCPF = $.request.parameters.get("dsNomeFunc");
+    var situacao = $.request.parameters.get("situacao");
     var query = ' SELECT ' + 
     '   tbf.ID,' +
 	'   tbf.IDFUNCIONARIO,' +
@@ -56,7 +57,8 @@ function fnHandleGet(byId) {
 	'   tbf.STDESCONTOFOLHA,' +
 	'   tbf.STLOJA,' +
 	'   tbf.DATA_ADMISSAO,' +
-	'   tbf.TELEFONE' +
+	'   tbf.TELEFONE,' +
+	'   tbf.DEPARTAMENTO' +
     ' FROM ' + 
     '   "VAR_DB_NAME".FUNCIONARIO tbf' +
     '   INNER JOIN "VAR_DB_NAME".EMPRESA tbe ON tbf.IDEMPRESA = tbe.IDEMPRESA' +
@@ -77,6 +79,10 @@ function fnHandleGet(byId) {
     
     if(NoFuncCPF){
         	query = query + ' And  (UPPER (tbf.NOFUNCIONARIO) LIKE UPPER( \'%' + NoFuncCPF + '%\') OR tbf.NUCPF=\''+NoFuncCPF+'\' ) ';
+    }   
+    
+ if(situacao){
+        query = query + ' And  tbf.STATIVO = \'' + situacao + '\' ';
     }
     
     query += ' ORDER BY tbf.STATIVO DESC, TRIM(tbf.NOFUNCIONARIO) ASC'
@@ -168,7 +174,7 @@ function fnHandleGet(byId) {
 // 	};
 // }
 
-function fnHandlePut() {
+/*function fnHandlePut() {
     var conn = $.db.getConnection();
     var query = 'UPDATE "VAR_DB_NAME"."FUNCIONARIO" SET ' + 
         ' "NOFUNCIONARIO" = ?, ' +
@@ -190,7 +196,8 @@ function fnHandlePut() {
         ' "STDESCONTOFOLHA" = ?, ' +
         ' "STLOJA" = ?, ' +
         ' "DATA_ADMISSAO" = ?,' +
-        ' "TELEFONE" = ?' +
+        ' "TELEFONE" = ?,' +
+        ' "DEPARTAMENTO" = ?' +
         ' WHERE "ID" = ? ';
         
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -227,6 +234,7 @@ function fnHandlePut() {
         pStmt.setString(17, registro.STLOJA);
         pStmt.setDate(18, registro.DATA_ADMISSAO);
         pStmt.setString(19, registro.TELEFONE);
+
          /*if (registro.DATA_ADMISSAO) {
             let dataAdmissao = new Date(registro.DATA_ADMISSAO);
             let sqlDate = dataAdmissao.getFullYear() + '-' + 
@@ -237,7 +245,8 @@ function fnHandlePut() {
             pStmt.setNull(18, $.db.Types.DATE);
         }*/
 
-        pStmt.setInt(20, registro.ID);
+       /* pStmt.setInt(20, registro.ID);
+        pStmt.setString(21, registro.DEPARTAMENTO);
 
         pStmt.execute();
     }
@@ -247,10 +256,101 @@ function fnHandlePut() {
 
     return {
         msg: "Atualização realizada com sucesso!"
-    };
-}
+    }*/
+    
+    
+    function fnHandlePut() {
+    var conn = $.db.getConnection();
+    
+    
+    var query = 'UPDATE "VAR_DB_NAME"."FUNCIONARIO" SET ' + 
+        ' "NOFUNCIONARIO" = ?, ' +
+        ' "NUCPF" = ?, ' +
+        ' "NOLOGIN" = ?, ' +
+        ' "PWSENHA" = ?, ' +
+        ' "IDEMPRESA" = ?, ' +
+        ' "IDSUBGRUPOEMPRESARIAL" = ?, ' +
+        ' "DATAULTIMAALTERACAO" = NOW(), ' +
+        ' "DSFUNCAO" = ?, ' +
+        ' "IDFUNCIONARIO" = ?, ' +
+        ' "DSTIPO" = ?, ' +
+        ' "PERC" = ?, ' +
+        ' "VALORSALARIO" = ?, ' +
+        ' "VALORDISPONIVEL" = ?, ' +
+        ' "TXTMOTIVODESCONTO" = ?, ' +
+        ' "IDFUNCIONARIOULTALTERACAO" = ?, ' +
+        ' "STCONVENIO" = ?, ' +
+        ' "STDESCONTOFOLHA" = ?, ' +
+        ' "STLOJA" = ?, ' +
+        ' "STATIVO" = ?, ' +
+        ' "DATA_ADMISSAO" = ?, ' +
+        ' "TELEFONE" = ?, ' +
+        ' "DEPARTAMENTO" = ? ' +
+        ' WHERE "ID" = ? ';
+        
+    var pStmt = conn.prepareStatement(api.replaceDbName(query));
+    var bodyJson = JSON.parse($.request.body.asString()); 
+    // return bodyJson;
+     for (var i = 0; i < bodyJson.length; i++) {
+         var registro = bodyJson[i];
 
-function fnHandlePost() {
+         if (parseFloat(registro.PERC) > 50) {
+             return {
+                 msg: "Valor desconto maior que permitido!"
+             };
+         }
+
+         let nucpf = registro.NUCPF;
+         nucpf = nucpf.replace(/\D/g, '');
+
+         pStmt.setString(1, registro.NOFUNCIONARIO);
+         pStmt.setString(2, nucpf);
+         pStmt.setString(3, registro.NOLOGIN);
+         pStmt.setString(4, registro.PWSENHA);
+         setIntOrNull(pStmt, 5, registro.IDEMPRESA);
+         setIntOrNull(pStmt, 6, registro.IDSUBGRUPOEMPRESARIAL);
+         pStmt.setString(7, registro.DSFUNCAO);
+         setIntOrNull(pStmt, 8, registro.IDFUNCIONARIO);
+         pStmt.setString(9, registro.DSTIPO);
+         pStmt.setFloat(10, registro.PERC);
+         pStmt.setFloat(11, registro.VALORSALARIO);
+         pStmt.setFloat(12, registro.VALORDISPONIVEL);
+         pStmt.setString(13, registro.MOTIVODESC);
+         setIntOrNull(pStmt, 14, registro.IDFUNCALTERACAO);
+         pStmt.setString(15, registro.STCONVENIO);
+         pStmt.setString(16, registro.STDESCONTOFOLHA);
+         pStmt.setString(17, registro.STLOJA);
+         pStmt.setString(17, registro.STATIVO);
+         pStmt.setDate(18, registro.DATA_ADMISSAO);
+         pStmt.setString(19, registro.TELEFONE);
+         pStmt.setString(20, registro.DEPARTAMENTO);
+         pStmt.setInt(21, registro.ID);
+          /*if (registro.DATA_ADMISSAO) {
+             let dataAdmissao = new Date(registro.DATA_ADMISSAO);
+             let sqlDate = dataAdmissao.getFullYear() + '-' + 
+                           ('0' + (dataAdmissao.getMonth() + 1)).slice(-2) + '-' + 
+                       ('0' + dataAdmissao.getDate()).slice(-2);
+            pStmt.setString(18, sqlDate);
+        } else {
+             pStmt.setNull(18, $.db.Types.DATE);
+         }*/
+
+         
+
+         pStmt.execute();
+     }
+    // return bodyJson
+     pStmt.close();
+
+    conn.commit();
+
+    return {
+         msg: "Atualização realizada com sucesso!"
+     };
+ }
+    
+
+/*function fnHandlePost() {
     let conn = $.db.getConnection();
     let numCPF;
     
@@ -277,7 +377,8 @@ function fnHandlePost() {
         ' "STDESCONTOFOLHA", '+
         ' "STLOJA", '+
         ' "DATA_ADMISSAO", ' +
-        ' "TELEFONE" ' +
+        ' "TELEFONE", ' +
+        ' "DEPARTAMENTO" ' +
     	' ) ' +
 		' VALUES(QUALITY_CONC_HML.SEQ_FUNCIONARIO.NEXTVAL,?,1,?,?,?,0,?,?,?,?,now(),?,?,?,?,?,?,?,?,?,?)';
 		
@@ -314,6 +415,7 @@ function fnHandlePost() {
         pStmt.setString(16, registro.STLOJA);
     	pStmt.setDate(17, registro.DATA_ADMISSAO);
     	pStmt.setString(18, registro.TELEFONE);
+    	pStmt.setString(19, registro.DEPARTAMENTO);
     // if (registro.DATA_ADMISSAO) {
     //   let dataAdmissao = new Date(registro.DATA_ADMISSAO);
     //   let sqlDate = dataAdmissao.getFullYear() + '-' + 
@@ -335,6 +437,99 @@ function fnHandlePost() {
 	    "msg": "Inclusão realizada com sucesso!",
 	    "NUCPF": numCPF
 	};
+}*/
+
+function fnHandlePost() {
+    let conn = $.db.getConnection();
+    let numCPF;
+    
+    let bodyJson = JSON.parse($.request.body.asString());
+   // if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
+    
+    for (var i = 0; i < bodyJson.length; i++) {
+        var registro = bodyJson[i];
+        
+        if(parseFloat(registro.PERC) > 50){
+           return {
+                msg : "Valor desconto maior que permitido!",
+            }; 
+        }
+        
+        // CORREÇÃO: Usar método correto para SAP HANA XS
+        let queryNextId = 'SELECT QUALITY_CONC.SEQ_FUNCIONARIO.NEXTVAL AS NEXT_ID FROM SYS.DUMMY';
+        let stmtId = conn.prepareStatement(queryNextId);
+        let rsId = stmtId.executeQuery();
+        
+        let novoId;
+        if (rsId.next()) {
+            novoId = rsId.getNString(1); // ou rsId.getString(1)
+        }
+        rsId.close();
+        stmtId.close();
+        
+        let query = 'INSERT INTO "VAR_DB_NAME"."FUNCIONARIO" ' +
+            " ( " +
+            ' "ID", ' +
+            ' "IDFUNCIONARIO", ' +
+            ' "IDGRUPOEMPRESARIAL", ' +
+            ' "IDSUBGRUPOEMPRESARIAL", ' +
+            ' "IDEMPRESA", ' +
+            ' "NOFUNCIONARIO", ' +
+            ' "IDPERFIL", ' +
+            ' "NUCPF", ' +
+            ' "NOLOGIN", ' +
+            ' "PWSENHA", ' +
+            ' "DSFUNCAO", ' +
+            ' "DATAULTIMAALTERACAO", ' +
+            ' "VALORSALARIO", ' +
+            ' "PERC", ' + 
+            ' "STATIVO", ' +
+            ' "DSTIPO", ' +
+            ' "VALORDISPONIVEL", ' +
+            ' "STCONVENIO", '+
+            ' "STDESCONTOFOLHA", '+
+            ' "STLOJA", '+
+            ' "DATA_ADMISSAO", ' +
+            ' "TELEFONE", ' +
+            ' "DEPARTAMENTO" ' +
+            ' ) ' +
+            ' VALUES(?,?,1,?,?,?,0,?,?,?,?,now(),?,?,?,?,?,?,?,?,?,?,?) ';
+            
+        let pStmt = conn.prepareStatement(api.replaceDbName(query));
+        
+        numCPF = registro.NUCPF;
+        
+        // Usar o mesmo novoId para todos os campos
+        pStmt.setString(1, novoId);           // ID
+        pStmt.setString(2, novoId);           // IDFUNCIONARIO = mesmo valor do ID
+        setIntOrNull(pStmt,3, registro.IDSUBGRUPOEMPRESARIAL);
+        setIntOrNull(pStmt,4, registro.IDEMPRESA);
+        pStmt.setString(5, registro.NOFUNCIONARIO);
+        pStmt.setString(6, registro.NUCPF);
+        pStmt.setString(7, novoId);           // NOLOGIN = mesmo valor do ID
+        pStmt.setString(8, registro.PWSENHA);
+        pStmt.setString(9, registro.DSFUNCAO);
+        pStmt.setFloat(10, registro.VALORSALARIO);
+        pStmt.setFloat(11, registro.PERC); 
+        pStmt.setString(12, registro.STATIVO);
+        pStmt.setString(13, registro.DSTIPO);
+        pStmt.setFloat(14, registro.VALORDISPONIVEL);
+        pStmt.setString(15, registro.STCONVENIO);
+        pStmt.setString(16, registro.STDESCONTOFOLHA);
+        pStmt.setString(17, registro.STLOJA);
+        pStmt.setDate(18, registro.DATA_ADMISSAO);
+        pStmt.setString(19, registro.TELEFONE);
+        pStmt.setString(20, registro.DEPARTAMENTO);
+        pStmt.execute();
+        pStmt.close();
+    }
+
+    conn.commit();
+    
+    return {
+        "msg": "Inclusão realizada com sucesso!",
+        "NUCPF": numCPF
+    };
 }
 
 $.response.contentType = 'application/json';

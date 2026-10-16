@@ -1,0 +1,10 @@
+{
+    "description": "Integrar nota de saida da transferencia de produtos do voucher Quality",
+    "action": "quality.concentrador_homologacao.api.service-layer.devolucao.devolucao-produtos-voucher-nova.jobs:integrar-nota-saida-transferencia-voucher.xsjs::executeGerarNotaSaidaTransferencia",
+    "schedules": [
+       {
+          "description": "Toda dia a noite das 00:00 hrs as 06:00 a cada 10 minutos",
+          "xscron": "* * * * 00:09 */10 *"
+       } 
+    ]
+}

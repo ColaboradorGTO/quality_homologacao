@@ -8,7 +8,7 @@ function errorLogAcertoNota(p_IdResumoOT, p_Error){
 
     var conn = $.db.getConnection();
 
-    var query = 'UPDATE "QUALITY_CONC_HML"."RESUMOORDEMTRANSFERENCIA" ' +
+    var query = 'UPDATE "VAR_DB_NAME"."RESUMOORDEMTRANSFERENCIA" ' +
                     'SET ERRORLOGSAP = ? WHERE IDRESUMOOT = ?';
 
 	var pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -50,8 +50,8 @@ function obterLinhasDoDetalhe(idResumoOt, codigoDeposito) {
             	' t1."STATIVO", '+
             	' t1."STFALTA", '+
             	' t1."STSOBRA" '+
-            ' FROM "QUALITY_CONC_HML"."DETALHEORDEMTRANSFERENCIA" t1' +
-    		'   INNER JOIN "QUALITY_CONC_HML".PRODUTO t2 ON t2.IDPRODUTO = t1.IDPRODUTO ' +
+            ' FROM "VAR_DB_NAME"."DETALHEORDEMTRANSFERENCIA" t1' +
+    		'   INNER JOIN "VAR_DB_NAME".PRODUTO t2 ON t2.IDPRODUTO = t1.IDPRODUTO ' +
     		'  WHERE t1.STSOBRA = \'True\' and t1.IDRESUMOOT=? ';
     		
 	var linhas = api.sqlQuery(query, idResumoOt);
@@ -116,8 +116,8 @@ function entradaAcertoSobraNfe(idResumoOt, sessionSl) {
     	' t2."WAREHOUSECODE",' +
     	' t1."NUMERONFESAIDA",' +
     	' t1."SERIENFESAIDA"' +
-        ' FROM "QUALITY_CONC_HML"."RESUMOORDEMTRANSFERENCIA" t1' +
-        '   INNER JOIN "QUALITY_CONC_HML".EMPRESA t2 ON t2.IDEMPRESA = t1.IDEMPRESADESTINO ' +
+        ' FROM "VAR_DB_NAME"."RESUMOORDEMTRANSFERENCIA" t1' +
+        '   INNER JOIN "VAR_DB_NAME".EMPRESA t2 ON t2.IDEMPRESA = t1.IDEMPRESADESTINO ' +
 		' WHERE ' +
 		'	1 = ?';
 
@@ -132,9 +132,9 @@ function entradaAcertoSobraNfe(idResumoOt, sessionSl) {
         
 		var det = response[i];
 		
-		var retCardCode = api.sqlQuery('select "U_IS_PN_ENTRADA" from "SBO_GTO_TESTE1".OBPL WHERE "BPLId" = ?',det.IDEMPRESAORIGEM); 
-		 var queryNfeSapSaida = 'select a."Serial" as NUMNOTA, a."SeriesStr" AS SERIENOTA, b."KeyNfe" AS CHAVENOTA from SBO_GTO_TESTE1.OINV a '+
-		                         ' left join SBO_GTO_TESTE1."Process" b on a."DocEntry" = b."DocEntry" and a."ObjType" = b."DocType" '+
+		var retCardCode = api.sqlQuery('select "U_IS_PN_ENTRADA" from "SBO_GTO_TESTE4".OBPL WHERE "BPLId" = ?',det.IDEMPRESAORIGEM); 
+		 var queryNfeSapSaida = 'select a."Serial" as NUMNOTA, a."SeriesStr" AS SERIENOTA, b."KeyNfe" AS CHAVENOTA from SBO_GTO_TESTE4.OINV a '+
+		                         ' left join SBO_GTO_TESTE4."Process" b on a."DocEntry" = b."DocEntry" and a."ObjType" = b."DocType" '+
                         ' where a."CANCELED" = \'N\' '+
                         ' and a."U_TransStatus" = \'2\' '+
                         ' and a."U_ID_VENDA_PDV" = ?';

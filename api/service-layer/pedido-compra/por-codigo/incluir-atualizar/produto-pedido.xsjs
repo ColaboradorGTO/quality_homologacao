@@ -6,6 +6,7 @@ let dbNameSAP = "SBO_GTO_TESTE4";
 let idListaPreco501 = 134;
 //let idListaPreco501 = 135; Na produção é id 135
 let conn;
+let session;
 
 function updateLogErrorMigracao(idDetalheProdutoPedido, msgError){
     let query = `
@@ -285,7 +286,7 @@ function getListasPrecos(dados, stReposicao, stPedidoPrimario){
             listasPrecos.push(
                 {
                     "PriceList": idListaPreco501,
-                    "Price": Number(dados.VR_PRECO_VENDA_INTERMEDIARIO),
+                    "Price": Number(dados.VR_PRECO_VENDA_PEDIDO_PRIMARIO),
                     "Currency": "R$",
                     "BasePriceList": idListaPreco501,
                     "Factor": 1.0
@@ -387,7 +388,7 @@ function getDadosDetalheProdutoPedido(idDetalheProdutoPedido){
                 TBCP."TIPOPEDIDO" WHEN 'VESTUARIO' THEN 1 
                 ELSE 8 
             END AS TIPOPEDIDO,
-            IFNULL(TBDPP_SECUNDARIO.VRCUSTO, TBDPP.VRCUSTO) AS VR_PRECO_VENDA_INTERMEDIARIO
+            IFNULL(TBDPP_SECUNDARIO.VRCUSTO, TBDPP.VRCUSTO) AS VR_PRECO_VENDA_PEDIDO_PRIMARIO
         FROM 
             "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" TBDPP
         INNER JOIN "VAR_DB_NAME"."CATEGORIAPEDIDO" TBCP ON
@@ -495,23 +496,29 @@ function executeProduto(){
     let idDetalheProdutoPedido = $.request.parameters.get("codProdPedido");
     let idDetalheProdutoPedidoSecundario = getIdDetalhePedidoSecundario(idDetalheProdutoPedido);
     let stExistePedidoSecundario = idDetalheProdutoPedidoSecundario > 0;
-	let session = slApi.loginServiceLayer(true);
     
-    conn = $.db.getConnection();
-    
-    slApi.loginServiceLayer(true);
-    
-    if(stExistePedidoSecundario){
-        executeMigracaoProdutoPedido(Number(idDetalheProdutoPedidoSecundario), session);
+    try {
+        conn = $.db.getConnection();
+        session = slApi.loginServiceLayer(true);
         
-        executeMigracaoProdutoPedido(Number(idDetalheProdutoPedido), session, true);
-    } else {
-        executeMigracaoProdutoPedido(Number(idDetalheProdutoPedido), session);
+        slApi.loginServiceLayer(true);
+        
+        if(stExistePedidoSecundario){
+            executeMigracaoProdutoPedido(Number(idDetalheProdutoPedidoSecundario), session);
+            
+            executeMigracaoProdutoPedido(Number(idDetalheProdutoPedido), session, true);
+        } else {
+            executeMigracaoProdutoPedido(Number(idDetalheProdutoPedido), session);
+        }
+        
+        return {
+            "msg": 'Migração de Produto realizada com sucesso!'
+        };
+    } catch(error){
+        updateLogErrorMigracao(idDetalheProdutoPedido, error.message || 'Erro ao tentar integrar o Produto de Reposição');
+        
+        throw error
     }
-    
-    return {
-        "msg": 'Migração de Produto realizada com sucesso!'
-    };
 }
 
 if($.response) {

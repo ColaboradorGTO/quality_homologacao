@@ -22,10 +22,22 @@
                             <div class="panel-tag">
                                 <div class="row">
                                     <div class="col-sm-6 col-xl-3">
-                                        <button type="button" class="btn btn-success" onclick="modal_Cad_Vale_Transporte()">
-                                            <span class="fal fa-plus mr-1"></span>
-                                            Cadastrar Vale Transporte
-                                        </button>
+                                      <label class="form-label" for="tpdate">Data Início</label>
+                                      <input class="form-control" id="dtInicioValeTransporte" type="date" name="dtInicioValeTransporte">
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="tpdate">Data Fim</label>
+                                        <input class="form-control" id="dtFimValeTransporte" type="date" name="dtFimValeTransporte">
+                                    </div>
+
+                                    <div class="col-sm-12 col-xl-6">
+                                          <button type="button" class="btn btn-primary mt-4" onclick="pesquisarValeTransporteLoja()">
+                                            <span class="fal fa-search mr-1">Pesquisar Vale Transporte</span>
+                                          </button>
+
+                                          <button type="button" class="btn btn-success mt-4" onclick="modal_Cad_Vale_Transporte()">
+                                            <span class="fal fa-plus mr-1">Cadastrar Vale Transporte</span>
+                                          </button>
                                     </div>
                                 </div>
                             </div>
@@ -41,12 +53,17 @@
                                             <th >Pago a</th>
                                             <th >Histórico</th>
                                             <th >Situação</th>
-                                            <th >Opção</th>
+                                            <th class="no-export">Opção</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                     </tbody>
-                                    <tfoot class="thead-themed totalValeTranspLoja">
+                                    <tfoot class="thead-themed">
+                                      <tr>
+                                        <th colspan="3" style="text-align: center;">Total Lançamentos</th>
+                                        <th id="totalValeTranspLoja" style="text-align: right;"></th>
+                                        <th colspan="4"></th>
+                                    </tr>
                                     </tfoot>
                                 </table>
                                 <!-- datatable end -->

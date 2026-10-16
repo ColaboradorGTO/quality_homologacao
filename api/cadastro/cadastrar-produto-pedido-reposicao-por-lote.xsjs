@@ -44,6 +44,39 @@ function getIdResumoSecundario(idResumoPedido){
     
 }
 
+function atualizarStatusCriacaoDetalhePedidoGrade(idResumoPedido) {
+    let queryUpdate = ` 
+        UPDATE 
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG
+        SET 
+            TBDG.STDETALHEPRODUTOPEDIDOGERADO = 'True',
+            TBDG.DTHORAATUALIZACAO = CURRENT_TIMESTAMP
+        FROM 
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG
+        INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO TBD ON 
+            TBDG.IDDETALHEPEDIDO = TBD.IDDETALHEPEDIDO
+        INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO TBR ON 
+            TBD.IDRESUMOPEDIDO = TBR.IDRESUMOPEDIDO
+        WHERE
+            TBDG.STATIVO = 'True'
+            AND TBD.STCANCELADO = 'False'
+            AND TBR.STCANCELADO = 'False'
+            AND (
+                    TBR.IDRESUMOPEDIDO = ? 
+                OR 
+                    TBR.IDPEDIDOPRIMARIO = ?
+            )
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(queryUpdate));
+    
+    pStmt.setInt(1, parseInt(idResumoPedido));
+    pStmt.setInt(2, parseInt(idResumoPedido));
+    
+    pStmt.executeUpdate();
+    pStmt.close();
+}
+
 function fnCriarDetalheProdutoPedido(idResumoPedido, idFuncionario){
     let query = `
         INSERT INTO
@@ -168,7 +201,7 @@ function fnCriarDetalheProdutoPedido(idResumoPedido, idFuncionario){
         INNER JOIN "VAR_DB_NAME".TAMANHO AS TBT ON
             TBDPG.IDTAMANHO = TBT.IDTAMANHO
         INNER JOIN "VAR_DB_NAME".PRODUTO TBP ON
-            TBD.IDPRODUTO = TBP.IDPRODUTO
+            REPLACE(TBD.IDPRODUTO, '_RN', '') = TBP.IDPRODUTO
         LEFT JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDPP ON 
             TBD.IDDETALHEPEDIDO = TBDPP.IDDETALHEPEDIDO
         LEFT JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDPP_PRIMARIO ON 
@@ -210,7 +243,8 @@ function fnHandlePost(){
             fnCriarDetalheProdutoPedido(idResumoPedidoSecundario, registro.IDFUNCIONARIO);
         }
         
-        atualizarStTransformadoDetPedido(registro.IDRESUMOPEDIDO)
+        atualizarStTransformadoDetPedido(registro.IDRESUMOPEDIDO);
+        atualizarStatusCriacaoDetalhePedidoGrade(registro.IDRESUMOPEDIDO)
     }
     
     conn.commit();

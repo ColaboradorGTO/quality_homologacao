@@ -8,7 +8,7 @@ function fnHandlePut() {
         ' "DTOUTVOUCHER" = ?, ' +
         ' "IDUSROUTVOUCHER" = ?, ' +
         ' "STATIVO" = ?, ' +
-        ' "IDRESUMOVENDAWEB" = ?, ' +
+        ' "IDRESUMOVENDAWEBDESTINO" = ?, ' +
         ' "IDUSRLIBERACAOCONSUMO" = ? ' +
         ' WHERE "IDVOUCHER" =  ? ';
         

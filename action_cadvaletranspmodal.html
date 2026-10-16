@@ -1,0 +1,76 @@
+
+                            <div id="resultadovaletransp"></div>
+                            
+                            <div class="form-group">
+                                    <input type="hidden" name="STAtivoDespesaValeTransp" id="STAtivoDespesaValeTransp" value="True">
+                                    <input type="hidden" name="STCancelaDespesaValeTransp" id="STCancelaDespesaValeTransp" value="False">
+                                    <input type="hidden" name="IDEmpresaDespesaValeTransp" id="IDEmpresaDespesaValeTransp" value="">
+                                    <input type="hidden" name="IDFuncDespesaValeTransp" id="IDFuncDespesaValeTransp" value="">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-10">
+                                        <label class="form-label" for="empresa">Empresa</label>
+                                        <div class="input-group">
+                                            <input type="text" id="nomeempValeTransp" name="nomeempValeTransp" class="form-control input" value="" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="dtdespesa">Data do Vale</label>
+                                        <div class="input-group">
+                                            <input type="date" id="DTDespesaValeTransp" name="DTDespesaValeTransp" class="form-control" value="" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-3">
+                                        <label class="form-label" for="hrdespesa">Hora do Vale</label>
+                                        <div class="input-group">
+                                            <input type="time" id="HRDespesaValeTransp" name="HRDespesaValeTransp" class="form-control" value="" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="tpdespesa">Despesa</label>
+                                        <div class="input-group">
+                                            <input type="text" id="IDCategoriaReceitaDespesaValeTransp" name="IDCategoriaReceitaDespesaValeTransp" class="form-control input" value="248 - Pgto Vale Transporte" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="descdeps">Histórico</label>
+                                        <div class="input-group">
+                                            <input type="text" id="DsHistorioValeTransp" name="DsHistorioValeTransp" class="form-control input" maxlength="200">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 col-xl-6">
+                                        <label class="form-label" for="nofuncionario">Funcionário</label>
+                                        <div class="input-group">
+                                        <select class="select2 form-control" name="IDFuncionario" id="IDFuncionario">';
+                                        </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-4">
+                                        <label class="form-label" for="vrdesp">Valor do Vale Transporte</label>
+                                        <div class="input-group">
+                                            <input type="text" id="VrDespesaValeTransp" name="VrDespesaValeTransp" class="form-control input" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xl-12">                                        
+                                        <div id="tudo"></div>
+                                    </div>
+                                </div>
+                            </div>
+    <script>
+        $("#VrDespesaValeTransp").mask('#.##0,00', {reverse: true});
+    </script>

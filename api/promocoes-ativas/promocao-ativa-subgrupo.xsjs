@@ -57,7 +57,9 @@ function fnHandleGet(byId) {
             STDETPROMOORIGEM, 
             STDETPROMODESTINO,
             STATIVO,
-            IDMECANICARESUMOPROMOCAOMARKETING
+            STPRODUTO,
+            IDMECANICARESUMOPROMOCAOMARKETING,
+            NUTIPOPROMOCAO
         FROM "VAR_DB_NAME".RESUMOPROMOCAOMARKETING
         WHERE 1 = ?
     `;
@@ -264,7 +266,7 @@ function fnHandlePost() {
 	var queryId = api.executeScalar(' SELECT IFNULL(MAX(TO_INT("IDRESUMOPROMOCAOMARKETING")),0) + 1 FROM "VAR_DB_NAME"."RESUMOPROMOCAOMARKETING" WHERE 1 = ? ', 1);
 	try {
         var query = `INSERT INTO "VAR_DB_NAME"."RESUMOPROMOCAOMARKETING" 
-            ( 
+               ( 
                 "IDRESUMOPROMOCAOMARKETING", 
                 "DSPROMOCAOMARKETING", 
                 "DTHORAINICIO", 
@@ -281,9 +283,13 @@ function fnHandlePost() {
                 "STDETPROMOORIGEM",
                 "STDETPROMODESTINO",
                 "IDMECANICARESUMOPROMOCAOMARKETING",
-                "STATIVO"
+                "STATIVO",
+                "STESTRUTURA",
+                "STPRODUTO",
+                "STESTRUTURAPRODUTO",
+                "NUTIPOPROMOCAO"
             ) 
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, 'True') 
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         `;
 		var pStmt = conn.prepareStatement(api.replaceDbName(query));
 		var bodyJson = JSON.parse($.request.body.asString());
@@ -300,7 +306,7 @@ function fnHandlePost() {
 			pStmt.setFloat(6, registro.APARTIRDEQTD);
 			pStmt.setInt(7, registro.APARTIRDOVLR);
 			pStmt.setInt(8, registro.TPFATORPROMO);
-			pStmt.setInt(9, registro.FATORPROMOVLR);
+			pStmt.setFloat(9, parseFloat(registro.FATORPROMOVLR));
 			pStmt.setFloat(10, registro.FATORPROMOPERC);
 			pStmt.setInt(11, registro.TPAPARTIRDE);
             pStmt.setFloat(12, registro.VLPRECOPRODUTO);
@@ -308,6 +314,11 @@ function fnHandlePost() {
             pStmt.setString(14, registro.STDETPROMOORIGEM);
             pStmt.setString(15, registro.STDETPROMODESTINO);
             pStmt.setInt(16, queryId)
+            pStmt.setString(17, registro.STATIVO);
+            pStmt.setString(18, registro.STESTRUTURA);
+            pStmt.setString(19, registro.STPRODUTO);
+            pStmt.setString(20, registro.STESTRUTURAPRODUTO);
+            pStmt.setInt(21, registro.NUTIPOPROMOCAO);
 		
 
 			pStmt.execute();
@@ -479,7 +490,7 @@ function incluirOuAtualizarDetalhePromocaoMarketingDestino(conn, idResumoPromoca
         SELECT COUNT(*) 
         FROM "VAR_DB_NAME"."DETALHEPROMOCAOMARKETINGDESTINO" 
         WHERE "IDRESUMOPROMOCAOMARKETING" = ? 
-          AND "IDPRODUTODESTINO" = ?
+          AND "IDSUBGRUPOEMDESTINO" = ?
     `;
 
     var insertQueryEmpresaDestino = `
@@ -506,14 +517,14 @@ function incluirOuAtualizarDetalhePromocaoMarketingDestino(conn, idResumoPromoca
             "IDPRODUTODESTINO" = ?,
             "STATIVO" = ?
         WHERE "IDRESUMOPROMOCAOMARKETING" = ? 
-          AND "IDPRODUTODESTINO" = ?
+          AND "IDSUBGRUPOEMDESTINO" = ?
     `;
 
     var pStmtCheck = conn.prepareStatement(api.replaceDbName(checkQueryEmpresaDestino));
     var pStmtInsert = conn.prepareStatement(api.replaceDbName(insertQueryEmpresaDestino));
     var pStmtUpdate = conn.prepareStatement(api.replaceDbName(updateQueryEmpresaDestino));
 
-    var produtos = Array.isArray(idProdutos) ? idProdutos : [idProdutos];
+    var subGrupos = Array.isArray(idSubGrupo) ? idSubGrupo : [idSubGrupo];
 
     // Obter o próximo ID disponível
     var nextId = api.executeScalar(`
@@ -522,24 +533,24 @@ function incluirOuAtualizarDetalhePromocaoMarketingDestino(conn, idResumoPromoca
         WHERE 1 = ?
     `, 1);
 
-    for (var i = 0; i < produtos.length; i++) {
-        var idProduto = produtos[i];
+    for (var i = 0; i < subGrupos.length; i++) {
+        var idSubGrupoAtual = parseInt(subGrupos[i]); // Convertendo para inteiro
 
         // Verificar se já existe o registro
         pStmtCheck.setInt(1, idResumoPromocao);
-        pStmtCheck.setString(2, String(idProduto));
+        pStmtCheck.setInt(2, idSubGrupoAtual);
         var rs = pStmtCheck.executeQuery();
 
         if ((rs.next() && rs.getInteger(1) > 0)) {
             // Registro existe - fazer UPDATE
             pStmtUpdate.setInt(1, idGrupo || -1);
-            pStmtUpdate.setInt(2, idSubGrupo || -1);
+            pStmtUpdate.setInt(2, idSubGrupoAtual);
             pStmtUpdate.setInt(3, idMarca || -1);
             pStmtUpdate.setInt(4, idFornecedor || -1);
-            pStmtUpdate.setString(5, String(idProduto));
+            setStringOrNull(pStmtUpdate, 5, idProdutos || null);
             pStmtUpdate.setString(6, stEmpresaDestino);
             pStmtUpdate.setInt(7, idResumoPromocao);
-            pStmtUpdate.setString(8, String(idProduto));
+            pStmtUpdate.setInt(8, idSubGrupoAtual); // Parâmetro correto para WHERE
             pStmtUpdate.execute();
         } else {
             // Registro não existe - fazer INSERT
@@ -547,10 +558,10 @@ function incluirOuAtualizarDetalhePromocaoMarketingDestino(conn, idResumoPromoca
             pStmtInsert.setInt(1, nextId);
             pStmtInsert.setInt(2, idResumoPromocao);
             pStmtInsert.setInt(3, idGrupo || -1);
-            pStmtInsert.setInt(4, idSubGrupo || -1);
+            pStmtInsert.setInt(4, idSubGrupoAtual);
             pStmtInsert.setInt(5, idMarca || -1);
             pStmtInsert.setInt(6, idFornecedor || -1);
-            pStmtInsert.setString(7, String(idProduto));
+            setStringOrNull(pStmtInsert, 7, idProdutos || null);
             pStmtInsert.setString(8, stEmpresaDestino);
             pStmtInsert.execute();
         }
@@ -572,7 +583,7 @@ function incluirOuAtualizarDetalhePromocaoMarketingOrigem(conn, idResumoPromocao
         SELECT COUNT(*) 
         FROM "VAR_DB_NAME"."DETALHEPROMOCAOMARKETINGORIGEM" 
         WHERE "IDRESUMOPROMOCAOMARKETING" = ? 
-          AND "IDPRODUTOORIGEM" = ?
+          AND "IDSUBGRUPOEMORIGEM" = ?
     `;
 
     var insertQueryEmpresaOrigem = `
@@ -599,14 +610,14 @@ function incluirOuAtualizarDetalhePromocaoMarketingOrigem(conn, idResumoPromocao
             "IDPRODUTOORIGEM" = ?,
             "STATIVO" = ?
         WHERE "IDRESUMOPROMOCAOMARKETING" = ? 
-          AND "IDPRODUTOORIGEM" = ?
+          AND "IDSUBGRUPOEMORIGEM" = ?
     `;
 
     var pStmtCheck = conn.prepareStatement(api.replaceDbName(checkQueryEmpresaOrigem));
     var pStmtInsert = conn.prepareStatement(api.replaceDbName(insertQueryEmpresaOrigem));
     var pStmtUpdate = conn.prepareStatement(api.replaceDbName(updateQueryEmpresaOrigem));
 
-    var produtosOrigem = Array.isArray(idProdutosOrigem) ? idProdutosOrigem : [idProdutosOrigem];
+    var subGrupoOrigem = Array.isArray(idSubGrupo) ? idSubGrupo : [idSubGrupo];
 
     // Obter o próximo ID disponível
     var nextId = api.executeScalar(`
@@ -614,24 +625,24 @@ function incluirOuAtualizarDetalhePromocaoMarketingOrigem(conn, idResumoPromocao
         FROM "VAR_DB_NAME"."DETALHEPROMOCAOMARKETINGORIGEM"
         WHERE 1 = ?
     `, 1);
-    for (var i = 0; i < produtosOrigem.length; i++) {
-        var idProdutoOrigem = produtosOrigem[i];
+    for (var i = 0; i < subGrupoOrigem.length; i++) {
+        var idSubGrupoAtualOrigem = parseInt(subGrupoOrigem[i]); // Convertendo para inteiro
 
         // Verificar se já existe o registro
         pStmtCheck.setInt(1, idResumoPromocao);
-        pStmtCheck.setString(2, String(idProdutoOrigem));
+        pStmtCheck.setInt(2, idSubGrupoAtualOrigem);
         var rs = pStmtCheck.executeQuery();
 
         if ((rs.next() && rs.getInteger(1) > 0)) {
             // Registro existe - fazer UPDATE
             pStmtUpdate.setInt(1, idGrupo || -1);
-            pStmtUpdate.setInt(2, idSubGrupo || -1);
+            pStmtUpdate.setInt(2, idSubGrupoAtualOrigem);
             pStmtUpdate.setInt(3, idMarca || -1);
             pStmtUpdate.setInt(4, idFornecedor || -1);
-            pStmtUpdate.setString(5, String(idProdutoOrigem));
+            setStringOrNull(pStmtUpdate, 5, idProdutosOrigem || null);
             pStmtUpdate.setString(6, stEmpresaOrigem);
             pStmtUpdate.setInt(7, idResumoPromocao);
-            pStmtUpdate.setString(8, String(idProdutoOrigem));
+            pStmtUpdate.setInt(8, idSubGrupoAtualOrigem); // Parâmetro correto para WHERE
             pStmtUpdate.execute();
         } else {
             // Registro não existe - fazer INSERT
@@ -639,10 +650,10 @@ function incluirOuAtualizarDetalhePromocaoMarketingOrigem(conn, idResumoPromocao
             pStmtInsert.setInt(1, nextId);
             pStmtInsert.setInt(2, idResumoPromocao);
             pStmtInsert.setInt(3, idGrupo || -1);
-            pStmtInsert.setInt(4, idSubGrupo || -1);
+            pStmtInsert.setInt(4, idSubGrupoAtualOrigem);
             pStmtInsert.setInt(5, idMarca || -1);
             pStmtInsert.setInt(6, idFornecedor || -1);
-            pStmtInsert.setString(7, String(idProdutoOrigem));
+            setStringOrNull(pStmtInsert, 7, idProdutosOrigem || null);
             pStmtInsert.setString(8, stEmpresaOrigem);
             pStmtInsert.execute();
         }
@@ -664,7 +675,7 @@ function incluirOuAtualizarDetalheEmpresaPromocaoMarketing(conn, idResumoPromoca
         SELECT 1 FROM "VAR_DB_NAME"."EMPRESAPROMOCAOMARKETING" 
         WHERE "IDRESUMOPROMOCAOMARKETING" = ? 
         AND "IDEMPRESA" = ? 
-        LIMIT 1
+
     `;
     
     // Query de inserção
@@ -738,7 +749,7 @@ function incluirOuAtualizarDetalheEmpresaPromocaoMarketing(conn, idResumoPromoca
 
 function fnHandlePut() {
     var conn = $.db.getConnection();
-    var bodyJson;
+
     try {
         var query = ` UPDATE "VAR_DB_NAME"."RESUMOPROMOCAOMARKETING" SET
             "DSPROMOCAOMARKETING" = ?, 
@@ -755,18 +766,21 @@ function fnHandlePut() {
             "STEMPRESAPROMO" = ?,
             "STDETPROMOORIGEM" = ?,
             "STDETPROMODESTINO" = ?,
-            "IDMECANICARESUMOPROMOCAOMARKETING" = ?,
-            "STATIVO" = ?
+            "STATIVO" = ?,
+            "STESTRUTURA" = ?,
+            "STPRODUTO" = ?,
+            "STESTRUTURAPRODUTO" = ?,
+            "NUTIPOPROMOCAO" = ?
             WHERE IDRESUMOPROMOCAOMARKETING = ?
         `;
 
         var pStmt = conn.prepareStatement(api.replaceDbName(query));
-        bodyJson = JSON.parse($.request.body.asString());
-
+        var bodyJson = JSON.parse($.request.body.asString());
+           
         for (var i = 0; i < bodyJson.length; i++) {
             var registro = bodyJson[i];
 
-            // Atualização principal
+          
             pStmt.setString(1, registro.DSPROMOCAOMARKETING);
             pStmt.setDate(2, registro.DTHORAINICIO);
             pStmt.setDate(3, registro.DTHORAFIM);
@@ -774,31 +788,27 @@ function fnHandlePut() {
             pStmt.setFloat(5, registro.APARTIRDEQTD);
             pStmt.setInt(6, registro.APARTIRDOVLR);
             pStmt.setInt(7, registro.TPFATORPROMO);
-            pStmt.setInt(8, registro.FATORPROMOVLR);
+            pStmt.setFloat(8, parseFloat(registro.FATORPROMOVLR));
             pStmt.setFloat(9, registro.FATORPROMOPERC);
             pStmt.setInt(10, registro.TPAPARTIRDE);
             pStmt.setFloat(11, registro.VLPRECOPRODUTO);
             pStmt.setString(12, registro.STEMPRESAPROMO);
             pStmt.setString(13, registro.STDETPROMOORIGEM);
             pStmt.setString(14, registro.STDETPROMODESTINO);
-            setIntOrNull(pStmt, 15, registro.IDMECANICARESUMOPROMOCAOMARKETING);
-            pStmt.setString(16, registro.STATIVO);
-            pStmt.setInt(17, registro.IDRESUMOPROMOCAOMARKETING);
+            pStmt.setString(15, registro.STATIVO);
+            pStmt.setString(16, registro.STESTRUTURA);
+            pStmt.setString(17, registro.STPRODUTO);
+            pStmt.setString(18, registro.STESTRUTURAPRODUTO);
+            pStmt.setInt(19, registro.NUTIPOPROMOCAO);
+            pStmt.setInt(20, registro.IDRESUMOPROMOCAOMARKETING);
             pStmt.execute();
             
              
             incluirOuAtualizarDetalhesEmpresaPromocao(conn, registro.IDRESUMOPROMOCAOMARKETING, registro.IDPRODUTO);
-            incluirOuAtualizarMecanicaPromocao(conn, registro.IDRESUMOPROMOCAOMARKETING, registro.TPAPLICADOA, registro.TPFATORPROMO, registro.TPAPARTIRDE, registro.DSPROMOCAOMARKETING);
-            incluirOuAtualizarDetalheEmpresaPromocaoMarketing(conn, registro.IDRESUMOPROMOCAOMARKETING, registro.IDEMPRESA, registro.STEMPRESAPROMOMO);
+            incluirOuAtualizarDetalheEmpresaPromocaoMarketing(conn, registro.IDRESUMOPROMOCAOMARKETING, registro.IDEMPRESA, registro.STEMPRESAPROMO);
                 
-                var retornoEmpresa = incluirOuAtualizarDetalheEmpresaPromocaoMarketing(
-                conn,
-                registro.IDRESUMOPROMOCAOMARKETING,
-                registro.IDEMPRESA,
-                registro.STEMPRESAPROMO
-            );
-            // Adiciona o retorno ao registro para exibir no retorno final
-            registro.RETORNO_EMPRESA = retornoEmpresa;    
+           
+         
                 
             incluirOuAtualizarDetalhePromocaoMarketingOrigem(
                 conn,

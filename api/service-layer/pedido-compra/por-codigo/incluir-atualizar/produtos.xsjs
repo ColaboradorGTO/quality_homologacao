@@ -6,6 +6,7 @@ let dbNameSAP = "SBO_GTO_TESTE4";
 let idListaPreco501 = 134;
 //let idListaPreco501 = 135; Na produção é id 135
 let conn;
+let session;
 
 function updateLogErrorMigracao(idDetalheProdutoPedido, msgError){
     let query = `
@@ -71,7 +72,11 @@ function validarMigracao(idProduto){
     return (resultMigracao.length > 0);
 }
 
-function postSl(idDetalheProdutoPedido, data, session) {
+function postSl(idDetalheProdutoPedido, data) {
+    if(!session){
+        session = slApi.loginServiceLayer(true);
+    }
+    
     let response = slApi.post('/Items',data,session);
     
     if (response.status !== 204) {
@@ -90,17 +95,21 @@ function postSl(idDetalheProdutoPedido, data, session) {
     }
 }
 
-function patchSl(idDetalheProdutoPedido, data, session) {
-    let response = slApi.patch(`/Items('${data.ItemCode}')`, data, session);
+function patchSl(idDetalheProdutoPedido, idProduto, data) {
+    if(!session){
+        session = slApi.loginServiceLayer(true);
+    }
+    let urlPatch = `/Items('${idProduto}')`;
+    let response = slApi.patch(urlPatch, data, session);
     
     if (response.status !== 204) {
         let responseJson = JSON.parse(response.body.asString());
-        let msgReturnError = responseJson.error.message.value || responseJson.message['Store.store'] || 'Erro ao tentar integrar o Produto de Reposição';
+        let msgReturnError = responseJson.error.message.value.length > 0 ? responseJson.error.message.value : 'Erro ao tentar integrar o Produto de Reposição';
         
         return updateLogErrorMigracao(idDetalheProdutoPedido, msgReturnError);
     }
     
-    let stMigrado = validarMigracao(data.ItemCode);
+    let stMigrado = validarMigracao(idProduto);
     
     if(stMigrado){
         return atualizarMigracaoProduto(idDetalheProdutoPedido);
@@ -433,7 +442,7 @@ function criarProdutoTabelaProduto_RN (idDetalheProdutoPedido) {
     conn.commit();
 }
 
-function montarJsonProduto(dadosProduto, stReposicao = false, stPedidoPrimario = false){
+function montarJsonProdutoPost(dadosProduto, stReposicao = false, stPedidoPrimario = false){
 	let retNcm = getNcmSAP(dadosProduto.NUNCM);
 	let arrayListasPrecos = getListasPrecos(dadosProduto, stReposicao, stPedidoPrimario);
 	let codBarras = stPedidoPrimario ? 'SEM GTIN' : String(dadosProduto.CODBARRAS); 
@@ -465,17 +474,26 @@ function montarJsonProduto(dadosProduto, stReposicao = false, stPedidoPrimario =
     };
 }
 
-function executeMigracaoProdutoPedido(idResumoPedido, session, stPedidoPrimario = false){
+function montarJsonProdutoPatch(dadosProduto, stReposicao = false, stPedidoPrimario = false){
+	let retNcm = getNcmSAP(dadosProduto.NUNCM);
+	let arrayListasPrecos = getListasPrecos(dadosProduto, stReposicao, stPedidoPrimario);
+	let codBarras = stPedidoPrimario ? 'SEM GTIN' : String(dadosProduto.CODBARRAS); 
+
+	return {
+       "ItemPrices": arrayListasPrecos
+    };
+}
+
+function executeMigracaoProdutoPedido(idResumoPedido, stPedidoPrimario = false){
 	let registros = getDadosDetalheProdutoPedido(idResumoPedido);
-	let arrayProd = [];
+	
 	for (let i = 0; i < registros.length; i++) {
         let dadosProduto = registros[i];
         let idDetalheProdutoPedido = parseInt(dadosProduto.IDDETALHEPRODUTOPEDIDO);
+        let idProduto = dadosProduto.IDPRODCADASTRO;
         
-        let stMigradoSAP = validarMigracao(dadosProduto.IDPRODCADASTRO);
-		let jsonProduto = montarJsonProduto(dadosProduto, stMigradoSAP, stPedidoPrimario);
-		/*arrayProd.push({stMigradoSAP, jsonProduto})
-		continue;*/
+        let stMigradoSAP = validarMigracao(idProduto);
+		
 		if(stPedidoPrimario){
             let stProdutoCriadoNaProduto_RN = verificarSeExisteProduto_RN(dadosProduto.IDPRODCADASTRO);
             
@@ -484,33 +502,36 @@ function executeMigracaoProdutoPedido(idResumoPedido, session, stPedidoPrimario 
             }
 		}
 		
-        
         if(stMigradoSAP){
-            patchSl(idDetalheProdutoPedido, jsonProduto, session);
+            let jsonProduto = montarJsonProdutoPatch(dadosProduto, stMigradoSAP, stPedidoPrimario);
+            
+            patchSl(idDetalheProdutoPedido, idProduto, jsonProduto);
         } else {
-            postSl(idDetalheProdutoPedido, jsonProduto, session);
+            let jsonProduto = montarJsonProdutoPost(dadosProduto, stMigradoSAP, stPedidoPrimario);
+            
+            postSl(idDetalheProdutoPedido, jsonProduto);
         }
 	}
 	
-	//return arrayProd
 }
 
-function executeProduto(){
-    let idResumoPedido = $.request.parameters.get("codPedido");
-    let idResumoPedidoSecundario = getIdResumoPedidoSecundario(idResumoPedido);
-    let stExistePedidoSecundario = idResumoPedidoSecundario > 0;
-	let session = slApi.loginServiceLayer(true);
+function fnHandlePost(){
+    var bodyJson = JSON.parse($.request.body.asString());
     
-    conn = $.db.getConnection();
-    
-    slApi.loginServiceLayer(true);
-    
-    if(stExistePedidoSecundario){
-        executeMigracaoProdutoPedido(idResumoPedidoSecundario, session);
+    if(bodyJson.length > 0){
+        conn = $.db.getConnection();
         
-        executeMigracaoProdutoPedido(idResumoPedido, session, true);
-    } else {
-        executeMigracaoProdutoPedido(idResumoPedido, session);
+        for(let registro of bodyJson){
+            let idResumoPedido = registro.IDRESUMOPEDIDO;
+            let idResumoPedidoSecundario = getIdResumoPedidoSecundario(idResumoPedido);
+            let stPedidoPrimario = idResumoPedidoSecundario > 0;
+            
+            if(stPedidoPrimario){
+                executeMigracaoProdutoPedido(idResumoPedidoSecundario)
+            }
+            
+            executeMigracaoProdutoPedido(idResumoPedido, stPedidoPrimario)
+        }
     }
     
     return {
@@ -524,9 +545,9 @@ if($.response) {
     
     try {
         switch ( $.request.method ) {
-            //Handle your GET calls here
+            //Handle your POST calls here
             case $.net.http.POST:
-                var doc = executeProduto();
+                var doc = fnHandlePost();
                  $.response.setBody(JSON.stringify(doc));
                 break;
                 

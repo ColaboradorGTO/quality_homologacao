@@ -1,0 +1,85 @@
+<div class="col-sm-12 col-xl-12">
+  <div id="cardResumoVoucher" class="card shadow-sm mb-3 d-none">
+    <div class="card-body py-2">
+      <input id="cardResumoVoucherIdVendedorVenda" type="hidden" value="" />
+      <input id="cardResumoVoucherCpfCnpjClienteVenda" type="hidden" value="" />
+      <div class="row mb-3">
+        <div class="col-md-2">
+          <span class="text-dark fw-900 h4">Voucher Em Andamento...</span>
+        </div>
+      </div>
+      <div class="row align-items-center h5">
+        <div class="col-md-2">
+          <small class="text-dark fw-900 d-block">
+            Id.Venda:
+          </small>
+          <strong id="cardResumoVoucherIdVenda" class="h4 fw-900 mb-0"> </strong>
+        </div>
+        <div class="col-md-2">
+          <small class="text-dark fw-900 d-block">
+            Tipo do Voucher:
+          </small>
+          <strong id="cardResumoVoucherTipoTroca" class="h4 fw-900 mb-0"> </strong>
+        </div>
+
+        <div class="col-md-2">
+          <small class="text-dark fw-900 d-block">
+            Produtos Selecionados:
+          </small>
+          <strong id="cardResumoVoucherQtdProdutosVoucher" class="h4 fw-900 mb-0">
+            0
+          </strong>
+        </div>
+
+        <div class="col-md-2">
+          <small class="text-dark fw-900 d-block">
+            Quantidade Total:
+          </small>
+          <strong id="cardResumoVoucherQtdItensVoucher" class="h4 fw-900 mb-0">
+            0
+          </strong>
+        </div>
+
+        <div class="col-md-2">
+          <small class="text-dark fw-900 d-block">
+            Valor do Voucher:
+          </small>
+          <strong id="cardResumoVoucherValorVoucher" class="h4 fw-900 text-success mb-0">
+            R$ 0,00
+          </strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="col-sm-12 col-xl-12">
+  <div id="panel-1" class="panel">
+    <div class="panel-hdr">
+      <h2 id="nuVendaProd">
+        <span class="fw-500"><i> Produtos </i></span>
+      </h2>
+    </div>
+    <div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <table id="resultadoProduto" class="table table-bordered table-hover table-striped w-100 fw-700 m-2">
+            <thead class="bg-primary-600">
+              <tr>
+                <th title="Indice" class="tdCenter">#</th>
+                <th title="Seleção" class="tdCenter">Selecione</th>
+                <th title="Produto" class="tdCenter">Produto</th>
+                <th title="Codigo de Barras" class="tdCenter">Cod.Barras</th>
+                <th title="Quantidade Vendida" class="tdCenter">Qtd.Venda</th>
+                <th title="Quantidade Trocada" class="tdCenter">Qtd.Trocada</th>
+                <th title="Quantidade Disponivel" class="tdCenter">Qtd.Disponivel</th>
+                <th title="Valor Produto" class="tdCenter">Vr.Unit.Produto</th>
+                <th title="Valor Total" class="tdCenter">Vr.Total</th>
+              </tr>
+            </thead>
+            <tbody> </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

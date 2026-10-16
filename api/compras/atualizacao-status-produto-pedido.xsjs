@@ -10,7 +10,7 @@ function getIdResumoPedidoSecundario(idResumoPedido){
             TBR."IDPEDIDOPRIMARIO" = ?
     `;
 
-	let reg = api.sqlQuery(query, idResPedido);
+	let reg = api.sqlQuery(query, idResumoPedido);
 	
 	
 	return reg.length > 0 ? Number(reg[0].IDRESUMOPEDIDO) : 0;

@@ -230,6 +230,8 @@ function fnHandleGet(byId) {
             tbv.PROTNFE_INFPROT_ID,
             tbv.PROTNFE_INFPROT_DIGVAL,
             tbv.IDEMPRESA,
+            tbv.VRTOTALVENDA,
+            tbv.DTDEVOLUCAO,
             TO_VARCHAR(tbv.DTHORAABERTURA, 'DD-MM-YYYY HH24:MI:SS') AS DTHORAABERTURA,
             tbv.VRRECDINHEIRO,
             tbv.VRRECCARTAO,
@@ -247,7 +249,8 @@ function fnHandleGet(byId) {
             tbv.TXTMOTIVOCANCELAMENTO,
             tbv.STCONTINGENCIA,
             tbv.DTENVIOONTINGENCIA,
-            tbv.DEST_CPF
+            tbv.DEST_CPF,
+            tbv.DEST_XNOME
         FROM "VAR_DB_NAME".VENDA tbv
         WHERE 1 = ?
         AND tbv.STCANCELADO = 'False'
@@ -351,6 +354,9 @@ function fnHandleGet(byId) {
                 "PROTNFE_INFPROT_ID": registro.PROTNFE_INFPROT_ID,
                 "PROTNFE_INFPROT_DIGVAL": registro.PROTNFE_INFPROT_DIGVAL,
                 "IDEMPRESA": registro.IDEMPRESA,
+                "DEST_XNOME": registro.DEST_XNOME,
+                "VRTOTALVENDA": registro.VRTOTALVENDA,
+                "DTDEVOLUCAO": registro.DTDEVOLUCAO,
                 "DTHORAABERTURA": registro.DTHORAABERTURA,
                 "VRRECDINHEIRO": registro.VRRECDINHEIRO,
                 "VRRECCARTAO": registro.VRRECCARTAO,

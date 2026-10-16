@@ -636,4 +636,3 @@ function executeGerarDevolucao(connDB, session, idVoucher, stMsgRetorno, stAjust
 }
 
 
-

@@ -24,6 +24,13 @@ function setIntOrNull(stmt, fieldId, value) {
 	stmt.setInt(fieldId, value);
 }
 
+function setStringOrNull(stmt, fieldId, value) {
+	if (!value) {
+		stmt.setNull(fieldId);
+		return;
+	}
+	stmt.setString(fieldId, value);
+}
 
 function fnHandleGet(byId) {
     
@@ -240,6 +247,7 @@ function fnHandlePost(){
             ' "VRTOTALCUSTO", ' +
             ' "DTCADASTRO", ' +
             ' "DTULTATUALIZACAO", ' +
+            ' "STCADASTRADO", ' +
             ' "STECOMMERCE", ' +
             ' "STREDESOCIAL", ' +
             ' "STATIVO", ' +
@@ -248,9 +256,11 @@ function fnHandlePost(){
             ' "STMIGRADOSAP", ' +
             ' "STAVULSO", ' +
             ' "IDGRUPOEMPRESARIAL", ' +
-            ' "IDFORNECEDOR" ' +
+            ' "IDFORNECEDOR", ' +
+            ' "STREPOSICAO", ' +
+            ' "IDRESPCADASTRO" '+
     	' ) ' +
-		' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+		' VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now() , now() ,\'False\',?,?,?,?,?,?,?,?,?,\'False\', ?)';
 
   
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -283,24 +293,25 @@ function fnHandlePost(){
             pStmt.setInt(15, registro.IDTIPOPRODUTOFISCAL);
             pStmt.setInt(16, registro.IDFONTEPRODUTOFISAL);
             pStmt.setString(17, registro.NUREF);
-            pStmt.setString(18, registro.CODBARRAS);
+            setStringOrNull(pStmt, 18, registro.CODBARRAS);
             pStmt.setString(19, registro.DSPRODUTO);
             pStmt.setString(20, registro.UND);
             pStmt.setFloat(21, registro.QTDPRODUTO);
             pStmt.setFloat(22, registro.VRCUSTO);
             pStmt.setFloat(23, registro.VRVENDA);
             pStmt.setFloat(24, registro.VRTOTALCUSTO);
-            pStmt.setDate(25, registro.DTCADASTRO);
-            pStmt.setDate(26, registro.DTULTATUALIZACAO);
-            pStmt.setString(27, registro.STECOMMERCE);
-            pStmt.setString(28, registro.STREDESOCIAL);
-            pStmt.setString(29, registro.STATIVO);
-            pStmt.setString(30, registro.STCANCELADO);
-            pStmt.setInt(31, registro.QTDESTOQUEIDEAL);
-            pStmt.setString(32, registro.STMIGRADOSAP);
-            pStmt.setString(33, registro.STAVULSO);
-            setIntOrNull(pStmt,34, registro.IDGRUPOEMPRESARIAL);
-            setIntOrNull(pStmt,35, registro.IDFORNECEDOR);
+            //pStmt.setDate(25, registro.DTCADASTRO);
+            //pStmt.setDate(26, registro.DTULTATUALIZACAO);
+            pStmt.setString(25, registro.STECOMMERCE);
+            pStmt.setString(26, registro.STREDESOCIAL);
+            pStmt.setString(27, registro.STATIVO);
+            pStmt.setString(28, registro.STCANCELADO);
+            pStmt.setInt(29, registro.QTDESTOQUEIDEAL);
+            pStmt.setString(30, registro.STMIGRADOSAP);
+            pStmt.setString(31, registro.STAVULSO);
+            setIntOrNull(pStmt,32, registro.IDGRUPOEMPRESARIAL);
+            setIntOrNull(pStmt,33, Number(registro.IDFORNECEDOR));
+            setIntOrNull(pStmt,34, Number(registro.IDRESPCADASTRO));
         	
             pStmt.execute();
 	}

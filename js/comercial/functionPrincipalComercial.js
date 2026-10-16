@@ -33,7 +33,6 @@ var contador = 0;
 var totalVrProduto = 0;
 var totalVrDesconto = 0;
 var totalVrNF = 0;
-var totalQTDProduto = 0; 
 /////////// Pega Data Atual ///////////////////////
 
 var data = new Date();
@@ -265,6 +264,70 @@ function alerta_atualizado_sucesso() {
         showConfirmButton: false,
         timer: 2000
     });
+}
+
+function funcaoMsgErro(mensagem = 'Erro ao Carregar os Dados'){
+    Swal.close();
+
+    Swal.fire({
+      type: 'error',
+      title: `${mensagem}`,
+      timer: 15000
+    })
+}
+
+async function ajaxGetComAnimacaoDeCarregamento(request, mensagem, funcaoRetorno, msg) {
+
+    let barraCarregamento = `<div id="BarraCarregamento" class="progress">
+                                <div  class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div>
+                            </div>`
+
+    Swal.fire({
+        html: barraCarregamento,
+        type: 'info',
+        title: mensagem,
+        timer: 250000,
+        backdrop: false,
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        onOpen: async () => {
+            Swal.showLoading();
+
+            await ajaxGet(request)
+                .then(funcaoRetorno)
+                .catch(() => {
+                    funcaoMsgErro(msg)
+                    clearInterval(animacaoBarra);
+                });
+
+        }
+    }).then((result) => {
+        if (result.dismiss == "timer") {
+            Swal.close();
+
+            Swal.fire({
+                type: 'error',
+                title: "Erro ao carregar os dados, recarregue a página e tente novamente",
+                timer: 15000,
+            });
+            return false;
+        }
+    })
+
+    let animacaoBarra = setInterval(() => {
+        let barra = $($('.pace-progress')[0]).attr('data-progress')
+        let barra2 = $($('.pace-progress')[0]).attr('data-progress-text')
+
+        $('#BarraCarregamento').html(`
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="${barra}" aria-valuemin="0" aria-valuemax="100" style="width: ${barra}%">${barra}%</div>
+            `)
+
+        if (barra > 98 && barra2 == "100%") {
+            Swal.close();
+            clearInterval(animacaoBarra);
+        }
+    }, 700)
+
 }
 
 //////////////// Pão¡gina Inicial //////////////////
@@ -5976,5 +6039,3522 @@ function retornoListaProdutos_estoques_preco_loja(respostaListaProdutosPeriodoCo
         } );
         
     }
+
+}
+
+
+
+
+///////////////// METAS POR PERIODO ///////////////////////
+
+function ListaMetasPeriodo(){
+
+    dataRetornoListaMetas = [];
+    numPage = 1;
+    contador = 0;
+    
+    if (window.XMLHttpRequest) {
+      // code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function () {
+      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+        document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
+        
+            $('.dataAtual').text(dataAtual);
+            $('#dtconsultainicio').val(dataAtualCampo);
+            $('#dtconsultafim').val(dataAtualCampo);
+
+        	$("#idmarca").select2();
+        	
+            $('.DescTituloListaVendas').html(
+			`<i class='subheader-icon fal fa-chart-area'></i> Metas - <span class='fw-300'></span>`);
+			
+			 ajaxGet('api/informatica/marca.xsjs')
+        		.then(retornoListaMarcaSelect)
+        		.catch(funcError);
+        		
+        	ajaxGetComAnimacaoDeCarregamento(`api/comercial/lista-meta-vendas.xsjs?page=${numPage}`, "Carregando Dados, aguarde...", retornoListaMetasGrupo, "Erro ao Carregar os Dados");
+
+      }
+    };
+    xmlhttp.open("GET", "comercial_action_metas.html", true);
+    xmlhttp.send();
+}
+
+function chamarProximaListaMetasGrupo(numPage){
+
+    ajaxGetComAnimacaoDeCarregamento(`api/comercial/lista-meta-vendas.xsjs?page=${numPage}`, "Carregando Dados, aguarde...", retornoListaMetasGrupo, "Erro ao Carregar os Dados");
+
+}
+
+function retornoListaMetasGrupo(respostaListaMetasGrupo) {
+
+  var numPageAtual = parseInt(respostaListaMetasGrupo.page);
+
+  if (respostaListaMetasGrupo.data.length != 0) {
+    for (var i = 0; i < respostaListaMetasGrupo.data.length; i++) {
+        contador++;
+        idGrupoEmpresa = respostaListaMetasGrupo.data[i]['IDGRUPOEMPRESA'];
+        dataIniMetaFormat = respostaListaMetasGrupo.data[i]['DTMETAINICIOFORMAT'];
+        dataFimMetaFormat = respostaListaMetasGrupo.data[i]['DTMETAFIMFORMAT'];
+        dataIniMeta = respostaListaMetasGrupo.data[i]['DTMETAINICIO'];
+        dataFimMeta = respostaListaMetasGrupo.data[i]['DTMETAFIM'];
+        DsGrupoEmpresa = respostaListaMetasGrupo.data[i]['DSSUBGRUPOEMPRESARIAL'];
+        StAtivoMeta = respostaListaMetasGrupo.data[i]['STATIVO'];
+        StSalvoMeta = respostaListaMetasGrupo.data[i]['STSALVO'];
+
+        if(StAtivoMeta == 'True'){
+            labelstmetas = `<label style="color: blue; font-size: 10px;">ATIVO</label>`;
+        }else{
+            labelstmetas = `<label style="color: red; font-size: 10px;">INATIVO</label>`;
+        }
+        
+        if(StSalvoMeta == 'True'){
+            labelstmetassalva = `<label style="color: blue; font-size: 10px;">SALVO</label>`;
+        }else{
+            labelstmetassalva = `<label style="color: red; font-size: 10px;">NÃO SALVO</label>`;
+        }
+            
+        btnOpcao = `<div class="btn-group btn-group-xs">
+                        <button type="button" class="btn btn-success btn-xs" title="Metas Resumida" id="` + idGrupoEmpresa + `" onclick="pesq_res_metas_lojas(this.id,dataIniMeta,dataFimMeta)" ><i class="fal fa-eye"></i></button>
+                        <button type="button" class="btn btn-info btn-xs" title="Metas Detalhada" id="` + idGrupoEmpresa + `" onclick="pesq_det_metas_lojas(this.id,dataIniMeta,dataFimMeta)" ><i class="fal fa-eye"></i></button>
+                        <button type="button" class="btn btn-danger btn-xs" title="Excluir Metas" id="` + idGrupoEmpresa + `" onclick="del_metas_lojas(this.id,dataIniMeta,dataFimMeta)" ><i class="fal fa-trash"></i></button>
+                    </div>`;
+              
+            dataRetornoListaMetas.push([
+                contador,
+                DsGrupoEmpresa,
+                dataIniMetaFormat,
+                dataFimMetaFormat,
+                labelstmetassalva,
+                btnOpcao]);
+
+    }
+    
+    chamarProximaListaMetasGrupo(numPageAtual + 1);
+
+  } else {
+      
+    $('#resultado').html(
+      `<table id="dt-basic-lista-metas" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                  <tr>
+                      <th>*</th>
+                      <th>Grupo</th>
+                      <th>Data Inicio</th>
+                      <th>Data Fim</th>
+                      <th>Situação</th>
+                      <th>Opção</th>
+                  </tr>
+              </thead>
+              <tbody id="resultadoListaMetas">
+              </tbody>
+              <tfoot id="totalListaListaMetas"class="thead-themed">
+              </tfoot>
+          </table>`
+    );
+
+    $('#dt-basic-lista-metas').DataTable({
+      data: dataRetornoListaMetas,
+      deferRender: true,
+      //scrollY:        800,
+      //scrollCollapse: false,
+      //scroller:       false,
+      responsive: true,
+      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+      buttons: [
+        {
+          extend: 'pdfHtml5',
+          text: 'PDF',
+          titleAttr: 'Generate PDF',
+          className: 'btn-outline-danger btn-sm mr-1'
+        },
+        {
+          extend: 'excelHtml5',
+          text: 'Excel',
+          titleAttr: 'Generate Excel',
+          className: 'btn-outline-success btn-sm mr-1'
+        },
+        {
+          extend: 'print',
+          text: 'Print',
+          titleAttr: 'Print Table',
+          className: 'btn-outline-primary btn-sm'
+        }
+      ]
+    });
+
+  }
+
+}
+
+function del_metas_lojas(idMarca,dtini,dtfim) {
+
+  let status = 'False';
+  
+  Swal.fire({
+		title: 'Certeza que Deseja Cancelar essa Meta ?',
+		text: "Você não poderá reverter esta ação!",
+		buttonsStyling: false,
+		showCancelButton: true,
+		customClass: {
+		  confirmButton: 'btn btn-primary btn-lg',
+		  cancelButton: 'btn btn-danger btn-lg',
+		  loader: 'custom-loader'
+		},
+		loaderHtml: '<div class="spinner-border text-primary"></div>',
+		allowOutsideClick: () => !Swal.isLoading()
+  }).then((result) => {
+		if (result.dismiss == 'timer') {
+		  Swal.fire({
+			type: 'error',
+			title: `Tempo de resposta ou inatividade atingido`,
+			timer: 10000,
+		  });
+		} else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
+		  return false;
+		} else{
+
+			Swal.fire({
+			  type:'question',
+			  title: 'Motivo do Cancelamento da Meta?',
+			  html: `<div>
+						  <div class=" input-group pt-0" >
+							  <input type="text" id="motivoCancelMeta" class="swal2-input m-0 " placeholder="Motivo do Cancelamento da Meta!" style="text-transform: uppercase">
+						  </div>
+					  </div>`,
+			  width: '25rem',
+			  focusConfirm: false,
+			  showCancelButton: true,
+			  confirmButtonText: 'Confirmar',
+			  cancelButtonText: 'Voltar',
+			  cancelButtonColor: '#3085d6',
+			  showLoaderOnConfirm: true,
+			  preConfirm: () => {
+				  motivoCancelMeta = $('#motivoCancelMeta').val();
+			
+				  if (!motivoCancelMeta) {
+					  Swal.showValidationMessage(`Coloque o Motivo da Cancelamento da Meta!`);
+					  $('#motivoCancelMeta').focus();
+					  return false;
+			
+				  } else if (motivoCancelMeta.length < 10) {
+					  Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 e no máximo 200 Caracteres!`)
+					  $('#motivoCancelMeta').val('').focus();
+					  return false;
+			
+				  } else {
+					  
+						
+				  }
+			  }
+			}).then((result) => {
+					
+				if (result.dismiss == 'timer') {
+				
+				  Swal.fire({
+					  type: 'error',
+					  title: `Tempo de resposta ou inatividade atingido`,
+					  timer: 60000,
+				  })
+				} else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
+				  return false;
+				} else{
+					let barraCarregamento = `<div id="BarraCarregamento" class="progress">
+											  <div  class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div>
+										  </div>`
+
+					Swal.fire({
+					  html: barraCarregamento,
+					  type: 'info',
+					  title: 'Carregando Dados...Aguarde!',
+					  timer: 180000,
+					  backdrop: false,
+					  allowEscapeKey: false,
+					  allowOutsideClick: false,
+					  onOpen: async () => {
+						  Swal.showLoading();
+						  
+							let dados = {
+								"IDGRUPOEMPRESA": parseInt(idMarca),
+								"DSMOTIVOCANCELAMENTO": motivoCancelMeta.toString(),
+								"DTMETAINICIO": dtini,
+								"DTMETAFIM": dtfim,
+								"STATIVO":status
+							};
+					
+						  await ajaxPut("api/comercial/del-metas.xsjs", dados)
+								.then((respostaPut)=>{
+									   Swal.close();
+									   funcSucessCancelaMetas();                                    
+									})
+								.catch(funcError);
+					
+					  }
+					}).then((result) => {
+					  if (result.dismiss == "timer") {
+						  Swal.close();
+					
+						  Swal.fire({
+							  type: 'error',
+							  title: "Erro ao carregar os dados, recarregue a página e tente novamente",
+							  timer: 15000,
+						  });
+						  return false;
+					  }
+					})
+					
+					  let animacaoBarra = setInterval(() => {
+					  let barra = $($('.pace-progress')[0]).attr('data-progress')
+					  let barra2 = $($('.pace-progress')[0]).attr('data-progress-text')
+					
+					  $('#BarraCarregamento').html(`
+						  <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="${barra}" aria-valuemin="0" aria-valuemax="100" style="width: ${barra}%">${barra}%</div>
+						  `)
+					}, 700)
+				}
+			})
+		}
+	})
+			 
+}
+
+function funcSucessCancelaMetas(resposta) {
+
+Swal.fire({
+  type: "success",
+  title: "Metas Excluídas com Sucesso ",
+  showConfirmButton: false,
+  timer: 2000
+});
+
+ListaMetasPeriodo();
+
+}
+
+function pesq_vendas_marcas_base(numPage){
+    
+    dataRetornoMetaMarca=[];
+    contador = 0;
+    vrVendaMeta = 0;
+    
+    var IDMarcaPesqVenda = $("#idmarca").val();
+    var datapesqinicio = $("#dtconsultainicio").val();
+    var datapesqfim = $("#dtconsultafim").val();
+  
+    if (window.XMLHttpRequest) {
+      // code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function () {
+        
+      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+        document.getElementById("resultado").innerHTML = xmlhttp.responseText;
+        //newDataTable();
+        
+        $('.dataAtual').text(dataAtual);
+
+        ajaxGetComAnimacaoDeCarregamento(`api/comercial/meta-vendas-por-estrutura.xsjs?idMarca=${IDMarcaPesqVenda}&dataInicio=${datapesqinicio}&dataFim=${datapesqfim}`, "Carregando Dados, aguarde...", retornoListaVendaMarcaMeta, "Erro ao Carregar os Dados");
+
+      }
+    };
+    
+    xmlhttp.open("GET", "comercial_action_pesqvendasmarcameta.html", true);
+    xmlhttp.send();
+} 
+
+function chamarProximaListaVendaMarcaMeta(numPage){
+    
+    var IDMarcaPesqVenda = $("#idmarca").val();
+    var datapesqinicio = $("#dtconsultainicio").val();
+    var datapesqfim = $("#dtconsultafim").val();
+    
+    ajaxGetComAnimacaoDeCarregamento(`api/comercial/meta-vendas-por-estrutura.xsjs?page=${numPage}&idMarca=${IDMarcaPesqVenda}&dataInicio=${datapesqinicio}&dataFim=${datapesqfim}`, "Carregando Dados, aguarde...", retornoListaVendaMarcaMeta, "Erro ao Carregar os Dados");
+
+}
+
+function retornoListaVendaMarcaMeta(respostaListaVendaMarcaMeta) {
+
+    var numPageAtual = parseInt(respostaListaVendaMarcaMeta.page);
+    
+    if(respostaListaVendaMarcaMeta.data.length != 0){
+    
+        for (var i=0; i < respostaListaVendaMarcaMeta.data.length; i++) {
+            
+            VrVendaFEMVerao = 0;
+            VrVendaFEMInverno = 0;
+            VrVendaFEMAcessorios = 0;
+            VrVendaFEMPCIntimas = 0;
+            VrVendaFEMVeraoInverno = 0;
+            percVendaFEMVeraoInverno = 0;
+            percVendaFEMPCIntimas = 0;
+            percVendaFEMAcessorios = 0;
+            
+            VrVendaMASCVerao = 0;
+            VrVendaMASCInverno = 0;
+            VrVendaMASCAcessorios = 0;
+            VrVendaMASCPCIntimas = 0;
+            VrVendaMASCVeraoInverno = 0;
+            percVendaMASCVeraoInverno = 0;
+            percVendaMASCPCIntimas = 0;
+            percVendaMASCAcessorios = 0;
+            
+            VrVendaINFANTVerao = 0;
+            VrVendaINFANTInverno = 0;
+            VrVendaINFANTAcessorios = 0;
+            VrVendaINFANTPCIntimas = 0;
+            VrVendaINFANTVeraoInverno = 0;
+            percVendaINFANTVeraoInverno = 0;
+            percVendaINFANTPCIntimas = 0;
+            percVendaINFANTAcessorios = 0;
+            
+            vrVendaCALCADOMeta = 0;
+            percVendaCALCADO = 0;   
+            
+            vrVendaOUTROSMeta = 0;
+            percVendaOUTROS = 0;
+            
+            VrVendaCMB = 0;
+            percVendaCMB = 0;
+            
+            TotalPercente = 0;
+            TotalMetaPercente =0;
+        
+            contador ++;
+            
+            var vrzerado = 0;
+            var idEmpresaMeta = respostaListaVendaMarcaMeta.data[i].vendaTotalMarca['IDEMPRESA'];
+            var noEmpresaMeta = respostaListaVendaMarcaMeta.data[i].vendaTotalMarca['NOFANTASIA'];
+            var vrVendaMeta = parseFloat(respostaListaVendaMarcaMeta.data[i].vendaTotalMarca['VRTOTALLIQUIDO']);
+            
+            for (var j = 0; j < respostaListaVendaMarcaMeta.data[i].vendasecaofeminina.length; j++) {
+                
+                var noGrupoFemininoMeta = respostaListaVendaMarcaMeta.data[i].vendasecaofeminina[j]['venda-feminina']['GRUPOFEMININO'];
+                var vrVendaFemininoMeta = parseFloat(respostaListaVendaMarcaMeta.data[i].vendasecaofeminina[j]['venda-feminina']['VRTOTALLIQUIDOFEMININO']);
+                
+    
+                if(noGrupoFemininoMeta === 'Verão'){
+                    VrVendaFEMVerao = parseFloat(VrVendaFEMVerao) + parseFloat(vrVendaFemininoMeta);
+                    
+                }
+                if(noGrupoFemininoMeta === 'Inverno'){
+                    VrVendaFEMInverno = parseFloat(VrVendaFEMInverno) + parseFloat(vrVendaFemininoMeta);
+                    
+                }
+                if(noGrupoFemininoMeta === 'Acessórios'){
+                    VrVendaFEMAcessorios = parseFloat(VrVendaFEMAcessorios) + parseFloat(vrVendaFemininoMeta);
+                    
+                }
+                if(noGrupoFemininoMeta === 'Peças Íntimas'){
+                    VrVendaFEMPCIntimas = parseFloat(VrVendaFEMPCIntimas) + parseFloat(vrVendaFemininoMeta);
+                    
+                }
+    
+                VrVendaFEMVeraoInverno = parseFloat(VrVendaFEMVerao) + parseFloat(VrVendaFEMInverno);
+            }
+            
+            for (var j = 0; j < respostaListaVendaMarcaMeta.data[i].vendasecaomasculina.length; j++) {
+                
+                var noGrupoMasculinoMeta = respostaListaVendaMarcaMeta.data[i].vendasecaomasculina[j]['venda-masculina']['GRUPOMASCULINO'];
+                var vrVendaMasculinoMeta = parseFloat(respostaListaVendaMarcaMeta.data[i].vendasecaomasculina[j]['venda-masculina']['VRTOTALLIQUIDOMASCULINO']);
+                
+    
+                if(noGrupoMasculinoMeta === 'Verão'){
+                    VrVendaMASCVerao = parseFloat(VrVendaMASCVerao) + parseFloat(vrVendaMasculinoMeta);
+                    
+                }
+                if(noGrupoMasculinoMeta === 'Inverno'){
+                    VrVendaMASCInverno = parseFloat(VrVendaMASCInverno) + parseFloat(vrVendaMasculinoMeta);
+                    
+                }
+                if(noGrupoMasculinoMeta === 'Acessórios'){
+                    VrVendaMASCAcessorios = parseFloat(VrVendaMASCAcessorios) + parseFloat(vrVendaMasculinoMeta);
+                    
+                }
+                if(noGrupoMasculinoMeta === 'Peças Íntimas'){
+                    VrVendaMASCPCIntimas = parseFloat(VrVendaMASCPCIntimas) + parseFloat(vrVendaMasculinoMeta);
+                    
+                }
+    
+                VrVendaMASCVeraoInverno = parseFloat(VrVendaMASCVerao) + parseFloat(VrVendaMASCInverno);
+            }
+            
+            for (var j = 0; j < respostaListaVendaMarcaMeta.data[i].vendasecaoinfantil.length; j++) {
+                
+                var noGrupoInfantilMeta = respostaListaVendaMarcaMeta.data[i].vendasecaoinfantil[j]['venda-infantil']['GRUPOINFANTIL'];
+                var vrVendaInfantilMeta = parseFloat(respostaListaVendaMarcaMeta.data[i].vendasecaoinfantil[j]['venda-infantil']['VRTOTALLIQUIDOINFANTIL']);
+                
+    
+                if(noGrupoInfantilMeta === 'Verão'){
+                    VrVendaINFANTVerao = parseFloat(VrVendaINFANTVerao) + parseFloat(vrVendaInfantilMeta);
+                    
+                }
+                if(noGrupoInfantilMeta === 'Inverno'){
+                    VrVendaINFANTInverno = parseFloat(VrVendaINFANTInverno) + parseFloat(vrVendaInfantilMeta);
+                    
+                }
+                if(noGrupoInfantilMeta === 'Acessórios'){
+                    VrVendaINFANTAcessorios = parseFloat(VrVendaINFANTAcessorios) + parseFloat(vrVendaInfantilMeta);
+                    
+                }
+                if(noGrupoInfantilMeta === 'Peças Íntimas'){
+                    VrVendaINFANTPCIntimas = parseFloat(VrVendaINFANTPCIntimas) + parseFloat(vrVendaInfantilMeta);
+                    
+                }
+    
+                VrVendaINFANTVeraoInverno = parseFloat(VrVendaINFANTVerao) + parseFloat(VrVendaINFANTInverno);
+            }
+            
+            for (var j = 0; j < respostaListaVendaMarcaMeta.data[i].vendasecaocalcados.length; j++) {
+                
+                var vrVendaCALCADOMeta = parseFloat(respostaListaVendaMarcaMeta.data[i].vendasecaocalcados[j]['venda-calcados']['VRTOTALLIQUIDOCALC']);
+
+            }
+            
+            for (var j = 0; j < respostaListaVendaMarcaMeta.data[i].vendasecaocmb.length; j++) {
+                
+                var noGrupoCMBMeta = respostaListaVendaMarcaMeta.data[i].vendasecaocmb[j]['venda-cmb']['GRUPOCMB'];
+                var vrVendaCMBMeta = parseFloat(respostaListaVendaMarcaMeta.data[i].vendasecaocmb[j]['venda-cmb']['VRTOTALLIQUIDOCMB']);
+    
+                    VrVendaCMB = parseFloat(VrVendaCMB) + parseFloat(vrVendaCMBMeta);
+
+            }
+            
+            for (var j = 0; j < respostaListaVendaMarcaMeta.data[i].vendasecaooutros.length; j++) {
+                
+                var vrVendaOUTROSMeta = parseFloat(respostaListaVendaMarcaMeta.data[i].vendasecaooutros[j]['venda-outros']['VRTOTALLIQUIDOPUTROS']);
+
+            }
+            
+                percVendaFEMVeraoInverno = (parseFloat(VrVendaFEMVeraoInverno) * 100) / parseFloat(vrVendaMeta);
+                percVendaFEMPCIntimas = (parseFloat(VrVendaFEMPCIntimas) * 100) / parseFloat(vrVendaMeta);
+                percVendaFEMAcessorios = (parseFloat(VrVendaFEMAcessorios) * 100) / parseFloat(vrVendaMeta);
+                
+                percVendaMASCVeraoInverno = (parseFloat(VrVendaMASCVeraoInverno) * 100) / parseFloat(vrVendaMeta);
+                percVendaMASCPCIntimas = (parseFloat(VrVendaMASCPCIntimas) * 100) / parseFloat(vrVendaMeta);
+                percVendaMASCAcessorios = (parseFloat(VrVendaMASCAcessorios) * 100) / parseFloat(vrVendaMeta);
+                
+                percVendaINFANTVeraoInverno = (parseFloat(VrVendaINFANTVeraoInverno) * 100) / parseFloat(vrVendaMeta);
+                percVendaINFANTPCIntimas = (parseFloat(VrVendaINFANTPCIntimas) * 100) / parseFloat(vrVendaMeta);
+                percVendaINFANTAcessorios = (parseFloat(VrVendaINFANTAcessorios) * 100) / parseFloat(vrVendaMeta);
+                
+                percVendaCALCADO = (parseFloat(vrVendaCALCADOMeta) * 100) / parseFloat(vrVendaMeta);
+                
+                percVendaOUTROS = (parseFloat(vrVendaOUTROSMeta) * 100) / parseFloat(vrVendaMeta);
+                
+                percVendaCMB = (parseFloat(VrVendaCMB) * 100) / parseFloat(vrVendaMeta);
+                
+                TotalPercente = parseFloat(percVendaCALCADO)+parseFloat(percVendaFEMVeraoInverno)+parseFloat(percVendaFEMPCIntimas)+parseFloat(percVendaFEMAcessorios)+parseFloat(percVendaMASCVeraoInverno)+parseFloat(percVendaMASCPCIntimas)+parseFloat(percVendaMASCAcessorios)+parseFloat(percVendaINFANTVeraoInverno)+parseFloat(percVendaINFANTPCIntimas)+parseFloat(percVendaINFANTAcessorios)+parseFloat(percVendaCMB)+parseFloat(percVendaOUTROS);
+
+                dataRetornoMetaMarca.push([
+                  `<label style="color: blue; font-size: 11px;">` + contador + `</label>`,
+                  `<input type="text" id="IDEmpresaMeta_` + contador + `" class="form-control"  value="` + noEmpresaMeta + `" readonly></input>`,
+                  `<input type="text" id="VRMetaVenda_` + contador + `" class="form-control" value="` + mascaraValor(vrVendaMeta.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCMeta_` + contador + `" class="form-control" value="0" onchange="atualiza_Metas_Geral_Valor(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="VRMeta_` + contador + `" class="form-control" value="0" onchange="atualiza_Metas_Geral_Perc(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaCalcado_` + contador + `" class="form-control" value="` + mascaraValor(vrVendaCALCADOMeta.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaCalcado_` + contador + `" class="form-control" value="` + mascaraValor(percVendaCALCADO.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaCalcado_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_Calcado(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaCalcado_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_Calcado(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaFemVeraoInv_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaFEMVeraoInverno.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaFemVeraoInv_` + contador + `" class="form-control" value="` + mascaraValor(percVendaFEMVeraoInverno.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaFemVeraoInv_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_FemVeraoInv(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaFemVeraoInv_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_FemVeraoInv(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaFemIntimo_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaFEMPCIntimas.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaFemIntimo_` + contador + `" class="form-control" value="` + mascaraValor(percVendaFEMPCIntimas.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaFemIntimo_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_FemIntimo(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaFemIntimo_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_FemIntimo(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaFemAcess_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaFEMAcessorios.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaFemAcess_` + contador + `" class="form-control" value="` + mascaraValor(percVendaFEMAcessorios.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaFemAcess_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_FemAcess(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaFemAcess_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_FemAcess(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaMascVeraoInv_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaMASCVeraoInverno.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaMascVeraoInv_` + contador + `" class="form-control" value="` + mascaraValor(percVendaMASCVeraoInverno.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaMascVeraoInv_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_MascVeraoInv(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaMascVeraoInv_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_MascVeraoInv(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaMascIntimo_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaMASCPCIntimas.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaMascIntimo_` + contador + `" class="form-control" value="` + mascaraValor(percVendaMASCPCIntimas.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaMascIntimo_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_MascIntimo(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaMascIntimo_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_MascIntimo(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaMascAcess_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaMASCAcessorios.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaMascAcess_` + contador + `" class="form-control" value="` + mascaraValor(percVendaMASCAcessorios.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaMascAcess_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_MascAcess(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaMascAcess_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_MascAcess(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaInfantVeraoInv_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaINFANTVeraoInverno.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaInfantVeraoInv_` + contador + `" class="form-control" value="` + mascaraValor(percVendaINFANTVeraoInverno.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaInfantVeraoInv_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_InfantVeraoInv(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaInfantVeraoInv_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_InfantVeraoInv(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaInfantIntimo_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaINFANTPCIntimas.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaInfantIntimo_` + contador + `" class="form-control" value="` + mascaraValor(percVendaINFANTPCIntimas.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaInfantIntimo_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_InfantIntimo(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaInfantIntimo_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_InfantIntimo(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaInfantAcess_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaINFANTAcessorios.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaInfantAcess_` + contador + `" class="form-control" value="` + mascaraValor(percVendaINFANTAcessorios.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaInfantAcess_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_InfantAcess(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaInfantAcess_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_InfantAcess(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaCMB_` + contador + `" class="form-control" value="` + mascaraValor(VrVendaCMB.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaCMB_` + contador + `" class="form-control" value="` + mascaraValor(percVendaCMB.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="VRMetaCMB_` + contador + `" class="form-control" value="0" onchange="atualiza_Valor_Metas_CMB(this.id);" onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  `<input type="text" id="PCMetaCMB_` + contador + `" class="form-control" value="0" onchange="atualiza_Percent_Metas_CMB(this.id);"  onKeyUp="mascaraMoeda(this, event)"></input>`,
+                  
+                  `<input type="text" id="VRVendaOUTROS_` + contador + `" class="form-control" value="` + mascaraValor(vrVendaOUTROSMeta.toFixed(2)) + `" readonly></input>`,
+                  `<input type="text" id="PCVendaOUTROS_` + contador + `" class="form-control" value="` + mascaraValor(percVendaOUTROS.toFixed(2)) + `" readonly></input>`,
+                  
+                  `<input type="text" id="PCTotal_` + contador + `" class="form-control" value="` + mascaraValor(TotalPercente.toFixed(2)) + `" readonly></input>`,
+                 
+                ]);
+
+        }
+        
+        //chamarProximaListaVendaMarcaMeta(numPageAtual + 1);
+    }
+    
+    if(numPageAtual === 1){
+         $('#resultado').html(
+            `<table id="dt-basic-venda-meta" class="table table-bordered table-hover">
+                <thead class="bg-primary-600">
+                    <tr>
+                        <td class="bg-primary-400" colspan="5" style="font-size: 12px; text-align:center">VENDAS / META GERAL</td>
+                        <td class="bg-warning-200" colspan="4" style="font-size: 12px; text-align:center">CALÇADOS</td>
+                        <td class="bg-danger-200" colspan="12" style="font-size: 12px; text-align:center">SEÇÃO FEMININA</td>
+                        <td class="bg-info-200" colspan="12" style="font-size: 12px; text-align:center">SEÇÃO MASCULINA</td>
+                        <td class="bg-success-200" colspan="12" style="font-size: 12px; text-align:center">SEÇÃO INFANTIL</td>
+                        <td class="bg-primary-200" colspan="4" style="font-size: 12px; text-align:center">CMB</td>
+                        <td class="bg-danger-200" colspan="2" style="font-size: 12px; text-align:center">Outros</td>
+                        <td class="bg-warning-200" style="font-size: 12px; text-align:center">Total</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-primary-400">#</th>
+                        <th class="bg-primary-400">Empresa</th>
+                        <th class="bg-primary-400">Venda</th>
+                        <th class="bg-primary-400">% Meta</th>
+                        <th class="bg-primary-400">Vr Meta</th>
+                        
+                        <th class="bg-warning-200">Geral</th>
+                        <th class="bg-warning-200">%</th>
+                        <th class="bg-warning-400">Vr Meta</th>
+                        <th class="bg-warning-400">%</th>
+                        
+                        <th class="bg-danger-200">Verão/Inverno</th>
+                        <th class="bg-danger-200">%</th>
+                        <th class="bg-danger-400">Vr Meta</th>
+                        <th class="bg-danger-400">%</th>
+                        <th class="bg-danger-200">Peça Intima</th>
+                        <th class="bg-danger-200">%</th>
+                        <th class="bg-danger-400">Vr Meta</th>
+                        <th class="bg-danger-400">%</th>
+                        <th class="bg-danger-200">Acessórios</th>
+                        <th class="bg-danger-200">%</th>
+                        <th class="bg-danger-400">Vr Meta</th>
+                        <th class="bg-danger-400">%</th>
+                        
+                        <th class="bg-info-200">Verão/Inverno</th>
+                        <th class="bg-info-200">%</th>
+                        <th class="bg-info-400">Vr Meta</th>
+                        <th class="bg-info-400">%</th>
+                        <th class="bg-info-200">Peça Intima</th>
+                        <th class="bg-info-200">%</th>
+                        <th class="bg-info-400">Vr Meta</th>
+                        <th class="bg-info-400">%</th>
+                        <th class="bg-info-200">Acessórios</th>
+                        <th class="bg-info-200">%</th>
+                        <th class="bg-info-400">Vr Meta</th>
+                        <th class="bg-info-400">%</th>
+                        
+                        <th class="bg-success-200">Verão/Inverno</th>
+                        <th class="bg-success-200">%</th>
+                        <th class="bg-success-400">Vr Meta</th>
+                        <th class="bg-success-400">%</th>
+                        <th class="bg-success-200">Peça Intima</th>
+                        <th class="bg-success-200">%</th>
+                        <th class="bg-success-400">Vr Meta</th>
+                        <th class="bg-success-400">%</th>
+                        <th class="bg-success-200">Acessórios</th>
+                        <th class="bg-success-200">%</th>
+                        <th class="bg-success-400">Vr Meta</th>
+                        <th class="bg-success-400">%</th>
+                        
+                        <th class="bg-primary-200">CMB</th>
+                        <th class="bg-primary-200">%</th>
+                        <th class="bg-primary-400">Vr Meta</th>
+                        <th class="bg-primary-400">%</th>
+                        
+                        <th class="bg-danger-200">Outros</th>
+                        <th class="bg-danger-200">%</th>
+                        
+                        <th class="bg-warning-400">%</th>
+                        
+                    </tr>
+                </thead>
+                <tbody id="resultadoVendaMarcaMeta">
+                </tbody>
+                <tfoot id="totalResultadoVendaMarcaMeta"class="thead-themed">
+                </tfoot>
+            </table>`
+        );
+
+        $('#dt-basic-venda-meta').DataTable( {
+            
+            data: dataRetornoMetaMarca,
+            "columnDefs": [
+              { "width": "5px", "targets": 0 },
+              { "width": "180px", "targets": 1 },
+              { "width": "95px", "targets": [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51] }
+          ],
+            deferRender: false,
+            lengthChange: false,
+            //displayLength: 100,
+            ordering:  false,
+            paging: false,
+            searching: false,
+            //scrollY:        800,
+            scrollCollapse: false,
+            //scroller:       false,
+            scrollX: true,
+            autowidth: false,
+            responsive: false,
+            dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+            buttons: [
+                        {
+                            text: 'Salvar Metas',
+                            titleAttr: 'Incluir Todas as Metas das Lojas',
+                            className: 'btn-outline-success btn-sm mr-1',
+                            action: function () {
+                                Cadastrar_Metas_Lojas();
+                            }
+                        }
+                        /*
+                        {
+                            extend: 'pdfHtml5',
+                            text: 'PDF',
+                            titleAttr: 'Generate PDF',
+                            className: 'btn-outline-danger btn-sm mr-1'
+                        },
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Excel',
+                            titleAttr: 'Generate Excel',
+                            className: 'btn-outline-success btn-sm mr-1'
+                        },
+                        {
+                            extend: 'print',
+                            text: 'Print',
+                            titleAttr: 'Print Table',
+                            className: 'btn-outline-primary btn-sm'
+                        }
+                         */
+                    ] 
+        } );
+        
+    }
+
+}
+
+String.prototype.reverse = function(){
+  return this.split('').reverse().join(''); 
+};
+
+function mascaraMoeda(campo,evento){
+  var tecla = (!evento) ? window.event.keyCode : evento.which;
+  var valor  =  campo.value.replace(/[^\d]+/gi,'').reverse();
+  var resultado  = "";
+  var mascara = "##.###.###,##".reverse();
+  for (var x=0, y=0; x<mascara.length && y<valor.length;) {
+    if (mascara.charAt(x) != '#') {
+      resultado += mascara.charAt(x);
+      x++;
+    } else {
+      resultado += valor.charAt(y);
+      y++;
+      x++;
+    }
+  }
+  campo.value = resultado.reverse();
+}
+
+function conversor(str) {
+    if (typeof str == 'number') return str;
+    var nr;
+    var virgulaSeparaDecimais = str.match(/(,)\d{2}$/);
+    if (virgulaSeparaDecimais) nr = str.replace(/\./g, '').replace(',', '.')
+    else nr = str.replace(',', '');
+    return parseFloat(nr);
+}
+
+function atualiza_Metas_Geral_Valor(id) {
+
+  let linha = id.split('_');
+
+  let vrmetavenda = conversor($('#VRMetaVenda_'+linha[1]).val());
+  let pcmeta = conversor($('#PCMeta_'+linha[1]).val());
+
+  if(isNaN(pcmeta) ){
+      alert('O Percentual não pode ser vazio');
+      pcmeta = 0;
+      $('#PCMeta_'+linha[1].toString()).val(0);
+  }
+    
+  let novovalormeta = (parseFloat(vrmetavenda) * (parseFloat(pcmeta) / 100)) + parseFloat(vrmetavenda);
+  
+  $('#VRMeta_'+linha[1].toString()).val(mascaraValor(novovalormeta.toFixed(2)));
+  
+  atualiza_Metas(id);
+    
+}
+
+function atualiza_Metas_Geral_Perc(id) {
+
+  let linha = id.split('_');
+
+  let vrmetavenda = conversor($('#VRMetaVenda_'+linha[1]).val());
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+
+  if(isNaN(vrmeta) ){
+      alert('O Valor não pode ser vazio');
+      vrmeta = 0;
+      $('#VRMeta_'+linha[1].toString()).val(0);
+  }
+    
+  let novopercmeta = ((parseFloat(vrmeta) * 100) / parseFloat(vrmetavenda))-100;
+  
+  $('#PCMeta_'+linha[1].toString()).val(mascaraValor(novopercmeta.toFixed(2)));
+  
+  atualiza_Metas(id);
+    
+}
+
+function atualiza_Metas(id) {
+
+  let linha = id.split('_');
+
+  let vrmetavenda = conversor($('#VRMetaVenda_'+linha[1]).val());
+  let pcmeta = conversor($('#PCMeta_'+linha[1]).val());
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  
+
+    //////////// CALÇADOS //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendacalcado = $('#PCVendaCalcado_'+linha[1].toString()).val().replace(',', '.');
+ 
+  let novovalormetacalcado = parseFloat(vrmeta) * (parseFloat(percvendacalcado) / 100);
+  
+  $('#VRMetaCalcado_'+linha[1].toString()).val(mascaraValor(novovalormetacalcado.toFixed(2)));
+  
+  let novopercmetacalcado = (parseFloat(novovalormetacalcado) * 100) / parseFloat(vrmeta);
+  
+  if(isNaN(novopercmetacalcado) ){
+      novopercmetacalcado = 0;
+  }
+  
+  $('#PCMetaCalcado_'+linha[1].toString()).val(mascaraValor(novopercmetacalcado.toFixed(2)));
+  
+    //////////// FEMININO - VERAO/INVERNO //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendafemveraoinverno = $('#PCVendaFemVeraoInv_'+linha[1].toString()).val().replace(',', '.'); 
+  
+  let novovalormetafemveraoinverno = parseFloat(vrmeta) * (parseFloat(percvendafemveraoinverno) / 100);
+  
+  $('#VRMetaFemVeraoInv_'+linha[1].toString()).val(mascaraValor(novovalormetafemveraoinverno.toFixed(2)));
+  
+  let novopercmetafemveraoinverno = (parseFloat(novovalormetafemveraoinverno) * 100) / parseFloat(vrmeta);
+  
+    if(isNaN(novopercmetafemveraoinverno) ){
+      novopercmetafemveraoinverno = 0;
+    }
+  
+  $('#PCMetaFemVeraoInv_'+linha[1].toString()).val(mascaraValor(novopercmetafemveraoinverno.toFixed(2)));
+  
+    //////////// FEMININO - INTIMO //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendafemintimo = $('#PCVendaFemIntimo_'+linha[1].toString()).val().replace(',', '.'); 
+  
+  let novovalormetafemintimo = parseFloat(vrmeta) * (parseFloat(percvendafemintimo) / 100);
+  
+  $('#VRMetaFemIntimo_'+linha[1].toString()).val(mascaraValor(novovalormetafemintimo.toFixed(2)));
+  
+  let novopercmetafemintimo = (parseFloat(novovalormetafemintimo) * 100) / parseFloat(vrmeta);
+    
+    if(isNaN(novopercmetafemintimo) ){
+      novopercmetafemintimo = 0;
+    }
+    
+  $('#PCMetaFemIntimo_'+linha[1].toString()).val(mascaraValor(novopercmetafemintimo.toFixed(2)));
+  
+    //////////// FEMININO - ACESSORIOS //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendafemacess = $('#PCVendaFemAcess_'+linha[1].toString()).val().replace(',', '.');
+  
+  let novovalormetafemacess = parseFloat(vrmeta) * (parseFloat(percvendafemacess) / 100);
+  
+  $('#VRMetaFemAcess_'+linha[1].toString()).val( mascaraValor(novovalormetafemacess.toFixed(2)));
+  
+  let novopercmetafemacess = (parseFloat(novovalormetafemacess) * 100) / parseFloat(vrmeta);
+      
+    if(isNaN(novopercmetafemacess) ){
+      novopercmetafemacess = 0;
+    }
+    
+  $('#PCMetaFemAcess_'+linha[1].toString()).val( mascaraValor(novopercmetafemacess.toFixed(2)));
+  
+    //////////// MASCULINO - VERAO/INVERNO //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendamascveraoinverno = $('#PCVendaMascVeraoInv_'+linha[1].toString()).val().replace(',', '.'); 
+  
+  let novovalormetamascveraoinverno = parseFloat(vrmeta) * (parseFloat(percvendamascveraoinverno) / 100);
+  
+  $('#VRMetaMascVeraoInv_'+linha[1].toString()).val(mascaraValor(novovalormetamascveraoinverno.toFixed(2)));
+  
+  let novopercmetamascveraoinverno = (parseFloat(novovalormetamascveraoinverno) * 100) / parseFloat(vrmeta);
+        
+    if(isNaN(novopercmetamascveraoinverno) ){
+      novopercmetamascveraoinverno = 0;
+    }
+    
+  $('#PCMetaMascVeraoInv_'+linha[1].toString()).val(mascaraValor(novopercmetamascveraoinverno.toFixed(2)));
+  
+    //////////// MASCULINO - INTIMO //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendamascintimo = $('#PCVendaMascIntimo_'+linha[1].toString()).val().replace(',', '.'); 
+  
+  let novovalormetamascintimo = parseFloat(vrmeta) * (parseFloat(percvendamascintimo) / 100);
+  
+  $('#VRMetaMascIntimo_'+linha[1].toString()).val(mascaraValor(novovalormetamascintimo.toFixed(2)));
+  
+  let novopercmetamascintimo = (parseFloat(novovalormetamascintimo) * 100) / parseFloat(vrmeta);
+          
+    if(isNaN(novopercmetamascintimo) ){
+      novopercmetamascintimo = 0;
+    }
+    
+  $('#PCMetaMascIntimo_'+linha[1].toString()).val(mascaraValor(novopercmetamascintimo.toFixed(2)));
+  
+    //////////// MASCULINO - ACESSORIOS //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendamascacess = $('#PCVendaMascAcess_'+linha[1].toString()).val().replace(',', '.');
+  
+  let novovalormetamascacess = parseFloat(vrmeta) * (parseFloat(percvendamascacess) / 100);
+  
+  $('#VRMetaMascAcess_'+linha[1].toString()).val(mascaraValor(novovalormetamascacess.toFixed(2)));
+  
+  let novopercmetamascacess = (parseFloat(novovalormetamascacess) * 100) / parseFloat(vrmeta);
+            
+    if(isNaN(novopercmetamascacess) ){
+      novopercmetamascacess = 0;
+    }
+    
+  $('#PCMetaMascAcess_'+linha[1].toString()).val(mascaraValor(novopercmetamascacess.toFixed(2)));
+  
+    //////////// INFANTIL - VERAO/INVERNO //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendainfantveraoinverno = $('#PCVendaInfantVeraoInv_'+linha[1].toString()).val().replace(',', '.'); 
+  
+  let novovalormetainfantveraoinverno = parseFloat(vrmeta) * (parseFloat(percvendainfantveraoinverno) / 100);
+  
+  $('#VRMetaInfantVeraoInv_'+linha[1].toString()).val(mascaraValor(novovalormetainfantveraoinverno.toFixed(2)));
+  
+  let novopercmetainfantveraoinverno = (parseFloat(novovalormetainfantveraoinverno) * 100) / parseFloat(vrmeta);
+              
+    if(isNaN(novopercmetainfantveraoinverno) ){
+      novopercmetainfantveraoinverno = 0;
+    }
+    
+  $('#PCMetaInfantVeraoInv_'+linha[1].toString()).val(mascaraValor(novopercmetainfantveraoinverno.toFixed(2)));
+  
+    //////////// INFANTIL - INTIMO //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendainfantintimo = $('#PCVendaInfantIntimo_'+linha[1].toString()).val().replace(',', '.'); 
+  
+  let novovalormetainfantintimo = parseFloat(vrmeta) * (parseFloat(percvendainfantintimo) / 100);
+  
+  $('#VRMetaInfantIntimo_'+linha[1].toString()).val(mascaraValor(novovalormetainfantintimo.toFixed(2)));
+  
+  let novopercmetainfantintimo = (parseFloat(novovalormetainfantintimo) * 100) / parseFloat(vrmeta);
+                
+    if(isNaN(novopercmetainfantintimo) ){
+      novopercmetainfantintimo = 0;
+    }
+    
+  $('#PCMetaInfantIntimo_'+linha[1].toString()).val(mascaraValor(novopercmetainfantintimo.toFixed(2)));
+  
+    //////////// INFANTIL - ACESSORIOS //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendainfantacess = $('#PCVendaInfantAcess_'+linha[1].toString()).val().replace(',', '.');
+  
+  let novovalormetainfantacess = parseFloat(vrmeta) * (parseFloat(percvendainfantacess) / 100);
+  
+  $('#VRMetaInfantAcess_'+linha[1].toString()).val(mascaraValor(novovalormetainfantacess.toFixed(2)));
+  
+  let novopercmetainfantacess = (parseFloat(novovalormetainfantacess) * 100) / parseFloat(vrmeta);
+                  
+    if(isNaN(novopercmetainfantacess) ){
+      novopercmetainfantacess = 0;
+    }
+    
+  $('#PCMetaInfantAcess_'+linha[1].toString()).val(mascaraValor(novopercmetainfantacess.toFixed(2)));
+  
+    //////////// CMB //////////////////////////////////////////////////////////////////////////////////
+    
+  let percvendacmb = $('#PCVendaCMB_'+linha[1].toString()).val().replace(',', '.'); 
+  
+  let novovalormetacmb = parseFloat(vrmeta) * (parseFloat(percvendacmb) / 100);
+  
+  $('#VRMetaCMB_'+linha[1].toString()).val(mascaraValor(novovalormetacmb.toFixed(2)));
+  
+  let novopercmetacmb = (parseFloat(novovalormetacmb) * 100) / parseFloat(vrmeta);
+                    
+    if(isNaN(novopercmetacmb) ){
+      novopercmetacmb = 0;
+    }
+    
+  $('#PCMetaCMB_'+linha[1].toString()).val(mascaraValor(novopercmetacmb.toFixed(2)));
+  
+  /////////////////// TOTALIZANDO O % GERAL ////////////////////////////////////////////////////////////
+  
+  let TotalPercentual = parseFloat(novopercmetacalcado) + parseFloat(novopercmetafemveraoinverno) + parseFloat(novopercmetafemintimo) + parseFloat(novopercmetafemacess) + parseFloat(novopercmetamascveraoinverno) + parseFloat(novopercmetamascintimo) + parseFloat(novopercmetamascacess) + parseFloat(novopercmetainfantveraoinverno) + parseFloat(novopercmetainfantintimo) + parseFloat(novopercmetainfantacess) + parseFloat(novopercmetacmb);
+  
+  $('#PCTotal_'+linha[1].toString()).val(mascaraValor(TotalPercentual.toFixed(2)));
+  return
+
+}
+
+function atualiza_Total_Percentual(id){
+    
+    let linha = id.split('_');
+    
+    let perccalcado = $('#PCMetaCalcado_'+linha[1].toString()).val().replace(',', '.');
+    let percfemvi = $('#PCMetaFemVeraoInv_'+linha[1].toString()).val().replace(',', '.');
+    let percfemint = $('#PCMetaFemIntimo_'+linha[1].toString()).val().replace(',', '.');
+    let percfemaces = $('#PCMetaFemAcess_'+linha[1].toString()).val().replace(',', '.');
+    let percmascvi = $('#PCMetaMascVeraoInv_'+linha[1].toString()).val().replace(',', '.');
+    let percmascint = $('#PCMetaMascIntimo_'+linha[1].toString()).val().replace(',', '.');
+    let percmascaces = $('#PCMetaMascAcess_'+linha[1].toString()).val().replace(',', '.');
+    let percinfantvi = $('#PCMetaInfantVeraoInv_'+linha[1].toString()).val().replace(',', '.');
+    let percinfantint = $('#PCMetaInfantIntimo_'+linha[1].toString()).val().replace(',', '.');
+    let percinfantaces = $('#PCMetaInfantAcess_'+linha[1].toString()).val().replace(',', '.');
+    let perccmb = $('#PCMetaCMB_'+linha[1].toString()).val().replace(',', '.');
+    
+    let percTotal = parseFloat(perccalcado) + parseFloat(percfemvi) + parseFloat(percfemint) + parseFloat(percfemaces) + parseFloat(percmascvi) + parseFloat(percmascint) + parseFloat(percmascaces) + parseFloat(percinfantvi) + parseFloat(percinfantint) + parseFloat(percinfantaces) + parseFloat(perccmb);
+    $('#PCTotal_'+linha[1].toString()).val(mascaraValor(percTotal.toFixed(2)));
+    
+    return;
+    
+}
+
+///////////////////// CALÇADOS /////////////////////////
+function atualiza_Valor_Metas_Calcado(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaCalcado = conversor($('#VRMetaCalcado_'+linha[1]).val());
+  
+  let novopercCalcado = (parseFloat(vrmetaCalcado) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaCalcado_'+linha[1].toString()).val(parseFloat(novopercCalcado).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_Calcado(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaCalcado = conversor($('#PCMetaCalcado_'+linha[1]).val());
+  
+  let novovalormetaCalcado = parseInt(vrmeta) * (parseFloat(percmetaCalcado) / 100);
+  
+  $('#VRMetaCalcado_'+linha[1].toString()).val(parseFloat(novovalormetaCalcado).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+///////////////////// FEMININO /////////////////////////
+function atualiza_Valor_Metas_FemVeraoInv(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaFemVeraoInv = conversor($('#VRMetaFemVeraoInv_'+linha[1]).val());
+  
+  let novopercFemVeraoInv = (parseFloat(vrmetaFemVeraoInv) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaFemVeraoInv_'+linha[1].toString()).val(parseFloat(novopercFemVeraoInv).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_FemVeraoInv(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaFemVeraoInv = conversor($('#PCMetaFemVeraoInv_'+linha[1]).val());
+  
+  let novovalormetaFemVeraoInv = parseInt(vrmeta) * (parseFloat(percmetaFemVeraoInv) / 100);
+  
+  $('#VRMetaFemVeraoInv_'+linha[1].toString()).val(parseFloat(novovalormetaFemVeraoInv).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Valor_Metas_FemIntimo(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaFemIntimo = conversor($('#VRMetaFemIntimo_'+linha[1]).val());
+  
+  let novopercFemIntimo = (parseFloat(vrmetaFemIntimo) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaFemIntimo_'+linha[1].toString()).val(parseFloat(novopercFemIntimo).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_FemIntimo(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaFemIntimo = conversor($('#PCMetaFemIntimo_'+linha[1]).val());
+  
+  let novovalormetaFemIntimo = parseInt(vrmeta) * (parseFloat(percmetaFemIntimo) / 100);
+  
+  $('#VRMetaFemIntimo_'+linha[1].toString()).val(parseFloat(novovalormetaFemIntimo).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Valor_Metas_FemAcess(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaFemAcess = conversor($('#VRMetaFemAcess_'+linha[1]).val());
+  
+  let novopercFemAcess = (parseFloat(vrmetaFemAcess) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaFemAcess_'+linha[1].toString()).val(parseFloat(novopercFemAcess).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_FemAcess(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaFemAcess = conversor($('#PCMetaFemAcess_'+linha[1]).val());
+  
+  let novovalormetaFemAcess = parseInt(vrmeta) * (parseFloat(percmetaFemAcess) / 100);
+  
+  $('#VRMetaFemAcess_'+linha[1].toString()).val(parseFloat(novovalormetaFemAcess).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+///////////////////// MASCULINO /////////////////////////
+function atualiza_Valor_Metas_MascVeraoInv(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaMascVeraoInv = conversor($('#VRMetaMascVeraoInv_'+linha[1]).val());
+  
+  let novopercMascVeraoInv = (parseFloat(vrmetaMascVeraoInv) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaMascVeraoInv_'+linha[1].toString()).val(parseFloat(novopercMascVeraoInv).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_MascVeraoInv(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaMascVeraoInv = conversor($('#PCMetaMascVeraoInv_'+linha[1]).val());
+  
+  let novovalormetaMascVeraoInv = parseInt(vrmeta) * (parseFloat(percmetaMascVeraoInv) / 100);
+  
+  $('#VRMetaMascVeraoInv_'+linha[1].toString()).val(parseFloat(novovalormetaMascVeraoInv).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Valor_Metas_MascIntimo(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaMascIntimo = conversor($('#VRMetaMascIntimo_'+linha[1]).val());
+  
+  let novopercMascIntimo = (parseFloat(vrmetaMascIntimo) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaMascIntimo_'+linha[1].toString()).val(parseFloat(novopercMascIntimo).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_MascIntimo(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaMascIntimo = conversor($('#PCMetaMascIntimo_'+linha[1]).val());
+  
+  let novovalormetaMascIntimo = parseInt(vrmeta) * (parseFloat(percmetaMascIntimo) / 100);
+  
+  $('#VRMetaMascIntimo_'+linha[1].toString()).val(parseFloat(novovalormetaMascIntimo).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Valor_Metas_MascAcess(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaMascAcess = conversor($('#VRMetaMascAcess_'+linha[1]).val());
+  
+  let novopercMascAcess = (parseFloat(vrmetaMascAcess) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaMascAcess_'+linha[1].toString()).val(parseFloat(novopercMascAcess).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_MascAcess(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaMascAcess = conversor($('#PCMetaMascAcess_'+linha[1]).val());
+  
+  let novovalormetaMascAcess = parseInt(vrmeta) * (parseFloat(percmetaMascAcess) / 100);
+  
+  $('#VRMetaMascAcess_'+linha[1].toString()).val(parseFloat(novovalormetaMascAcess).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+///////////////////// INFANTIL /////////////////////////
+function atualiza_Valor_Metas_InfantVeraoInv(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaInfantVeraoInv = conversor($('#VRMetaInfantVeraoInv_'+linha[1]).val());
+  
+  let novopercInfantVeraoInv = (parseFloat(vrmetaInfantVeraoInv) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaInfantVeraoInv_'+linha[1].toString()).val(parseFloat(novopercInfantVeraoInv).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_InfantVeraoInv(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaInfantVeraoInv = conversor($('#PCMetaInfantVeraoInv_'+linha[1]).val());
+  
+  let novovalormetaInfantVeraoInv = parseInt(vrmeta) * (parseFloat(percmetaInfantVeraoInv) / 100);
+  
+  $('#VRMetaInfantVeraoInv_'+linha[1].toString()).val(parseFloat(novovalormetaInfantVeraoInv).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Valor_Metas_InfantIntimo(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaInfantIntimo = conversor($('#VRMetaInfantIntimo_'+linha[1]).val());
+  
+  let novopercInfantIntimo = (parseFloat(vrmetaInfantIntimo) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaInfantIntimo_'+linha[1].toString()).val(parseFloat(novopercInfantIntimo).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_InfantIntimo(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaInfantIntimo = conversor($('#PCMetaInfantIntimo_'+linha[1]).val());
+  
+  let novovalormetaInfantIntimo = parseInt(vrmeta) * (parseFloat(percmetaInfantIntimo) / 100);
+  
+  $('#VRMetaInfantIntimo_'+linha[1].toString()).val(parseFloat(novovalormetaInfantIntimo).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Valor_Metas_InfantAcess(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaInfantAcess = conversor($('#VRMetaInfantAcess_'+linha[1]).val());
+  
+  let novopercInfantAcess = (parseFloat(vrmetaInfantAcess) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaInfantAcess_'+linha[1].toString()).val(parseFloat(novopercInfantAcess).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_InfantAcess(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaInfantAcess = conversor($('#PCMetaInfantAcess_'+linha[1]).val());
+  
+  let novovalormetaInfantAcess = parseInt(vrmeta) * (parseFloat(percmetaInfantAcess) / 100);
+  
+  $('#VRMetaInfantAcess_'+linha[1].toString()).val(parseFloat(novovalormetaInfantAcess).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+///////////////////// CMB /////////////////////////
+function atualiza_Valor_Metas_CMB(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let vrmetaCMB = conversor($('#VRMetaCMB_'+linha[1]).val());
+  
+  let novopercCMB = (parseFloat(vrmetaCMB) * 100) / parseFloat(vrmeta);
+  
+  $('#PCMetaCMB_'+linha[1].toString()).val(parseFloat(novopercCMB).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+function atualiza_Percent_Metas_CMB(id) {
+
+  let linha = id.split('_');
+
+  let vrmeta = conversor($('#VRMeta_'+linha[1]).val());
+  let percmetaCMB = conversor($('#PCMetaCMB_'+linha[1]).val());
+  
+  let novovalormetaCMB = parseInt(vrmeta) * (parseFloat(percmetaCMB) / 100);
+  
+  $('#VRMetaCMB_'+linha[1].toString()).val(parseFloat(novovalormetaCMB).toLocaleString('pt-br', {minimumFractionDigits: 2}));
+  
+  atualiza_Total_Percentual(id);
+  
+  return
+
+}
+
+//////////////////// CADASTRAR METAS /////////////
+
+function Cadastrar_Metas_Lojas() {
+  
+    var dadosTableMetas = [];
+    var cont = 1;
+    var table = $('#dt-basic-venda-meta').DataTable();
+    table.rows().iterator('row', function(context, index) {
+        var dadosMetaLoja = {
+                  "IDEmpresaMeta":parseFloat($("#IDEmpresaMeta_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaVenda":parseFloat($("#VRMetaVenda_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaVenda":parseFloat($("#PCMeta_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMeta":parseFloat($("#VRMeta_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaCalcado":parseFloat($("#VRVendaCalcado_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaCalcado":parseFloat($("#PCVendaCalcado_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaCalcado":parseFloat($("#VRMetaCalcado_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaCalcado":parseFloat($("#PCMetaCalcado_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaFemVeraoInv":parseFloat($("#VRVendaFemVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaFemVeraoInv":parseFloat($("#PCVendaFemVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaFemVeraoInv":parseFloat($("#VRMetaFemVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaFemVeraoInv":parseFloat($("#PCMetaFemVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaFemIntimo":parseFloat($("#VRVendaFemIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaFemIntimo":parseFloat($("#PCVendaFemIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaFemIntimo":parseFloat($("#VRMetaFemIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaFemIntimo":parseFloat($("#PCMetaFemIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaFemAcess":parseFloat($("#VRVendaFemAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaFemAcess":parseFloat($("#PCVendaFemAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaFemAcess":parseFloat($("#VRMetaFemAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaFemAcess":parseFloat($("#PCMetaFemAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaMascVeraoInv":parseFloat($("#VRVendaMascVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaMascVeraoInv":parseFloat($("#PCVendaMascVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaMascVeraoInv":parseFloat($("#VRMetaMascVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaMascVeraoInv":parseFloat($("#PCMetaMascVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaMascIntimo":parseFloat($("#VRVendaMascIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaMascIntimo":parseFloat($("#PCVendaMascIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaMascIntimo":parseFloat($("#VRMetaMascIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaMascIntimo":parseFloat($("#PCMetaMascIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaMascAcess":parseFloat($("#VRVendaMascAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaMascAcess":parseFloat($("#PCVendaMascAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaMascAcess":parseFloat($("#VRMetaMascAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaMascAcess":parseFloat($("#PCMetaMascAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaInfantVeraoInv":parseFloat($("#VRVendaInfantVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaInfantVeraoInv":parseFloat($("#PCVendaInfantVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaInfantVeraoInv":parseFloat($("#VRMetaInfantVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaInfantVeraoInv":parseFloat($("#PCMetaInfantVeraoInv_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaInfantIntimo":parseFloat($("#VRVendaInfantIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaInfantIntimo":parseFloat($("#PCVendaInfantIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaInfantIntimo":parseFloat($("#VRMetaInfantIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaInfantIntimo":parseFloat($("#PCMetaInfantIntimo_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaInfantAcess":parseFloat($("#VRVendaInfantAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaInfantAcess":parseFloat($("#PCVendaInfantAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaInfantAcess":parseFloat($("#VRMetaInfantAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaInfantAcess":parseFloat($("#PCMetaInfantAcess_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaCMB":parseFloat($("#VRVendaCMB_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaCMB":parseFloat($("#PCVendaCMB_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "VRMetaCMB":parseFloat($("#VRMetaCMB_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCMetaCMB":parseFloat($("#PCMetaCMB_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "VRVendaOUTROS":parseFloat($("#VRVendaOUTROS_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  "PCVendaOUTROS":parseFloat($("#PCVendaOUTROS_"+cont.toString()).val().replace(".", "").replace(",", ".")),
+                  
+                  "PCTotal":parseFloat($("#PCTotal_"+cont.toString()).val().replace(".", "").replace(",", "."))
+                  
+        }
+        dadosTableMetas.push(dadosMetaLoja);
+        cont++;
+    });
+
+    let idgrupoemp = $("#idmarca").val();
+    let dtinic = $("#dtconsultainicio").val();
+    let dtfim = $("#dtconsultafim").val();
+    let StAtivo = 'True';
+    let StSalvo = 'True';
+          
+    if(dtinic == ''){
+
+      Swal.fire({
+          type: "warning",
+          title: "Escolha um período ",
+          showConfirmButton: false,
+          timer: 2000
+      });
+      return;
+      
+    }else{
+        Swal.fire({
+              title: 'Certeza que Deseja Finalizar o Cadastro?',
+              text: "Você não poderá reverter esta ação!",
+              buttonsStyling: false,
+              showCancelButton: true,
+              customClass: {
+                confirmButton: 'btn btn-primary btn-lg',
+                cancelButton: 'btn btn-danger btn-lg',
+                loader: 'custom-loader'
+              },
+              loaderHtml: '<div class="spinner-border text-primary"></div>',
+              preConfirm: () => {
+                Swal.showLoading()
+                return new Promise((resolve) => {
+        
+                  var dados = [{ 
+                      "IDGRUPOEMPRESA": parseInt(idgrupoemp),
+                      "IDFUNCIONARIO": parseInt(IDFuncionarioLogin),
+                      "DTMETAINICIO":dtinic,
+                      "DTMETAFIM":dtfim,
+                      "METASDETALHE":dadosTableMetas,
+                      "STATIVO":StAtivo,
+                      "STSALVO":StSalvo
+                }];
+                  
+                  ajaxPost("api/comercial/cadastrar-metas_lojas.xsjs", dados)
+                  .then(funcSucessCadMetasLojas)
+                  .catch(funcError);
+                          
+                })
+              }
+        })
+    }
+}
+
+function funcSucessCadMetasLojas(resposta) {
+
+Swal.fire({
+  type: "success",
+  title: "Metas Cadastradas com Sucesso ",
+  showConfirmButton: false,
+  timer: 2000
+});
+
+ListaMetasPeriodo();
+
+}
+
+////////////////////PESQUISA METAS CADASTRADAS ////
+
+///////////METAS DETALHADA///////////////////
+
+function pesq_det_metas_lojas(idMarca,datini,datfim){
+    
+    dataRetornoMetas=[];
+    contador = 0;
+
+    if (window.XMLHttpRequest) {
+      // code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function () {
+        
+      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+        document.getElementById("resultado").innerHTML = xmlhttp.responseText;
+        //newDataTable();
+        
+        $('.dataAtual').text(dataAtual);
+
+        ajaxGetComAnimacaoDeCarregamento(`api/comercial/meta-vendas.xsjs?idMarca=${idMarca}&dataInicio=${datini}&dataFim=${datfim}`, "Carregando Dados, aguarde...", retornoListaMetasVendaMarca, "Erro ao Carregar os Dados");
+
+      }
+    };
+    
+    xmlhttp.open("GET", "comercial_action_pesqvendasmarcameta.html", true);
+    xmlhttp.send();
+}
+
+function chamarProximaListaMetas(numPage){
+    
+    var IDMarcaPesqVenda = $("#idmarca").val();
+    var datapesqinicio = $("#dtconsultainicio").val();
+    var datapesqfim = $("#dtconsultafim").val();
+    
+     ajaxGetComAnimacaoDeCarregamento(`api/comercial/meta-vendas.xsjs?page=${numPage}&idMarca=${IDMarcaPesqVenda}&dataInicio=${datapesqinicio}&dataFim=${datapesqfim}`, "Carregando Dados, aguarde...", retornoListaMetasVendaMarca, "Erro ao Carregar os Dados");
+
+}
+
+function retornoListaMetasVendaMarca(respostaListaMetasVendaMarca) {
+
+    var numPageAtual = parseInt(respostaListaMetasVendaMarca.page);
+    
+    if(respostaListaMetasVendaMarca.data.length != 0){
+    
+        for (var i=0; i < respostaListaMetasVendaMarca.data.length; i++) {
+            
+            contador ++;
+            
+            let IDMETASLOJAMETAS = respostaListaMetasVendaMarca.data[i]['IDMETASLOJA'];
+            DTMETAINICIOMETAS = respostaListaMetasVendaMarca.data[i]['DTMETAINICIO'];
+            DTMETAFIMMETAS = respostaListaMetasVendaMarca.data[i]['DTMETAFIM'];
+            let IDGRUPOEMPRESAMETAS = respostaListaMetasVendaMarca.data[i]['IDGRUPOEMPRESA'];
+            let IDEMPRESAMETAS = respostaListaMetasVendaMarca.data[i]['IDEMPRESA'];
+            let IDFUNCIONARIOMETAS = respostaListaMetasVendaMarca.data[i]['IDFUNCIONARIO'];
+            let VRVENDAGERALMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAGERAL'];
+            let PERCMETAVENDAGERALMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAGERAL'];
+            let VRMETAVENDAGERALMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAGERAL'];
+            let VRVENDACALCADOSMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDACALCADOS'];
+            let PERCVENDACALCADOSMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDACALCADOS'];
+            let VRMETAVENDACALCADOSMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDACALCADOS'];
+            let PERCMETAVENDACALCADOSMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDACALCADOS'];
+            let VRVENDAFEMVERINVMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAFEMVERINV'];
+            let PERCVENDAFEMVERINVMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDAFEMVERINV'];
+            let VRMETAVENDAFEMVERINVMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAFEMVERINV'];
+            let PERCMETAVENDAFEMVERINVMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAFEMVERINV'];
+            let VRVENDAFEMPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAFEMPCINTIMA'];
+            let PERCVENDAFEMPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDAFEMPCINTIMA'];
+            let VRMETAVENDAFEMPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAFEMPCINTIMA'];
+            let PERCMETAVENDAFEMPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAFEMPCINTIMA'];
+            let VRVENDAFEMACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAFEMACESSORIOS'];
+            let PERCVENDAFEMACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDAFEMACESSORIOS'];
+            let VRMETAVENDAFEMACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAFEMACESSORIOS'];
+            let PERCMETAVENDAFEMACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAFEMACESSORIOS'];
+
+            let VRVENDAMASCVERINVMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAMASCVERINV'];
+            let PERCVENDAMASCVERINVMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDAMASCVERINV'];
+            let VRMETAVENDAMASCVERINVMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAMASCVERINV'];
+            let PERCMETAVENDAMASCVERINVMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAMASCVERINV'];
+            let VRVENDAMASCPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAMASCPCINTIMA'];
+            let PERCVENDAMASCPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDAMASCPCINTIMA'];
+            let VRMETAVENDAMASCPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAMASCPCINTIMA'];
+            let PERCMETAVENDAMASCPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAMASCPCINTIMA'];
+            let VRVENDAMASCACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAMASCACESSORIOS'];
+            let PERCVENDAMASCACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDAMASCACESSORIOS'];
+            let VRMETAVENDAMASCACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAMASCACESSORIOS'];
+            let PERCMETAVENDAMASCACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAMASCACESSORIOS'];
+
+            let VRVENDAINFANTVERINVMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAINFANTVERINV'];
+            let PERCVENDAINFANTVERINVMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDAINFANTVERINV'];
+            let VRMETAVENDAINFANTVERINVMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAINFANTVERINV'];
+            let PERCMETAVENDAINFANTVERINVMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAINFANTVERINV'];
+            let VRVENDAINFANTPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAINFANTPCINTIMA'];
+            let PERCVENDAINFANTPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDAINFANTPCINTIMA'];
+            let VRMETAVENDAINFANTPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAINFANTPCINTIMA'];
+            let PERCMETAVENDAINFANTPCINTIMAMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAINFANTPCINTIMA'];
+            let VRVENDAINFANTACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDAINFANTACESSORIOS'];
+            let PERCVENDAINFANTACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDAINFANTACESSORIOS'];
+            let VRMETAVENDAINFANTACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAINFANTACESSORIOS'];
+            let PERCMETAVENDAINFANTACESSORIOSMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAINFANTACESSORIOS'];
+            
+            let VRVENDACMBMETAS = respostaListaMetasVendaMarca.data[i]['VRVENDACMB'];
+            let PERCVENDACMBMETAS = respostaListaMetasVendaMarca.data[i]['PERCVENDACMB'];
+            let VRMETAVENDACMBMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDACMB'];
+            let PERCMETAVENDACMBMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDACMB'];
+            let VRMETAVENDAOUTROSMETAS = respostaListaMetasVendaMarca.data[i]['VRMETAVENDAOUTROS'];
+            let PERCMETAVENDAOUTROSMETAS = respostaListaMetasVendaMarca.data[i]['PERCMETAVENDAOUTROS'];
+            let PERCTOTALVENDAMETAS = respostaListaMetasVendaMarca.data[i]['PERCTOTALVENDA'];
+            let STATIVOMETAS = respostaListaMetasVendaMarca.data[i]['STATIVO'];
+            let NOFANTASIAMETAS = respostaListaMetasVendaMarca.data[i]['NOFANTASIA'];
+// gnr dentro da documentação da speedNFe
+                dataRetornoMetas.push([
+                  `<label style="color: blue; font-size: 11px;">` + contador + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + NOFANTASIAMETAS + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + (parseFloat(VRVENDAGERALMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + (parseFloat(PERCMETAVENDAGERALMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + (parseFloat(VRMETAVENDAGERALMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+                  
+                  `<label style="color: orange; font-size: 11px;"><strong>` + (parseFloat(VRVENDACALCADOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: orange; font-size: 11px;"><strong>` + (parseFloat(PERCVENDACALCADOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: orange; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDACALCADOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: orange; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDACALCADOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRVENDAFEMVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(PERCVENDAFEMVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAFEMVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAFEMVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRVENDAFEMPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(PERCVENDAFEMPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAFEMPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAFEMPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRVENDAFEMACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(PERCVENDAFEMACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAFEMACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAFEMACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(VRVENDAMASCVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(PERCVENDAMASCVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAMASCVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAMASCVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(VRVENDAMASCPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(PERCVENDAMASCPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAMASCPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAMASCPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(VRVENDAMASCACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(PERCVENDAMASCACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAMASCACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: dodgerblue; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAMASCACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(VRVENDAINFANTVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(PERCVENDAINFANTVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAINFANTVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAINFANTVERINVMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(VRVENDAINFANTPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(PERCVENDAINFANTPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAINFANTPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAINFANTPCINTIMAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(VRVENDAINFANTACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(PERCVENDAINFANTACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAINFANTACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: MediumSeaGreen; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAINFANTACESSORIOSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: SlateBlue; font-size: 11px;"><strong>` + (parseFloat(VRVENDACMBMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: SlateBlue; font-size: 11px;"><strong>` + (parseFloat(PERCVENDACMBMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: SlateBlue; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDACMBMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: SlateBlue; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDACMBMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: Violet; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDAOUTROSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: Violet; font-size: 11px;"><strong>` + (parseFloat(PERCMETAVENDAOUTROSMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: Orange; font-size: 11px;"><strong>` + (parseFloat(PERCTOTALVENDAMETAS).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                 
+                ]);
+
+        }
+        
+        //chamarProximaListaMetas(numPageAtual + 1);
+    }
+    if(numPageAtual === 1){
+         $('#resultadometas').html(
+            `<table id="dt-basic-metas" class="table table-bordered table-hover">
+                <thead class="bg-primary-600">
+                    <tr>
+                        <td class="bg-primary-400" colspan="5" style="font-size: 12px; text-align:center">VENDAS / META GERAL</td>
+                        <td class="bg-warning-200" colspan="4" style="font-size: 12px; text-align:center">CALÇADOS</td>
+                        <td class="bg-danger-200" colspan="12" style="font-size: 12px; text-align:center">SEÇÃO FEMININA</td>
+                        <td class="bg-info-200" colspan="12" style="font-size: 12px; text-align:center">SEÇÃO MASCULINA</td>
+                        <td class="bg-success-200" colspan="12" style="font-size: 12px; text-align:center">SEÇÃO INFANTIL</td>
+                        <td class="bg-primary-200" colspan="4" style="font-size: 12px; text-align:center">CMB</td>
+                        <td class="bg-danger-200" colspan="2" style="font-size: 12px; text-align:center">Outros</td>
+                        <td class="bg-warning-200" style="font-size: 12px; text-align:center">Total</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-primary-400">#</th>
+                        <th class="bg-primary-400">Empresa</th>
+                        <th class="bg-primary-400">Venda</th>
+                        <th class="bg-primary-400">% Meta</th>
+                        <th class="bg-primary-400">Vr Meta</th>
+                        
+                        <th class="bg-warning-200">Geral</th>
+                        <th class="bg-warning-200">%</th>
+                        <th class="bg-warning-400">Vr Meta</th>
+                        <th class="bg-warning-400">%</th>
+                        
+                        <th class="bg-danger-200">Verão/Inverno</th>
+                        <th class="bg-danger-200">%</th>
+                        <th class="bg-danger-400">Vr Meta</th>
+                        <th class="bg-danger-400">%</th>
+                        <th class="bg-danger-200">Peça Intima</th>
+                        <th class="bg-danger-200">%</th>
+                        <th class="bg-danger-400">Vr Meta</th>
+                        <th class="bg-danger-400">%</th>
+                        <th class="bg-danger-200">Acessórios</th>
+                        <th class="bg-danger-200">%</th>
+                        <th class="bg-danger-400">Vr Meta</th>
+                        <th class="bg-danger-400">%</th>
+                        
+                        <th class="bg-info-200">Verão/Inverno</th>
+                        <th class="bg-info-200">%</th>
+                        <th class="bg-info-400">Vr Meta</th>
+                        <th class="bg-info-400">%</th>
+                        <th class="bg-info-200">Peça Intima</th>
+                        <th class="bg-info-200">%</th>
+                        <th class="bg-info-400">Vr Meta</th>
+                        <th class="bg-info-400">%</th>
+                        <th class="bg-info-200">Acessórios</th>
+                        <th class="bg-info-200">%</th>
+                        <th class="bg-info-400">Vr Meta</th>
+                        <th class="bg-info-400">%</th>
+                        
+                        <th class="bg-success-200">Verão/Inverno</th>
+                        <th class="bg-success-200">%</th>
+                        <th class="bg-success-400">Vr Meta</th>
+                        <th class="bg-success-400">%</th>
+                        <th class="bg-success-200">Peça Intima</th>
+                        <th class="bg-success-200">%</th>
+                        <th class="bg-success-400">Vr Meta</th>
+                        <th class="bg-success-400">%</th>
+                        <th class="bg-success-200">Acessórios</th>
+                        <th class="bg-success-200">%</th>
+                        <th class="bg-success-400">Vr Meta</th>
+                        <th class="bg-success-400">%</th>
+                        
+                        <th class="bg-primary-200">CMB</th>
+                        <th class="bg-primary-200">%</th>
+                        <th class="bg-primary-400">Vr Meta</th>
+                        <th class="bg-primary-400">%</th>
+                        
+                        <th class="bg-danger-200">Outros</th>
+                        <th class="bg-danger-200">%</th>
+                        
+                        <th class="bg-warning-400">%</th>
+                        
+                    </tr>
+                </thead>
+                <tbody id="resultadoVendaMarcaMeta">
+                </tbody>
+                <tfoot id="totalResultadoVendaMarcaMeta"class="thead-themed">
+                </tfoot>
+            </table>`
+        );
+
+        $('#textometas').html(
+		`Lista Metas Detalhada do Período: ` + DTMETAINICIOMETAS + ` a  ` + DTMETAFIMMETAS + `<span class="fw-300"><i></i></span>`);
+		
+        $('#dt-basic-metas').DataTable( {
+            
+            data: dataRetornoMetas,
+            "columnDefs": [
+              { "width": "5px", "targets": 0 },
+              { "width": "180px", "targets": 1 },
+              { "width": "95px", "targets": [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51] }
+          ],
+            deferRender: false,
+            lengthChange: false,
+            //displayLength: 100,
+            ordering:  false,
+            paging: false,
+            searching: false,
+            //scrollY:        800,
+            scrollCollapse: false,
+            //scroller:       false,
+            scrollX: true,
+            autowidth: false,
+            responsive: false,
+            dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+            buttons: [
+                        /*
+                        {
+                            extend: 'pdfHtml5',
+                            text: 'PDF',
+                            titleAttr: 'Generate PDF',
+                            className: 'btn-outline-danger btn-sm mr-1'
+                        },
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Excel',
+                            titleAttr: 'Generate Excel',
+                            className: 'btn-outline-success btn-sm mr-1'
+                        },
+                        {
+                            extend: 'print',
+                            text: 'Print',
+                            titleAttr: 'Print Table',
+                            className: 'btn-outline-primary btn-sm'
+                        }
+                         */
+                    ] 
+        } );
+        
+    }
+
+}
+
+///////////METAS RESUMIDA////////////////////
+
+function pesq_res_metas_lojas(idMarca,datini,datfim){
+    
+    dataRetornoMetasRes=[];
+    contadorres = 0;
+
+    if (window.XMLHttpRequest) {
+      // code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function () {
+        
+      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+        document.getElementById("resultado").innerHTML = xmlhttp.responseText;
+        //newDataTable();
+        
+        $('.dataAtual').text(dataAtual);
+
+        ajaxGetComAnimacaoDeCarregamento(`api/comercial/meta-vendas-resumida.xsjs?idMarca=${idMarca}&dataInicio=${datini}&dataFim=${datfim}`, "Carregando Dados, aguarde...", retornoListaMetasVendaMarcaResumido, "Erro ao Carregar os Dados");
+
+      }
+    };
+    
+    xmlhttp.open("GET", "comercial_action_pesqvendasmarcameta.html", true);
+    xmlhttp.send();
+}
+
+function retornoListaMetasVendaMarcaResumido(respostaListaMetasVendaMarcaResumido) {
+
+    var numPageAtual = parseInt(respostaListaMetasVendaMarcaResumido.page);
+    
+    if(respostaListaMetasVendaMarcaResumido.data.length != 0){
+    
+        for (var i=0; i < respostaListaMetasVendaMarcaResumido.data.length; i++) {
+            
+            contadorres ++;
+            
+            IDMETASLOJAMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['IDMETASLOJA'];
+            DTMETAINICIOMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['DTMETAINICIO'];
+            DTMETAFIMMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['DTMETAFIM'];
+            let IDGRUPOEMPRESAMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['IDGRUPOEMPRESA'];
+            let IDEMPRESAMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['IDEMPRESA'];
+            let IDFUNCIONARIOMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['IDFUNCIONARIO'];
+            let VRVENDAGERALMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['VRVENDAGERAL'];
+            let PERCMETAVENDAGERALMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['PERCMETAVENDAGERAL'];
+            let VRMETAVENDAGERALMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['VRMETAVENDAGERAL'];
+            let VRVENDACALCADOSMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['VRVENDACALCADOS'];
+            let VRMETAVENDACALCADOSMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['VRMETAVENDACALCADOS'];
+            
+            let VRTOTALVENDAVESTUARIORES = respostaListaMetasVendaMarcaResumido.data[i]['VRTOTALVENDAVESTUARIO'];
+            let VRTOTALMETASVESTUARIORES = respostaListaMetasVendaMarcaResumido.data[i]['VRTOTALMETAVESTUARIO'];
+            
+            let STATIVOMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['STATIVO'];
+            let NOFANTASIAMETASRES = respostaListaMetasVendaMarcaResumido.data[i]['NOFANTASIA'];
+
+                dataRetornoMetasRes.push([
+                  `<label style="color: blue; font-size: 11px;">` + contadorres + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + NOFANTASIAMETASRES + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + (parseFloat(VRVENDAGERALMETASRES).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + (parseFloat(PERCMETAVENDAGERALMETASRES).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+                  `<label style="color: blue; font-size: 11px;">` + (parseFloat(VRMETAVENDAGERALMETASRES).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</label>`,
+                  
+                  `<label style="color: orange; font-size: 11px;"><strong>` + (parseFloat(VRVENDACALCADOSMETASRES).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: orange; font-size: 11px;"><strong>` + (parseFloat(VRMETAVENDACALCADOSMETASRES).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRTOTALVENDAVESTUARIORES).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                  `<label style="color: violet; font-size: 11px;"><strong>` + (parseFloat(VRTOTALMETASVESTUARIORES).toLocaleString('pt-br', { minimumFractionDigits: 2 })) + `</strong></label>`,
+                 
+                ]);
+        }
+        
+        //chamarProximaListaMetas(numPageAtual + 1);
+    }
+    if(numPageAtual === 1){
+         $('#resultadometas').html(
+            `<table id="dt-basic-metas-resumido" class="table table-bordered table-hover table-striped w-100 .dt-responsive">
+                <thead class="bg-primary-600">
+                    <tr>
+                        <td class="bg-primary-400" colspan="5" style="font-size: 12px; text-align:center">VENDAS / META GERAL</td>
+                        <td class="bg-warning-200" colspan="2" style="font-size: 12px; text-align:center">CALÇADOS</td>
+                        <td class="bg-danger-200" colspan="2" style="font-size: 12px; text-align:center">VESTUÁRIO</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-primary-400">#</th>
+                        <th class="bg-primary-400">Empresa</th>
+                        <th class="bg-primary-400">Venda</th>
+                        <th class="bg-primary-400">% Meta</th>
+                        <th class="bg-primary-400">Vr Meta</th>
+                        
+                        <th class="bg-warning-200">Geral</th>
+                        <th class="bg-warning-400">Vr Meta</th>
+                        
+                        <th class="bg-danger-200">Geral</th>
+                        <th class="bg-danger-400">Vr Meta</th>
+                    </tr>
+                </thead>
+                <tbody id="resultadoVendaMarcaMetaResumido">
+                </tbody>
+                <tfoot id="totalResultadoVendaMarcaMetaResumido"class="thead-themed">
+                </tfoot>
+            </table>`
+        );
+
+        $('#textometas').html(
+		`Lista Metas Resumida do Período: ` + DTMETAINICIOMETASRES + ` a  ` + DTMETAFIMMETASRES + `<span class="fw-300"><i></i></span>`);
+    			
+        $('#dt-basic-metas-resumido').DataTable( {
+            
+            data: dataRetornoMetasRes,
+            "columnDefs": [
+              { "width": "5px", "targets": 0 },
+              { "width": "180px", "targets": 1 },
+              { "width": "95px", "targets": [2,3,4,5,6,7,8] }
+          ],
+            deferRender: false,
+            lengthChange: false,
+            //displayLength: 100,
+            ordering:  false,
+            paging: false,
+            searching: false,
+            //scrollY:        800,
+            scrollCollapse: false,
+            //scroller:       false,
+            scrollX: true,
+            autowidth: false,
+            responsive: false,
+            dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+            buttons: [
+                        /*
+                        {
+                            extend: 'pdfHtml5',
+                            text: 'PDF',
+                            titleAttr: 'Generate PDF',
+                            className: 'btn-outline-danger btn-sm mr-1'
+                        },
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Excel',
+                            titleAttr: 'Generate Excel',
+                            className: 'btn-outline-success btn-sm mr-1'
+                        },
+                        {
+                            extend: 'print',
+                            text: 'Print',
+                            titleAttr: 'Print Table',
+                            className: 'btn-outline-primary btn-sm'
+                        }
+                         */
+                    ] 
+        } );
+        
+    }
+
+}
+
+///////////////// PREMIAÇÕES POR PERIODO ///////////////////////
+
+function BuscaPremioGerente(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorGerente = 0;
+    var VrBonusPlenoGerente = 0;
+    var VrBonusJuniorGerente = 0;
+    var VrBonusTodasGerente = 0;
+          
+    let NoFuncGerente = 'GERENTE';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncGerente)
+    	.then(funcSucessListaPremioGerente)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaPremioLiderLoja(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorLiderLoja = 0;
+    var VrBonusPlenoLiderLoja = 0;
+    var VrBonusJuniorLiderLoja = 0;
+    var VrBonusTodasLiderLoja = 0;
+          
+    let NoFuncLiderLoja = 'LIDER DE LOJA';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncLiderLoja)
+    	.then(funcSucessListaPremioLiderLoja)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaPremioLiderCaixa(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorLiderCaixa = 0;
+    var VrBonusPlenoLiderCaixa = 0;
+    var VrBonusJuniorLiderCaixa = 0;
+    var VrBonusTodasLiderCaixa = 0;
+          
+    let NoFuncLiderCaixa = 'LIDER DE CAIXA';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncLiderCaixa)
+    	.then(funcSucessListaPremioLiderCaixa)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaPremioOperadorCaixa(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorOperadorCaixa = 0;
+    var VrBonusPlenoOperadorCaixa = 0;
+    var VrBonusJuniorOperadorCaixa = 0;
+    var VrBonusTodasOperadorCaixa = 0;
+          
+    let NoFuncOperadorCaixa = 'OPERADOR DE CAIXA';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncOperadorCaixa)
+    	.then(funcSucessListaPremioOperadorCaixa)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaPremioAssistente(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorAssistente = 0;
+    var VrBonusPlenoAssistente = 0;
+    var VrBonusJuniorAssistente = 0;
+    var VrBonusTodasAssistente = 0;
+          
+    let NoFuncAssistente = 'ASSISTENTES';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncAssistente)
+    	.then(funcSucessListaPremioAssistente)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaPremioMultiplicador(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorMultiplicador = 0;
+    var VrBonusPlenoMultiplicador = 0;
+    var VrBonusJuniorMultiplicador = 0;
+    var VrBonusTodasMultiplicador = 0;
+          
+    let NoFuncMultiplicador = 'MULTIPLICADOR';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncMultiplicador)
+    	.then(funcSucessListaPremioMultiplicador)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaPremioProvador(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorProvador = 0;
+    var VrBonusPlenoProvador = 0;
+    var VrBonusJuniorProvador = 0;
+    var VrBonusTodasProvador = 0;
+          
+    let NoFuncProvador = 'PROVADOR';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncProvador)
+    	.then(funcSucessListaPremioProvador)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaPremioFiscal(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorFiscal = 0;
+    var VrBonusPlenoFiscal = 0;
+    var VrBonusJuniorFiscal = 0;
+    var VrBonusTodasFiscal = 0;
+          
+    let NoFuncFiscal = 'FISCAL';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncFiscal)
+    	.then(funcSucessListaPremioFiscal)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaPremioVendedor(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorVendedor = 0;
+    var VrBonusPlenoVendedor = 0;
+    var VrBonusJuniorVendedor = 0;
+    var VrBonusTodasVendedor = 0;
+          
+    let NoFuncVendedor = 'VENDEDOR';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncVendedor)
+    	.then(funcSucessListaPremioVendedor)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function BuscaPremioLiderSubGerente(IdSubEmp, DtIniPrem, DtfimPrem, DsSubEmpresa){
+
+    var VrBonusSeniorLiderSubGerente = 0;
+    var VrBonusPlenoLiderSubGerente = 0;
+    var VrBonusJuniorLiderSubGerente = 0;
+    var VrBonusTodasLiderSubGerente = 0;
+          
+    let NoFuncLiderSubGerente = 'LIDER SUBGERENTE';
+
+	$('#lblPremiacao').html( 
+		`REGRAS PREMIAÇÕES - <span class="fw-300"><i>` + (DsSubEmpresa) + ` -  </i></span> PERÍODO: <span class="fw-300"><i> ` + (DtIniPrem) + ` a ` + (DtfimPrem) + `</i></span>`
+	);
+            	
+    return ajaxGet('api/comercial/lista-premios-gerente.xsjs?idPremioSubGrupoEmp=' + IdSubEmp + '&DTInicPremio=' + DtIniPrem + '&DTFimPremio=' + DtfimPrem + '&noFunc=' + NoFuncLiderSubGerente)
+    	.then(funcSucessListaPremioLiderSubGerente)
+		.catch((e) => { funcError(), console.log(e) });
+}
+
+function funcSucessListaPremioGerente(respostaPremioGerente) {
+
+  contadorListPremGerente = 0;
+
+  var numPageAtual = parseInt(respostaPremioGerente.page);
+  if(numPageAtual === 1){
+      
+      $('#premgerente').html(
+          `<table id="dt-lista-premio-gerente" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" style="font-size: 12px; text-align:center">SENIOR</td>
+                    <td class="bg-danger-400" style="font-size: 12px; text-align:center">PLENO</td>
+                    <td class="bg-info-400" style="font-size: 12px; text-align:center">JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-info-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioGerente">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioGerente = $('#dt-lista-premio-gerente').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "15%", "targets": 2 },
+              { "width": "15%", "targets": 3 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioGerente.rows().remove().draw();
+  }
+
+  if(respostaPremioGerente.data.length != 0){
+    for (var i = 0; i < respostaPremioGerente.data.length; i++) { 
+        contadorListPremGerente ++;
+
+          idPremioGerente = respostaPremioGerente.data[i]['IDPREMIACAO'];
+          noIndicadorGerente = respostaPremioGerente.data[i]['NOINDICADOR'];
+          VrBonusSeniorGerente = parseFloat(respostaPremioGerente.data[i]['VRBONUSSENIOR']);
+          VrBonusPlenoGerente = parseFloat(respostaPremioGerente.data[i]['VRBONUSPLENO']);
+          VrBonusJuniorGerente = parseFloat(respostaPremioGerente.data[i]['VRBONUSJUNIOR']);
+          VrBonusTodasGerente = parseFloat(respostaPremioGerente.data[i]['VRBONUSTODOS']);
+
+      tableListaPremioGerente.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorGerente + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusSeniorGerente).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusPlenoGerente).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusJuniorGerente).toFixed(2)) + ` </label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessListaPremioLiderLoja(respostaPremioLiderLoja) {
+
+  contadorListPremLiderLoja = 0;
+
+  var numPageAtual = parseInt(respostaPremioLiderLoja.page);
+  if(numPageAtual === 1){
+      
+      $('#premliderloja').html(
+          `<table id="dt-lista-premio-liderloja" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" style="font-size: 12px; text-align:center">SENIOR</td>
+                    <td class="bg-danger-400" style="font-size: 12px; text-align:center">PLENO</td>
+                    <td class="bg-info-400" style="font-size: 12px; text-align:center">JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-info-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioLiderLoja">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioLiderLoja = $('#dt-lista-premio-liderloja').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "15%", "targets": 2 },
+              { "width": "15%", "targets": 3 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioLiderLoja.rows().remove().draw();
+  }
+
+  if(respostaPremioLiderLoja.data.length != 0){
+    for (var i = 0; i < respostaPremioLiderLoja.data.length; i++) { 
+        contadorListPremLiderLoja ++;
+
+          idPremioLiderLoja = respostaPremioLiderLoja.data[i]['IDPREMIACAO'];
+          noIndicadorLiderLoja = respostaPremioLiderLoja.data[i]['NOINDICADOR'];
+          VrBonusSeniorLiderLoja = parseFloat(respostaPremioLiderLoja.data[i]['VRBONUSSENIOR']);
+          VrBonusPlenoLiderLoja = parseFloat(respostaPremioLiderLoja.data[i]['VRBONUSPLENO']);
+          VrBonusJuniorLiderLoja = parseFloat(respostaPremioLiderLoja.data[i]['VRBONUSJUNIOR']);
+          VrBonusTodasLiderLoja = parseFloat(respostaPremioLiderLoja.data[i]['VRBONUSTODOS']);
+
+      tableListaPremioLiderLoja.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorLiderLoja + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusSeniorLiderLoja).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusPlenoLiderLoja).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusJuniorLiderLoja).toFixed(2)) + ` </label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessListaPremioLiderCaixa(respostaPremioLiderCaixa) {
+
+  contadorListPremLiderCaixa = 0;
+
+  var numPageAtual = parseInt(respostaPremioLiderCaixa.page);
+  if(numPageAtual === 1){
+      
+      $('#premlidercaixa').html(
+          `<table id="dt-lista-premio-lidercaixa" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" style="font-size: 12px; text-align:center">SENIOR</td>
+                    <td class="bg-danger-400" style="font-size: 12px; text-align:center">PLENO</td>
+                    <td class="bg-info-400" style="font-size: 12px; text-align:center">JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-info-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioLiderCaixa">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioLiderCaixa = $('#dt-lista-premio-lidercaixa').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "15%", "targets": 2 },
+              { "width": "15%", "targets": 3 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioLiderCaixa.rows().remove().draw();
+  }
+
+  if(respostaPremioLiderCaixa.data.length != 0){
+    for (var i = 0; i < respostaPremioLiderCaixa.data.length; i++) { 
+        contadorListPremLiderCaixa ++;
+
+          idPremioLiderCaixa = respostaPremioLiderCaixa.data[i]['IDPREMIACAO'];
+          noIndicadorLiderCaixa = respostaPremioLiderCaixa.data[i]['NOINDICADOR'];
+          VrBonusSeniorLiderCaixa = parseFloat(respostaPremioLiderCaixa.data[i]['VRBONUSSENIOR']);
+          VrBonusPlenoLiderCaixa = parseFloat(respostaPremioLiderCaixa.data[i]['VRBONUSPLENO']);
+          VrBonusJuniorLiderCaixa = parseFloat(respostaPremioLiderCaixa.data[i]['VRBONUSJUNIOR']);
+          VrBonusTodasLiderCaixa = parseFloat(respostaPremioLiderCaixa.data[i]['VRBONUSTODOS']);
+
+      tableListaPremioLiderCaixa.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorLiderCaixa + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusSeniorLiderCaixa).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusPlenoLiderCaixa).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusJuniorLiderCaixa).toFixed(2)) + ` </label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessListaPremioOperadorCaixa(respostaPremioOperadorCaixa) {
+
+  contadorListPremOperadorCaixa = 0;
+
+  var numPageAtual = parseInt(respostaPremioOperadorCaixa.page);
+  if(numPageAtual === 1){
+      
+      $('#premopcaixa').html(
+          `<table id="dt-lista-premio-operadorcaixa" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" colspan="2" style="font-size: 12px; text-align:center">SENIOR/PLENO/JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">Apuração</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioOperadorCaixa">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioOperadorCaixa = $('#dt-lista-premio-operadorcaixa').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "30%", "targets": 2 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioOperadorCaixa.rows().remove().draw();
+  }
+
+  if(respostaPremioOperadorCaixa.data.length != 0){
+    for (var i = 0; i < respostaPremioOperadorCaixa.data.length; i++) { 
+        contadorListPremOperadorCaixa ++;
+
+          idPremioOperadorCaixa = respostaPremioOperadorCaixa.data[i]['IDPREMIACAO'];
+          noIndicadorOperadorCaixa = respostaPremioOperadorCaixa.data[i]['NOINDICADOR'];
+          tpApuracaorOperadorCaixa = respostaPremioOperadorCaixa.data[i]['TPAPURACAO'];
+          VrBonusTodasOperadorCaixa = parseFloat(respostaPremioOperadorCaixa.data[i]['VRBONUSTODOS']);
+
+      tableListaPremioOperadorCaixa.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorOperadorCaixa + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusTodasOperadorCaixa).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + tpApuracaorOperadorCaixa + `</label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessListaPremioAssistente(respostaPremioAssistente) {
+
+  contadorListPremAssistente = 0;
+
+  var numPageAtual = parseInt(respostaPremioAssistente.page);
+  if(numPageAtual === 1){
+      
+      $('#premassistente').html(
+          `<table id="dt-lista-premio-assistente" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" colspan="2" style="font-size: 12px; text-align:center">SENIOR/PLENO/JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">Apuração</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioAssistente">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioAssistente = $('#dt-lista-premio-assistente').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "30%", "targets": 2 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioAssistente.rows().remove().draw();
+  }
+
+  if(respostaPremioAssistente.data.length != 0){
+    for (var i = 0; i < respostaPremioAssistente.data.length; i++) { 
+        contadorListPremAssistente ++;
+
+          idPremioAssistente = respostaPremioAssistente.data[i]['IDPREMIACAO'];
+          noIndicadorAssistente = respostaPremioAssistente.data[i]['NOINDICADOR'];
+          tpApuracaorAssistente = respostaPremioAssistente.data[i]['TPAPURACAO'];
+          VrBonusTodasAssistente = parseFloat(respostaPremioAssistente.data[i]['VRBONUSTODOS']);
+          
+      tableListaPremioAssistente.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorAssistente + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusTodasAssistente).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + tpApuracaorAssistente + `</label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessListaPremioMultiplicador(respostaPremioMultiplicador) {
+
+  contadorListPremMultiplicador = 0;
+
+  var numPageAtual = parseInt(respostaPremioMultiplicador.page);
+  if(numPageAtual === 1){
+      
+      $('#premmultiplicador').html(
+          `<table id="dt-lista-premio-multiplicador" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" colspan="2" style="font-size: 12px; text-align:center">SENIOR/PLENO/JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">Apuração</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioMultiplicador">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioMultiplicador = $('#dt-lista-premio-multiplicador').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "30%", "targets": 2 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioMultiplicador.rows().remove().draw();
+  }
+
+  if(respostaPremioMultiplicador.data.length != 0){
+    for (var i = 0; i < respostaPremioMultiplicador.data.length; i++) { 
+        contadorListPremMultiplicador ++;
+
+          idPremioMultiplicador = respostaPremioMultiplicador.data[i]['IDPREMIACAO'];
+          noIndicadorMultiplicador = respostaPremioMultiplicador.data[i]['NOINDICADOR'];
+          tpApuracaorMultiplicador = respostaPremioMultiplicador.data[i]['TPAPURACAO'];
+          VrBonusTodasMultiplicador = parseFloat(respostaPremioMultiplicador.data[i]['VRBONUSTODOS']);
+          
+      tableListaPremioMultiplicador.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorMultiplicador + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusTodasMultiplicador).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + tpApuracaorMultiplicador + `</label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessListaPremioProvador(respostaPremioProvador) {
+
+  contadorListPremProvador = 0;
+
+  var numPageAtual = parseInt(respostaPremioProvador.page);
+  if(numPageAtual === 1){
+      
+      $('#premprovador').html(
+          `<table id="dt-lista-premio-provador" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" colspan="2" style="font-size: 12px; text-align:center">SENIOR/PLENO/JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">Apuração</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioProvador">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioProvador = $('#dt-lista-premio-provador').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "30%", "targets": 2 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioProvador.rows().remove().draw();
+  }
+
+  if(respostaPremioProvador.data.length != 0){
+    for (var i = 0; i < respostaPremioProvador.data.length; i++) { 
+        contadorListPremProvador ++;
+
+          idPremioProvador = respostaPremioProvador.data[i]['IDPREMIACAO'];
+          noIndicadorProvador = respostaPremioProvador.data[i]['NOINDICADOR'];
+          tpApuracaorProvador = respostaPremioProvador.data[i]['TPAPURACAO'];
+          VrBonusTodasProvador = parseFloat(respostaPremioProvador.data[i]['VRBONUSTODOS']);
+
+      tableListaPremioProvador.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorProvador + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusTodasProvador).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + tpApuracaorProvador + `</label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessListaPremioFiscal(respostaPremioFiscal) {
+
+  contadorListPremFiscal = 0;
+
+  var numPageAtual = parseInt(respostaPremioFiscal.page);
+  if(numPageAtual === 1){
+      
+      $('#premfiscal').html(
+          `<table id="dt-lista-premio-fiscal" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" colspan="2" style="font-size: 12px; text-align:center">SENIOR/PLENO/JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">Apuração</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioFiscal">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioFiscal = $('#dt-lista-premio-fiscal').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "30%", "targets": 2 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioFiscal.rows().remove().draw();
+  }
+
+  if(respostaPremioFiscal.data.length != 0){
+    for (var i = 0; i < respostaPremioFiscal.data.length; i++) { 
+        contadorListPremFiscal ++;
+
+          idPremioFiscal = respostaPremioFiscal.data[i]['IDPREMIACAO'];
+          noIndicadorFiscal = respostaPremioFiscal.data[i]['NOINDICADOR'];
+          tpApuracaorFiscal = respostaPremioFiscal.data[i]['TPAPURACAO'];
+          VrBonusTodasFiscal = parseFloat(respostaPremioFiscal.data[i]['VRBONUSTODOS']);
+
+      tableListaPremioFiscal.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorFiscal + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusTodasFiscal).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + tpApuracaorFiscal + `</label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessListaPremioVendedor(respostaPremioVendedor) {
+
+  contadorListPremVendedor = 0;
+
+  var numPageAtual = parseInt(respostaPremioVendedor.page);
+  if(numPageAtual === 1){
+      
+      $('#premvendedor').html(
+          `<table id="dt-lista-premio-vendedor" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" colspan="2" style="font-size: 12px; text-align:center">SENIOR/PLENO/JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">Apuração</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioVendedor">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioVendedor = $('#dt-lista-premio-vendedor').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "30%", "targets": 2 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioVendedor.rows().remove().draw();
+  }
+
+  if(respostaPremioVendedor.data.length != 0){
+    for (var i = 0; i < respostaPremioVendedor.data.length; i++) { 
+        contadorListPremVendedor ++;
+
+          idPremioVendedor = respostaPremioVendedor.data[i]['IDPREMIACAO'];
+          noIndicadorVendedor = respostaPremioVendedor.data[i]['NOINDICADOR'];
+          tpApuracaorVendedor = respostaPremioVendedor.data[i]['TPAPURACAO'];
+          VrBonusTodasVendedor = parseFloat(respostaPremioVendedor.data[i]['VRBONUSTODOS']);
+
+      tableListaPremioVendedor.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorVendedor + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusTodasVendedor).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + tpApuracaorVendedor + `</label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function funcSucessListaPremioLiderSubGerente(respostaPremioLiderSubGerente) {
+
+  contadorListPremLiderSubGerente = 0;
+
+  var numPageAtual = parseInt(respostaPremioLiderSubGerente.page);
+  if(numPageAtual === 1){
+      
+      $('#premlidersubgerente').html(
+          `<table id="dt-lista-premio-lidersubgerente" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                <tr>
+                    <td class="bg-primary-400" style="font-size: 12px; text-align:center">CLASSIFICAÇÃO</td>
+                    <td class="bg-warning-400" colspan="2" style="font-size: 12px; text-align:center">SENIOR/PLENO/JUNIOR</td>
+                </tr>
+                <tr>
+                    <td class="bg-primary-200" style="font-size: 12px; text-align:center">INDICADORES</td>
+                    <td class="bg-warning-200" style="font-size: 12px; text-align:center">BÔNUS</td>
+                    <td class="bg-danger-200" style="font-size: 12px; text-align:center">Apuração</td>
+                </tr>
+              </thead>
+              <tbody id="resultadoListaPremioLiderSubGerente">
+              </tbody>
+              <tfoot id=""class="thead-themed">
+              </tfoot>
+          </table>`
+      );
+            
+      var tableListaPremioLiderSubGerente = $('#dt-lista-premio-lidersubgerente').DataTable({
+          "columnDefs": [
+              { "width": "55%", "targets": 0 },
+              { "width": "15%", "targets": 1 },
+              { "width": "30%", "targets": 2 }
+          ],
+          deferRender: true,
+          paging: false,
+          ordering:  false,
+          searching: false,
+          info: false,
+          //scrollY:        800,
+          //scrollCollapse: false,
+          //scroller:       false,
+          responsive: true,
+          dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                      "<'row'<'col-sm-12'tr>>" +
+                      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+          buttons: [
+
+          ]
+
+      });
+      
+      tableListaPremioLiderSubGerente.rows().remove().draw();
+  }
+
+  if(respostaPremioLiderSubGerente.data.length != 0){
+    for (var i = 0; i < respostaPremioLiderSubGerente.data.length; i++) { 
+        contadorListPremLiderSubGerente ++;
+
+          idPremioLiderSubGerente = respostaPremioLiderSubGerente.data[i]['IDPREMIACAO'];
+          noIndicadorLiderSubGerente = respostaPremioLiderSubGerente.data[i]['NOINDICADOR'];
+          tpApuracaorLiderSubGerente = respostaPremioLiderSubGerente.data[i]['TPAPURACAO'];
+          VrBonusTodasLiderSubGerente = parseFloat(respostaPremioLiderSubGerente.data[i]['VRBONUSTODOS']);
+
+      tableListaPremioLiderSubGerente.row.add([
+              `<label style="color: blue; font-size: 11px;">` + noIndicadorLiderSubGerente + `</label>`,
+              `<label style="color: blue; font-size: 11px;">` + mascaraValor(parseFloat(VrBonusTodasLiderSubGerente).toFixed(2)) + ` </label>`,
+              `<label style="color: blue; font-size: 11px;">` + tpApuracaorLiderSubGerente + `</label>`,
+          ]).draw(false);
+          
+    }
+      
+  }else{
+  }
+
+}
+
+function ListaPremiacoesPeriodo(){
+
+    dataRetornoListaPremio = [];
+    numPage = 1;
+    contador = 0;
+    
+    if (window.XMLHttpRequest) {
+      // code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function () {
+      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+        document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
+        
+            $('.dataAtual').text(dataAtual);
+            $('#dtconsultainicio').val(dataAtualCampo);
+            $('#dtconsultafim').val(dataAtualCampo);
+
+        	$("#idmarca").select2();
+        	
+            $('.DescTituloListaVendas').html(
+			`<i class='subheader-icon fal fa-chart-area'></i> Premiações - <span class='fw-300'></span>`);
+			
+			 ajaxGet('api/informatica/marca.xsjs')
+        		.then(retornoListaMarcaSelect)
+        		.catch(funcError);
+        		
+        	ajaxGetComAnimacaoDeCarregamento(`api/comercial/lista-premiacoes.xsjs?page=${numPage}`, "Carregando Dados, aguarde...", retornoListaPremiacoes, "Erro ao Carregar os Dados");
+
+      }
+    };
+    xmlhttp.open("GET", "comercial_action_premiacao.html", true);
+    xmlhttp.send();
+}
+
+function chamarProximaListaPremiacoes(numPage){
+
+    ajaxGet('api/comercial/lista-premiacoes.xsjs?page=' + numPage)
+    	.then(retornoListaPremiacoes)
+    	.catch((e) => { funcError(), console.log(e) });
+}
+
+function retornoListaPremiacoes(respostaListaPremiacoes) {
+
+  var numPageAtual = parseInt(respostaListaPremiacoes.page);
+
+  if (respostaListaPremiacoes.data.length != 0) {
+    for (var i = 0; i < respostaListaPremiacoes.data.length; i++) {
+        contador++;
+        idSubEmpresaPrem = respostaListaPremiacoes.data[i]['IDSUBGRUPOEMPRESARIAL'];
+        dataIniPremFormat = respostaListaPremiacoes.data[i]['DTPREMIOINICIOFORMAT'];
+        dataFimPremFormat = respostaListaPremiacoes.data[i]['DTPREMIOFIMFORMAT'];
+        dataIniPrem = respostaListaPremiacoes.data[i]['DTPREMIOINICIO'];
+        dataFimPrem = respostaListaPremiacoes.data[i]['DTPREMIOFIM'];
+        DsSubGrupoPrem = respostaListaPremiacoes.data[i]['DSSUBGRUPOEMPRESARIAL'];
+        StAtivoPrem = respostaListaPremiacoes.data[i]['STATIVO'];
+
+        if(StAtivoPrem == 'True'){
+            labelstprem = `<label style="color: blue; font-size: 10px;">ATIVO</label>`;
+        }else{
+            labelstprem = `<label style="color: red; font-size: 10px;">INATIVO</label>`;
+        }
+            
+        btnOpcao = `<div class="btn-group btn-group-xs">
+                        <button type="button" class="btn btn-info btn-xs" title="Detalhar Premiação" id="` + idSubEmpresaPrem + `" onclick="detalhe_premiacao(this.id,dataIniPrem,dataFimPrem,DsSubGrupoPrem)" ><i class="fal fa-eye"></i></button>
+                    </div>`;
+              
+            dataRetornoListaPremio.push([
+                contador,
+                DsSubGrupoPrem,
+                dataIniPremFormat,
+                dataFimPremFormat,
+                labelstprem,
+                btnOpcao]);
+
+    }
+    
+    chamarProximaListaPremiacoes(numPageAtual + 1);
+
+  } else {
+      
+    $('#resultadopremio').html(
+      `<table id="dt-basic-lista-premios" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+              <thead class="bg-primary-600">
+                  <tr>
+                      <th>*</th>
+                      <th>Grupo Empresarial</th>
+                      <th>Data Inicio</th>
+                      <th>Data Fim</th>
+                      <th>Situação</th>
+                      <th>Opção</th>
+                  </tr>
+              </thead>
+              <tbody id="resultadoListaPremios">
+              </tbody>
+              <tfoot id="totalListaListaPremios"class="thead-themed">
+              </tfoot>
+          </table>`
+    );
+
+    $('#dt-basic-lista-premios').DataTable({
+      data: dataRetornoListaPremio,
+      deferRender: true,
+      //scrollY:        800,
+      //scrollCollapse: false,
+      //scroller:       false,
+      responsive: true,
+      dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+      buttons: [
+        {
+          extend: 'pdfHtml5',
+          text: 'PDF',
+          titleAttr: 'Generate PDF',
+          className: 'btn-outline-danger btn-sm mr-1'
+        },
+        {
+          extend: 'excelHtml5',
+          text: 'Excel',
+          titleAttr: 'Generate Excel',
+          className: 'btn-outline-success btn-sm mr-1'
+        },
+        {
+          extend: 'print',
+          text: 'Print',
+          titleAttr: 'Print Table',
+          className: 'btn-outline-primary btn-sm'
+        }
+      ]
+    });
+
+  }
+
+}
+
+function detalhe_premiacao(idsubgrupo,dtpremini,dtpremfim,dsSubEmp){
+    
+    dataRetornoDetPremios=[];
+    contador = 0;
+    
+    numPage = 1;
+  
+    if (window.XMLHttpRequest) {
+      // code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp = new XMLHttpRequest();
+    } else {
+      // code for IE6, IE5
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function () {
+        
+      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+        document.getElementById("resultadopremio").innerHTML = xmlhttp.responseText;
+        //newDataTable();
+        
+        $('.dataAtual').text(dataAtual);
+
+        BuscaPremioGerente(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+        BuscaPremioLiderLoja(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+        BuscaPremioLiderCaixa(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+        BuscaPremioOperadorCaixa(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+        BuscaPremioAssistente(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+        BuscaPremioMultiplicador(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+        BuscaPremioProvador(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+        BuscaPremioFiscal(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+        BuscaPremioVendedor(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+        BuscaPremioLiderSubGerente(idsubgrupo,dtpremini,dtpremfim,dsSubEmp);
+
+      }
+    };
+    
+    xmlhttp.open("GET", "comercial_action_pesqdetpremios.html", true);
+    xmlhttp.send();
+}
+
+function modal_criar_premiacao() {
+
+    let idmarcapremio =  $("#idmarca option:selected").val();
+    let dsmarcapremio = $("#idmarca option:selected").text();
+    let DTInicpremio =  $("#dtconsultainicio").val();
+    let DTFimpremio =  $("#dtconsultafim").val();
+
+    $.get('comercial_action_cadpremiomodal.html', function(res) {
+      
+          $('#resulmodalcadpremio').html(res);
+          $("#modalPremios").modal('show');
+          $('#modalPremios').on('shown.bs.modal', function() {
+    
+                $("#IDMarcaPremio").val(idmarcapremio);
+                $('#nomegrupempresa').val(dsmarcapremio);
+                $('#dtpremioinicio').val(DTInicpremio);
+                $('#dtpremiofim').val(DTFimpremio);
+              
+          });		
+    
+    })
+    
+    ajaxGet('api/comercial/lista_premiacaocad.xsjs?idPremioSubGrupoEmp=' + idmarcapremio + '&DTInicPremio=' + DTInicpremio + '&DTFimPremio=' + DTFimpremio)
+    	.then(retornoListaPremiacoesCad)
+    	.catch((e) => { funcError(), console.log(e) });
+}
+
+function cadastrar_premios() {
+  
+    let idgrupoemppremio = $("#IDMarcaPremio").val();
+    let dtinicpremio = $("#dtpremioinicio").val();
+    let dtfimpremio = $("#dtpremiofim").val();
+    let dsfuncpremio = $("#dsfuncaopremio").val();
+    let dsindicpremio = $("#dsindicadorpremio").val();
+    let dsapurapremio = $("#dsapuracao").val();
+    let vrbonuspremiosenior = $("#VrBonusPremioSenior").val().replace(".", "").replace(",", ".");
+    let vrbonuspremiopleno = $("#VrBonusPremioPleno").val().replace(".", "").replace(",", ".");
+    let vrbonuspremiojunior = $("#VrBonusPremioJunior").val().replace(".", "").replace(",", ".");
+    let vrbonuspremiotodos = $("#VrBonusPremioTodos").val().replace(".", "").replace(",", ".");
+    let StAtivopremio = 'True';
+
+    if(vrbonuspremiosenior == ''){
+
+      Swal.fire({
+          type: "warning",
+          title: "O valor do Bonus não pode ser zero! ",
+          showConfirmButton: false,
+          timer: 2000
+      });
+      return;
+      
+    }else{
+        
+        var dados = [{ 
+            "DTPREMIOINICIO":dtinicpremio,
+            "DTPREMIOFIM":dtfimpremio,
+            "IDSUBGRUPOEMPRESARIAL":parseInt(idgrupoemppremio),
+            "NOFUNCAO":dsfuncpremio,
+            "NOINDICADOR":dsindicpremio,
+            "TPAPURACAO":dsapurapremio,
+            "VRBONUSSENIOR":parseFloat(vrbonuspremiosenior),
+            "VRBONUSPLENO":parseFloat(vrbonuspremiopleno),
+            "VRBONUSJUNIOR":parseFloat(vrbonuspremiojunior),
+            "VRBONUSTODOS":parseFloat(vrbonuspremiotodos),
+            "STATIVO":StAtivopremio
+        }];
+        
+        ajaxPost("api/comercial/cadastrar-premiacoes.xsjs", dados)
+        .then(funcSucessCadPremiacao)
+        .catch(funcError);
+    }
+}
+
+async function funcSucessCadPremiacao(resposta) {
+
+    contador = 0;
+    let idgrupoemppremiocad = $("#IDMarcaPremio").val();
+    let dtinicpremiocad = $("#dtpremioinicio").val();
+    let dtfimpremiocad = $("#dtpremiofim").val();
+    
+    await ajaxGet('api/comercial/lista_premiacaocad.xsjs?idPremioSubGrupoEmp=' + idgrupoemppremiocad + '&DTInicPremio=' + dtinicpremiocad + '&DTFimPremio=' + dtfimpremiocad)
+    	.then(retornoListaPremiacoesCad)
+    	.catch((e) => { funcError(), console.log(e) });
+    	
+    Swal.fire({
+      type: "success",
+      title: "Premiação Cadastrada com Sucesso ",
+      showConfirmButton: false,
+      timer: 2000,
+      target: document.getElementById('modalPremios'),
+    });
+
+}
+
+function selecaofuncao() {
+
+    let dspremiofuncao = $('#dsfuncaopremio').val();
+
+    if(dspremiofuncao === 'GERENTE' || dspremiofuncao === 'LIDER DE LOJA' || dspremiofuncao === 'LIDER DE CAIXA'){
+        
+        $('#VrBonusPremioTodos').prop('readonly', true);
+        $('#VrBonusPremioSenior').prop('readonly', false);
+        $('#VrBonusPremioPleno').prop('readonly', false);
+        $('#VrBonusPremioJunior').prop('readonly', false);
+        
+    }else{
+        $('#VrBonusPremioTodos').prop('readonly', false);
+        $('#VrBonusPremioSenior').prop('readonly', true);
+        $('#VrBonusPremioPleno').prop('readonly', true);
+        $('#VrBonusPremioJunior').prop('readonly', true);
+    }
+}
+
+function retornoListaPremiacoesCad(respostaListaPremiacoesCad) {
+
+    var numPageAtual = parseInt(respostaListaPremiacoesCad.page);
+        if(numPageAtual === 1){
+            contador = 0;
+          
+            $('#resultadolistpremiocad').html(
+              `<table id="dt-basic-lista-premioscad" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                      <thead class="bg-primary-600">
+                          <tr>
+                              <th>*</th>
+                              <th>Função</th>
+                              <th>Indicador</th>
+                              <th>Apuração</th>
+                              <th>Vr Bonus Senior</th>
+                              <th>Vr Bonus Pleno</th>
+                              <th>Vr Bonus Junior</th>
+                              <th>Vr Bonus Todos</th>
+                              <th>Opção</th>
+                          </tr>
+                      </thead>
+                      <tbody id="resultadoListaPremiosCad">
+                      </tbody>
+                      <tfoot id="totalListaListaPremiosCad"class="thead-themed">
+                      </tfoot>
+                  </table>`
+            );
+        
+            var dataRetornoListaPremioCad = $('#dt-basic-lista-premioscad').DataTable({
+              deferRender: true,
+              //scrollY:        800,
+              //scrollCollapse: false,
+              //scroller:       false,
+              responsive: true,
+              dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+              buttons: [
+        
+              ]
+            });
+          
+            dataRetornoListaPremioCad.rows().remove().draw();
+            $('#resultadoListaPremiosCad').html('');
+      
+          
+        }
+    if (respostaListaPremiacoesCad.data.length != 0) {
+        for (var i = 0; i < respostaListaPremiacoesCad.data.length; i++) {
+        contador++;
+        
+        idPremioCad = respostaListaPremiacoesCad.data[i]['IDPREMIACAO'];
+        noIndicadorCad = respostaListaPremiacoesCad.data[i]['NOINDICADOR'];
+        noFuncCad = respostaListaPremiacoesCad.data[i]['NOFUNCAO'];
+        TpApuracaoCad = respostaListaPremiacoesCad.data[i]['TPAPURACAO'];
+        VrBonusSeniorCad = parseFloat(respostaListaPremiacoesCad.data[i]['VRBONUSSENIOR']);
+        VrBonusPlenoCad = parseFloat(respostaListaPremiacoesCad.data[i]['VRBONUSPLENO']);
+        VrBonusJuniorCad = parseFloat(respostaListaPremiacoesCad.data[i]['VRBONUSJUNIOR']);
+        VrBonusTodasCad = parseFloat(respostaListaPremiacoesCad.data[i]['VRBONUSTODOS']);
+    
+        btnOpcao = `<div class="btn-group btn-group-xs">
+                        <button type="button" class="btn btn-danger btn-xs" title="Cancelar Premio" id="` +idPremioCad + `" value="` +idPremioCad + `" onclick="modal_Cancel_Premio(this.id,\'True\', this.value)" ><span class="fal fa-trash-alt"></span></button>
+                    </div>`;
+                    
+        dataRetornoListaPremioCad.row.add([
+               `<label style="color: blue; font-size: 11px;">` + contador + `</label>`,
+               `<label style="color: blue; font-size: 11px;">` + noFuncCad + ` </label>`,
+               `<label style="color: blue; font-size: 11px;">` + noIndicadorCad + ` </label>`,
+               `<label style="color: blue; font-size: 11px;">` + TpApuracaoCad + ` </label>`,
+               `<label style="color: blue;">` + mascaraValor(parseFloat(VrBonusSeniorCad).toFixed(2)) + `</label>`,
+               `<label style="color: blue;">` + mascaraValor(parseFloat(VrBonusPlenoCad).toFixed(2)) + `</label>`,
+               `<label style="color: blue;">` + mascaraValor(parseFloat(VrBonusJuniorCad).toFixed(2)) + `</label>`,
+               `<label style="color: blue;">` + mascaraValor(parseFloat(VrBonusTodasCad).toFixed(2)) + `</label>`,
+               btnOpcao,
+        ]).draw(false);
+            
+    }
+    } else {
+    }
+
+}
+
+function modal_Cancel_Premio(id,status,idresp) {
+  
+      Swal.fire({
+            title: 'Certeza que Deseja Cancelar essa Premiação?',
+            text: "Você não poderá reverter esta ação!",
+            buttonsStyling: false,
+            showCancelButton: true,
+            customClass: {
+              confirmButton: 'btn btn-primary btn-lg',
+              cancelButton: 'btn btn-danger btn-lg',
+              loader: 'custom-loader'
+            },
+            loaderHtml: '<div class="spinner-border text-primary"></div>',
+            allowOutsideClick: () => !Swal.isLoading(),
+            target: document.getElementById('modalPremios'),
+      }).then((result) => {
+            Swal.fire({
+              type:'question',
+              title: 'Motivo do Cancelamento da Premiação?',
+              html: `<div>
+                          <div class=" input-group pt-0" >
+                              <input type="text" id="motivoCancelPremio" class="swal2-input m-0 " placeholder="Motivo do Cancelamento da Premiação!" style="text-transform: uppercase">
+                          </div>
+                      </div>`,
+              width: '25rem',
+              focusConfirm: false,
+              showCancelButton: true,
+              confirmButtonText: 'Confirmar',
+              cancelButtonText: 'Voltar',
+              cancelButtonColor: '#3085d6',
+              showLoaderOnConfirm: true,
+              target: document.getElementById('modalPremios'),
+              preConfirm: () => {
+                  
+                  motivoCancelPremio = $('#motivoCancelPremio').val();
+            
+                  if (!motivoCancelPremio) {
+                      Swal.showValidationMessage(`Coloque o Motivo da Cancelamento do Premio!`);
+                      $('#motivoCancelPremio').focus();
+                      return false;
+            
+                  } else if (motivoCancelPremio.length < 10) {
+                      Swal.showValidationMessage(`Motivo Muito Curto, O Motivo Deve Conter no Minímo 10 Caracteres!`)
+                      $('#motivoCancelPremio').val('').focus();
+                      return false;
+            
+                  } else {
+                  }
+              }
+            }).then((result) => {
+                    
+                      if (result.dismiss == 'timer') {
+                    
+                          Swal.fire({
+                              type: 'error',
+                              title: `Tempo de resposta ou inatividade atingido`,
+                              timer: 60000,
+                              target: document.getElementById('modalPremios'),
+                          })
+                      } else if (result.dismiss == 'cancel' || result.dismiss == 'esc') {
+                          return false;
+                      } else{
+                      
+                            let barraCarregamento = `<div id="BarraCarregamento" class="progress">
+                                <div  class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div>
+                            </div>`
+                                
+                            Swal.fire({
+                                html: barraCarregamento,
+                                type: 'info',
+                                title: 'Carregando Dados...Aguarde!',
+                                timer: 180000,
+                                backdrop: false,
+                                allowEscapeKey: false,
+                                allowOutsideClick: false,
+                                target: document.getElementById('modalPremios'),
+                                onOpen: async () => {
+                                    
+                                    Swal.showLoading();
+                                    var dados = {
+                                      "IDPREMIACAO": parseInt(id),
+                                      "IDFUNCIONARIOCANCEL": parseInt(IDFuncionarioLogin),
+                                      "DSMOTIVOCANCELAMENTO": (motivoCancelPremio)
+                                    };
+                        
+                                    await ajaxPut("api/comercial/atualizacao-status-premio.xsjs", dados)
+                                        .then((respostaPut)=>{
+                                           Swal.close();
+                                           funcSucessUpdateStatusPremio();
+                                        }).catch(funcError);
+                                        
+                                }
+                            }).then((result) => {
+                                if (result.dismiss == "timer") {
+                                  Swal.close();
+                                
+                                  Swal.fire({
+                                      type: 'error',
+                                      title: "Erro ao carregar os dados, recarregue a página e tente novamente",
+                                      timer: 15000,
+                                      target: document.getElementById('modalPremios'),
+                                  });
+                                  return false;
+                                }
+                            })
+                                
+                                let animacaoBarra = setInterval(() => {
+                                let barra = $($('.pace-progress')[0]).attr('data-progress')
+                                let barra2 = $($('.pace-progress')[0]).attr('data-progress-text')
+                                
+                                $('#BarraCarregamento').html(`
+                                  <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="${barra}" aria-valuemin="0" aria-valuemax="100" style="width: ${barra}%">${barra}%</div>
+                                  `)
+                                }, 700)
+                        
+                      }
+            })
+      })
+}
+
+async function funcSucessUpdateStatusPremio(resposta) {
+
+    contador = 0;
+    let idgrupoemppremiocad = $("#IDMarcaPremio").val();
+    let dtinicpremiocad = $("#dtpremioinicio").val();
+    let dtfimpremiocad = $("#dtpremiofim").val();
+    
+    await ajaxGet('api/comercial/lista_premiacaocad.xsjs?idPremioSubGrupoEmp=' + idgrupoemppremiocad + '&DTInicPremio=' + dtinicpremiocad + '&DTFimPremio=' + dtfimpremiocad)
+    	.then(retornoListaPremiacoesCad)
+    	.catch((e) => { funcError(), console.log(e) });
+    	
+    Swal.fire({
+      type: "success",
+      title: "Premiação Excluída com Sucesso ",
+      showConfirmButton: false,
+      timer: 2000,
+      target: document.getElementById('modalPremios'),
+    });
 
 }

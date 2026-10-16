@@ -1,4 +1,3 @@
-// var api = $.import("quality.concentrador.api.apiResponse", "int_api");
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function setTimestampOrNull(stmt, fieldId, value) {
@@ -28,17 +27,21 @@ function setIntOrNull(stmt, fieldId, value) {
 function fnhandleGetEmpresaPromocaoOrigem(idResumoPromocao) {
     var query = `
         SELECT 
+            tb.IDGRUPOEMORIGEM,
+            tb.IDSUBGRUPOEMORIGEM,
+            tb.IDMARCAEMORIGEM,
+            tb.IDFORNECEDOREMORIGEM,
+            tb.IDPRODUTOORIGEM,
             tb.IDRESUMOPROMOCAOMARKETING,
             tb.IDDETALHEPROMOCAOMARKETINGORIGEM,
-            tb.IDPRODUTOORIGEM,
             tb.STATIVO,
             tbp.IDPRODUTO,
             tbp.NUCODBARRAS,
             tbp.DSNOME
         FROM VAR_DB_NAME.DETALHEPROMOCAOMARKETINGORIGEM tb
-        INNER JOIN VAR_DB_NAME.PRODUTO tbp ON tbp.IDPRODUTO = tb.IDPRODUTOORIGEM
+        LEFT JOIN VAR_DB_NAME.PRODUTO tbp ON tbp.IDPRODUTO = tb.IDPRODUTOORIGEM
         WHERE IDRESUMOPROMOCAOMARKETING = ?
-
+        
     `;
 
     var linhas = api.sqlQuery(query, idResumoPromocao);
@@ -53,6 +56,10 @@ function fnhandleGetEmpresaPromocaoOrigem(idResumoPromocao) {
                 "IDRESUMOPROMOCAOMARKETING": det.IDRESUMOPROMOCAOMARKETING,
                 "DETALHEPROMOCAOMARKETINGORIGEM": det.DETALHEPROMOCAOMARKETINGORIGEM,
                 "IDPRODUTOORIGEM": det.IDPRODUTOORIGEM,
+                "IDGRUPOEMORIGEM": det.IDGRUPOEMORIGEM,
+                "IDSUBGRUPOEMORIGEM": det.IDSUBGRUPOEMORIGEM,
+                "IDMARCAEMORIGEM": det.IDMARCAEMORIGEM,
+                "IDFORNECEDOREMORIGEM": det.IDFORNECEDOREMORIGEM,
                 "STATIVO": det.STATIVO,
                 "IDPRODUTO": det.IDPRODUTO,
                 "NUCODBARRAS": det.NUCODBARRAS,
@@ -80,7 +87,7 @@ function fnhandleGetEmpresaPromocaoDestino(idResumoPromocao) {
             tbp.NUCODBARRAS,
             tbp.DSNOME
         FROM VAR_DB_NAME.DETALHEPROMOCAOMARKETINGDESTINO tb
-        INNER JOIN VAR_DB_NAME.PRODUTO tbp 
+        LEFT JOIN VAR_DB_NAME.PRODUTO tbp 
             ON tbp.IDPRODUTO = tb.IDPRODUTODESTINO
         WHERE tb.IDRESUMOPROMOCAOMARKETING = ?
 
@@ -98,6 +105,9 @@ function fnhandleGetEmpresaPromocaoDestino(idResumoPromocao) {
                 "IDDETALHEPROMOCAOMARKETINGDESTINO": det.IDDETALHEPROMOCAOMARKETINGDESTINO,
                 "IDRESUMOPROMOCAOMARKETING": det.IDRESUMOPROMOCAOMARKETING,
                 "DETALHEPROMOCAOMARKETINGDESTINO": det.DETALHEPROMOCAOMARKETINGDESTINO,
+                "IDGRUPOEMDESTINO": det.IDGRUPOEMDESTINO,
+                "IDSUBGRUPOEMDESTINO": det.IDSUBGRUPOEMDESTINO,
+                "IDFORNECEDOREMDESTINO": det.IDFORNECEDOREMDESTINO,
                 "IDPRODUTODESTINO": det.IDPRODUTODESTINO,
                 "STATIVO": det.STATIVO,
                 "IDPRODUTO": det.IDPRODUTO,
@@ -111,16 +121,26 @@ function fnhandleGetEmpresaPromocaoDestino(idResumoPromocao) {
    return lines;
 }
 
+
 function fnhandleGetEmpresaPromocaoMarketing(idResumoPromocao) {
+
     var query = `
         SELECT 
-            IDRESUMOPROMOCAOMARKETING,
-            IDEMPRESA,
-            IDEMPRESAPROMOCAOMARKETING
-        FROM "VAR_DB_NAME".EMPRESAPROMOCAOMARKETING
-        WHERE IDRESUMOPROMOCAOMARKETING = ?
-     
+            tbt.IDEMPRESAPROMOCAOMARKETING,
+            tbt.IDRESUMOPROMOCAOMARKETING,
+            tbt.IDEMPRESA,
+            tbt.STATIVO,
+            tbe.NOFANTASIA,
+            tbe.IDGRUPOEMPRESARIAL,
+            tbg.DSGRUPOEMPRESARIAL
+        FROM 
+            "VAR_DB_NAME".EMPRESAPROMOCAOMARKETING tbt
+            INNER JOIN "VAR_DB_NAME"."EMPRESA" tbe on tbt.IDEMPRESA = tbe.IDEMPRESA
+            INNER JOIN "VAR_DB_NAME".GRUPOEMPRESARIAL tbg on tbe.IDGRUPOEMPRESARIAL = tbg.IDGRUPOEMPRESARIAL
+        WHERE
+            IDRESUMOPROMOCAOMARKETING = ?
     `;
+    
 
     var linhas = api.sqlQuery(query, idResumoPromocao);
     var lines = [];
@@ -133,15 +153,16 @@ function fnhandleGetEmpresaPromocaoMarketing(idResumoPromocao) {
             "det": {
                 "IDRESUMOPROMOCAOMARKETING": det.IDRESUMOPROMOCAOMARKETING,
                 "IDEMPRESA": det.IDEMPRESA,
+                "NOFANTASIA": det.NOFANTASIA,
+                "DSGRUPOEMPRESARIAL": det.DSGRUPOEMPRESARIAL,
                 "IDEMPRESAPROMOCAOMARKETING": det.IDEMPRESAPROMOCAOMARKETING
             }
         };
 
         lines.push(docLine);
     }
-   return lines;
+    return lines;
 }
-
 
 function fnHandleGetDetalhePromocao(idResumoPromocao) {
     
@@ -200,22 +221,29 @@ function fnHandleGet(byId) {
             FATORPROMOPERC, 
             TPAPARTIRDE, 
             VLPRECOPRODUTO, 
-            IDMECANICARESUMOPROMOCAOMARKETING
+            IDMECANICARESUMOPROMOCAOMARKETING,
+            STATIVO,
+            STPRODUTO, 
+            STESTRUTURA, 
+            STESTRUTURAPRODUTO,
+            NUTIPOPROMOCAO
         FROM "VAR_DB_NAME".RESUMOPROMOCAOMARKETING
         WHERE 
             1 = ?
+          AND STATIVO = 'True'
         
     `;
 
-    // if ( idResumoPromocao ) {
-    //     query = query + ' And  IDRESUMOPROMOCAOMARKETING = \'' + idResumoPromocao + '\' ';
-    // }
-    
-    if ( idResumoPromocao ) {
-        
-     query = query + ` AND IDRESUMOPROMOCAOMARKETING IN (${idResumoPromocao}) `;
-        
+    if (idResumoPromocao) {
+        // Permite múltiplos IDs separados por vírgula
+        var ids = idResumoPromocao.split(',').map(function(id) { return "'" + id.trim() + "'"; }).join(',');
+        query = query + ' AND IDRESUMOPROMOCAOMARKETING IN (' + ids + ') ';
     }
+    // if ( idResumoPromocao ) {
+        
+    //  query = query + ` AND IDRESUMOPROMOCAOMARKETING IN (${idResumoPromocao}) `;
+        
+    // }
 
 
     query = query + ' ORDER BY IDRESUMOPROMOCAOMARKETING DESC ';
@@ -246,13 +274,16 @@ function fnHandleGet(byId) {
                 "FATORPROMOPERC": det.FATORPROMOPERC,
                 "TPAPARTIRDE": det.TPAPARTIRDE,
                 "VLPRECOPRODUTO": det.VLPRECOPRODUTO,
-                "IDMECANICARESUMOPROMOCAOMARKETING": det.IDMECANICARESUMOPROMOCAOMARKETING
+                "STATIVO": det.STATIVO,
+                "STPRODUTO": det.STPRODUTO,
+                "STESTRUTURA": det.STESTRUTURA,
+                "STESTRUTURAPRODUTO": det.STESTRUTURAPRODUTO,
+                "IDMECANICARESUMOPROMOCAOMARKETING": det.IDMECANICARESUMOPROMOCAOMARKETING,
+                "NUTIPOPROMOCAO": det.NUTIPOPROMOCAO
             },
             "empresaPromocaoDestino": fnhandleGetEmpresaPromocaoDestino(det.IDRESUMOPROMOCAOMARKETING),
-            "empresaPromocaoOrigem": fnhandleGetEmpresaPromocaoOrigem(det.IDRESUMOPROMOCAOMARKETING)
-            // "empresaPromocaoMarketing": fnhandleGetEmpresaPromocaoMarketing(det.IDRESUMOPROMOCAOMARKETING),
-            // "detalhePromo": fnHandleGetDetalhePromocao(det.IDRESUMOPROMOCAOMARKETING),
-            
+            "empresaPromocaoOrigem": fnhandleGetEmpresaPromocaoOrigem(det.IDRESUMOPROMOCAOMARKETING),
+            "empresa": fnhandleGetEmpresaPromocaoMarketing(det.IDRESUMOPROMOCAOMARKETING)
         };
 
         data.push(docLine);

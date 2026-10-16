@@ -1,4 +1,5 @@
 let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let dbNameSAP = 'SBO_GTO_TESTE4';
 
 function fnHandleGet(byId) {
     
@@ -9,14 +10,14 @@ function fnHandleGet(byId) {
     let codeBars = $.request.parameters.get("codeBars");
     let descProd = $.request.parameters.get("descProd");
     
-    descProd = descProd ? `${descProd.trim}` : descProd;
+    descProd = descProd ? descProd.trim() : descProd;
   //  descProd = descProd ? descProd.split(' ').join('%') : descProd;
 
     let query = `
         SELECT
-        	(SELECT "ItemCode" FROM SBO_GTO_TESTE4.OITM WHERE UPPER("ItemName") LIKE '%${descProd}%' LIMIT 1)AS IDPRODUTOSAP,
-        	(SELECT IDPRODUTO FROM "VAR_DB_NAME".PRODUTO WHERE UPPER(DSNOME) LIKE '%${descProd}%' LIMIT 1)AS IDPRODUTOQUALITY,
-        	(SELECT IDPRODCADASTRO FROM "VAR_DB_NAME".DETALHEPRODUTOPEDIDO WHERE UPPER(DSPRODUTO) LIKE '%${descProd}%' AND STCANCELADO <> 'True' LIMIT 1) AS IDPRODUTODETALHEPRODPEDIDO
+            (SELECT "ItemCode" FROM ${dbNameSAP}.OITM WHERE UPPER("ItemName") LIKE UPPER('%${descProd}%') LIMIT 1)AS IDPRODUTOSAP,
+            (SELECT IDPRODUTO FROM "VAR_DB_NAME".PRODUTO WHERE CONTAINS(DSNOME, '%${descProd}%') LIMIT 1)AS IDPRODUTOQUALITY,
+            (SELECT IDPRODCADASTRO FROM "VAR_DB_NAME".DETALHEPRODUTOPEDIDO WHERE CONTAINS(DSPRODUTO, '%${descProd}%') AND STCANCELADO <> 'True' LIMIT 1) AS IDPRODUTODETALHEPRODPEDIDO
         FROM
         	DUMMY
         WHERE

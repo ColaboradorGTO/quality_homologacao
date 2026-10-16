@@ -1,6 +1,7 @@
-var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-var grCodBars= $.import("quality.concentrador_homologacao.api.cadastro.libs.gerar-cod-barras", "gerarCodigoBarras");
-var conn;
+let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let grCodBars= $.import("quality.concentrador_homologacao.api.cadastro.libs.gerar-cod-barras", "gerarCodigoBarras");
+let conn;
+let dbNameSAP = "SBO_GTO_TESTE4";
 
 function setTimestampOrNull(stmt, fieldId, value) {
 	if (!value) {
@@ -155,6 +156,37 @@ function atualizarStTransformadoDetPedido(idDetalhePedido){
     //conn.commit();
 }
 
+function atualizarStatusCriacaoDetalhePedidoGrade(idDetalhePedido, idTamanho) {
+    let queryUpdate = ` 
+        UPDATE 
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG
+        SET 
+            TBDG.STDETALHEPRODUTOPEDIDOGERADO = 'True',
+            TBDG.DTHORAATUALIZACAO = CURRENT_TIMESTAMP
+        FROM 
+            "VAR_DB_NAME".DETALHEPEDIDOGRADE TBDG
+        INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO TBD ON 
+            TBDG.IDDETALHEPEDIDO = TBD.IDDETALHEPEDIDO
+        WHERE
+            TBDG.STATIVO = 'True'
+            AND TBDG.IDTAMANHO = ?
+            AND (
+                    TBD.IDDETALHEPEDIDO = ? 
+                OR 
+                    TBD.IDDETALHEPEDIDOPRIMARIO = ?
+            )
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(queryUpdate));
+    
+    pStmt.setInt(1, parseInt(idTamanho));
+    pStmt.setInt(2, parseInt(idDetalhePedido));
+    pStmt.setInt(3, parseInt(idDetalhePedido));
+    
+    pStmt.executeUpdate();
+    pStmt.close();
+}
+
 function fnCriarDetalheProdutoPedidoSecundario(idDetalhePedido, idTamanho){
     let query = `
         INSERT INTO 
@@ -256,7 +288,7 @@ function fnCriarDetalheProdutoPedidoSecundario(idDetalhePedido, idTamanho){
     pStmt.setInt(1, idDetalhePedido); 
     pStmt.setInt(2, idTamanho); 
     
-    pStmt.execute();
+    pStmt.executeUpdate();
     pStmt.close();
     
     conn.commit();
@@ -373,7 +405,8 @@ function fnHandleGet(byId) {
     let IdFabricante = $.request.parameters.get("idFabPesquisa");
     let stCadastrado = $.request.parameters.get("stCadastrado");
     let stMigradoSAP = $.request.parameters.get("stMigradoSAP");
-
+    let stLinhaProdutoMigradaPedidoSAP = $.request.parameters.get("stLinhaProdutoMigradaPedidoSAP");
+    
     let query =  `
         SELECT 
             RP.IDRESUMOPEDIDO, 
@@ -412,8 +445,7 @@ function fnHandleGet(byId) {
             tbdp.VRTOTALCUSTO, 
             tbdp.VRTOTALVENDA, 
             tbdp.DTCADASTRO, 
-            tbdp.DTULTATUALIZACAO, 
-            tbdp.STCADASTRADO, 
+            tbdp.DTULTATUALIZACAO,
             tbdp.STRECEBIDO, 
             tbdp.OBSREF, 
             tbdp.IDDETALHEENTRADA, 
@@ -429,9 +461,30 @@ function fnHandleGet(byId) {
             tbdp.QTDESTOQUEIDEAL, 
             IFNULL( tbdp.STEDITADOCOMPRAS, 'False') AS STEDITADOCOMPRAS,
             CASE
+                WHEN (TBDP_PEDIDO_SECUNDARIO.IDDETALHEPRODUTOPEDIDO IS NOT NULL AND TBDP_PEDIDO_SECUNDARIO.STCADASTRADO = 'False') THEN 'False'
+                ELSE tbdp.STCADASTRADO
+            END AS STCADASTRADO,
+            /*CASE
+                WHEN (TBDP_PEDIDO_SECUNDARIO.STLINHAPRODUTOMIGRADAPARAPEDIDOSAP IS NOT NULL AND TBDP_PEDIDO_SECUNDARIO.STLINHAPRODUTOMIGRADAPARAPEDIDOSAP = 'False') THEN 'False'
+                ELSE tbdp.STLINHAPRODUTOMIGRADAPARAPEDIDOSAP
+            END AS STLINHAPRODUTOMIGRADAPARAPEDIDOSAP,*/
+            CASE
+                WHEN (TBDP_PEDIDO_SECUNDARIO.IDDETALHEPRODUTOPEDIDO IS NOT NULL AND XA_PEDIDO_SECUNDARIO."DocEntry" IS NULL ) THEN 'False'
+                WHEN XA."DocEntry" IS NULL THEN 'False'
+                ELSE 'True'
+            END AS STLINHAPRODUTOMIGRADAPARAPEDIDOSAP,
+            CASE
                 WHEN (TBDP_PEDIDO_SECUNDARIO.IDDETALHEPRODUTOPEDIDO IS NOT NULL AND TBDP_PEDIDO_SECUNDARIO.STMIGRADOSAP = 'False') THEN 'False'
                 ELSE tbdp.STMIGRADOSAP
-            END AS STMIGRADOSAP
+            END AS STMIGRADOSAP,
+            IFNULL(TO_VARCHAR(TBDP_PEDIDO_SECUNDARIO.ERRORLOGSAP), TO_VARCHAR(tbdp.ERRORLOGSAP)) AS ERRORLOGSAP,
+            CASE
+                WHEN (TBR_PEDIDO_SECUNDARIO.IDRESUMOPEDIDO IS NOT NULL AND TBR_PEDIDO_SECUNDARIO.STMIGRADOSAP = 'False') THEN 'False'
+                ELSE RP.STMIGRADOSAP
+            END AS STPEDIDOMIGRADOSAP,
+            RP.IDANDAMENTO,
+            RP.IDPEDIDOPRIMARIO,
+            RP.STPEDIDOPRIMARIO
         FROM 
             "VAR_DB_NAME".DETALHEPRODUTOPEDIDO tbdp 
         INNER JOIN "VAR_DB_NAME".DETALHEPEDIDO DP ON
@@ -458,6 +511,14 @@ function fnHandleGet(byId) {
             tbdp.IDFABRICANTE = FB.IDFABRICANTE
         LEFT JOIN "VAR_DB_NAME".DETALHEPRODUTOPEDIDO TBDP_PEDIDO_SECUNDARIO ON 
             tbdp.IDDETALHEPRODUTOPEDIDO = TBDP_PEDIDO_SECUNDARIO.IDDETALHEPRODUTOPEDIDOPRIMARIO
+            AND TBDP_PEDIDO_SECUNDARIO.STCANCELADO = 'False'
+        LEFT JOIN "VAR_DB_NAME".RESUMOPEDIDO TBR_PEDIDO_SECUNDARIO ON 
+            RP.IDRESUMOPEDIDO = TBR_PEDIDO_SECUNDARIO.IDPEDIDOPRIMARIO
+            AND TBR_PEDIDO_SECUNDARIO.STCANCELADO = 'False'
+        LEFT JOIN ${dbNameSAP}.POR1 XA ON
+            XA."U_IdDetalheProdutoPedido" = tbdp.IDDETALHEPRODUTOPEDIDO
+        LEFT JOIN ${dbNameSAP}.POR1 XA_PEDIDO_SECUNDARIO ON
+            XA_PEDIDO_SECUNDARIO."U_IdDetalheProdutoPedido" = TBDP_PEDIDO_SECUNDARIO.IDDETALHEPRODUTOPEDIDO
         WHERE 
             1 = ?
             AND tbdp.STCANCELADO = 'False' 
@@ -493,8 +554,32 @@ function fnHandleGet(byId) {
     if ( stMigradoSAP ) {
         query += ` AND (TBDP.STMIGRADOSAP = '${stMigradoSAP}' OR TBDP_PEDIDO_SECUNDARIO.STMIGRADOSAP = '${stMigradoSAP}') `;
     }
+    if ( stLinhaProdutoMigradaPedidoSAP ) {
+        query += ` AND (TBDP.STLINHAPRODUTOMIGRADAPARAPEDIDOSAP = '${stLinhaProdutoMigradaPedidoSAP}' OR TBDP_PEDIDO_SECUNDARIO.STLINHAPRODUTOMIGRADAPARAPEDIDOSAP = '${stLinhaProdutoMigradaPedidoSAP}') `;
+    }
     
-    query += ` ORDER BY TBDP.NUREF, TBDP.IDTAMANHO`;
+    query += `
+        ORDER BY 
+            TRIM(TBDP.NUREF), 
+            CASE 
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'PP' THEN 1
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'P'  THEN 2
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'M'  THEN 3
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'G'  THEN 4
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'GG' THEN 5
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'EG' THEN 6
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'EGG' THEN 7
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'G1' THEN 8
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'G2' THEN 9
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'G3' THEN 10
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'G4' THEN 11
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'G5' THEN 12
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'XG' THEN 13
+                WHEN UPPER(TRIM(TBDP.DSTAMANHO)) = 'XGG' THEN 14
+                WHEN TBDP.DSTAMANHO BETWEEN '0' AND '99999' THEN TO_INTEGER(TBDP.DSTAMANHO)
+                ELSE 999
+            END
+    `;
     
     var request = { 
         page:  $.request.parameters.get("page"),
@@ -674,9 +759,9 @@ function fnHandlePost(){
                 }
                 
                 for (let detProd of detalhesProdutos){
-                    let stReposicao = detProd.reposicao;
-                    let codBarras = stReposicao == 'True' ? detProd.codbarra : null; //grCodBars.gerarCodigoBarras(idSubgrupo, idFornecedor);
-                    let idProduto = detProd.idproduto;
+                    let stReposicao = detProd.STREPOSICAO;
+                    let codBarras = stReposicao == 'True' ? detProd.CODBARRAS : null; //grCodBars.gerarCodigoBarras(idSubgrupo, idFornecedor);
+                    let idProduto = detProd.IDPRODUTO;
                     
                     if(stPedidoSecundario && idProduto != 'NULL' && !idProduto.contains('_RN')){
                         idProduto += '_RN';
@@ -685,8 +770,8 @@ function fnHandlePost(){
                     pStmt.setInt(1, registro.IDDETALHEPEDIDO);   
                     pStmt.setInt(2, registro.IDSUBGRUPOESTRUTURA);
                     pStmt.setInt(3, registro.IDCOR);
-                    pStmt.setInt(4, Number(detProd.idtamanho));
-                    pStmt.setString(5, detProd.tamanho);
+                    pStmt.setInt(4, Number(detProd.IDTAMANHO));
+                    pStmt.setString(5, detProd.DSTAMANHO);
                     pStmt.setInt(6, registro.IDCATEGORIAPEDIDO);
                     pStmt.setInt(7, registro.IDTIPOTECIDO);
                     pStmt.setInt(8, registro.IDESTILO);
@@ -700,12 +785,12 @@ function fnHandlePost(){
                     pStmt.setString(16, idProduto);
                     pStmt.setString(17, registro.NUREF);
                     setStringOrNull(pStmt, 18, codBarras);
-                    pStmt.setString(19, detProd.dsproduto);
-                    pStmt.setString(20, detProd.unidade);
-                    pStmt.setFloat(21, detProd.quantidade);
-                    pStmt.setFloat(22, detProd.vrunitario);
-                    pStmt.setFloat(23, detProd.vrvendas);
-                    pStmt.setFloat(24, detProd.vrtotal);
+                    pStmt.setString(19, detProd.DSPRODUTO);
+                    pStmt.setString(20, detProd.DSUNIDADE);
+                    pStmt.setFloat(21, detProd.QTD);
+                    pStmt.setFloat(22, detProd.VRUNITARIO);
+                    pStmt.setFloat(23, detProd.VRVENDA);
+                    pStmt.setFloat(24, detProd.VRTOTAL);
                     pStmt.setString(25, registro.STECOMMERCE);
                     pStmt.setString(26, registro.STREDESOCIAL);
                     pStmt.setString(27, registro.STATIVO);
@@ -724,15 +809,16 @@ function fnHandlePost(){
                     conn.commit();
                     
                     if(stPedidoSecundario){
-                        fnCriarDetalheProdutoPedidoSecundario(registro.IDDETALHEPEDIDO, Number(detProd.idtamanho));
+                        fnCriarDetalheProdutoPedidoSecundario(registro.IDDETALHEPEDIDO, Number(detProd.IDTAMANHO));
                         updateIdProdutoCodBarrasPedidoPrimario(registro.IDDETALHEPEDIDO);
                         
                         conn.commit();
                     }
+                    
+                    atualizarStatusCriacaoDetalhePedidoGrade(registro.IDDETALHEPEDIDO, detProd.IDTAMANHO)
                 }
                 
                 atualizarStTransformadoDetPedido(registro.IDDETALHEPEDIDO);
-                
                 
             } else {
                 throw { message: `O objeto que contem os detalhes dos produtos está vazios!`};

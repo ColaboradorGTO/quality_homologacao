@@ -55,6 +55,7 @@ try {
         ' tbresb.IDUSRCANCELADO, ' +
         ' tbresb.TXTMOTIVOCANCELADO, ' +
         ' tbresb.STCONCLUIDO, ' +
+        ' tbresb.STINATIVO, ' +
         ' tbresb.STCONSOLIDADO ' +
         ' FROM ' +
         '	"VAR_DB_NAME".RESUMOBALANCO tbresb ' +

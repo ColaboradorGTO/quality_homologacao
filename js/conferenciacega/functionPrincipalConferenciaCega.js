@@ -224,7 +224,7 @@ async function ListaOrdemTransferencia() {
         animationLoadingStart();
         
         if (IDEmpresaLogin !== 101) {
-            return msgInfo("Rotina apenas para Colaboradores da Conferência Cega!");
+           return msgInfo("Rotina apenas para Colaboradores da Conferência Cega!");
         }
 
         await $.get("conferenciacega_action_ot.html", async (respHtml) => {
@@ -1302,7 +1302,7 @@ function MsgSucesso(funcao){
 async function ListaOrdemTransferenciaDeposito(){
     try{
         animationLoadingStart();
-        
+       
         if(IDEmpresaLogin !== 101){
             return msgInfo("Rotina apenas para Colaboradores do Depósito!");
         }

@@ -1,0 +1,106 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Tela Principal</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class='subheader-icon fal fa-chart-area'></i> Tela Principal <span class='fw-300'>Dashboard Informática</span>
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          Lista de Empresas <span class="fw-300"><i>do Grupo GTO</i></span>
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-3 col-xl-1">
+                <label class="form-label" for="ufFilial">UF</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="ufFilial" id="ufFilial"
+                    onchange="carregarFiliaisPorUFMarcaStAtivoAlvaras()">
+                    <option value="">Todas</option>
+                    <option value="DF">DF</option>
+                    <option value="GO">GO</option>
+                    <option value="MG">MG</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="idmarca">Marca</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idmarca" id="idmarca"
+                    onchange="carregarFiliaisPorUFMarcaStAtivoAlvaras()">
+                    <option value="">Todas</option>
+            
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idFilial">Filiais</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idFilial" id="idFilial">
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-2 d-none">
+                <label class="form-label" for="stAtivoFilial">Status Filiais</label>
+                <div class="input-group">
+                  <select class="select2 form-control" id="stAtivoFilial" onchange="carregarFiliaisPorUFMarcaStAtivoAlvaras()">
+                    <option value="">Todos</option>
+                    <option value="True">Ativo</option>
+                    <option value="False">Inativo</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="stAbertoFilial">Situação Filiais</label>
+                <div class="input-group">
+                  <select class="select2 form-control" id="stAbertoFilial" onchange="carregarFiliaisPorUFMarcaStAtivoAlvaras()">
+                    <option value="">Todas</option>
+                    <option value="True">Aberta</option>
+                    <option value="False">Fechada</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-xl-3">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisarListaEmpresas()">
+                  <span class="fal fa-search mr-1"></span>Pesquisar
+                </button>
+              </div>
+
+              <div class="col-sm-12 col-xl-9">
+                <br>
+                <div class="d-flex justify-content-end gap-2 flex-wrap">
+                  <button class="btn btn-primary ml-2" type="button" onclick="pesq_caixa_empresa()">
+                    <span class="fal fa-search me-1"></span> Listar Caixas
+                  </button>
+                
+                  <button type="button" class="btn btn-danger ml-2" onclick="xls_caixas_loja()">
+                    <span class="fal fa-file-excel me-1"></span> Exportar Caixas XLS
+                  </button>
+                
+                  <button type="button" class="btn btn-warning ml-2" onclick="atualizar_caixas_todos()">
+                    <span class="fal fa-sync me-1"></span> Atualizar Todos os Caixas
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <br>
+          <div id="resultado"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

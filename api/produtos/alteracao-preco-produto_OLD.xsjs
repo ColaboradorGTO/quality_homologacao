@@ -216,7 +216,7 @@ function criarResumoAlteracaoPreco(bodyJson, dtHoraResumoAlteracao, agendAlterac
     let idListaPreco = ''
     
     //Insere ResumoAlteracao
-    let queryId = api.executeScalar('SELECT IFNULL(MAX(TO_INT("IDRESUMOALTERACAOPRECOPRODUTO")), 0) + 1 FROM "VAR_DB_NAME"."RESUMOALTERACAOPRECOPRODUTO" WHERE 1 = ? ', 1);
+    let queryId = api.executeScalar('SELECT "VAR_DB_NAME".SEQ_RESUMOALTERACAOPRECO.NEXTVAL FROM DUMMY WHERE 1 = ? ', 1);
     
     let query = `
         INSERT 

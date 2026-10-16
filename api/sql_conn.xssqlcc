@@ -1,3 +1,4 @@
 {
-    "description" : "Concentrator SQL connection"
+    "description" : "Concentrator SQL connection",
+    "schema": "QUALITY_CONC_HML"
 }

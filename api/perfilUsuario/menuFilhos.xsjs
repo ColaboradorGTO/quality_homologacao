@@ -1,4 +1,4 @@
-var api = $.import("quality.concentrador_node.api.apiResponse", "int_api");
+var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 function setTimestampOrNull(stmt, fieldId, value) {
     if (!value) {
         stmt.setNull(fieldId);
@@ -23,52 +23,96 @@ function setIntOrNull(stmt, fieldId, value) {
     stmt.setInt(fieldId, value);
 }
 
-
 function fnHandleGetMenuFilho(byId) {
-    var idMenuPai = $.request.parameters.get("idMenuPai")
+    var idMenuPai = $.request.parameters.get("idMenuPai");
+    var urlMenu = $.request.parameters.get("urlMenu");
 
-    
-        var query = `
-            SELECT 
-                ID,
-                DSNOME,
-                IDMENUPAI,
-                URL
-            FROM "VAR_DB_NAME"."MENUFILHO"
-            WHERE 1 = ?
-        `;
+    var query = `
+        SELECT 
+            ID,
+            DSNOME,
+            IDMENUPAI,
+            URL
+        FROM "VAR_DB_NAME"."MENUFILHO"
+        WHERE 1 = ?
+    `;
 
-        var params = [];
-        if(idMenuPai){
-            query += `AND IDMENUPAI = '${idMenuPai}' `
-        }
-        if(byId){
-            query += `AND IDMENUPAI = '${byId}' `
-        }
-        query += "ORDER BY ID";
+    if (idMenuPai) {
+        query += `AND IDMENUPAI = '${idMenuPai}' `;
+    }
+    if (byId) {
+        query += `AND ID = '${byId}' `;
+    }
+    if (urlMenu) {
+        query += `AND URL = '${urlMenu}' `;
+    }
+    query += "ORDER BY ID";
 
-        
-        var request = {
-            page: $.request.parameters.get("page"),
-            pageSize: $.request.parameters.get("pageSize")
-        };
+    var request = {
+        page: $.request.parameters.get("page"),
+        pageSize: $.request.parameters.get("pageSize")
+    };
 
-         api.responseWithQuery(query, request, 1);
-
-
+    api.responseWithQuery(query, request, 1);
 }
+
+
+function fnHandlePut() {
+    var conn = $.db.getConnection();
+    var query = 'UPDATE "VAR_DB_NAME"."MENUFILHO" SET ' + 
+        ' "DSNOME" = ?, ' + 
+        ' "IDMENUPAI" = ?, ' + 
+        ' "URL" = ? ' + 
+    	' WHERE "ID" =  ? ';
+        
+    var pStmt = conn.prepareStatement(api.replaceDbName(query));
+    var bodyJson = JSON.parse($.request.body.asString()); 
+
+    for (var i = 0; i < bodyJson.length; i++) {
+
+		var registro = bodyJson[i];
+
+        pStmt.setString(1, registro.DSNOME);
+        pStmt.setInt(2, registro.IDMENUPAI);
+        pStmt.setString(3, registro.URL);
+        pStmt.setInt(4, registro.ID);
+    	pStmt.execute();
+    }
+	pStmt.close();
+
+	conn.commit();
+	
+	return {
+	    msg : "Atualização realizada com sucesso!"
+	    
+	};
+}
+
 
 function fnHandlePostMenuFilho() {
     var conn = $.db.getConnection();
 
     try {
         var query = `
-            INSERT INTO "VAR_DB_NAME"."MENUFILHO" ("ID", "DSNOME", "IDMENUPAI", "URL")
-            VALUES (?, ?, ?, ?)
+            INSERT INTO "VAR_DB_NAME"."MENUFILHO" (
+                "ID",
+                "DSNOME",
+                "IDMENUPAI",
+                "URL",
+                "N1",
+                "N2",
+                "N3",
+                "N4",
+                "ADMINISTRADOR",
+                "VISUALIZAR",
+                "ALTERAR",
+                "CRIAR"
+                )
+            VALUES (?, ?, ?, ?, 'False', 'False', 'False', 'True', 'False', 'True', 'False', 'False')
         `;
         
         var sqlFinal = api.replaceDbName(query);
-        $.trace.debug("SQL gerado: " + sqlFinal);
+        //$.trace.debug("SQL gerado: " + sqlFinal);
 
         var pStmt = conn.prepareStatement(sqlFinal);
         var bodyJson = JSON.parse($.request.body.asString());
@@ -82,9 +126,11 @@ function fnHandlePostMenuFilho() {
             pStmt.setString(2, registro.DSNOME);
             pStmt.setInt(3, registro.IDMENUPAI);
             pStmt.setString(4, registro.URL);
-
-            var linhas = pStmt.executeUpdate();
-            $.trace.debug("Linhas afetadas: " + linhas);
+        
+            
+            pStmt.execute();
+           // var linhas = pStmt.executeUpdate();
+            //$.trace.debug("Linhas afetadas: " + linhas);
         }
 
         pStmt.close();
@@ -92,7 +138,7 @@ function fnHandlePostMenuFilho() {
 
         return {
             "msg": "Menu filho inserido com sucesso!",
-            "objetoRecebido": registros
+            "objetoRecebido": bodyJson
         };
 
     } catch (error) {
@@ -111,6 +157,11 @@ try {
         case $.net.http.GET:
             var id =$.request.parameters.get("id");
             fnHandleGetMenuFilho(id)
+            break;
+            
+         case $.net.http.PUT:
+            var docReturn = fnHandlePut();
+            $.response.setBody(JSON.stringify(docReturn));
             break;
 
         case $.net.http.POST:

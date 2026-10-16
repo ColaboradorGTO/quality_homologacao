@@ -18,7 +18,7 @@ function fnHandlePut() {
         
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
     let registro = JSON.parse($.request.body.asString()); 
-
+  
     pStmt.setInt(1, registro.IDANDAMENTO);
     pStmt.setInt(2, registro.IDRESPCANCELAMENTO);
     pStmt.setString(3, registro.DSMOTIVOCANCELAMENTO);

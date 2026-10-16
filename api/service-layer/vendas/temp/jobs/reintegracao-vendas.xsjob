@@ -1,0 +1,10 @@
+{
+    "description": "Reintegração Venda x SAP > Quality",
+    "action": "quality.concentrador.api.service-layer.vendas.temp.reintegracao-vendas-ncm:reintegracao-vendas-ncm.xsjs::executarIntegracao",
+    "schedules": [
+       {
+          "description": "Toda dia a cada 10 minutos",
+          "xscron": "* * * * * */10 *"
+       }
+    ]
+}

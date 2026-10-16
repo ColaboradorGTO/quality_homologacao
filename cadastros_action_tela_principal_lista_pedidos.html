@@ -1,0 +1,135 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Tela Principal</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block liDataAtual"></li>
+</ol>
+
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class='subheader-icon fal fa-chart-area'></i> Tela Principal <span class='fw-300'>Dashboard Cadastros</span>
+  </h1>
+</div>
+
+<div class="panel-tag">
+  <form method="post">
+    <div class="row">
+      <div class="col-sm-2 col-xl-2">
+        <label class="form-label" for="tpmarca">Por Marca</label>
+        <div class="input-group">
+          <select class="select2" data-width="100%" id="idmarcaselect" name="idmarcaselect" data-live-search="true"
+            data-live-search-placeholder="Pesquisar" data-actions-box="true">
+            <option value=""></option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-4 col-xl-4">
+        <label class="form-label" for="tpfornec">Por Fornecedor</label>
+        <div class="input-group">
+          <select class="select2" data-width="100%" id="idfornselect" name="idfornselect" data-live-search="true"
+            data-live-search-placeholder="Pesquisar" data-actions-box="true">
+            <option value=""></option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-3 col-xl-3">
+        <label class="form-label" for="tpfab">Por Fabricante</label>
+        <div class="input-group">
+          <select class="select2" data-width="100%" id="idfabselect" name="idfabselect" data-live-search="true"
+            data-live-search-placeholder="Pesquisar" data-actions-box="true">
+            <option value=""></option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-3 col-xl-3">
+        <label class="form-label" for="tpcomp">Por Comprador</label>
+        <div class="input-group">
+          <select class="select2" data-width="100%" id="idCompradorselect" name="idCompradorselect"
+            data-live-search="true" data-live-search-placeholder="Pesquisar" data-actions-box="true">
+            <option value=""></option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col-sm-2 col-xl-2">
+        <label class="form-label" for="tpPedidoPesq">Tipo Pedido</label>
+        <div class="input-group">
+          <select class="select2" data-width="100%" id="tpPedidoPesq" name="tpPedidoPesq" data-live-search="true"
+            data-live-search-placeholder="Todos" data-actions-box="true">
+            <option value="">Todos</option>
+            <option value="Primario">Primario</option>
+            <option value="Secundario">Secundario</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-2 col-xl-2">
+        <label class="form-label" for="tpsit">Por Situação</label>
+        <div class="input-group">
+          <select class="select2" data-width="100%" id="tpsituacao" name="tpsituacao" data-live-search="true"
+            data-live-search-placeholder="Pesquisar" data-actions-box="true">
+            <option value="">Todas</option>
+            <option value="True">Migradas SAP</option>
+            <option value="False">Não Migradas SAP</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-2 col-xl-2">
+        <label class="form-label" for="npedido" title="Número Pedido">Nº Pedido</label>
+        <input class="form-control" id="npedido" type="text" name="npedido" onkeypress="return Onlynumbers(event);" value="">
+      </div>
+      <div class="col-sm-2 col-xl-2">
+        <label class="form-label" for="inidt" title="Data Início">Data Início</label>
+        <input class="form-control" id="parametro_dia_inicio" type="date" name="parametro_dia" value="">
+
+      </div>
+      <div class="col-sm-2 col-xl-2">
+        <label class="form-label" for="fimdt" title="Data Fim">Data Fim</label>
+        <input class="form-control" id="parametro_dia_fim" type="date" name="parametro_dia" value="">
+
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-2 col-xl-2">
+        <br>
+        <button type="button" class="btn btn-primary" title="Pesquisar Pedidos" onclick="pesq_pedidos_cad(1)"><span
+            class="fal fa-search mr-1"></span>ATUALIZAR DADOS</button>
+      </div>
+    </div>
+  </form>
+</div>
+<br>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          Lista de Pedidos <span class="fw-300"><i>Por Período</i></span>
+        </h2>
+        <div class="panel-toolbar">
+          <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10"
+            data-original-title="Recolher"></button>
+
+        </div>
+      </div>
+      <div class="col-sm-12 col-xl-12">
+        <br>
+        <button type="button" class="btn btn-primary p-2" title="Relatório de Pedidos Resumido"
+          onclick="pesqPedidosResumido(1)"><span class="fal fa-list-alt mr-1"></span>Relatório Resumido</button>
+        <button type="button" class="btn btn-secondary p-2" title="Relatório de Pedidos Detalhado"
+          onclick="pesqPedidosDetalhado(1)"><span class="fal fa-list-alt mr-1"></span>Relatório Detalhado</button>
+        <button type="button" class="btn btn-info" title="Relatório de Produtos Criados dos Pedidos"
+          onclick="pesqProdutosCriadosPedidos(1)"><span class="fal fa-list-alt mr-1"></span>Relatório Produtos
+          Criados</button>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div id="resultadoListaPedido">
+            <!-- datatable start -->
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

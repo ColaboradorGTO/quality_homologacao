@@ -26,6 +26,26 @@ function getIdsQuebrasCaixas(dados){
     return ids;
 }
 
+function fnGetDadosContaDestinoPagar(acctCode){
+    let query = `
+        SELECT
+            A."AcctCode" AS "CONTA",
+            A."AcctName" AS "NOMECONTA"
+        FROM
+            ${dbNameSAP}.OACT A
+        WHERE 
+            A."AcctCode" = ?
+    `;
+    
+    let result = api.sqlQuery(query, acctCode) || [];
+    
+    if(result.length){
+        return result[0]
+    }
+    
+    return [];
+}
+
 function fnGetContaCaixaEmpresa(idEmpresa){
     let query = `
         SELECT
@@ -290,6 +310,8 @@ function fnMontarJsonContasPagar(dados){
     let vrDoc = Number(VRQUEBRAEFETIVADO.replace('-', '').trim());
     let cashAccount = fnGetContaCaixaEmpresa(IDEMPRESA);
     let accountCode = '1.01.03.05.0008';
+    let dadosAccount = fnGetDadosContaDestinoPagar(accountCode);
+    let accountName = dadosAccount["NOMECONTA"];
     let series = 18;
     
     return {
@@ -306,6 +328,7 @@ function fnMontarJsonContasPagar(dados){
         "BPLID": IDEMPRESA,
         "U_IS_ID_QUALITY": String(IDQUEBRACAIXA),
         "U_ITV_Num_Caixa": CPF_GERENTE,
+        "CardName": accountName,
         "PaymentAccounts": [
             {
                 "LineNum": 0,

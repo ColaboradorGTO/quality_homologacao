@@ -32,51 +32,54 @@ function fnHandleGet(byId) {
     var descFornOrCnpj = $.request.parameters.get("descFornOrCnpj")
     
     var query = ' SELECT ' + 
-    '   tbf.IDFORNECEDOR,' +
-    '   tbf.IDFORNECEDORSAP,' +
-    '   tbf.IDGRUPOEMPRESARIAL,' +
-    '   tbf.IDSUBGRUPOEMPRESARIAL,' +
-    '   tbf.MODPEDIDO,' +
-    '   TRIM(tbf.NORAZAOSOCIAL) AS NORAZAOSOCIAL,' +
-    '   tbf.NOFANTASIA,' +
-    '   tbf.NUCNPJ,' +
-    '   tbf.NUINSCESTADUAL,' +
-    '   tbf.NUINSCMUNICIPAL,' +
-    '   tbf.NUIBGE,' +
-    '   tbf.EENDERECO,' +
-    '   tbf.ENUMERO,' +
-    '   tbf.ECOMPLEMENTO,' +
-    '   tbf.EBAIRRO,' +
-    '   tbf.ECIDADE,' +
-    '   tbf.SGUF,' +
-    '   tbf.NUCEP,' +
-    '   tbf.EEMAIL,' +
-    '   tbf.NUTELEFONE1,' +
-    '   tbf.NUTELEFONE2,' +
-    '   tbf.NUTELEFONE3,' +
-    '   tbf.NOREPRESENTANTE,' +
-    '   tbf.DTCADASTRO,' +
-    '   tbf.DTULTATUALIZACAO,' +
-    '   tbf.STATIVO,' +
-    '   tbf.TPFRETEPADRAO,' +
-    '   tbf.TPARQUIVOPADRAO,' +
-    '   tbf.TPFISCALPADRAO,' +
-    '   tbf.TPPEDIDOPADRAO,' +
-    '   tbf.NOVENDEDORPADRAO,' +
-    '   tbf.EMAILVENDEDORPADRAO,' +
+    '   tbf.IDFORNECEDOR, ' +
+    '   tbf.IDFORNECEDORSAP, ' +
+    '   tbf.IDGRUPOEMPRESARIAL, ' +
+    '   tbf.IDSUBGRUPOEMPRESARIAL, ' +
+    '   tbf.MODPEDIDO, ' +
+    '   tbf.NORAZAOSOCIAL, ' +
+    '   tbf.NOFANTASIA, ' +
+    '   tbf.NUCNPJ, ' +
+    '   tbf.NUINSCESTADUAL, ' +
+    '   tbf.NUINSCMUNICIPAL, ' +
+    '   tbf.NUIBGE, ' +
+    '   tbf.EENDERECO, ' +
+    '   tbf.ENUMERO, ' +
+    '   tbf.ECOMPLEMENTO, ' +
+    '   tbf.EBAIRRO, ' +
+    '   tbf.ECIDADE, ' +
+    '   tbf.SGUF, ' +
+    '   tbf.NUCEP, ' +
+    '   tbf.EEMAIL, ' +
+    '   tbf.NUTELEFONE1, ' +
+    '   tbf.NUTELEFONE2, ' +
+    '   tbf.NUTELEFONE3, ' +
+    '   tbf.NOREPRESENTANTE, ' +
+    '   tbf.DTCADASTRO, ' +
+    '   tbf.DTULTATUALIZACAO, ' +
+    '   tbf.STATIVO, ' +
+    '   IFNULL(tbf.IDCONDPAGPADRAO,0) AS IDCONDPAGPADRAO, ' +
+    '   IFNULL(tbf.IDTRANSPORTADORAPADRAO,0) AS IDTRANSPORTADORAPADRAO, ' +
+    '   tbf.TPPEDIDOPADRAO, ' +
+    '   tbf.NOVENDEDORPADRAO, ' +
+    '   tbf.TPFRETEPADRAO, ' +
+    '   tbf.TPARQUIVOPADRAO, ' +
+    '   tbf.TPFISCALPADRAO, ' +
+    '   tbf.EMAILVENDEDORPADRAO, ' +
+    '   tbf.STMIGRADOSAP, ' +
     '   TO_VARCHAR(tbf.DTCADASTRO,\'YYYY-MM-DD HH24:MI:SS\') AS DTCADASTROFORMAT, ' +
-    '   CDP.IDCONDICAOPAGAMENTO, ' +
+    '   IFNULL(CDP.IDCONDICAOPAGAMENTO,0) AS IDCONDICAOPAGAMENTO, ' +
     '   CDP.DSCONDICAOPAG, ' +
-    '   TP.IDTRANSPORTADORA, ' +
+    '   IFNULL(TP.IDTRANSPORTADORA,0) AS IDTRANSPORTADORA, ' +
     '   TP.NOFANTASIA AS NOMETRANSPORTADORA, ' +
-    '   TBO."CardCode" AS IDSAP, ' +
+    '   TBO."CardCode" AS IDSAP, '+
     '    TBO."validFor" as STATIVOSAP, ' +
     '   (SELECT LAST_VALUE(IDFABRICANTEFORN ORDER BY IDFABRICANTEFORN) AS IDFABRICANTEFORN FROM "VAR_DB_NAME"."VINCFABRICANTEFORN" WHERE IDFORNECEDOR = tbf.IDFORNECEDOR) as VINCFABRICANTE ' +
     ' FROM ' + 
     '   "VAR_DB_NAME".FORNECEDOR tbf' +
     '   LEFT JOIN "VAR_DB_NAME".TRANSPORTADORA TP ON tbf.IDTRANSPORTADORAPADRAO = TP.IDTRANSPORTADORA  ' +
     '   LEFT JOIN "VAR_DB_NAME".CONDICAOPAGAMENTO CDP ON tbf.IDCONDPAGPADRAO = CDP.IDCONDICAOPAGAMENTO  ' +
-    ' LEFT JOIN SBO_GTO_PRD.OCRD TBO ON TBF.IDFORNECEDORSAP = TBO."CardCode" ' +
+    '   LEFT JOIN SBO_GTO_PRD.OCRD TBO ON TBF.IDFORNECEDORSAP = TBO."CardCode"  ' +
     ' WHERE ' +
         '	1 = ?'+
         '   AND tbf.STATIVO = \'True\' ';
@@ -90,18 +93,18 @@ function fnHandleGet(byId) {
     }
 
     if ( descFornecedor ) {
-        query = query + ' And  (tbf.NORAZAOSOCIAL LIKE \'%'+descFornecedor+'%\' OR tbf.NOFANTASIA LIKE \'%'+descFornecedor+'%\' ) ';
+        query += ` And  CONTAINS((tbf.NOFANTASIA, tbf.NORAZAOSOCIAL), '%${descFornecedor}%') `;
+    }
+    
+    if ( descFornOrCnpj ) {
+        query += ` And  CONTAINS((tbf.NORAZAOSOCIAL, tbf.NOFANTASIA, tbf.NUCNPJ), '%${descFornOrCnpj}%') `;
     }
 
     if ( CNPJFornecedor ) {
         query = query + ' And  tbf.NUCNPJ = \'' + CNPJFornecedor + '\' ';
     }
     
-    if ( descFornOrCnpj ) {
-        query += ` And  CONTAINS((tbf.NORAZAOSOCIAL, tbf.NOFANTASIA, tbf.NUCNPJ), '%${descFornOrCnpj}%') `;
-    }
-    
-    query += ` ORDER BY tbf.NOFANTASIA ASC`;
+    //query += ' ORDER BY tbf.NOFANTASIA '
     
     var request = { 
         page:  $.request.parameters.get("page"),
@@ -150,7 +153,7 @@ function fnHandlePut() {
         
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
     var bodyJson = JSON.parse($.request.body.asString()); 
-
+    // if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
     for (var i = 0; i < bodyJson.length; i++) {
 
 		var registro = bodyJson[i];
@@ -243,7 +246,7 @@ function fnHandlePost() {
 
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
 	var bodyJson = JSON.parse($.request.body.asString());
-
+    // if (!Array.isArray(bodyJson)) bodyJson = [bodyJson];
 	for (var i = 0; i < bodyJson.length; i++) {
         
 		var registro = bodyJson[i];

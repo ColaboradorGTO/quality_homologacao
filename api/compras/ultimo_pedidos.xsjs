@@ -7,28 +7,34 @@ try {
         
     var query = ` 
         SELECT 
-            TOP 1 A."IDRESUMOPEDIDO",
-            (
-                SELECT
-                    MAX(STREPOSICAO)
-                FROM
-                    "VAR_DB_NAME".DETALHEPEDIDO TBD
-                WHERE
-                    TBD.IDRESUMOPEDIDO = A.IDRESUMOPEDIDO
-                    AND TBD.STCANCELADO = 'False'
-            ) AS STREPOSICAO
-        FROM "VAR_DB_NAME"."RESUMOPEDIDO" A WHERE 1=? 
+            TOP 1 
+            A."IDRESUMOPEDIDO",
+            IFNULL(
+                (
+                    SELECT
+                        MAX(STREPOSICAO)
+                    FROM
+                        "VAR_DB_NAME".DETALHEPEDIDO TBD
+                    WHERE
+                        TBD.IDRESUMOPEDIDO = A.IDRESUMOPEDIDO
+                        AND TBD.STCANCELADO = 'False'
+                ), 
+            '') AS STREPOSICAO
+        FROM 
+            "VAR_DB_NAME"."RESUMOPEDIDO" A 
+        WHERE 
+            1 = ? 
     `;
 
     if(idcomprador){
-        query = query + ' AND  (A."IDANDAMENTO" = 1 OR A."IDANDAMENTO" = 2 OR A."IDANDAMENTO" = 15)  AND A."IDCOMPRADOR" = \'' + idcomprador + '\' ';
+        query += ' AND  (A."IDANDAMENTO" = 1 OR A."IDANDAMENTO" = 2 OR A."IDANDAMENTO" = 15)  AND A."IDCOMPRADOR" = \'' + idcomprador + '\' ';
     }
     
     if(idPedido){
-        query = query + ' AND  A."IDRESUMOPEDIDO" = \'' + idPedido + '\' ';
+        query += ' AND  A."IDRESUMOPEDIDO" = \'' + idPedido + '\' ';
     }
     
-    query = query + 'ORDER BY A.IDRESUMOPEDIDO DESC';
+    query += 'ORDER BY A.IDRESUMOPEDIDO DESC';
     
     var request = { 
         page:  $.request.parameters.get("page"),

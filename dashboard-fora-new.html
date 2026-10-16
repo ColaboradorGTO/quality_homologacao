@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>
+    SoftQuality SAP - Dashboard
+  </title>
+  <meta name="description" content="Marketing Dashboard">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
+  <!-- Call App Mode on ios devices -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <!-- Remove Tap Highlight on Windows Phone IE -->
+  <meta name="msapplication-tap-highlight" content="no">
+
+  <meta http-equiv='cache-control' content='no-cache'>
+  <meta http-equiv='expires' content='0'>
+  <meta http-equiv='pragma' content='no-cache'>
+
+  <!-- base css -->
+  <link rel="stylesheet" media="screen, print" href="css/vendors.bundle.css">
+  <link rel="stylesheet" media="screen, print" href="css/app.bundle.css">
+  <!-- Place favicon.ico in the root directory -->
+  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+  <link rel="mask-icon" href="img/favicon/safari-pinned-tab.svg" color="#5bbad5">
+  <link rel="stylesheet" media="screen, print" href="css/datagrid/datatables/datatables.bundle.css">
+  <link rel="stylesheet" media="screen, print" href="css/notifications/sweetalert2/sweetalert2.bundle.css">
+  <link rel="stylesheet" media="screen, print" href="css/formplugins/select2/select2.bundle.css">
+  <link rel="stylesheet" media="screen, print" href="js/formplugins/bootstrap-select/dist/css/bootstrap-select.css">
+
+</head>
+<style>
+  [title="ATIVA"],
+  [title="ATIVO"],
+  [title="EM ESPERA"] {
+    color: #2196F3 !important;
+    font-weight: bold !important;
+  }
+
+  [title="FINALIZADA"] {
+    color: #1dc9b7 !important;
+    font-weight: bold !important;
+  }
+
+  [title="INATIVA"],
+  [title="INATIVO"],
+  [title="CANCELADA"] {
+    color: #fd3995 !important;
+    font-weight: bold !important;
+  }
+
+  [title="ATIVA"].select2-results__option--highlighted,
+  [title="ATIVO"].select2-results__option--highlighted,
+  [title="EM ESPERA"]:hover,
+  [title="EM ESPERA"].select2-results__option--highlighted {
+    color: #fdfdfd !important;
+    background-color: #2196F3 !important;
+
+  }
+
+  [title="FINALIZADA"]:hover,
+  [title="FINALIZADA"].select2-results__option--highlighted {
+    color: #fdfdfd !important;
+    background-color: #1dc9b7 !important;
+
+  }
+
+  [title="INATIVA"].select2-results__option--highlighted,
+  [title="INATIVO"].select2-results__option--highlighted,
+  [title="CANCELADA"]:hover,
+  [title="CANCELADA"].select2-results__option--highlighted {
+    color: #fdfdfd !important;
+    background-color: #fd3995 !important;
+
+  }
+
+  [title="Fornecedor Inativo No SAP"] {
+    color: #fd3995 !important;
+    font-weight: bold !important;
+  }
+
+  [title="Fornecedor Inativo No SAP"]:hover {
+    color: #fdfdfd !important;
+    background-color: #fd3995 !important;
+
+  }
+
+  @media print {
+    .hidden-print {
+      display: none;
+    }
+  }
+
+  .caixaAlta {
+    text-transform: uppercase
+  }
+
+  .swal2-container {
+    z-index: 20000 !important
+  }
+
+  .select2-container {
+    z-index: 21000 !important
+  }
+
+  .tdCenter {
+    text-align: center;
+  }
+</style>
+
+<body class="mod-bg-1 ">
+  <!-- DOC: script to save and load page settings -->
+  <script>
+    /**
+     *	This script should be placed right after the body tag for fast execution 
+     *	Note: the script is written in pure javascript and does not depend on thirdparty library
+     **/
+    'use strict';
+
+    var classHolder = document.getElementsByTagName("BODY")[0],
+      /** 
+       * Load from localstorage
+       **/
+      themeSettings = (localStorage.getItem('themeSettings')) ? JSON.parse(localStorage.getItem('themeSettings')) :
+        {},
+      themeURL = themeSettings.themeURL || '',
+      themeOptions = themeSettings.themeOptions || '';
+    /** 
+     * Load theme options
+     **/
+    if (themeSettings.themeOptions) {
+      classHolder.className = themeSettings.themeOptions;
+      console.log("%câ Theme settings loaded", "color: #148f32");
+    }
+    else {
+      console.log("Heads up! Theme settings is empty or does not exist, loading default settings...");
+    }
+    if (themeSettings.themeURL && !document.getElementById('mytheme')) {
+      var cssfile = document.createElement('link');
+      cssfile.id = 'mytheme';
+      cssfile.rel = 'stylesheet';
+      cssfile.href = themeURL;
+      document.getElementsByTagName('head')[0].appendChild(cssfile);
+    }
+    /** 
+     * Save to localstorage 
+     **/
+    var saveSettings = function () {
+      themeSettings.themeOptions = String(classHolder.className).split(/[^\w-]+/).filter(function (item) {
+        return /^(nav|header|mod|display)-/i.test(item);
+      }).join(' ');
+      if (document.getElementById('mytheme')) {
+        themeSettings.themeURL = document.getElementById('mytheme').getAttribute("href");
+      };
+      localStorage.setItem('themeSettings', JSON.stringify(themeSettings));
+    }
+    /** 
+     * Reset settings
+     **/
+    var resetSettings = function () {
+      localStorage.setItem("themeSettings", "");
+    }
+
+  </script>
+  <!-- BEGIN Page Wrapper -->
+  <div class="page-wrapper">
+    <div class="page-inner">
+      <!-- BEGIN Left Aside -->
+      <aside class="page-sidebar">
+        <div class="page-logo">
+          <a href="#" class="page-logo-link press-scale-down d-flex align-items-center position-relative"
+            data-toggle="modal" data-target="#modal-shortcut">
+            <img src="img/logo.png" alt="SisFacil" aria-roledescription="logo">
+            <span class="page-logo-text mr-1">SoftQuality SAP</span>
+            <span class="position-absolute text-white opacity-50 small pos-top pos-right mr-2 mt-n2"></span>
+            <i class="fal fa-angle-down d-inline-block ml-1 fs-lg color-primary-300"></i>
+          </a>
+        </div>
+        <!-- BEGIN PRIMARY NAVIGATION -->
+        <nav id="js-primary-nav" class="primary-nav" role="navigation">
+          <div class="nav-filter">
+            <div class="position-relative">
+              <input type="text" id="nav_filter_input" placeholder="Filter menu" class="form-control" tabindex="0">
+              <a href="#" onclick="return false;" class="btn-primary btn-search-close js-waves-off" data-action="toggle"
+                data-class="list-filter-active" data-target=".page-sidebar">
+                <i class="fal fa-chevron-up"></i>
+              </a>
+            </div>
+          </div>
+          <div class="info-card">
+
+            <div class="info-card-text">
+              <a href="#" class="d-flex align-items-center text-white">
+                <span class="text-truncate-lg d-inline-block NoFuncionarioTitulo"></span>
+              </a>
+              <!--<span class="d-inline-block text-truncate-lg NoEmpresaTitulo"></span>-->
+            </div>
+            <img src="img/card-backgrounds/cover-2-lg.png" class="cover" alt="cover">
+            <a href="#" onclick="return false;" class="pull-trigger-btn" data-action="toggle"
+              data-class="list-filter-active" data-target=".page-sidebar" data-focus="nav_filter_input">
+              <i class="fal fa-angle-down"></i>
+            </a>
+          </div>
+          <ul id="js-nav-menu" class="nav-menu">
+            <li class="active open">
+              <a href="dashboard-fora-new.html" title="Tela Principal">
+                <i class="fal fa-home"></i>
+                <span class="nav-link-text">Home</span>
+              </a>
+            </li>
+            <li class="nav-title">Vendas</li>
+            <li>
+            <li>
+              <a href="javascript:carregarDadosDashboardComparativoVendasAnoAtualComAnoPassado();" title="Comparativo Vendas do Dia/Hora"
+                data-filter-tags="list_receppedidos">
+                <i class="fal fa-chart-line"></i>
+                <span class="nav-link-text" data-i18n="nav.list_receppedidos">Comparativo Vendas do Dia/Hora</span>
+              </a>
+            </li>
+            <li>
+              <a href="javascript:carregarDadosDashboardVendasContingencia();"
+                title="Comparativo Vendas Em Contingência do Mes/Dia" data-filter-tags="list_receppedidos">
+                <i class="fal fa-chart-pie"></i>
+                <span class="nav-link-text" data-i18n="nav.list_receppedidos">Comparativo Vendas do Dia/Hora Em Contingência</span>
+              </a>
+            </li>
+            </li>
+            <li class="nav-title">Integrações</li>
+            <li>
+            <li>
+              <a href="javascript:carregarDadosDashboardIntegracoesEnviadasParaMindset();" title="Comparativo de Integrações Enviadas para o Mindset" data-filter-tags="list_integracoesenviadasparamindset">
+                <i class="fal fa-cloud-upload"></i>
+                <span class="nav-link-text" data-i18n="nav.list_integracoesenviadasparamindset">Integrações Enviadas para o Mindset</span>
+              </a>
+            </li>
+            </li>
+          </ul>
+          <div class="filter-message js-filter-message bg-success-600"></div>
+        </nav>
+      </aside>
+      <!-- END Left Aside -->
+      <div class="page-content-wrapper">
+        <!-- BEGIN Page Header -->
+        <header class="page-header" role="banner">
+          <!-- we need this logo when user switches to nav-function-top -->
+          <div class="page-logo">
+            <a href="#" class="page-logo-link press-scale-down d-flex align-items-center position-relative"
+              data-toggle="modal" data-target="#modal-shortcut">
+              <img src="img/logo.png" alt="SoftQuality SAP" aria-roledescription="logo">
+              <span class="page-logo-text mr-1">SoftQuality SAP</span>
+              <span class="position-absolute text-white opacity-50 small pos-top pos-right mr-2 mt-n2"></span>
+              <i class="fal fa-angle-down d-inline-block ml-1 fs-lg color-primary-300"></i>
+            </a>
+          </div>
+          <!-- DOC: nav menu layout change shortcut -->
+          <div class="hidden-md-down dropdown-icon-menu position-relative">
+            <a href="#" class="header-btn btn js-waves-off" data-action="toggle" data-class="nav-function-hidden"
+              title="Hide Navigation">
+              <i class="ni ni-menu"></i>
+            </a>
+            <ul>
+              <li>
+                <a href="#" class="btn js-waves-off" data-action="toggle" data-class="nav-function-minify"
+                  title="Minify Navigation">
+                  <i class="ni ni-minify-nav"></i>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="btn js-waves-off" data-action="toggle" data-class="nav-function-fixed"
+                  title="Lock Navigation">
+                  <i class="ni ni-lock-nav"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+          <!-- DOC: mobile button appears during mobile width -->
+          <div class="hidden-lg-up">
+            <a href="#" class="header-btn btn press-scale-down" data-action="toggle" data-class="mobile-nav-on">
+              <i class="ni ni-menu"></i>
+            </a>
+          </div>
+
+          <div class="ml-auto d-flex">
+          </div>
+        </header>
+        <!-- END Page Header -->
+        <!-- BEGIN Page Content -->
+        <!-- the #js-page-content id is needed for some plugins to initialize -->
+
+        <main id="js-page-content" role="main" class="page-content"></main>
+
+        <!-- this overlay is activated only when mobile menu is triggered -->
+        <div class="page-content-overlay" data-action="toggle" data-class="mobile-nav-on"></div>
+        <!-- END Page Content -->
+        <!-- BEGIN Page Footer -->
+        <footer class="page-footer" role="contentinfo">
+          <div class="d-flex align-items-center flex-1 text-muted">
+            <span class="hidden-md-down fw-700">2019 Â© MettaGroup by&nbsp;<a href='https://mettagroup.com.br'
+                class='text-primary fw-500' title='mettagroup.com.br' target='_blank'>mettagroup.com.br</a></span>
+          </div>
+        </footer>
+        <!-- END Page Footer -->
+        <!-- BEGIN Shortcuts -->
+        <div id="conteudo-modal"></div>
+
+        <div class="modal fade modal-backdrop-transparent" id="modal-shortcut" tabindex="-1" role="dialog"
+          aria-labelledby="modal-shortcut" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-top modal-transparent" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                <ul class="app-list w-auto h-auto p-0 text-left">
+                  <li>
+                    <a href="dashboard-fora-new.html" class="app-list-item text-white border-0 m-0">
+                      <div class="icon-stack">
+                        <i class="base base-7 icon-stack-3x opacity-100 color-primary-500 "></i>
+                        <i class="base base-7 icon-stack-2x opacity-100 color-primary-300 "></i>
+                        <i class="fal fa-home icon-stack-1x opacity-100 color-white"></i>
+                      </div>
+                      <span class="app-list-name">
+                        Home
+                      </span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="javascript:carregarDadosDashboardVendasContingencia();" class="app-list-item text-white border-0 m-0" title="Comparativo Vendas do Dia/Hora">
+                      <div class="icon-stack">
+                        <i class="base base-7 icon-stack-3x opacity-100 color-primary-500 "></i>
+                        <i class="base base-7 icon-stack-2x opacity-100 color-primary-300 "></i>
+                        <i class="fal fa-chart-line icon-stack-1x opacity-100 color-white"></i>
+                      </div>
+                      <span class="app-list-name">
+                        Comparativo Vendas do Dia/Hora
+                      </span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="javascript:carregarDadosDashboardVendasContingencia();" class="app-list-item text-white border-0 m-0" title="Comparativo Vendas do Dia/Hora Em Contingência">
+                      <div class="icon-stack">
+                        <i class="base base-7 icon-stack-3x opacity-100 color-primary-500 "></i>
+                        <i class="base base-7 icon-stack-2x opacity-100 color-primary-300 "></i>
+                        <i class="fal fa-chart-pie icon-stack-1x opacity-100 color-white"></i>
+                      </div>
+                      <span class="app-list-name">
+                        Comparativo Vendas do Dia/Hora Em Contingência
+                      </span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="javascript:carregarDadosDashboardIntegracoesEnviadasParaMindset();" class="app-list-item text-white border-0 m-0"
+                      title="Comparativo de Integrações Enviadas para o Mindset">
+                      <div class="icon-stack">
+                        <i class="base base-7 icon-stack-3x opacity-100 color-primary-500 "></i>
+                        <i class="base base-7 icon-stack-2x opacity-100 color-primary-300 "></i>
+                        <i class="fal fa-cloud-upload icon-stack-1x opacity-100 color-white"></i>
+                      </div>
+                      <span class="app-list-name">
+                        Integrações Enviadas para o Mindset
+                      </span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- END Shortcuts -->
+        <!-- BEGIN Color profile -->
+        <!-- this area is hidden and will not be seen on screens or screen readers -->
+        <!-- we use this only for CSS color refernce for JS stuff -->
+        <p id="js-color-profile" class="d-none">
+          <span class="color-primary-50"></span>
+          <span class="color-primary-100"></span>
+          <span class="color-primary-200"></span>
+          <span class="color-primary-300"></span>
+          <span class="color-primary-400"></span>
+          <span class="color-primary-500"></span>
+          <span class="color-primary-600"></span>
+          <span class="color-primary-700"></span>
+          <span class="color-primary-800"></span>
+          <span class="color-primary-900"></span>
+          <span class="color-info-50"></span>
+          <span class="color-info-100"></span>
+          <span class="color-info-200"></span>
+          <span class="color-info-300"></span>
+          <span class="color-info-400"></span>
+          <span class="color-info-500"></span>
+          <span class="color-info-600"></span>
+          <span class="color-info-700"></span>
+          <span class="color-info-800"></span>
+          <span class="color-info-900"></span>
+          <span class="color-danger-50"></span>
+          <span class="color-danger-100"></span>
+          <span class="color-danger-200"></span>
+          <span class="color-danger-300"></span>
+          <span class="color-danger-400"></span>
+          <span class="color-danger-500"></span>
+          <span class="color-danger-600"></span>
+          <span class="color-danger-700"></span>
+          <span class="color-danger-800"></span>
+          <span class="color-danger-900"></span>
+          <span class="color-warning-50"></span>
+          <span class="color-warning-100"></span>
+          <span class="color-warning-200"></span>
+          <span class="color-warning-300"></span>
+          <span class="color-warning-400"></span>
+          <span class="color-warning-500"></span>
+          <span class="color-warning-600"></span>
+          <span class="color-warning-700"></span>
+          <span class="color-warning-800"></span>
+          <span class="color-warning-900"></span>
+          <span class="color-success-50"></span>
+          <span class="color-success-100"></span>
+          <span class="color-success-200"></span>
+          <span class="color-success-300"></span>
+          <span class="color-success-400"></span>
+          <span class="color-success-500"></span>
+          <span class="color-success-600"></span>
+          <span class="color-success-700"></span>
+          <span class="color-success-800"></span>
+          <span class="color-success-900"></span>
+          <span class="color-fusion-50"></span>
+          <span class="color-fusion-100"></span>
+          <span class="color-fusion-200"></span>
+          <span class="color-fusion-300"></span>
+          <span class="color-fusion-400"></span>
+          <span class="color-fusion-500"></span>
+          <span class="color-fusion-600"></span>
+          <span class="color-fusion-700"></span>
+          <span class="color-fusion-800"></span>
+          <span class="color-fusion-900"></span>
+        </p>
+        <!-- END Color profile -->
+      </div>
+    </div>
+  </div>
+  <nav class="shortcut-menu d-none d-sm-block">
+    <input type="checkbox" class="menu-open" name="menu-open" id="menu_open" />
+    <label for="menu_open" class="menu-open-button ">
+      <span class="app-shortcut-icon d-block"></span>
+    </label>
+    <a href="#" class="menu-item btn" data-toggle="tooltip" data-placement="left" title="Topo da PÃ¡gina">
+      <i class="fal fa-arrow-up"></i>
+    </a>
+    <a href="javascript:logout();" class="menu-item btn" data-toggle="tooltip" data-placement="left" title="Sair">
+      <i class="fal fa-sign-out"></i>
+    </a>
+    <a href="#" class="menu-item btn" data-action="app-fullscreen" data-toggle="tooltip" data-placement="left"
+      title="Tela Inteira">
+      <i class="fal fa-expand"></i>
+    </a>
+    <a href="#" class="menu-item btn" data-action="app-print" data-toggle="tooltip" data-placement="left"
+      title="Imprimir PÃ¡gina">
+      <i class="fal fa-print"></i>
+    </a>
+  </nav>
+  <script src="js/vendors.bundle.js"></script>
+  <script src="js/app.bundle.js"></script>
+  <script type="text/javascript">
+    /* Activate smart panels */
+    //$('#js-page-content').smartPanel();
+
+  </script>
+  <!-- The order of scripts is irrelevant. Please check out the plugin pages for more details about these plugins below: -->
+
+
+  <script src="js/datagrid/datatables/datatables.bundle.js"></script>
+  <script src="js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script src="js/formplugins/select2/select2.bundle.js"></script>
+  <script src="js/formplugins/bootstrap-select/dist/js/bootstrap-select.js"></script>
+  <script src="js/jquery.mask.min.js"></script>
+  <script src="js/jquery.mask.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/print-js/1.6.0/print.min.js"
+    integrity="sha512-16cHhHqb1CbkfAWbdF/jgyb/FDZ3SdQacXG8vaOauQrHhpklfptATwMFAc35Cd62CQVN40KDTYo9TIsQhDtMFg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="js\barcode\JsBarcode\dist\JsBarcode.all.min.js"></script>
+  <script src="js\sheetjs\dist\xlsx.full.min.js"></script>
+
+  <!-- datatbles buttons bundle contains: 
+            + "jszip.js",
+            + "pdfmake.js",
+            + "vfs_fonts.js"	
+            NOTE: 	The file size is pretty big, but you can always use the
+			build.json file to deselect any components you do not need under "export" -->
+  <script src="js/datagrid/datatables/datatables.export.js"></script>
+  <script src="js/funcRequest.js"></script>
+  <script src="js/funcResponseSweetAlert.js"></script>
+  <script src="js/utils/dataTable-especial-orders.js"></script>
+  <script src="js/utils/masks-values-decimals.js"></script>
+  <script src="js/dashboard-fora-new/functionPrincipalDashboardForaNew.js"></script>
+  <script src="js/FileSaver.js"></script>
+  <script src="js/translatorText.js"></script>
+
+  <script>
+
+    javascript: window.history.forward(1);
+    $(document).ready(function () {
+
+      $("#conteudo-modal").load("modalcadastros.html");
+
+      window.onkeypress = function (e) {
+        if (e.which == 13) {
+          var inputs = document.getElementsByClassName(' input');
+          for (var i = 0; i < inputs.length; i++) {
+            if (document.activeElement.id == inputs[i].id && i + 1 < inputs.length) {
+              inputs[i + 1].focus();
+              inputs[i + 1].select();
+              break;
+            }
+          }
+        }
+      };
+
+      // initialize datatable
+
+    });
+
+  </script>
+</body>
+
+</html>

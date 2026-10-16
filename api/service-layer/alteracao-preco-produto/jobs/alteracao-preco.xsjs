@@ -1,4 +1,5 @@
 let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let slApi = $.import("quality.concentrador_homologacao.api.service-layer.alteracao-preco-produto.libs", "alterar-preco-produto-sap");
 
 function registraLogAlteracaoPreco(idResumoAlteracao, logText = 'REALIZADA COM SUCESSO', conn){
     let queryUpdateLog = `
@@ -20,6 +21,7 @@ function registraLogAlteracaoPreco(idResumoAlteracao, logText = 'REALIZADA COM S
 }
 
 function executeAlteracaoPreco(byId) {
+    return slApi.executeIntegracaoAlteracaoPrecoProduto(byId)
     let conn = $.db.getConnection();
     let idResumoAlteracao;
     let dtHora = new Date();
@@ -27,6 +29,7 @@ function executeAlteracaoPreco(byId) {
     
     dtHoraAlteracao = dtHora;
     dtHoraAlteracao = dtHoraAlteracao.toISOString().split('T')[0] + ' 05:00:00';
+    
 
     try{
         

@@ -1,4 +1,4 @@
-var api = $.import("quality.concentrador.api.apiResponse", "int_api");
+let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function setTimestampOrNull(stmt, fieldId, value) {
 	if (!value) {

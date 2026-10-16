@@ -1,4 +1,190 @@
-let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+
+
+// CONSTANTS
+var FUNCOES = {
+    ACESSO: [
+        'TI',
+        'SUPERVISOR',
+    ]
+};
+
+var TIPO_TROCA = [
+    'CORTESIA',
+    'DEFEITO'
+];
+
+const GRUPO_EMPRESARIAL_REGRA_ESPECIAL = 4;
+const PRAZO_CREATE = 180;
+const PRAZO_CORTESIA = 32;
+const PRAZO_DEFEITO = 90;
+const PRAZO_UPDATE = 180;
+const PRAZO_CANCELAMENTO_VOUCHER = 3;
+
+// Inicio Funcoes Get Dados
+
+function getDadosFuncionario(idFuncionario) {
+
+    var query = `
+        SELECT
+            TBF.IDFUNCIONARIO,
+            TBE.IDGRUPOEMPRESARIAL,
+            TBE.IDSUBGRUPOEMPRESARIAL,
+            TBF.IDEMPRESA,
+            TBF.NOFUNCIONARIO,
+            TBF.IDPERFIL,
+            TBF.NUCPF,
+            UPPER(TRIM(TBF.DSFUNCAO)) AS DSFUNCAO,
+            TBF.STATIVO
+        FROM
+            "VAR_DB_NAME".FUNCIONARIO TBF
+        INNER JOIN "VAR_DB_NAME".EMPRESA TBE
+            ON TBE.IDEMPRESA = TBF.IDEMPRESA
+        WHERE
+            TBF.STATIVO = 'True'
+            AND TBF.IDFUNCIONARIO = ?
+    `;
+
+    return api.sqlQuery(
+        query,
+        idFuncionario
+    );
+}
+
+function getDadosVoucher(idVoucher) {
+
+    var query = `
+        SELECT
+            TBR.IDRESUMOVENDAWEB,
+            TRIM(UPPER(TBR.STSTATUS)) AS STSTATUS,
+            TRIM(UPPER(TBR.STTIPOTROCA)) AS STTIPOTROCA,
+            TRIM(UPPER(TBR.STDEVOLUCAOSAP)) AS STDEVOLUCAOSAP,
+            TO_DATE(TBR.DTINVOUCHER) AS DTINVOUCHER,
+            DAYS_BETWEEN(TO_DATE(TBR.DTINVOUCHER), CURRENT_DATE) AS DIAS_APOS_CRIACAO_VOUCHER,
+            DAYS_BETWEEN(TO_DATE(TBV.DTHORAFECHAMENTO), CURRENT_DATE) AS DIAS_APOS_VENDA
+        FROM
+            "VAR_DB_NAME".RESUMOVOUCHER TBR
+        INNER JOIN "VAR_DB_NAME".VENDA TBV ON 
+            TBV.IDVENDA = TBR.IDRESUMOVENDAWEB
+        WHERE
+            TBR.IDVOUCHER = ?
+    `;
+
+    return api.sqlQuery(
+        query,
+        idVoucher
+    );
+}
+
+function getVendaOrigemAtiva(idVoucher){
+    let query = `
+        SELECT
+            TBV.IDVENDA,
+            TBV.STCANCELADO
+        FROM
+            "VAR_DB_NAME".RESUMOVOUCHER TBR
+        INNER JOIN "VAR_DB_NAME".VENDA TBV ON 
+            TBR.IDRESUMOVENDAWEB = TBV.IDVENDA
+        WHERE
+            TBR.IDVOUCHER = ?
+    `;
+    
+    return api.sqlQuery(query, idVoucher);
+}
+
+function getVendaDestinoAtiva(idVoucher){
+    let query = `
+        SELECT
+            TBV.IDVENDA,
+            TBV.STCANCELADO
+        FROM
+            "VAR_DB_NAME".RESUMOVOUCHER TBR
+        INNER JOIN "VAR_DB_NAME".VENDA TBV ON 
+            TBR.IDRESUMOVENDAWEBDESTINO = TBV.IDVENDA
+        WHERE
+            TBR.IDVOUCHER = ?
+    `;
+    
+    return api.sqlQuery(query, idVoucher);
+}
+
+function getDadosStatusResumoVoucher(idVoucher){
+    let query = `
+        SELECT
+            TBR.IDVOUCHER,
+            TBR.STATIVO AS STATIVO_ORIGINAL,
+            TBR.STCANCELADO AS STCANCELADO_ORIGINAL,
+            TBR.STSTATUS AS STSTATUS_ORIGINAL
+        FROM
+            "VAR_DB_NAME".RESUMOVOUCHER TBR
+        WHERE
+            TBR.IDVOUCHER = ?
+    `;
+    
+    let reg = api.sqlQuery(query, idVoucher);
+    
+    return reg.length > 0 ? reg[0] : [];
+}
+
+function getListaProdutosVoucher(idVoucher){
+    let query = `
+        SELECT
+            TBR.IDVOUCHER,
+            TBR.IDEMPRESAORIGEM AS IDEMPRESA,
+            TBDV.IDPRODUTO,
+            TBDV.QTD
+        FROM
+            "VAR_DB_NAME".RESUMOVOUCHER TBR
+        INNER JOIN "VAR_DB_NAME".DETALHEVOUCHER TBDV ON 
+            TBR.IDVOUCHER = TBDV.IDVOUCHER
+        WHERE
+            TBR.IDVOUCHER = ?
+    `;
+    
+    return api.sqlQuery(query, idVoucher);
+}
+
+function getInventarioMovimentoAtivo(idEmpresa, idProduto, dtMovimento){
+    let query = `
+        SELECT 
+            IDINVMOVIMENTO,
+            TO_VARCHAR(DTMOVIMENTO, 'YYYY-MM-DD') AS DTMOVIMENTO,
+            QTDINICIO,
+            QTDENTRADAVOUCHER,
+            QTDENTRADA,
+            QTDSAIDA,
+            QTDSAIDATRANSFERENCIA,
+            QTDRETORNOAJUSTEPEDIDO,
+            QTDAJUSTEBALANCO,
+            QTDFINAL
+        FROM 
+            "VAR_DB_NAME"."INVENTARIOMOVIMENTO" 
+        WHERE
+            STATIVO = 'True'
+            AND IDPRODUTO= '${idProduto}'
+            AND IDEMPRESA = '${idEmpresa}'
+            AND 1 = ?
+    `;
+    
+    if(dtMovimento){
+        query += ` AND TO_DATE(DTMOVIMENTO) = '${dtMovimento}' `;
+    }
+    
+    return api.sqlQuery(query, 1);
+}
+// Fim Funcoes Get Dados
+
+// HELPERS
+function getDataHoje() {
+
+    var date = new Date();
+
+    var dd = ('0' + date.getDate()).slice(-2);
+    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+    var yyyy = date.getFullYear();
+
+    return yyyy + '-' + mm + '-' + dd;
+}
 
 function padLeft(number, length, character) {
 	if(character == null) {
@@ -51,334 +237,404 @@ function setFloatOrNull(stmt, fieldId, value) {
 	stmt.setFloat(fieldId, value);
 }
 
-function fnAuthUserUpdate(dadosAuth) {
-    let { IDFUNCIONARIO, IDVOUCHER } = dadosAuth || false;
-    let diferencaEmDias;
-    //  criar uma logica para que usuario não possa cancelar ou negar voucher na logica de diferença de dias
-    
-    let funcAutorizadasAcesso = [
-        'TI',
-        'SUPERVISOR',
-    ];
-    
-    let statusVoucherNaoAutorizados = [
+function normalizarString(funcao) {
+    return String(funcao || '')
+        .trim()
+        .toUpperCase();
+}
+
+function numero(valor) {
+    return Number(valor || 0);
+}
+
+function isValoresIguais(valor1, valor2) {
+    return numero(valor1) === numero(valor2);
+}
+
+function possuiFuncao(funcao, listaFuncoes) {
+    return listaFuncoes.indexOf(normalizarString(funcao)) !== -1;
+}
+
+function erro(message) {
+    throw new Error( message );
+}
+
+function formatarListaProdutosEmAgrupamento(listaProdutos){
+    let produtosAgrupados = listaProdutos.reduce((acc, item) => {
+        let produtoExistente = acc.find(
+            produto => produto.IDPRODUTO === item.IDPRODUTO
+        );
+        
+        if (produtoExistente) {
+            produtoExistente.QTD += Number(item.QTD);
+        } else {
+            acc.push({
+                IDPRODUTO: item.IDPRODUTO,
+                QTD: Number(item.QTD)
+            });
+        }
+        
+        return acc;
+    }, []);
+
+    return produtosAgrupados;
+}
+
+// VALIDACAO DE DADOS
+function validarValorObrigatorio(valor, mensagem) {
+    if (valor === undefined || valor === null || valor === '') {
+        erro(mensagem);
+    }
+}
+
+function validarSePrecisaMovimentarIrnventario(statusOriginal, statusAtualizar){
+    let statusNaoMovimentaInventario = [
+        'EM ANALISE',
         'NOVO',
         'LIBERADO PARA O CLIENTE',
-        'FINALIZADO',
-        'NEGADO',
-        'CANCELADO',
-    ]
-
-    if(!IDFUNCIONARIO) {
-        throw {
-            message: 'Usuário não encontrado!'
-        }
+        'FINALIZADO'
+    ];
+    
+    if(statusOriginal == statusAtualizar){
+        return false;
     }
     
-    if(!IDVOUCHER) {
-        throw {
-            message: 'Usuário não encontrado!'
-        }
+    if(statusNaoMovimentaInventario.includes(statusOriginal) && statusNaoMovimentaInventario.includes(statusAtualizar)){
+        return false;
     }
     
-    let queryFunc = `
-        SELECT
-            tbf.IDFUNCIONARIO,
-            TBE.IDGRUPOEMPRESARIAL,
-            TBE.IDSUBGRUPOEMPRESARIAL,
-            tbf.IDEMPRESA,
-            tbf.NOFUNCIONARIO,
-            tbf.IDPERFIL,
-            UPPER(tbf.DSFUNCAO) AS DSFUNCAO,
-            tbf.STATIVO
-        FROM
-            "VAR_DB_NAME".FUNCIONARIO tbf
-        INNER JOIN "VAR_DB_NAME".EMPRESA TBE ON
-            TBF.IDEMPRESA = TBE.IDEMPRESA
-        WHERE
-            tbf.IDFUNCIONARIO = ?
-            AND tbf.STATIVO = 'True' 
-    `;
-    
-    let queryVoucher = `
-        SELECT 
-            TBR.IDRESUMOVENDAWEB,
-            (SELECT DTHORAFECHAMENTO FROM "VAR_DB_NAME".VENDA WHERE IDVENDA = TBR.IDRESUMOVENDAWEB AND STCANCELADO = 'False') AS DTHORAFECHAMENTO,
-            TBR.STSTATUS,
-              TBR.STTIPOTROCA,
-            TBR.STDEVOLUCAOSAP,
-            TO_DATE(TBR.DTINVOUCHER) AS DTINVOUCHER,
-            ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) AS DIAS_APOS_CRIACAO
-        FROM
-            "VAR_DB_NAME".RESUMOVOUCHER TBR
-        WHERE 
-            TBR.IDVOUCHER = ?
-    `;
-    
-    let dataFunc = api.sqlQuery(queryFunc, IDFUNCIONARIO);
-    let DadosVoucher = api.sqlQuery(queryVoucher, IDVOUCHER);
-    
-    if(!DadosVoucher.length){
-        throw {
-            message: 'Voucher Não Localizado'
-        }
-    }
-
-    if(!dataFunc.length){
-        throw {
-            message: 'Usuário inválido!'
-        }
+    if(statusNaoMovimentaInventario.includes(statusOriginal) && !statusNaoMovimentaInventario.includes(statusAtualizar)){
+        return true;
     }
     
-    if(!funcAutorizadasAcesso.includes(dataFunc[0].DSFUNCAO.toUpperCase().trim())){
-        throw {
-            message: 'ACESSO NEGADO! Usuário Sem Permissão!'
-        }
+    if(!statusNaoMovimentaInventario.includes(statusOriginal) && statusNaoMovimentaInventario.includes(statusAtualizar)){
+        return true;
     }
-
-    let diasAposCriacao = Number(DadosVoucher[0].DIAS_APOS_CRIACAO || 0); 
-    let stDevolucaoSap = DadosVoucher[0].STDEVOLUCAOSAP;
-    let dataHoraVenda = DadosVoucher[0].DTHORAFECHAMENTO ? new Date(DadosVoucher[0].DTHORAFECHAMENTO) : new Date();
-    let dataHoraAtual = new Date();
-    
-    dataHoraVenda.setUTCHours(0, 0, 0, 0);
-    dataHoraAtual.setUTCHours(0, 0, 0, 0);
-    
-    diferencaEmDias = Math.ceil(Math.abs(dataHoraAtual - dataHoraVenda) / (1000 * 60 * 60 * 24));
-    
-    if(diferencaEmDias > 180){
-        throw {
-            message: `ACESSO NEGADO! Voucher fora do Prazo de Troca de Status! DIAS PASSADOS APÓS A VENDA: ${diferencaEmDias}`
-        }
-    }
-    
-    if(dataFunc[0].DSFUNCAO !== 'TI'){
-        if(dataFunc[0].DSFUNCAO.trim() !== 'SUPERVISOR'){
-            if(IDEMPRESALOGADA !== dataFunc[0].IDEMPRESA){
-                throw {
-                    message: 'ACESSO NEGADO! Usuário Sem Permissão Nessa Loja, Fale Com o Gerente, Subgerente ou Líder de Loja!'
-                }
-            }
-            
-            if(IDGRUPOEMPRESARIAL !== dataFunc[0].IDGRUPOEMPRESARIAL){
-                throw {
-                    message: 'ACESSO NEGADO! Usuário Sem Permissão Em Lojas Deste Grupo Empresarial, Fale Com o Gerente, Subgerente ou Líder de Loja!'
-                }
-            }
-        }
-        
-        if(diferencaEmDias > 32 && diferencaEmDias <= 60 && !funcAutorizadasUpdateAte60Dias.includes(dataFunc[0].DSFUNCAO.toUpperCase().trim())){
-            throw {
-                message: 'ACESSO NEGADO! Usuário Sem Permissão, Fale Com o Gerente, Subgerente ou Líder de Loja!'
-            }
-        }
-        
-        if(DadosVoucher[0].STTIPOTROCA !== 'DEFEITO') {
-            
-            if(diferencaEmDias > 60 && !funcAutorizadasUpdateAte180Dias.includes(dataFunc[0].DSFUNCAO.toUpperCase().trim())) {
-                throw {
-                    message: 'ACESSO NEGADO! Usuário Sem Permissão, Fale Com a Supervisão!'
-                }
-            }
-        }
-        
-        if((dataFunc[0].IDGRUPOEMPRESARIAL == 4 || IDGRUPOEMPRESARIAL == 4)){
-            if(!funcAutorizadasUpdateAte60Dias.includes(dataFunc[0].DSFUNCAO.toUpperCase().trim())) {
-                throw {
-                    message: 'ACESSO NEGADO! Usuário Sem Permissão, Fale Com o Gerente, Subgerente ou Líder de Loja!'
-                }
-            }
-        }
-        
-        if(statusVoucherNaoAutorizados){
-            
-        }
-    }
-    
-    return {
-        data: dataFunc
-    };
 }
 
-// function fnAuthUserUpdate(dadosAuth) {
-//     let { IDFUNCIONARIO, IDVOUCHER, STSTATUS } = dadosAuth || false;
-//     let diferencaEmDias;
-    
-//     let funcAutorizadasAcesso = [
-//         'TI',
-//         'SUPERVISOR',
-//     ];
-    
-//     if(!IDFUNCIONARIO) {
-//         throw {
-//             message: 'Usuário não encontrado!'
-//         }
-//     }
-    
-//     if(!IDVOUCHER) {
-//         throw {
-//             message: 'Usuário não encontrado!'
-//         }
-//     }
-    
-//     let queryFunc = `
-//         SELECT
-//             tbf.IDFUNCIONARIO,
-//             TBE.IDGRUPOEMPRESARIAL,
-//             TBE.IDSUBGRUPOEMPRESARIAL,
-//             tbf.IDEMPRESA,
-//             tbf.NOFUNCIONARIO,
-//             tbf.IDPERFIL,
-//             UPPER(tbf.DSFUNCAO) AS DSFUNCAO,
-//             tbf.STATIVO
-//         FROM
-//             "VAR_DB_NAME".FUNCIONARIO tbf
-//         INNER JOIN "VAR_DB_NAME".EMPRESA TBE ON
-//             TBF.IDEMPRESA = TBE.IDEMPRESA
-//         WHERE
-//             tbf.IDFUNCIONARIO = ?
-//             AND tbf.STATIVO = 'True' 
-//     `;
-    
-//     let queryVoucher = `
-//         SELECT 
-//             TBR.IDRESUMOVENDAWEB,
-//             (SELECT STCANCELADO FROM "VAR_DB_NAME".VENDA WHERE IDVENDA = TBR.IDRESUMOVENDAWEB) AS STCANCELADO_VENDA,
-//             TBR.STSTATUS,
-//             ABS(DAYS_BETWEEN(CURRENT_DATE, TO_DATE(TBR.DTINVOUCHER))) AS DIAS_DE_CRIACAO
-//         FROM
-//             "VAR_DB_NAME".RESUMOVOUCHER TBR
-//         WHERE 
-//             TBR.IDVOUCHER = ?
-//     `;
-    
-//     let dataFunc = api.sqlQuery(queryFunc, IDFUNCIONARIO);
-//     let DadosVoucher = api.sqlQuery(queryVoucher, IDVOUCHER);
-    
-//     if(!DadosVoucher.length){
-//         throw {
-//             message: 'Voucher Não Localizado'
-//         }
-//     }
+function validarFuncionario(dadosFuncionario) {
+    if (!dadosFuncionario || !dadosFuncionario.length) {
+        erro('Usuário inválido!');
+    }
 
-//     if(!dataFunc.length){
-//         throw {
-//             message: 'Usuário inválido!'
-//         }
-//     }
+    var funcionario = dadosFuncionario[0];
+    var funcao = normalizarString(funcionario.DSFUNCAO);
     
-//     if(!funcAutorizadasAcesso.includes(dataFunc[0].DSFUNCAO.toUpperCase().trim())){
-//         throw {
-//             message: 'ACESSO NEGADO! Usuário Sem Permissão!'
-//         }
-//     }
+    if (!possuiFuncao(funcao, FUNCOES.ACESSO)) {
+        erro('ACESSO NEGADO! Usuário Sem Permissão!');
+    }
     
-//     let stCanceladoVendaVoucher = DadosVoucher[0].STCANCELADO_VENDA;
-//     let diasAposCriacaoVoucher = Number(DadosVoucher[0].DIAS_DE_CRIACAO);
-    
-//     if(stCanceladoVendaVoucher == 'False' && diasAposCriacaoVoucher > 3 && (STSTATUS == 'NEGADO' || STSTATUS == 'CANCELADO')){
-//         throw {
-//             message: `ACESSO NEGADO! Não é permitido o cancelamento de vouchers com mais de 3 dias de criação, já se passaram: ${diasAposCriacaoVoucher} dias!`
-//         }
-//     }
-    
-//     if(stCanceladoVendaVoucher == 'True' && (STSTATUS !== 'NEGADO' || STSTATUS !== 'CANCELADO')){
-//         throw {
-//             message: 'ACESSO NEGADO! Não é permitida a mudança de status do voucher porque a venda de origem foi cancelada, entre em contato com o suporte de vendas!'
-//         }
-//     }
-    
-//     return true;
-// }
+    return funcionario;
+}
 
-function fnAtualizaStatusProdutosOrigemVoucher(idVoucher, stAtivo, stCancelado, stStatus, conn){
-    let stTroca = 'False';
+function validarVoucher(dadosVoucher) {
+
+    if (!dadosVoucher || !dadosVoucher.length) {
+        erro('Voucher Não Localizado');
+    }
     
-    let queryProdVoucher = `
-        SELECT
-            TBRV."IDEMPRESAORIGEM",
-            TBDV."IDVOUCHER",
-            TBDV."IDPRODUTO",
-            TBDV."QTD",
-            TBRV."STATIVO",
-            TBRV."STCANCELADO",
-            TBRV."STSTATUS",
-            TBRV."STTIPOTROCA"
-        FROM
-            "VAR_DB_NAME".RESUMOVOUCHER TBRV
-        INNER JOIN DETALHEVOUCHER TBDV ON
-            TBRV."IDVOUCHER" = TBDV."IDVOUCHER"
-        WHERE
-            TBDV."IDVOUCHER" = ?
-        ORDER BY
-            IDVOUCHER
+    let voucher = dadosVoucher[0];
+    
+    validarValorObrigatorio(voucher.STSTATUS, 'Voucher sem STSTATUS registrado na base');
+    
+    validarValorObrigatorio(voucher.STTIPOTROCA, 'Voucher sem STTIPOTROCA registrado na base');
+    
+    return voucher;
+}
+
+function validarDadosAuthUpdate(dadosAuth) {
+    if (!dadosAuth) {
+        erro('Dados de autorização não informados');
+    }
+
+    var idFuncionario = dadosAuth.IDFUNCIONARIO;
+    var idEmpresaLogada = dadosAuth.IDEMPRESALOGADA;
+    var idGrupoEmpresarial = dadosAuth.IDGRUPOEMPRESARIAL;
+    var idVoucher = dadosAuth.IDVOUCHER;
+    var novoStatus = String(dadosAuth.STSTATUS || '').trim().toUpperCase();
+
+    validarValorObrigatorio(idEmpresaLogada, 'A identificação de Empresa Logada é uma informação obrigatória');
+
+    validarValorObrigatorio(idGrupoEmpresarial, 'A identificação do Grupo Empresarial é uma informação obrigatória');
+
+    validarValorObrigatorio(idFuncionario, 'Usuário não encontrado!');
+
+    validarValorObrigatorio(idVoucher, 'Voucher não informado!');
+
+    validarValorObrigatorio(novoStatus, 'Novo status não informado!');
+}
+
+function validarPrazoUpdate( funcionario, dadosVoucher, stStatusVoucherAtualizar, idGrupoEmpresarialLogada ) {
+    var diasAposVenda = numero(dadosVoucher.DIAS_APOS_VENDA);
+    var diasAposCriacaoVoucher = numero(dadosVoucher.DIAS_APOS_CRIACAO_VOUCHER);
+    var stDevolucaoSap = dadosVoucher.STDEVOLUCAOSAP;
+    var stStatusVoucherAtualizar = dadosVoucher.STSTATUS;
+    var tipoTroca = dadosVoucher.STTIPOTROCA;
+
+    var funcao = normalizarString(funcionario.DSFUNCAO);
+
+    // --------------------------------------------------------
+    // Regra geral: máximo 180 dias
+    // --------------------------------------------------------
+
+    if (diasAposVenda > PRAZO_UPDATE) {
+        erro(
+            'ACESSO NEGADO! Voucher fora do Prazo de Troca de Status! ' +
+            'DIAS PASSADOS APÓS A VENDA: ' +
+            diasAposCriacaoVoucher +
+            ' Dias'
+        );
+    }
+    
+    if(stStatusVoucherAtualizar == 'NEGADO' || stStatusVoucherAtualizar == 'CANCELADO'){
+        if(diasAposCriacaoVoucher > PRAZO_CANCELAMENTO_VOUCHER || stDevolucaoSap == 'True'){
+            erro(`ACESSO NEGADO! Voucher não pode ser ${stStatusVoucherAtualizar} porque está fora do Prazo de Cancelamento/Negação! `);
+        }
+    }
+}
+
+// Verificacao antes da atualizacao do voucher
+function fnAuthUserUpdate(dadosAuth) {
+    validarDadosAuthUpdate(dadosAuth);
+    
+    var idFuncionario = dadosAuth.IDFUNCIONARIO;
+    var idVoucher = dadosAuth.IDVOUCHER;
+    var idEmpresaLogada = dadosAuth.IDEMPRESALOGADA;
+    var idGrupoEmpresarialLogada = dadosAuth.IDGRUPOEMPRESARIAL;
+    var stStatusVoucherAtualizar = dadosAuth.STSTATUS;
+    
+    // Busca dados necessários
+    var dadosFuncionario = getDadosFuncionario(idFuncionario);
+    var dadosVoucher = getDadosVoucher(idVoucher);
+
+    // Validações básicas
+    var funcionario = validarFuncionario(dadosFuncionario);
+    var voucher = validarVoucher(dadosVoucher);
+    
+
+    // Validação do prazo
+    validarPrazoUpdate( funcionario, voucher, stStatusVoucherAtualizar, idGrupoEmpresarialLogada );
+
+    return true;
+}
+
+// Inicio Persistencia
+// UPDATE
+function inativarInventarioMovimento(idInventarioMovimento, conn){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."INVENTARIOMOVIMENTO" 
+        SET 
+            "STATIVO" = 'False'
+        WHERE 
+            "IDINVMOVIMENTO" =  ? 
     `;
-
-    let detalheProdVoucher = api.sqlQuery(queryProdVoucher, idVoucher);
-    let lstProd = [];
     
-    if(detalheProdVoucher.length && detalheProdVoucher[0].STTIPOTROCA !== 'TROCO'){
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setInt(1, parseInt(idInventarioMovimento));
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
+function atualizarInventarioMovimentoAtivoComQuantidadeEntradaVoucher(idInventarioMovimento, qtdEntradaVoucher, conn){
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."INVENTARIOMOVIMENTO"
+        SET
+            "QTDENTRADAVOUCHER" = (QTDENTRADAVOUCHER + ?),
+            "QTDFINAL" = ((QTDINICIO + QTDENTRADA + QTDENTRADAVOUCHER + ?) - (QTDSAIDA + QTDSAIDATRANSFERENCIA))
+        WHERE 
+            "IDINVMOVIMENTO" =  ?
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+	
+	pStmt.setInt(1, qtdEntradaVoucher);
+	pStmt.setInt(2, qtdEntradaVoucher);
+    pStmt.setInt(3, parseInt(idInventarioMovimento));
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
+function atualizarResumoVoucher(dadosVoucher, conn){
+    let idx = 0;
+    let { IDVOUCHER, STTIPOTROCA, STSTATUS, IDFUNCIONARIO, DSMOTIVOTROCASTATUS, STATIVO, STCANCELADO } = dadosVoucher;
+
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."RESUMOVOUCHER" 
+        SET
+            "DTULTALTERACAO" = CURRENT_TIMESTAMP,
+            "STATIVO" = ?,
+            "STCANCELADO" = ?,
+            "DSMOTIVOCANCELAMENTO" = ?,
+            "IDUSRCANCELAMENTO" = ?,
+            "STSTATUS" = ?,
+            "STTIPOTROCA" = ?,
+            "IDUSRULTALTERACAO" = ?
+        WHERE 
+            "IDVOUCHER" =  ?
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setString(++idx, STATIVO);
+    pStmt.setString(++idx, STCANCELADO);
+    setStringOrNull(pStmt, ++idx, (STCANCELADO == 'True' ? DSMOTIVOTROCASTATUS : null));
+    setIntOrNull(pStmt, ++idx, (STCANCELADO == 'True' ? IDFUNCIONARIO : null));
+    pStmt.setString(++idx, STSTATUS);
+    pStmt.setString(++idx, STTIPOTROCA);
+    pStmt.setInt(++idx, IDFUNCIONARIO);
+    pStmt.setInt(++idx, IDVOUCHER);
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
+function atualizarStatusDetalheVoucher(idVoucher, stCancelado, conn){
+    let stAtivo = stCancelado == 'False' ? 'True' : 'False';
+    
+    let query = `
+        UPDATE 
+            "VAR_DB_NAME"."DETALHEVOUCHER" 
+        SET
+            "STATIVO" = ?, 
+            "STCANCELADO" = ?
+        WHERE 
+            "IDVOUCHER" = ? 
+    `;
+    
+    let pStmt = conn.prepareStatement(api.replaceDbName(query));
+	
+    pStmt.setString(1, stAtivo);
+    pStmt.setString(2, stCancelado);
+    pStmt.setInt(3, parseInt(idVoucher));
+    
+    pStmt.execute();
+	pStmt.close();
+}
+
+// INSERT
+function inserirInventarioMovimentoEntrada(dadosInventarioMovimento, conn){
+    let idx = 0;
+    let {
+        idEmpresa,
+        idProduto,
+        qtdInicio,
+        qtdEntradaVoucher,
+        qtdEntrada,
+        qtdSaida,
+        qtdSaidaTransferencia,
+        qtdRetornoAjustePedido,
+        qtdFinal,
+        qtdAjusteBalanco
+    } = dadosInventarioMovimento;
+    
+    var query = `
+        INSERT INTO 
+            "VAR_DB_NAME"."INVENTARIOMOVIMENTO"
+        (
+            "IDINVMOVIMENTO",
+            "DTMOVIMENTO",
+            "STATIVO",
+            "IDEMPRESA",
+            "IDPRODUTO",
+            "QTDINICIO",
+            "QTDENTRADAVOUCHER",
+            "QTDENTRADA",
+            "QTDSAIDA",
+            "QTDSAIDATRANSFERENCIA",
+            "QTDRETORNOAJUSTEPEDIDO",
+            "QTDAJUSTEBALANCO",
+            "QTDFINAL"
+        )
+        VALUES("VAR_DB_NAME"."SEQ_INVENTARIOMOVIMENTO".NEXTVAL, now(), 'True', ?,?,?,?,?,?,?,?,?,?) 
+    `;
+    
+    var pStmt = conn.prepareStatement(api.replaceDbName(query));
+    
+    pStmt.setInt(++idx, parseInt(idEmpresa));
+    pStmt.setString(++idx, idProduto);
+    pStmt.setInt(++idx, qtdInicio);
+    pStmt.setInt(++idx, qtdEntradaVoucher);
+    pStmt.setInt(++idx, qtdEntrada);
+    pStmt.setInt(++idx, qtdSaida);
+    pStmt.setInt(++idx, qtdSaidaTransferencia);
+    pStmt.setInt(++idx, qtdRetornoAjustePedido);
+    pStmt.setInt(++idx, qtdAjusteBalanco);
+    pStmt.setInt(++idx, qtdFinal);
+    
+    pStmt.execute();
+    pStmt.close();
+}
+
+function movimentarInventarioMovimento(idEmpresa, listaProdutosParaMovimentar, conn, tpOperacao = "ENTRADA_VOUCHER"){
+    let listaProdutosParaMovimentarFormatada = formatarListaProdutosEmAgrupamento(listaProdutosParaMovimentar);
+    let dataMovimentoHoje = getDataHoje();
+
+    for (let registro of listaProdutosParaMovimentarFormatada) {
+        let qtdInicio = 0;
+        let qtdEntrada = 0;
+        let qtdEntradaVoucher = 0;
+        let qtdSaida = 0;
+        let qtdSaidaTransferencia = 0;
+        let qtdRetornoAjustePedido = 0;
+        let qtdAjusteBalanco = 0;
+        let qtdFinal = 0;
         
-        if (stCancelado  == 'False'){
-            stTroca = 'True';
+        if(registro.QTD <= 0){
+            erro('Quantidade a ser movimentada não pode ser menor que 1');
+        }
+        
+        let regInventarioMovimentoAtivo = getInventarioMovimentoAtivo(parseInt(idEmpresa), registro.IDPRODUTO);
+        let stExisteMovimentoAtivo = regInventarioMovimentoAtivo.length > 0;
+        let stCriarNovoMovimento = !stExisteMovimentoAtivo || (stExisteMovimentoAtivo && regInventarioMovimentoAtivo[0].DTMOVIMENTO != dataMovimentoHoje.trim());
+        
+        //Negativa a quantidade do voucher em caso de cancelamento;
+        qtdEntradaVoucher = tpOperacao == "ENTRADA_VOUCHER" ? parseInt(registro.QTD) : -parseInt(registro.QTD);
+       
+        if(stCriarNovoMovimento){
             
-            if((stStatus == 'NOVO' || stStatus == 'EM ANALISE' || stStatus == 'LIBERADO PARA O CLIENTE' || stStatus == 'FINALIZADO') && (!detalheProdVoucher[0]['STSTATUS'] || detalheProdVoucher[0]['STSTATUS'] == 'CANCELADO' || detalheProdVoucher[0]['STSTATUS'] == 'NEGADO')) {
-               fnIncluirInventarioMovimentoEntrada(detalheProdVoucher[0]['IDEMPRESAORIGEM'], detalheProdVoucher, conn);
+            if(stExisteMovimentoAtivo){
+               let idInventarioMovimento = parseInt(regInventarioMovimentoAtivo[0].IDINVMOVIMENTO);
+               
+               qtdInicio =  parseInt(regInventarioMovimentoAtivo[0].QTDFINAL);
+               
+               inativarInventarioMovimento(idInventarioMovimento, conn);
+               
             }
+            
+            qtdFinal = qtdInicio + qtdEntradaVoucher;
+            
+            let dadosInventarioMovimento = {
+                idEmpresa,
+                qtdInicio,
+                qtdEntradaVoucher,
+                qtdEntrada,
+                qtdSaida,
+                qtdSaidaTransferencia,
+                qtdRetornoAjustePedido,
+                qtdAjusteBalanco,
+                qtdFinal,
+                idProduto: registro.IDPRODUTO,
+            };
+            
+            inserirInventarioMovimentoEntrada(dadosInventarioMovimento, conn);
             
         } else {
+            let idInventarioMovimento = parseInt(regInventarioMovimentoAtivo[0].IDINVMOVIMENTO);
             
-            if((stStatus == 'CANCELADO' || stStatus == 'NEGADO') && (!detalheProdVoucher[0]['STSTATUS'] || detalheProdVoucher[0]['STSTATUS'] == 'NOVO' || detalheProdVoucher[0]['STSTATUS'] == 'EM ANALISE' || detalheProdVoucher[0]['STSTATUS'] == 'LIBERADO PARA O CLIENTE' || detalheProdVoucher[0]['STSTATUS'] == 'FINALIZADO')) {
-                fnIncluirInventarioMovimentoSaida(detalheProdVoucher[0]['IDEMPRESAORIGEM'], detalheProdVoucher, conn);
-            }
-            
+            atualizarInventarioMovimentoAtivoComQuantidadeEntradaVoucher(idInventarioMovimento, qtdEntradaVoucher, conn);
         }
         
-        
-        var queryUpdateDetalheVenda = `
-            UPDATE 
-                "VAR_DB_NAME"."VENDADETALHE" 
-            SET
-                STTROCA = ? 
-            WHERE 
-                "IDVOUCHER" = ? 
-        `;
-        
-        var queryUpdateDetalheVoucher = `
-            UPDATE 
-                "VAR_DB_NAME"."DETALHEVOUCHER" 
-            SET
-                "STATIVO" = ?, 
-                "STCANCELADO" = ?
-            WHERE 
-                "IDVOUCHER" = ? 
-        `;
-        
-        var pStmtUpdateDetalheVenda = conn.prepareStatement(api.replaceDbName(queryUpdateDetalheVenda));
-        var pStmtUpdateDetalheVoucher = conn.prepareStatement(api.replaceDbName(queryUpdateDetalheVoucher));
-        
-        pStmtUpdateDetalheVenda.setString(1, stTroca);
-        pStmtUpdateDetalheVenda.setInt(2, parseInt(idVoucher));
-        
-        pStmtUpdateDetalheVoucher.setString(1, stTroca);
-        pStmtUpdateDetalheVoucher.setString(2, stCancelado);
-        pStmtUpdateDetalheVoucher.setInt(3, parseInt(idVoucher));
-        
-        pStmtUpdateDetalheVenda.execute();
-        pStmtUpdateDetalheVoucher.execute();
-        
-        conn.commit();
-        
-        pStmtUpdateDetalheVenda.close();
-        pStmtUpdateDetalheVoucher.close();
     }
-    
-    return {
-	   msg : "Atualização realizada com sucesso!"
-	};
+   
 }
 
-function fnInserirHistoricoVoucher(dadosVoucher, conn){
+function inserirHistoricoVoucher(dadosVoucher, conn){
     let { IDVOUCHER, STTIPOTROCA, STSTATUS, IDFUNCIONARIO, DSMOTIVOTROCASTATUS } = dadosVoucher;
     
     let queryInsertHistorico = `
@@ -406,344 +662,7 @@ function fnInserirHistoricoVoucher(dadosVoucher, conn){
     
     pStmtInsert.close();
 }
-
-function fnIncluirInventarioMovimentoEntrada(idEmpresa, lstProd, conn) {
-    var qtdInicio = 0;
-	var qtdEntrada = 0;
-	var qtdSaida = 0;
-	var qtdSaidaTransferencia = 0;
-	var qtdRetornoAjustePedido = 0;
-	var qtdFinal = 0;
-	var qtdAjusteBalanco = 0;
-	var qtdEntradaVoucher = 0;
-	
-	var date = new Date();
-	var dd = ("0" + date.getDate()).slice(-2);
-    var mm = ("0" + (date.getMonth() + 1)).slice(-2);
-    var y = date.getFullYear();
- 
-    var dataVoucher = y + '-' + mm + '-' + dd;
-    var conn2 = conn; //$.db.getConnection();
-		
-    for (var i = 0; i < lstProd.length; i++) {
-        var registro = lstProd[i];
-        
-        var queryExistsMov = ' SELECT *  FROM "VAR_DB_NAME"."INVENTARIOMOVIMENTO" WHERE ' +
-        ' IDPRODUTO=\''+ registro.IDPRODUTO+'\'' +
-        ' AND (DTMOVIMENTO  BETWEEN \'' + dataVoucher + ' 00:00:00\' AND \'' + dataVoucher + ' 23:59:59\')' +
-        ' AND IDEMPRESA = ? AND STATIVO=\'True\'';
-    
-         var idMovExists = api.sqlQuery(queryExistsMov, parseInt(idEmpresa));
-         
-           
-        if(idMovExists.length === 0){
-            qtdInicio = 0;
-            var queryMovAnt = 'SELECT * '+
-            ' FROM "VAR_DB_NAME"."INVENTARIOMOVIMENTO" WHERE STATIVO = \'True\''+
-            ' AND IDPRODUTO=\''+ registro.IDPRODUTO+'\''+
-            ' AND IDEMPRESA = ? ';
-            
-            var UltMovimentoProduto = api.sqlQuery(queryMovAnt, parseInt(idEmpresa));
-            
-            if(UltMovimentoProduto.length > 0){
-               
-               qtdInicio =  parseInt(UltMovimentoProduto[0].QTDFINAL);
-               qtdEntradaVoucher = parseInt(registro.QTD);
-               qtdFinal = qtdInicio + qtdEntradaVoucher;
-               //Atualiza o status para false do Ultimo Movimento
-               var queryAtualizaStatus = 'UPDATE "VAR_DB_NAME"."INVENTARIOMOVIMENTO" SET ' + 
-        		' "STATIVO" = \'False\'' +
-                ' WHERE "IDINVMOVIMENTO" =  ? ';
-                
-                var pStmtAtualizaStatus = conn2.prepareStatement(api.replaceDbName(queryAtualizaStatus));
-                pStmtAtualizaStatus.setInt(1, parseInt(UltMovimentoProduto[0].IDINVMOVIMENTO));
-                pStmtAtualizaStatus.execute();
-                pStmtAtualizaStatus.close();
-                conn2.commit();
-            }else{
-                
-               qtdEntradaVoucher = parseInt(registro.QTD);
-               qtdFinal = qtdInicio + qtdEntradaVoucher;
-            }
-            
-            
-    	    var query = 'INSERT INTO "VAR_DB_NAME"."INVENTARIOMOVIMENTO" ' +
-    		" ( " +
-    		' "IDINVMOVIMENTO", ' +
-    		' "IDEMPRESA", ' +
-    		' "DTMOVIMENTO", ' +
-    		' "IDPRODUTO", ' +
-    	    ' "QTDINICIO", ' +
-    	    ' "QTDENTRADAVOUCHER", '+
-    		' "QTDENTRADA", ' +
-    		' "QTDSAIDA", ' +
-    		' "QTDSAIDATRANSFERENCIA", ' +
-    		' "QTDRETORNOAJUSTEPEDIDO", ' +
-    		' "QTDFINAL", ' +
-    		' "QTDAJUSTEBALANCO", ' +
-    		' "STATIVO" ' +
-    		' ) ' +
-    		' VALUES("VAR_DB_NAME"."SEQ_INVENTARIOMOVIMENTO".NEXTVAL,?,now(),?,?,?,?,?,?,?,?,?,\'True\') ';
-    
-        	var pStmt = conn2.prepareStatement(api.replaceDbName(query));
-            	
-            pStmt.setInt(1, parseInt(idEmpresa));
-            pStmt.setString(2, registro.IDPRODUTO);
-        	pStmt.setInt(3, qtdInicio);
-        	pStmt.setInt(4, qtdEntradaVoucher);
-        	pStmt.setInt(5, qtdEntrada);
-        	pStmt.setInt(6, qtdSaida);
-        	pStmt.setInt(7, qtdSaidaTransferencia);
-        	pStmt.setInt(8, qtdRetornoAjustePedido);
-        	pStmt.setInt(9, qtdFinal);
-        	pStmt.setInt(10, qtdAjusteBalanco);
-        	
-        	pStmt.execute();
-        	pStmt.close();
-        	conn2.commit();
-        }else{
-    
-            qtdEntradaVoucher = parseInt(registro.QTD) + parseInt(idMovExists[0].QTDENTRADAVOUCHER);
-            qtdFinal = parseInt(idMovExists[0].QTDINICIO) + parseInt(idMovExists[0].QTDENTRADA) + qtdEntradaVoucher - parseInt(idMovExists[0].QTDSAIDA) - parseInt(idMovExists[0].QTDSAIDATRANSFERENCIA);
-            
-             var queryAtualizaMovimento = 'UPDATE "VAR_DB_NAME"."INVENTARIOMOVIMENTO" SET ' + 
-                ' "QTDENTRADAVOUCHER" =  ?, ' +
-        		' "QTDFINAL" =  ? ' +
-        		' WHERE "IDINVMOVIMENTO" =  ? ';
-                
-                var pStmt2 = conn2.prepareStatement(api.replaceDbName(queryAtualizaMovimento));
-                
-            	
-            	pStmt2.setInt(1, qtdEntradaVoucher);
-            	pStmt2.setInt(2, qtdFinal);
-            	
-                pStmt2.setInt(3, parseInt(idMovExists[0].IDINVMOVIMENTO));
-                pStmt2.execute();
-                pStmt2.close();
-                conn2.commit();
-        }
-        
-    }
-   
-}
-
-function fnIncluirInventarioMovimentoSaida(idempresa, lstProdMov, conn) {
-	
-	var qtdInicio = 0;
-    var qtdEntrada = 0;
-	var qtdSaida = 0;
-	var qtdSaidaTransferencia = 0;
-	var qtdRetornoAjustePedido = 0;
-	var qtdFinal = 0;
-	var qtdEntradaVoucher = 0;
-	var qtdAjusteBalanco = 0;
-	
-	var date = new Date();
-	var dd = ("0" + date.getDate()).slice(-2);
-    var mm = ("0" + (date.getMonth() + 1)).slice(-2);
-    var y = date.getFullYear();
- 
-    var data = y + '-' + mm + '-' + dd;
-
-    
-    for (var i = 0; i < lstProdMov.length; i++) {
-        
-        var registro = lstProdMov[i];
-        
-        let queryExistsMov = ' SELECT * FROM "VAR_DB_NAME"."INVENTARIOMOVIMENTO" WHERE ' +
-        ' IDPRODUTO=\''+ registro.IDPRODUTO+'\'' +
-        ' AND (DTMOVIMENTO  BETWEEN \'' + data + ' 00:00:00\' AND \'' + data + ' 23:59:59\')' +
-        ' AND IDEMPRESA = ?  and STATIVO=\'True\'';
-    
-         let idMovExists = api.sqlQuery(queryExistsMov, idempresa);
-         
-       
-        
-        if(idMovExists.length === 0){
-             
-            let queryMovAnt = 'SELECT * '+
-            ' FROM "VAR_DB_NAME"."INVENTARIOMOVIMENTO" WHERE STATIVO = \'True\''+
-            ' AND IDPRODUTO=\''+ registro.IDPRODUTO +'\''+
-            ' AND IDEMPRESA = ? ';
-            
-            let UltMovimentoProduto = api.sqlQuery(queryMovAnt, idempresa);
-           
-            if(UltMovimentoProduto.length > 0){
-               qtdInicio =  parseInt(UltMovimentoProduto[0].QTDFINAL);
-               qtdEntradaVoucher = - parseInt(registro.QTD);
-               qtdFinal = qtdInicio + qtdEntradaVoucher;
-               
-               //Atualiza o status para false do Ultimo Movimento
-               let queryAtualizaStatus = 'UPDATE "VAR_DB_NAME"."INVENTARIOMOVIMENTO" SET ' + 
-        		' "STATIVO" = \'False\'' +
-                ' WHERE "IDINVMOVIMENTO" =  ? ';
-                
-                let pStmtAtualizaStatus = conn.prepareStatement(api.replaceDbName(queryAtualizaStatus));
-                
-                pStmtAtualizaStatus.setInt(1, parseInt(UltMovimentoProduto[0].IDINVMOVIMENTO));
-                
-                pStmtAtualizaStatus.execute();
-                pStmtAtualizaStatus.close();
-                conn.commit();
-            }else{
-               qtdInicio = 0;
-               qtdEntradaVoucher = -parseInt(registro.QTD);
-               qtdFinal = qtdInicio + qtdEntradaVoucher;
-            }
-            
-            
-    	    var query = 'INSERT INTO "VAR_DB_NAME"."INVENTARIOMOVIMENTO" ' +
-    		" ( " +
-    		' "IDINVMOVIMENTO", ' +
-    		' "IDEMPRESA", ' +
-    		' "DTMOVIMENTO", ' +
-    		' "IDPRODUTO", ' +
-    	    ' "QTDINICIO", ' +
-    	    ' "QTDENTRADAVOUCHER", '+
-    		' "QTDENTRADA", ' +
-    		' "QTDSAIDA", ' +
-    		' "QTDSAIDATRANSFERENCIA", ' +
-    		' "QTDRETORNOAJUSTEPEDIDO", ' +
-    		' "QTDFINAL", ' +
-    		' "QTDAJUSTEBALANCO", ' +
-    		' "STATIVO" ' +
-    		' ) ' +
-    		' VALUES("VAR_DB_NAME"."SEQ_INVENTARIOMOVIMENTO".NEXTVAL,?,now(),?,?,?,?,?,?,?,?,?,\'True\') ';
-    
-        	var pStmt = conn.prepareStatement(api.replaceDbName(query));
-            	
-            pStmt.setInt(1, parseInt(idempresa));
-            pStmt.setString(2, registro.IDPRODUTO);
-        	pStmt.setInt(3, qtdInicio);
-        	pStmt.setInt(4, qtdEntradaVoucher);
-        	pStmt.setInt(5, qtdEntrada);
-        	pStmt.setInt(6, qtdSaida);
-        	pStmt.setInt(7, qtdSaidaTransferencia);
-        	pStmt.setInt(8, qtdRetornoAjustePedido);
-        	pStmt.setInt(9, qtdFinal);
-        	pStmt.setInt(10, qtdAjusteBalanco);
-        	
-        	pStmt.execute();
-        	pStmt.close();
-        	
-        }else{
-            qtdInicio = parseInt(idMovExists[0].QTDINICIO);
-            qtdSaida = parseInt(idMovExists[0].QTDSAIDA);
-            qtdEntradaVoucher = parseInt(idMovExists[0].QTDENTRADAVOUCHER) - parseInt(registro.QTD);
-            qtdFinal = parseInt(idMovExists[0].QTDINICIO) + parseInt(idMovExists[0].QTDENTRADA) + qtdEntradaVoucher - parseInt(idMovExists[0].QTDSAIDA) + parseInt(idMovExists[0].QTDSAIDATRANSFERENCIA);
-            
-            let queryAtualizaMovimento = 'UPDATE "VAR_DB_NAME"."INVENTARIOMOVIMENTO" SET ' + 
-             //   ' "QTDSAIDA" =  ?, ' +
-        		' "QTDFINAL" =  ?, ' +
-        		' "QTDENTRADAVOUCHER" = ? ' +
-        		' WHERE "IDINVMOVIMENTO" =  ? ';
-                
-             let pStmt2 = conn.prepareStatement(api.replaceDbName(queryAtualizaMovimento));
-                
-            	
-            //pStmt2.setInt(1, parseInt(qtdSaida));
-            	
-            	pStmt2.setInt(1, parseInt(qtdFinal));
-            	
-            	pStmt2.setInt(2, parseInt(qtdEntradaVoucher));
-            	
-                pStmt2.setInt(3, parseInt(idMovExists[0].IDINVMOVIMENTO));
-                
-                pStmt2.execute();
-                pStmt2.close();
-                conn.commit();
-                
-        }
-        
-    }
-   
-    conn.commit();
-}
-
-function fnHandlePut() {
-    let conn = $.db.getConnection();
-    let bodyJson = JSON.parse($.request.body.asString());
-    let STATIVO;
-    let STCANCELADO;
-    
-    let queryUpdateVoucher = `
-        UPDATE 
-            "VAR_DB_NAME"."RESUMOVOUCHER" 
-        SET
-            "STATIVO" = ?,
-            "STCANCELADO" = ?,
-            "DSMOTIVOCANCELAMENTO" = ?,
-            "IDUSRCANCELAMENTO" = ?,
-            "STSTATUS" = ?,
-            "STTIPOTROCA" = ?,
-            "IDUSRULTALTERACAO" = ?,
-            "DTULTALTERACAO" = CURRENT_TIMESTAMP
-        WHERE 
-            "IDVOUCHER" =  ?
-    `;
-    
-    let pStmtUpdate = conn.prepareStatement(api.replaceDbName(queryUpdateVoucher));
-    
-    for (let i = 0; i < bodyJson.length; i++) {
-        
-        fnAuthUserUpdate(bodyJson[i]);
-        
-        let { IDVOUCHER, STTIPOTROCA, STSTATUS, IDFUNCIONARIO, DSMOTIVOTROCASTATUS } = bodyJson[i];
-        
-        if (STSTATUS == 'NOVO' || STSTATUS == 'LIBERADO PARA O CLIENTE') {
-            STATIVO = 'True';
-            STCANCELADO = 'False';
-        } else if (STSTATUS == 'CANCELADO' || STSTATUS == 'NEGADO') {
-            STATIVO = 'False';
-            STCANCELADO = 'True';
-        } else if (STSTATUS == 'EM ANALISE' || STSTATUS == 'FINALIZADO') {
-            STATIVO = 'False';
-            STCANCELADO = 'False';
-        }
-        
-        let queryVoucher = `
-            SELECT 
-                *
-            FROM
-                "VAR_DB_NAME".RESUMOVOUCHER
-            WHERE 
-                IDVOUCHER = ?
-            
-        `;
-        
-        let regVoucher = api.sqlQuery(queryVoucher, IDVOUCHER);
-        
-        if(regVoucher.length){
-            
-        }
-        
-        if(IDVOUCHER){
-           fnAtualizaStatusProdutosOrigemVoucher(IDVOUCHER, STATIVO, STCANCELADO, STSTATUS, conn)
-        }
-        
-        pStmtUpdate.setString(1, STATIVO);
-        pStmtUpdate.setString(2, STCANCELADO);
-        setStringOrNull(pStmtUpdate, 3, (STCANCELADO == 'True' ? DSMOTIVOTROCASTATUS : null));
-        setIntOrNull(pStmtUpdate, 4, (STCANCELADO == 'True' ? IDFUNCIONARIO : null));
-        pStmtUpdate.setString(5, STSTATUS);
-        pStmtUpdate.setString(6, STTIPOTROCA);
-        pStmtUpdate.setInt(7, IDFUNCIONARIO);
-        pStmtUpdate.setInt(8, IDVOUCHER);
-        
-        fnInserirHistoricoVoucher(bodyJson[i], conn);
-        
-        pStmtUpdate.execute();
-        
-    }
-    
-    pStmtUpdate.close();
-
-    conn.commit();
-    
-    return {
-	    msg : "Atualização realizada com sucesso!"
-	};
-}
+// Fim Persistencia
 
 function fnHandleGet(byId) {
 
@@ -853,6 +772,92 @@ function fnHandleGet(byId) {
     };
     
     api.responseWithQuery(query, request, 1);
+}
+
+// Atualizar Status Voucher e Estoque se necessario
+function fnHandlePut() {
+    let idVoucher;
+   try {
+        var conn = $.db.getConnection();
+        let bodyJson = JSON.parse($.request.body.asString());
+        
+        for (let registro of bodyJson) {
+            
+            fnAuthUserUpdate(registro);
+            
+            let stAtivo;
+            let stCancelado;
+            
+            let { IDVOUCHER, STTIPOTROCA, STSTATUS, IDFUNCIONARIO, DSMOTIVOTROCASTATUS } = registro;
+            let { IDEMPRESA, STATIVO_ORIGINAL, STCANCELADO_ORIGINAL, STSTATUS_ORIGINAL } = getDadosStatusResumoVoucher(IDVOUCHER);
+            let dadosVendaOrigemAtiva = getVendaOrigemAtiva(IDVOUCHER);
+            let dadosVendaDestinoAtiva = getVendaDestinoAtiva(IDVOUCHER);
+            let stVendaOrigemAtiva = dadosVendaOrigemAtiva.length > 0 && dadosVendaOrigemAtiva[0].STCANCELADO == 'False';
+            let stVendaDestinoAtiva = dadosVendaDestinoAtiva.length > 0 && dadosVendaDestinoAtiva[0].STCANCELADO == 'False';
+            
+            idVoucher = !idVoucher ? IDVOUCHER :    idVoucher
+            
+            if(!stVendaOrigemAtiva){
+                erro('Venda Origem Cancelada');
+            }
+            
+            if(stVendaDestinoAtiva && STSTATUS != 'FINALIZADO'){
+                erro('Venda Destino Ativa');
+            }
+            
+            let stMovimentarInventario = validarSePrecisaMovimentarIrnventario(STSTATUS_ORIGINAL, STSTATUS);
+            
+            if (STSTATUS == 'NOVO' || STSTATUS == 'LIBERADO PARA O CLIENTE') {
+                stAtivo = 'True';
+                stCancelado = 'False';
+            } else if (STSTATUS == 'CANCELADO' || STSTATUS == 'NEGADO') {
+                stAtivo = 'False';
+                stCancelado = 'True';
+            } else if (STSTATUS == 'EM ANALISE' || STSTATUS == 'FINALIZADO') {
+                stAtivo = 'False';
+                stCancelado = 'False';
+            } else {
+                erro('Status Invalido');
+            }
+            
+            registro.STATIVO = stAtivo;
+            registro.STCANCELADO = stCancelado;
+            
+            atualizarResumoVoucher(registro, conn)
+            atualizarStatusDetalheVoucher(IDVOUCHER, stCancelado, conn);
+            
+            if(stMovimentarInventario){
+                let listaProdutosVoucherParaMovimentar = getListaProdutosVoucher(IDVOUCHER);
+                let tpOperacao = stCancelado == 'False' ? "ENTRADA_VOUCHER" : "ESTORNO_VOUCHER";
+                
+                if(listaProdutosVoucherParaMovimentar.length > 0){
+                    let idEmpresa = listaProdutosVoucherParaMovimentar[0].IDEMPRESA;
+                    
+                    movimentarInventarioMovimento(idEmpresa, listaProdutosVoucherParaMovimentar, conn, tpOperacao);
+                    
+                } else {
+                    erro('Nao há produtos vinculados a este voucher');
+                }
+            }
+            
+            inserirHistoricoVoucher(registro, conn);
+        }
+        
+        //conn.commit();
+        
+    } catch(e){
+        conn.rollback();
+        
+        throw e;
+        
+    } finally{
+        conn.close();
+    }
+    
+    return {
+        "msg": "Voucher atualizado com sucesso!",
+        "IDVOUCHER": idVoucher
+    };
 }
 
 $.response.contentType = 'application/json';

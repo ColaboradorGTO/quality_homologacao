@@ -1,5 +1,5 @@
 let api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
-let idsOutlets = ['31','51','67','70','76','89','104','109','113','116'];
+let idsOutlets = [/*'31',*/'51','70','116'];
 
 function fnHandleGet(byId) {
      var idSubGrupoEmpresa = $.request.parameters.get("idSubGrupoEmpresa");

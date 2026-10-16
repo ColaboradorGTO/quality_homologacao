@@ -1,36 +1,41 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function fnHandleGet(byId) {
-
-    var descGrupoCor = $.request.parameters.get("descGrupoCor");
-    var idGrupoCor = $.request.parameters.get("idGrupoCor");
+    let idGrupoCor = $.request.parameters.get("idGrupoCor");
+    let descGrupoCor = $.request.parameters.get("descGrupoCor");
+    let stAtivo = $.request.parameters.get("stAtivo");
     
-    var query = ' SELECT ' + 
-    '   A.IDGRUPOCOR, ' + 
-    '   A.DSGRUPOCOR, ' +  
-    '   A.STATIVO ' + 
-    '   FROM "VAR_DB_NAME".GRUPOCOR A ' + 
-    ' WHERE ' +
-    '	1 = ?' +
-    '   AND A.STATIVO = \'True\'';
+    let query = `
+        SELECT 
+            A.IDGRUPOCOR, 
+            A.DSGRUPOCOR,
+            A.STBLOQUEADOPARACADASTROPRODUTONOVO,
+            A.STATIVO
+        FROM 
+            "VAR_DB_NAME".GRUPOCOR A 
+        WHERE
+            1 = ?
+    `;
     
     if(idGrupoCor){
-        query = query + ' And  A.IDGRUPOCOR IN ( ' + idGrupoCor + ')  ';
+        query += ` AND A.IDGRUPOCOR IN ( '${idGrupoCor}')  `;
     }
     
     if ( byId ) {
-        query = query + ' And  A.IDGRUPOCOR = \'' + byId + '\' ';
+        query += ` AND A.IDGRUPOCOR = '${byId}' `;
     }
 
     if ( descGrupoCor ) {
-        query = query + ' And  (A.DSGRUPOCOR LIKE \'%'+descGrupoCor+'%\' OR A.DSGRUPOCOR LIKE \'%'+descGrupoCor+'%\' ) ';
+        query += ` AND CONTAINS(A.DSGRUPOCOR, '%${descGrupoCor}%') `;
     }
     
+    if(stAtivo){
+      query += ` AND A.STATIVO = '${stAtivo}' `;
+    }
 
-    query = query + ' ORDER BY A."DSGRUPOCOR"';
-
+    query += ' ORDER BY A."DSGRUPOCOR" ';
     
-    var request = { 
+    let request = { 
         page:  $.request.parameters.get("page"),
         pageSize:  $.request.parameters.get("pageSize")
     };

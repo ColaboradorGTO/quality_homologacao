@@ -215,6 +215,26 @@ function fnUpdateBloquearLinhaEnquantoAtualiza(idsDepositos, status = 'True'){
     return true;
 }
 
+function fnGetDadosContaDestinoPagar(acctCode){
+    let query = `
+        SELECT
+            A."AcctCode" AS "CONTA",
+            A."AcctName" AS "NOMECONTA"
+        FROM
+            ${dbNameSAP}.OACT A
+        WHERE 
+            A."AcctCode" = ?
+    `;
+    
+    let result = api.sqlQuery(query, acctCode) || [];
+    
+    if(result.length){
+        return result[0]
+    }
+    
+    return [];
+}
+
 function fnMontarJsonContasPagar(dadosDeposito){
     let {
         IDDEPOSITOLOJA,
@@ -235,6 +255,8 @@ function fnMontarJsonContasPagar(dadosDeposito){
     let dataDeposito = DTDEPOSITO;
     let cashAccount = fnGetContaCaixaEmpresa(IDEMPRESA);
     let accountCode = (TPCONTA == 'TRANSPORTEVALORES' || TPCONTA == 'DEVSOBRA') ? NUCONTASAP : '1.01.01.01.0003';
+    let dadosAccount = fnGetDadosContaDestinoPagar(accountCode);
+    let accountName = dadosAccount["NOMECONTA"];
     let series = 18;
     
     return {
@@ -251,6 +273,7 @@ function fnMontarJsonContasPagar(dadosDeposito){
         "BPLID": IDEMPRESA,
         "U_IS_ID_QUALITY": String(IDDEPOSITOLOJA),
         "U_ITV_Num_Caixa": NUCPF,
+        "CardName": accountName,
         "PaymentAccounts": [
             {
                 "LineNum": 0,
@@ -435,7 +458,7 @@ function fnIntegrarContasReceber(idsDepositos){
 
 function integrarDepositosNoSAP(byId) {
 	let bodyJson = JSON.parse($.request.body.asString()); 
-
+    return bodyJson;
     if(bodyJson.length > 0){
         let ids = '';
         

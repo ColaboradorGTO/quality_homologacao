@@ -1,5 +1,59 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
+function obterPCJ(idMovimento) {
+  var query = `
+        SELECT 
+      SUM(tbv.VRRECCARTAO) AS TOTALVENDIDOCARTAO,
+      (
+        SELECT IFNULL(SUM(tbvp.VALORRECEBIDO), 0) 
+        FROM "VAR_DB_NAME".VENDAPAGAMENTO tbvp 
+        INNER JOIN "VAR_DB_NAME".VENDA tbv1 
+        ON tbvp.IDVENDA = tbv1.IDVENDA 
+        WHERE tbv1.IDMOVIMENTOCAIXAWEB = '${idMovimento}' 
+        AND tbv1.STCANCELADO = 'False' 
+        AND (tbvp.STCANCELADO = 'False' OR tbvp.STCANCELADO IS NULL) 
+        AND (tbvp.NOAUTORIZADOR = 'Credsystem' OR tbvp.NOAUTORIZADOR = 'CREDSYSTEM' OR tbvp.NOAUTORIZADOR = 'PL') 
+        AND (tbvp.DSTIPOPAGAMENTO != 'GIRO PREMIADO' AND tbvp.DSTIPOPAGAMENTO != 'RECORD TV NAS CIDADES')
+        AND tbvp.NPARCELAS >= 7
+      ) AS TOTALPCJ78,
+      (
+        SELECT IFNULL(SUM(tbvp.VALORRECEBIDO), 0) 
+        FROM "VAR_DB_NAME".VENDAPAGAMENTO tbvp 
+        INNER JOIN "VAR_DB_NAME".VENDA tbv1 
+        ON tbvp.IDVENDA = tbv1.IDVENDA 
+        WHERE tbv1.IDMOVIMENTOCAIXAWEB = '${idMovimento}' 
+        AND tbv1.STCANCELADO = 'False' 
+        AND (tbvp.STCANCELADO = 'False' OR tbvp.STCANCELADO IS NULL) 
+        AND (tbvp.NOAUTORIZADOR = 'Credsystem' OR tbvp.NOAUTORIZADOR = 'CREDSYSTEM' OR tbvp.NOAUTORIZADOR = 'PL') 
+        AND (tbvp.DSTIPOPAGAMENTO != 'GIRO PREMIADO' AND tbvp.DSTIPOPAGAMENTO != 'RECORD TV NAS CIDADES')
+      ) AS TOTALPCJ18
+    FROM 
+      "VAR_DB_NAME".VENDA tbv
+    WHERE 
+      tbv.IDMOVIMENTOCAIXAWEB = ?
+      AND tbv.STCANCELADO = 'False'
+  `;
+
+
+	var linhas = api.sqlQuery(query, idMovimento);
+	var lines = [];
+	for (var i = 0; i < linhas.length; i++) {
+		var det = linhas[i];
+
+		var docLine = {
+			"@nItem": i + 1,
+			"venda-pcj": {
+				"TOTALPCJ78":det.TOTALPCJ78,
+        		"TOTALPCJ18":det.TOTALPCJ18
+        	}
+		};
+
+		lines.push(docLine);
+	}
+
+	return lines;
+}
+
 function obterVenda(idMovimento) {
 
 	var query = ' SELECT ' +
@@ -174,7 +228,8 @@ function fnHandleGet(byId) {
 			},
 			"venda": obterVenda(registro.ID),
 			"fatura": obterFatura(idEmpresa, registro.ID),
-			"faturapix": obterFaturaPIX(idEmpresa, registro.ID)
+			"faturapix": obterFaturaPIX(idEmpresa, registro.ID),
+			"vendapcj": obterPCJ(registro.ID)
 			
 		};
 

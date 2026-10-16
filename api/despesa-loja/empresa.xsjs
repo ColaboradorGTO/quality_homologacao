@@ -34,10 +34,10 @@ try {
         '	1 = ?';
         
     if(idDaEmpresa) {
-        query = query + ' AND tbdl.IDEMPRESA = \'' + idDaEmpresa + '\' ';
+        query += ` AND tbdl.IDEMPRESA = '${idDaEmpresa}'`;
     
         if(dataPesquisaInic) {
-            query = query + ' AND (tbdl.DTDESPESA BETWEEN \'' + dataPesquisaInic + ' 00:00:00\' AND \'' + dataPesquisaFim + ' 23:59:59\')';
+            query += ` AND TO_DATE(tbdl.DTDESPESA) BETWEEN '${dataPesquisaInic}' and '${dataPesquisaFim}'`;
         }
     }
     

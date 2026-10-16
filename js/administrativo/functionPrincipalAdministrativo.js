@@ -2899,7 +2899,7 @@ function retornoListaPagamentoPOSSelect(respostaListaDSPagamentoPOS) {
 
 function alterar_pagamentos() {
 
-    if(IDFuncionarioLogin == '30514' || IDFuncionarioLogin == '2001' || IDFuncionarioLogin == '2024' || IDFuncionarioLogin == '5074' || IDFuncionarioLogin == '5025' || IDFuncionarioLogin == '30174'){
+    if(IDFuncionarioLogin == '1492' || IDFuncionarioLogin == '30514' || IDFuncionarioLogin == '2001' || IDFuncionarioLogin == '2024' || IDFuncionarioLogin == '5074' || IDFuncionarioLogin == '5025' || IDFuncionarioLogin == '30174'){
         document.getElementById("idpag").style.display = 'block';
         document.getElementById("buttonpag").style.display = 'block';
         document.getElementById("idbuttonalterar").style.display = 'none';
@@ -4629,187 +4629,188 @@ function alerta_cancelamento_venda_sucesso() {
   }
   
  //================ MENU LISTA VENDA MARCAS ==============================================
-function ListaVendasMarca(){
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    
-        $("#resultado").html(
-          "<div align=\"center\">" +
-          "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>"  +
-          "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-          "</div>"
-        );
-        
-    xmlhttp.onreadystatechange = function () {
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
-        
-            $('.dataAtual').text(dataAtual);
-            $('#dtconsultainicio').val(dataAtualCampo);
-            $('#dtconsultafim').val(dataAtualCampo);
-        
-        	$("#idmarca").select2();
-        	
-            $('.DescTituloListaVendas').html(
-			`<i class='subheader-icon fal fa-chart-area'></i> Lista das Vendas das Marcas - <span class='fw-300'></span>`);
-			
-            ajaxGet('api/informatica/grupoempresas.xsjs')
-                .then(retornoListaGrupoEmpresasSelect)
-                .catch((e) => { funcError(), console.log(e) });
-      } 
-    };
-    xmlhttp.open("GET", "administrativo_action_listvendasmarca.html", true);
-    xmlhttp.send();
-}
+async function ListaVendasMarca(){
+  try{
+    animationLoadingStart();
 
-function pesq_vendas_marcas(){
-    var IDMarcaPesqVenda = $("#idmarca").val();
-    var datapesqinicio = $("#dtconsultainicio").val();
-    var datapesqfim = $("#dtconsultafim").val();
-  
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-   
-    xmlhttp.onreadystatechange = function () {
-        
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("resultado").innerHTML = xmlhttp.responseText;
-        newDataTable();
-        
-        $('.dataAtual').text(dataAtual);
-      
-        ajaxGet('api/financeiro/venda-marca-periodo.xsjs?pageSize=1000&idMarca=' + IDMarcaPesqVenda + '&dataPesquisaInicio=' + datapesqinicio + '&dataPesquisaFim=' + datapesqfim)
-        	.then(retornoListaVendasMarca)
-        	.catch((e) => { funcError(), console.log(e) });
+    let listaMarcas = await ajaxGet('api/informatica/grupoempresas.xsjs');
+    let respHtml = await $.get("administrativo_action_listvendasmarca.html");
+
+    $("#js-page-content").html(respHtml);
+
+    await retornoListaGrupoEmpresasSelect(listaMarcas);
+    
+    $('#dtconsultainicio, #dtconsultafim').val(dataAtualCampo).on('keydown', function (e) {
+      if (e.key === "Enter" || e.keyCode === 13) {
+        e.preventDefault();
+        pesq_vendas_marcas();
       }
-    };
-    
-    xmlhttp.open("GET", "administrativo_action_pesqvendasmarca.html", true);
-    xmlhttp.send();
-} 
+    });
 
-function retornoListaVendasMarca(respostaListaVendasMarcas) {
+    $("#idmarca").select2();
 
-        totalVrRecebidoDinheiro = 0;
-        totalVrRecebidoCartao = 0;
-        totalVrRecebidoPos = 0;
-        totalVrRecebidoConvenio = 0;
-        totalVrRecebidoVoucher = 0;
-        totalVrRecebidoFatura = 0;
-        totalVrDespesaTotal = 0;
-        totalVrDisponivel = 0;
-        totalVrQuebraCaixaMarca = 0;
-        totalVrBrutoMarca = 0;
-        totalVrBrutoVoucherMarca = 0;
-        totalQtdVenda = 0;
-        totalVrPix = 0;
-        
-    if(respostaListaVendasMarcas.data.length != 0){
-    	for (var i = 0; i < respostaListaVendasMarcas.data.length; i++) {
-
-    	    idEmpresa = respostaListaVendasMarcas.data[i]['IDEMPRESA'];
-            noFantasia = respostaListaVendasMarcas.data[i]['NOFANTASIA'];
-            vrRecebidoDinheiro = respostaListaVendasMarcas.data[i]['VRDINHEIRO'];
-            vrRecebidoCartao = respostaListaVendasMarcas.data[i]['VRCARTAO'];
-            vrRecebidoPos = respostaListaVendasMarcas.data[i]['VRPOS'];
-            vrRecebidoPix = respostaListaVendasMarcas.data[i]['VRPIX'];
-            vrRecebidoConvenio = respostaListaVendasMarcas.data[i]['CONVENIO'];
-            vrRecebidoVoucher = respostaListaVendasMarcas.data[i]['VOUCHER'];
-            vrRecebidoFatura = respostaListaVendasMarcas.data[i]['VRFATURA'];
-            vrDespesa = respostaListaVendasMarcas.data[i]['VRDESPESA'];
-            vrAdiantamentoSalario = respostaListaVendasMarcas.data[i]['VRADIANTAMENTOSALARIO'];
-            vrFisicoDinMarca = respostaListaVendasMarcas.data[i]['VRFISICODINHEIRO'];
-            vrRecebidoDinMarca = respostaListaVendasMarcas.data[i]['VRRECDINHEIRO'];
-            qtdVendas = respostaListaVendasMarcas.data[i]['QTDVENDA'];
-             vrTotalPago = respostaListaVendasMarcas.data[i]['VRTOTALPAGO'];
-
-            vrDespesaTotal = parseFloat(vrDespesa) + parseFloat(vrAdiantamentoSalario);
-            vrDisponivelBruto = parseFloat(vrRecebidoDinheiro) + parseFloat(vrRecebidoCartao) + parseFloat(vrRecebidoPos) + parseFloat(vrRecebidoConvenio) + parseFloat(vrRecebidoPix);
-            vrDisponivelBrutoVoucher = parseFloat(vrTotalPago) -  parseFloat(vrRecebidoVoucher);
-            
-            vrQuebraCaixaMarca = parseFloat(vrRecebidoDinMarca) - parseFloat(vrFisicoDinMarca);
-            
-            vrTotalQuebraMarca = parseFloat(vrDisponivelBruto) - parseFloat(vrDespesaTotal);
-            vrTotalQuebraVoucherMarca = parseFloat(vrDisponivelBrutoVoucher) - parseFloat(vrDespesaTotal);
-            vrDisponivel = parseFloat(vrDisponivelBrutoVoucher);
-            
-            if(vrQuebraCaixaMarca>0){
-                tagquebracaixaMarca = '<td style="text-align: right;"><label style="color: blue;"> + ' + mascaraValor(parseFloat(vrQuebraCaixaMarca).toFixed(2)) + '</label></td>';
-            }else{
-                tagquebracaixaMarca = '<td style="text-align: right;"><label style="color: red;"> - ' + mascaraValor(parseFloat(vrQuebraCaixaMarca).toFixed(2)) + '</label></td>';
-            }
-
-            totalVrRecebidoDinheiro = parseFloat(totalVrRecebidoDinheiro) + parseFloat(vrRecebidoDinheiro);
-            totalVrRecebidoCartao = parseFloat(totalVrRecebidoCartao) + parseFloat(vrRecebidoCartao);
-            totalVrRecebidoPos = parseFloat(totalVrRecebidoPos) + parseFloat(vrRecebidoPos);
-            totalVrRecebidoConvenio = parseFloat(totalVrRecebidoConvenio) + parseFloat(vrRecebidoConvenio);
-            totalVrRecebidoVoucher = parseFloat(totalVrRecebidoVoucher) + parseFloat(vrRecebidoVoucher);
-            totalVrRecebidoFatura = parseFloat(totalVrRecebidoFatura) + parseFloat(vrRecebidoFatura);
-            totalVrDespesaTotal = parseFloat(totalVrDespesaTotal) + parseFloat(vrDespesaTotal);
-            totalVrBrutoMarca = parseFloat(totalVrBrutoMarca) + parseFloat(vrTotalQuebraMarca);
-            totalVrBrutoVoucherMarca = parseFloat(totalVrBrutoVoucherMarca) + parseFloat(vrTotalQuebraVoucherMarca);  
-            totalVrQuebraCaixaMarca = parseFloat(totalVrQuebraCaixaMarca) + parseFloat(vrQuebraCaixaMarca);
-            totalVrDisponivel = parseFloat(totalVrDisponivel) + parseFloat(vrDisponivel);
-            totalQtdVenda = parseFloat(totalQtdVenda) + parseFloat(qtdVendas);
-            
-            VrTicketM = (parseFloat(vrDisponivel)/parseFloat(qtdVendas));
-            TotalTicketM = (parseFloat(totalVrDisponivel)/parseFloat(totalQtdVenda));
-            
-			$('#resultadoVendaMarcaPeriodo').append(
-				`<tr>
-                    <td><label style="color: blue; font-size: 11px;">` + idEmpresa +	`</label></td>
-                    <td><label style="color: blue; font-size: 11px;">` + noFantasia +	`</label></td>
-                    <td style="text-align: right;"><label style="color: green;">` + (parseFloat(qtdVendas)) +	`</label></td>
-                    <td style="text-align: right;"><label style="color: blue;">` + mascaraValor(parseFloat(vrDisponivelBrutoVoucher).toFixed(2))+	`</label></td>
-                    <td style="text-align: right;"><label style="color: blue;">` + mascaraValor(parseFloat(VrTicketM).toFixed(2)) +	`</label></td>
-                </tr>`
-			);
-			
-            $('#totalResultadoVendaMarcaPeriodo').html(
-        		`<tr>
-                    <th colspan="2" style="text-align: center;">Total</th>
-                    <th style="text-align: right;">` + (parseFloat(totalQtdVenda)) + `</th>
-                    <th style="text-align: right;">` + mascaraValor(parseFloat(totalVrDisponivel).toFixed(2)) + `</th>
-                    <th style="text-align: right;">` + mascaraValor(parseFloat(TotalTicketM).toFixed(2)) + `</th>
-                </tr>`
-        	);
-    	}
-
-    }
-
+    animationLoadingStop();
+  }catch(e){
+    console.log(e);
+    msgError();
+  }
 }
 
-function retornoListaGrupoEmpresasSelect(respostaGrupoEmpresas) {
+async function pesq_vendas_marcas() {
+  let idMarca = $("#idmarca").val();
+  let dtInicio = $("#dtconsultainicio").val();
+  let dtFim = $("#dtconsultafim").val();
 
-        $("#idgrupo").empty();
-        $('#idgrupo').append(
-	        `<option value="0">TODOS</option>`
-	    );
+  if(!dtInicio || !dtFim || dtFim < dtInicio){
+    return msgInfo('Digite um período com datas válidas e tente novamente!');
+  }
+
+  await ajaxGetAllData('api/financeiro/venda-marca-periodo.xsjs?pageSize=1000&idMarca=' + idMarca + '&dataPesquisaInicio=' + dtInicio + '&dataPesquisaFim=' + dtFim)
+    .then(retornoListaVendasMarca);
+}
+
+async function retornoListaVendasMarca(respostaListaVendasMarcas) {
+  let { data } = respostaListaVendasMarcas || [];
+  let marca = $("#idmarca").select2('data')[0]?.text?.trim() || '';
+  let dtInicio = $("#dtconsultainicio").val().split('-').reverse().join('-');
+  let dtFim = $("#dtconsultafim").val().split('-').reverse().join('-');
+  let dadosTabela = [];
+  let totalQtdVenda = 0;
+  let totalVrDisponivel = 0;
+  let contador = 0;
+
+  for (let registro of data) {
+
+    let idEmpresa = registro?.IDEMPRESA;
+    let noFantasia = registro?.NOFANTASIA;
+    let vrRecebidoVoucher = Number(registro?.VOUCHER || 0);
+    let qtdVendas = Number(registro?.QTDVENDA || 0);
+    let vrTotalPago =  Number(registro?.VRTOTALPAGO || 0);
+
+    let vrDisponivelBrutoVoucher = parseFloat(vrTotalPago - vrRecebidoVoucher);
+    let vrDisponivel = parseFloat(vrDisponivelBrutoVoucher);
+    let vrTicketMedioLoja = parseFloat(vrDisponivel / qtdVendas) || 0; 
+
+    totalVrDisponivel += parseFloat(vrDisponivel);
+    totalQtdVenda += parseFloat(qtdVendas);
+
+    contador++;
+
+    dadosTabela.push([
+      `<span style="color: blue;">${idEmpresa}</span>`,
+      `<span style="color: blue;">${noFantasia}</span>`,
+      `<span style="color: green;">${Number(qtdVendas).toLocaleString('pt-BR')}</span>`,
+      `<span style="color: blue;">${mascaraValor(parseFloat(vrDisponivelBrutoVoucher).toFixed(2))}</span>`,
+      `<span style="color: blue;">${mascaraValor(parseFloat(vrTicketMedioLoja).toFixed(2))}</span>`
+    ]);
+
+  }
+
+  let totalTicket = parseFloat(totalVrDisponivel / totalQtdVenda);
+
+  $('#resultado').html(`
+    <div class="row">
+      <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+          <div class="panel-hdr">
+            <h2> Lista de Vendas Por Marca e Período</i></span> </h2>
+          </div>
+          <div class="panel-container show">
+            <div class="panel-content">
+              <table id="dt-lista-vendas-marca-periodo" class="table table-bordered table-hover table-responsive-lg table-striped w-100">
+                <thead class="bg-primary-600">
+                  <tr>
+                    <th width="5%">#</th>
+                    <th width="30%">Loja</th>
+                    <th width="10%">QTD Clientes</th>
+                    <th>Total Vendas</th>
+                    <th>Ticket Médio</th>
+                  </tr>
+                </thead>
+                <tbody id="resultadoVendaMarcaPeriodo">
+                </tbody>
+                <tfoot id="totalResultadoVendaMarcaPeriodo" class="thead-themed">
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>  
+  `);
+
+  $('#totalResultadoVendaMarcaPeriodo').html(
+    `<tr>
+      <th style="text-align: center;" colspan="2">Total</th>
+      <th style="text-align: right;">${Number(totalQtdVenda).toLocaleString('pt-BR')}</th>
+      <th style="text-align: right;">${mascaraValor(parseFloat(totalVrDisponivel).toFixed(2))}</th>
+      <th style="text-align: right;">${mascaraValor(parseFloat(totalTicket).toFixed(2))}</th>
+    </tr>`
+  );
+
+  $('#dt-lista-vendas-marca-periodo').DataTable({
+    data: dadosTabela,
+    deferRender: true,
+    responsive: true,
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        title: `Vendas por Marca(${marca}) e Período(${dtInicio} a ${dtFim})`,
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        title: `Vendas por Marca(${marca}) e Período(${dtInicio} a ${dtFim})`,
+        titleAttr: 'Generate Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          format: {
+            body: function (data, row, column, node) {
+              let value = '';
+
+              if (node) {
+                  value = $(node).text().trim();
+              } else {
+                  value = $('<div>').html(data).text().trim();
+              }
+
+              let isNumeroBR = /^-?\d{1,3}(\.\d{3})*,\d+$|^-?\d+,\d+$/.test(value);
+
+              if (isNumeroBR) {
+                  return value.replace(/\./g, '').replace(',', '.');
+              }
+
+              return value;
+            }
+          }
+        }
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        title: `Vendas por Marca(${marca}) e Período(${dtInicio} - ${dtFim})`,
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ]
+  });
+}
+
+async function retornoListaGrupoEmpresasSelect(respostaGrupoEmpresas) {
+  let { data } = respostaGrupoEmpresas || [];
+
+  $('#idgrupo').html(`<option value="0">TODOS</option>`);
 	    
-	for (var i = 0; i < respostaGrupoEmpresas.data.length; i++) {
-
-		IDGrupo = respostaGrupoEmpresas.data[i]['IDGRUPOEMPRESARIAL'];
-		DSGrupo = respostaGrupoEmpresas.data[i]['GRUPOEMPRESARIAL'];
-
-			$('#idmarca').append(
-				`<option value="` + IDGrupo + `"> ` + DSGrupo + `</option>`
-			);
-			$('#idgrupo').append(
-				`<option value="` + IDGrupo + `"> ` + DSGrupo + `</option>`
-			);
+	for (let { IDGRUPOEMPRESARIAL, GRUPOEMPRESARIAL } of data) {
+    $('#idmarca, #idgrupo').append( `<option value="${IDGRUPOEMPRESARIAL}"> ${GRUPOEMPRESARIAL}</option>` );
 	}
 }
-
 
 //================ VENDAS VENDEDORES DIGITAIS ==============================================
 
@@ -5492,236 +5493,287 @@ function retornoListaVendasConvenio(respostaListaVendaConvenio, descFunc, startC
 }
 
 //================ MENU LISTA BALANCO ==============================================
-function ListaBalanco(){
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    
-        $("#resultado").html(
-          "<div align=\"center\">" +
-          "<button class=\"btn btn-lg btn-info\" type=\"button\" disabled>"  +
-          "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
-          "</div>"
-        );
-        
-    xmlhttp.onreadystatechange = function () {
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("js-page-content").innerHTML = xmlhttp.responseText;
-        
-            $('.dataAtual').text(dataAtual);
-            $('#dtconsultainicio').val(dataAtualCampo);
-            $('#dtconsultafim').val(dataAtualCampo);
-        
-        	$("#idloja").select2();
-        	
-            $('.DescTituloListaVendas').html(
-			`<i class='subheader-icon fal fa-chart-area'></i> Lista de Balanços - <span class='fw-300'></span>`);
-			
-        	ajaxGet('api/informatica/empresa.xsjs')
-        		.then(retornoListaEmpresasSelect)
-        		.catch((e) => { funcError(), console.log(e) });
-      } 
-    };
-    xmlhttp.open("GET", "administrativo_action_listbalanco.html", true);
-    xmlhttp.send();
+//? ================= INICIO ROTINA BALANCO- CREATE/EDIT ======================== ?//
+//Autor_Atualização: Hendryw Deyvison
+//Data_Atualização: 16/06/20256
+
+async function gerarLog(dados, textoFuncao) {
+  let textdados = JSON.stringify(dados);
+
+  let dadosLog = [{
+    "IDFUNCIONARIO": IDFuncionarioLogin.toString(),
+    "PATHFUNCAO": textoFuncao,
+    "DADOS": textdados,
+    "IP": ipCliente
+  }];
+
+  await ajaxPost("api/log-web.xsjs", dadosLog).catch((error) => { console.log('Error ao gerar o LOG: ' + error) });
 }
 
-function pesq_balanco(numPage){
+async function ListaBalanco(){
+  try{
+    animationLoadingStart();
 
-    var idempresa = $("#idloja").val();
-    var datapesqinicio = $("#dtconsultainicio").val();
-    var datapesqfim = $("#dtconsultafim").val();
-    var DSdesc = $("#dsDesc").val();
-    dataRetornoBalanco=[];
+    let respHtml = await $.get("administrativo_action_listbalanco.html");
+    let listaEmpresas = await ajaxGet('api/informatica/empresa.xsjs');
+
+    $('#js-page-content').html(respHtml);
     
-    if (window.XMLHttpRequest) {
-      // code for IE7+, Firefox, Chrome, Opera, Safari
-      xmlhttp = new XMLHttpRequest();
-    } else {
-      // code for IE6, IE5
-      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    $('.DescTituloListaVendas').html(`<i class='subheader-icon fal fa-chart-area'></i> Lista de Balanços - <span class='fw-300'></span>`);
+
+    $('.dataAtual').text(dataAtual);
+    $('#dtconsultainicio, #dtconsultafim').val(dataAtualCampo);
+  
+    await retornoListaEmpresasSelect(listaEmpresas);
+    
+    $("#idloja").select2();
+
+    $('#dtconsultainicio, #dtconsultafim, #dsDesc').on('keydown', (e)=>{
+      if (e.key === 'Enter') {
+        e.preventDefault();
+
+        pesq_balanco();
     }
-   
-    xmlhttp.onreadystatechange = function () {
-        
-      if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-        document.getElementById("resultado").innerHTML = xmlhttp.responseText;
-        
-        $('.dataAtual').text(dataAtual);
-        
-        ajaxGet('api/administrativo/balanco-loja.xsjs?page=' + numPage + '&idEmpresa=' + idempresa + '&dataInicial=' + datapesqinicio + '&dataFinal=' + datapesqfim + '&DSdesc=' + DSdesc)
-        	.then(retornoListaBalanco)
-        	.catch((e) => { funcError(), console.log(e) });
+    })
+
+    animationLoadingStop();
+
+    setTimeout(()=>$('#idloja').focus(), 300);
+
+  } catch(e){
+    console.log(e);
+    msgError();
+  }
+}
+
+async function pesq_balanco(){
+  let idEmpresa = $("#idloja").val();
+  let dataPesqInicio = $("#dtconsultainicio").val();
+  let dataPesqFim = $("#dtconsultafim").val();
+  let dsDesc = $("#dsDesc").val();
+
+  await ajaxGetAllData('api/administrativo/balanco-loja.xsjs?idEmpresa=' + idEmpresa + '&dataInicial=' + dataPesqInicio + '&dataFinal=' + dataPesqFim + '&DSdesc=' + dsDesc)
+  .then(retornoListaBalanco);
+}
+
+async function retornoListaBalanco(respostaListaBalanco) {
+  let { data } = respostaListaBalanco || [];
+  let dadosTabela = [];
+
+  if (data.length > 0) {
+
+    for (let registro of data) {
+      let idEmpresa = registro.IDEMPRESA;
+      let nomeEmpresa = registro.NOFANTASIA;
+      let idResumoBalanco = registro.IDRESUMOBALANCO;
+      let dsResumoBalanco = registro.DSRESUMOBALANCO;
+      let dtAberturaBalanco = registro.DTABERTURA;
+      let dtFechamentoBalanco = registro.DTFECHAMENTO;
+      let qtdEstoqueAtual = registro.QTDTOTALANTERIOR;
+      let qtdContagem = registro.QTDTOTALCONTAGEM;
+      let stAtivo = registro?.STATIVO == 'True';
+      let stCancelado = registro?.STCANCELADO == 'True';
+      let stConcluido = registro.STCONCLUIDO == 'True';
+      let stInativo = !stAtivo;
+      let stConsolidado = registro.STCONSOLIDADO;
+      let spanStatus = '<span class="text-info fw-700">Aberto</span>';
+
+      let qtdDiferenca = qtdContagem - qtdEstoqueAtual;
+
+      let btnDetalharBalanco = `<button type="button" class="btn btn-outline-primary btn-sm btn-icon waves-effect waves-themed" title="Detalhar Balanço" id="`+ idResumoBalanco + `:` + idEmpresa + `" onclick="ListaColetor(this.id)"><i class="fal fa-list"></i></button>`;
+      let btnPreviaBalanco = `<button type="button" class="btn btn-outline-success btn-sm btn-icon waves-effect waves-themed" title="Prévia Balanço" id="`+ idResumoBalanco + `:` + idEmpresa + `:` + 1 + `:` + 1 + `:` + stConsolidado + `" onclick="NovoPreviaBalanco(this.id)"><i class="fal fa-eye"></i></button>`;
+      let btnPreviaBalancoDiferenca = `<button type="button" class="btn btn-warning btn-sm btn-icon waves-effect waves-themed" title="Prévia Balanço Diferença" id="`+ idResumoBalanco + `:` + idEmpresa + `:` + 0 + `:` + 1 + `" onclick="NovoPreviaBalanco(this.id)"><i class="fal fa-list"></i></button>`;
+      let btnPreviaBalancoGeral = `<button type="button" class="btn btn-danger btn-sm btn-icon waves-effect waves-themed" title="Prévia Balanço Geral" id="`+ idResumoBalanco + `:` + idEmpresa + `:` + 0 + `:` + 0 + `" onclick="NovoPreviaBalanco(this.id)"><i class="fal fa-list"></i></button>`;
+      let btnPrestacaoContas = `<button type="button" class="btn btn${stConsolidado == 'True' && stConcluido ? '-outline-' : '-'}info btn-sm btn-icon waves-effect waves-themed" title="Prestação Contas" id="` + idResumoBalanco + `" onclick="ListaPrestacaoContas(this.id)"><i class="fal fa-dollar-sign"></i></button>`;
+      let btnInativar = `<button type="button" class="btn btn-outline-danger btn-sm btn-icon waves-effect waves-themed" title="Inativar Balanço" onclick="modalInativarBalanco('${idResumoBalanco}')"><i class="fal fa-times"></i></button>`;
+      let btnReativar = `<button type="button" class="btn btn-outline-success btn-sm btn-icon waves-effect waves-themed" title="Reativar Balanço" onclick="modalReativarBalanco('${idResumoBalanco}')"><i class="fal fa-check"></i></button>`;
+
+      let containerBtns = btnDetalharBalanco + btnPreviaBalanco + btnPreviaBalancoDiferenca + btnPreviaBalancoGeral;
+
+      if(stConsolidado == 'True'){
+        containerBtns += btnPrestacaoContas;
       }
-    };
-    
-    xmlhttp.open("GET", "administrativo_action_pesqbalanco.html", true);
-    xmlhttp.send();
-} 
 
-function retornoListaDetalheBalanco(respostaListaDetalheBalanco) {
+      if (stCancelado){
+        spanStatus = '<span class="text-danger fw-900">Cancelado</span>';
+        containerBtns = '';
 
-	var contadorProd = 0;
-	var numPageAtual = parseInt(respostaListaDetalheBalanco.page);
-    var BtnOpcao = "";
-	
-	if(respostaListaDetalheBalanco.data.length != 0){
-	    IDresBalanco = respostaListaDetalheBalanco.data[0]['IDRESUMOBALANCO'];
-        NumeroColetor = respostaListaDetalheBalanco.data[0]['NUMEROCOLETOR'];
-	    	$("#NomeFantasiaData").html(`Detalhe do Balanço Nº `+ respostaListaDetalheBalanco.data[0]['IDRESUMOBALANCO'] + ` <span class="fw-300"> <i>`+ respostaListaDetalheBalanco.data[0]['NOFANTASIA'] + `</i></span>`);
-        for (var i=0; i < respostaListaDetalheBalanco.data.length; i++) { 
-            
-            contadorProd ++;
-            
-            var registro = respostaListaDetalheBalanco.data[i];
+      } else {
+        if(stConcluido){
+          spanStatus = '<span class="text-success fw-700">Concluído</span>';
 
-            iddetalhebalanco = registro.IDDETALHEBALANCO
-            idProd = registro.IDPRODUTO;
-            dsProd = registro.DSNOME;
-            codBarrasProd = registro.NUCODBARRAS;
-            qtdContagem = registro.TOTALCONTAGEMGERAL;
-            StConsolidado = registro.STCONSOLIDADO;
+        } else if(stInativo){
 
-            if(StConsolidado != 'True'){
-                BtnOpcao = `<div class="demo">
-                                <button type="button" class="btn btn-outline-success btn-xs btn-icon waves-effect waves-themed" title="Alterar Quantidade" id="`+ iddetalhebalanco +`" onclick="AlterarQtdContagemProdutoBalanco(this.id)"><i class="fal fa-check"></i></button>`;
-                if(parseInt(NumeroColetor) != 100){
-                    BtnOpcao = BtnOpcao + `<button type="button" class="btn btn-outline-danger btn-xs btn-icon waves-effect waves-themed" title="Excluir Contagem" id="`+ iddetalhebalanco +`:`+ IDresBalanco +`:`+ NumeroColetor +`" onclick="ExcluirQtdContagemProdutoBalanco(this.id)"><i class="fal fa-trash"></i></button>`;
-                }
-                BtnOpcao = BtnOpcao + `</div>`;
-            }
-   
-            dataRetornoDetBalanco.push([iddetalhebalanco,
-                                idProd,
-                                dsProd,
-                                codBarrasProd,
-                                `<input type="number" class="form-control" id="qtd:`+iddetalhebalanco+`" value="`+qtdContagem+`"><span style="display: none;">`+qtdContagem+`</span>`,
-                                qtdContagem,
-                                BtnOpcao
-                                ]);
-                                
-         somaTotalProduto = parseFloat(somaTotalProduto) + parseFloat(qtdContagem);
-         
+          spanStatus = '<span class="text-danger fw-700">Inativado</span>';
+          containerBtns = '';
+          
+          //containerBtns = btnReativar;
+
         }
-        
-        chamarProximaListaDetBalanco(numPageAtual + 1,IDresBalanco, NumeroColetor);
+
+        containerBtns += !stConcluido && !stConsolidado && stAtivo ? btnInativar : '';
+
+      }
+
+      containerBtns = `<div class="demo"> ${containerBtns} </div>`;
+
+      dadosTabela.push([
+        idResumoBalanco,
+        nomeEmpresa,
+        dtAberturaBalanco,
+        dtFechamentoBalanco,
+        qtdEstoqueAtual,
+        qtdContagem,
+        qtdDiferenca,
+        spanStatus,
+        containerBtns
+      ]);
     }
-    else{
-        $('#resultadodet').html(
-            `<table id="dt-basic-detbalanco" class="table table-bordered table-hover table-striped w-100">
-                    <thead class="bg-primary-600">
-                        <tr>
-                            <th>*</th>
-                            <th>Código</th>
-                            <th>Produto</th>
-                            <th>Código de Barras</th>
-                            <th>Qtd</th>
-                            <th>QtdValores</th>
-                            <th>Opções</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultadoDetBalanco">
-                    </tbody>
-                    <tfoot class="thead-themed totalresultadoDetBalanco">
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                    </tfoot>
-                </table>`
-        );
 
-       
-        
-	    mydatatabledetbalanco = $('#dt-basic-detbalanco').DataTable( {
-            data: dataRetornoDetBalanco,
-            "columnDefs": [
-                { "width": "5%", "targets": 0 },
-                { "width": "10%", "targets": 1 },
-                { "width": "50%", "targets": 2 },
-                { "width": "25%", "targets": 3 },
-                { "width": "10%", "targets": 4 },
-                { "width": "0%", "targets": 5 },
-                { "width": "5%", "targets": 6 },
-                {"targets": [ 5 ],
-                "visible": false,
-                "searchable": false}
-            ],
-           
-            "footerCallback": function ( row, data, start, end, display ) {
-                var api = this.api(), data;
-     
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    return typeof i === 'string' ?
-                        i.replace('.','').replace(',','.').replace(/[\$,]/g, '')*1 :
-                        typeof i === 'number' ?
-                        i : 0;
-                };
-     
-                // Total over all pages
-                TotalQtdItens = api.column( 5 ).data().reduce( function (a, b) {return intVal(a) + intVal(b);}, 0 );
-                //TotalGeralCusto = api.column( 2 ).data().reduce( function (a, b) {return intVal(a) + intVal(b);}, 0 );
-                //TotalGeralVenda = api.column( 3 ).data().reduce( function (a, b) {return intVal(a) + intVal(b);}, 0 );
+  }
+  
+  $('#resultado').html(`
+    <table id="dt-basic-balanco" class="table table-bordered table-hover table-striped w-100">
+      <thead class="bg-primary-600">
+        <tr>
+          <th>#</th>
+          <th>Empresa</th>
+          <th>Data Abertura</th>
+          <th>Data Fechamento</th>
+          <th>Estoque Atual</th>
+          <th>Contagem</th>
+          <th>Diferença</th>
+          <th>Status</th>
+          <th>Opções</th>
+        </tr>
+      </thead>
+      <tbody id="resultadoListBalanco"></tbody>
+      <tfoot class="thead-themed totalBalanco"></tfoot>
+    </table>
+  `);
 
-                // Total over this page
-                pageTotalQtdItens = api.column( 5, { page: 'current'} ).data().reduce( function (a, b) {return intVal(a) + intVal(b);}, 0 );
-                //pageTotalGeralCusto = api.column( 2, { page: 'current'} ).data().reduce( function (a, b) {return intVal(a) + intVal(b);}, 0 );
-                //pageTotalGeralVenda = api.column( 3, { page: 'current'} ).data().reduce( function (a, b) {return intVal(a) + intVal(b);}, 0 );
+  $('#dt-basic-balanco').DataTable({
+    data: dadosTabela,
+    deferRender: true,
+    responsive: true,
+    dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+    order: ([0, 'desc']),
+    columnDefs: [
+      {
+        targets: [2, 3],
+        type: 'date-time-br',
+      }
+    ],
+    buttons: [
+      {
+        extend: 'pdfHtml5',
+        text: 'PDF',
+        titleAttr: 'Generate PDF',
+        className: 'btn-outline-danger btn-sm mr-1'
+      },
+      {
+        extend: 'excelHtml5',
+        text: 'Excel',
+        titleAttr: 'Gerar Excel',
+        className: 'btn-outline-success btn-sm mr-1',
+        exportOptions: {
+          columns: ':visible',
+          format: {
+            body: function (data, row, column, node) {
+              data = $('<p>' + data + '</p>').text();
+              return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
+            }
+          }
+        }
+      },
+      {
+        extend: 'print',
+        text: 'Print',
+        titleAttr: 'Print Table',
+        className: 'btn-outline-primary btn-sm'
+      }
+    ]
+  });
+}
 
-                // Update footer
-                $( api.column( 4 ).footer() ).html(pageTotalQtdItens +' ('+ TotalQtdItens +' Total )');
-                //$( api.column( 2 ).footer() ).html(pageTotalGeralCusto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) +' ('+ TotalGeralCusto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) +' Total )');
-                //$( api.column( 3 ).footer() ).html(pageTotalGeralVenda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) +' ('+ TotalGeralVenda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) +' Total )');
-            },
-            
-            deferRender:    true,
-            //scrollY:        800,
-            //scrollCollapse: false,
-            //scroller:       false,
-            responsive: true,
-            createdRow: function ( row, data, index ) {
-                //$('td', row).eq(1).attr('id', 'td-' + index + '-1');
-                $('td', row).eq(4).attr('id', 'td-'+data[0]);
-             },
-            
-            dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-                        "<'row'<'col-sm-12'tr>>" +
-                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            buttons: [
-                        {
-                            extend: 'excelHtml5',
-                            text: 'Excel',
-                            titleAttr: 'Gerar Excel',
-                            className: 'btn-outline-success btn-sm mr-1',
-                            exportOptions: {
-                              columns: ':visible',
-                              format: {
-                                  body: function(data, row, column, node) {
-                                      data = $('<p>' + data + '</p>').text();
-                                      return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
-                                  }
-                              }
-                            }
-                        },
-                        {
-                            extend: 'print',
-                            text: 'Print',
-                            titleAttr: 'Print Table',
-                            className: 'btn-outline-primary btn-sm'
-                        }
-                    ],
-        } );
-       
-        
-    }
+async function modalInativarBalanco(id) {
+  let confirmacao = await msgQuestion('Certeza que Deseja Inativar o Balanço?');
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  let { value: motivo } = await msgQuestionTextareaMotivo("Motivo para Inativar o Balanço?");
+
+  if (!motivo) {
+    return;
+  }
+
+  let dados = [{
+    "IDRESUMOBALANCO": parseInt(id),
+    "IDFUNCIONARIOINATIVACAO": parseInt(IDFuncionarioLogin),
+    "DSMOTIVOINATIVACAO": motivo.toUpperCase(),
+    "STINATIVO": 'True',
+    "STATIVO": 'False'
+  }];
+  let textoFuncao = "ADMINISTRATIVO/INATIVAR BALANCO";
+  //return console.log(dados);
+
+  try {
+    animationLoadingStart('Inativando balanço...', 100, false);
+
+    await ajaxPut("api/administrativo/atualiza-status-inativo-balanco.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Balanço inativado com sucesso!');
+
+    pesq_balanco();
+
+  } catch (e) {
+    console.log(e);
+    msgError(e?.message || e?.msg);
+  }
+}
+
+async function modalReativarBalanco(id) {
+  let confirmacao = await msgQuestion('Certeza que Deseja Reativar o Balanço?');
+
+  if (!confirmacao?.value) {
+    return;
+  }
+
+  let { value: motivo } = await msgQuestionTextareaMotivo("Motivo para Reativar o Balanço?");
+
+  if (!motivo) {
+    return;
+  }
+
+  let dados = [{
+    "IDRESUMOBALANCO": parseInt(id),
+    "IDFUNCIONARIOREATIVACAO": parseInt(IDFuncionarioLogin),
+    "DSMOTIVOREATIVACAO": motivo.toUpperCase(),
+    "STINATIVO": 'False',
+    "STATIVO": 'True'
+  }];
+  let textoFuncao = "ADMINISTRATIVO/REATIVAR BALANCO";
+  //return console.log(dados);
+
+  try {
+    animationLoadingStart('Reativando balanço...', 100, false);
+
+    await ajaxPut("api/administrativo/atualiza-status-inativo-balanco.xsjs", dados)
+    await gerarLog(dados, textoFuncao);
+
+    await msgSuccess('Balanço reativado com sucesso!');
+
+    pesq_balanco();
+
+  } catch (e) {
+    console.log(e);
+    msgError(e?.message || e?.msg);
+  }
 }
 
 // Alterar a Quantidade de Produtos na Contagem do Balanço
@@ -5840,143 +5892,6 @@ function chamarProximaListaDetBalanco(numPage,id,numerocoletor){
     "<span class=\"spinner-border spinner-border-sm\" role=\"status\" aria-hidden=\"true\"></span> Dados Sendo Processados...</button>" +
     "</div>"
     );
-}
-
-function retornoListaBalanco(respostaListaBalanco) {
-                    
-    var numPageAtual = parseInt(respostaListaBalanco.page);
-    
-    if(respostaListaBalanco.data.length != 0){
-        for (var i=0; i < respostaListaBalanco.data.length; i++) { 
-            contador ++;
-            var registro = respostaListaBalanco.data[i];
-            
-            IdEmpresa =  registro.IDEMPRESA;
-            Empresa = registro.NOFANTASIA;
-            NumResumo = registro.IDRESUMOBALANCO;
-            DsResumo = registro.DSRESUMOBALANCO;
-            DtAbertura = registro.DTABERTURA;
-            DtFechamento = registro.DTFECHAMENTO;
-            QtdEstoqueAtual = registro.QTDTOTALANTERIOR;
-            QtdContagem = registro.QTDTOTALCONTAGEM;
-            QtdDiferenca = QtdContagem - QtdEstoqueAtual;
-            StConcluido = registro.STCONCLUIDO;
-            StConsolidado = registro.STCONSOLIDADO;
-            
-            if(StConcluido == 'True'){
-                StConcluido = 'Concluído';
-            }else{
-                StConcluido = 'Aberto';
-            }
-
-            /*StOpc = `<div class="btn-group btn-group-xs"><button type="button" class="btn btn-success btn-xs" title="Detalhar Balanço" id="`+ NumResumo +`" onclick="modal_detalhe_balanco(this.id)" >Detalhar Balanço</button>
-            <button type="button" class="btn btn-primary btn-xs" title="Lista SAP" id="`+ NumResumo +`" onclick="modal_detalhe_balancoSap(this.id)" >SAP</button></div>`;
-            <button type="button" class="btn btn-outline-primary btn-sm btn-icon waves-effect waves-themed" title="Detalhar Balanço" id="`+ NumResumo +`" onclick="modal_detalhe_balanco(this.id)"><i class="fal fa-list"></i></button>*/
-            
-            /* antigo prévia balanco
-            <button type="button" class="btn btn-outline-success btn-sm btn-icon waves-effect waves-themed" title="Prévia Balanço" id="`+ NumResumo +`:`+ IdEmpresa +`" onclick="PreviaBalanco(this.id)"><i class="fal fa-eye"></i></button>`
-            */
-            
-            BtnOpcao = `<div class="demo">
-                <button type="button" class="btn btn-outline-primary btn-sm btn-icon waves-effect waves-themed" title="Detalhar Balanço" id="`+ NumResumo +`:`+ IdEmpresa +`" onclick="ListaColetor(this.id)"><i class="fal fa-list"></i></button>
-                
-                <button type="button" class="btn btn-outline-success btn-sm btn-icon waves-effect waves-themed" title="Prévia Balanço" id="`+ NumResumo +`:`+ IdEmpresa +`:`+ 1 +`:`+ 1 +`:`+StConsolidado+`" onclick="NovoPreviaBalanco(this.id)"><i class="fal fa-eye"></i></button>
-                
-                <button type="button" class="btn btn-warning btn-sm btn-icon waves-effect waves-themed" title="Prévia Balanço Diferença" id="`+ NumResumo +`:`+ IdEmpresa +`:`+ 0 +`:`+ 1 +`" onclick="NovoPreviaBalanco(this.id)"><i class="fal fa-list"></i></button>
-                <button type="button" class="btn btn-danger btn-sm btn-icon waves-effect waves-themed" title="Prévia Balanço Geral" id="`+ NumResumo +`:`+ IdEmpresa +`:`+ 0 +`:`+ 0 +`" onclick="NovoPreviaBalanco(this.id)"><i class="fal fa-list"></i></button>`
-                /*if(StConsolidado == 'False'){
-                    BtnOpcao = BtnOpcao + `<button type="button" class="btn btn-success btn-sm btn-icon waves-effect waves-themed" title="Consolidar Balanço" id="`+ NumResumo +`:`+ IdEmpresa +`" onclick="ConsolidarBalanco(this.id)"><i class="fal fa-check"></i></button>`
-                } else {
-                    BtnOpcao = BtnOpcao + `<button type="button" class="btn btn-outline-secondary btn-sm btn-icon waves-effect waves-themed" title="Resumo já Consolidado" disabled><i class="fal fa-check"></i></button>`
-                }*/
-                if(StConsolidado == 'True' && StConcluido == 'Aberto'){
-                    BtnOpcao = BtnOpcao + `<button type="button" class="btn btn-info btn-sm btn-icon waves-effect waves-themed" title="Prestação Contas" id="`+ NumResumo +`" onclick="ListaPrestacaoContas(this.id)"><i class="fal fa-dollar-sign"></i></button>`
-                }
-                if(StConsolidado == 'True' && StConcluido == 'Concluído'){
-                    BtnOpcao = BtnOpcao + `<button type="button" class="btn btn-outline-info btn-sm btn-icon waves-effect waves-themed" title="Prestação Contas" id="`+ NumResumo +`" onclick="ListaPrestacaoContas(this.id)"><i class="fal fa-dollar-sign"></i></button>`
-                }
-            `</div>`;
-                
-            dataRetornoBalanco.push( [NumResumo,
-                                Empresa,
-                                DtAbertura,
-                                DtFechamento,
-                                QtdEstoqueAtual,
-                                QtdContagem,
-                                QtdDiferenca,
-                                StConcluido,
-                                BtnOpcao
-                                ]);
-        }
-        
-        chamarProximaListaBalanco(numPageAtual + 1); 
-    }
-    else{
-        $('#resultado').html(
-            `<table id="dt-basic-balanco" class="table table-bordered table-hover table-striped w-100">
-                    <thead class="bg-primary-600">
-                        <tr>
-                            <th>*</th>
-                            <th>Empresa</th>
-                            <th>Data Abertura</th>
-                            <th>Data Fechamento</th>
-                            <th>Estoque Atual</th>
-                            <th>Contagem</th>
-                            <th>Diferença</th>
-                            <th>Status</th>
-                            <th>Opções</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultadoListBalanco">
-                    </tbody>
-                    <tfoot class="thead-themed totalBalanco">
-                    </tfoot>
-                </table>`
-        );
-	   
-	   $('#dt-basic-balanco').DataTable( {
-            data: dataRetornoBalanco,
-            deferRender:    true,
-            //scrollY:        800,
-            //scrollCollapse: false,
-            //scroller:       false,
-            responsive: true,
-            dom:        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'lB>>" +
-                        "<'row'<'col-sm-12'tr>>" +
-                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            order: ([ 0, 'desc' ]),
-            buttons: [
-                        {
-                            extend: 'pdfHtml5',
-                            text: 'PDF',
-                            titleAttr: 'Generate PDF',
-                            className: 'btn-outline-danger btn-sm mr-1'
-                        },
-                        {
-                            extend: 'excelHtml5',
-                            text: 'Excel',
-                            titleAttr: 'Gerar Excel',
-                            className: 'btn-outline-success btn-sm mr-1',
-                            exportOptions: {
-                              columns: ':visible',
-                              format: {
-                                  body: function(data, row, column, node) {
-                                      data = $('<p>' + data + '</p>').text();
-                                      return $.isNumeric(data.replace(',', '.')) ? data.replace(',', '.') : data;
-                                  }
-                              }
-                            }
-                        },
-                        {
-                            extend: 'print',
-                            text: 'Print',
-                            titleAttr: 'Print Table',
-                            className: 'btn-outline-primary btn-sm'
-                        }
-                    ]
-        } );
-        
-    }
 }
 
 function ListaColetor(id){
@@ -7016,6 +6931,8 @@ function retornoListaDetalheBalancoSap(respostaListaDetalheBalanco) {
     
 
 }
+
+//? ================= FIM ROTINA BALANCO- CREATE/EDIT ======================== ?//
 
 //================ PRODUTOS PREÇOS ==============================================
  
@@ -10394,7 +10311,7 @@ async function pesqProduto() {
         if (stProdJaIncluido) {
             await salvarbalancoavulso(dados, true);
         } else {
-            $('#descProduto').prop("disabled", true);
+            //$('#descProduto').prop("disabled", true);
 
             await ajaxGetAllData(`api/expedicao/produto.xsjs?idEmpresa=${nIdEmpresa}&id=${descProduto}`)
                 .then(retornoIncluirProdutoPeloCodigoBarrasDiretoNaTabela)

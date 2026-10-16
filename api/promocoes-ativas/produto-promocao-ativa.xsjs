@@ -1,10 +1,6 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
 function fnHandleGet(byId) {
-    
-    var dataUltAtualizacao = $.request.parameters.get("dataUltAtualizacao");
-    var horaUltAtualizacao = $.request.parameters.get("horaUltAtualizacao") || '00:00:00';
-    var idEmpresa = $.request.parameters.get("idEmpresa");
     var codeBars = $.request.parameters.get("codeBars");
     var dsProduto = $.request.parameters.get("dsProduto");
     var idProduto = $.request.parameters.get("idProduto");
@@ -13,31 +9,9 @@ function fnHandleGet(byId) {
         SELECT DISTINCT
             tbp.IDPRODUTO,
             tbp.IDGRUPOEMPRESARIAL,
-            tbp.NUNCM,
-            tbp.NUCEST,
-            tbp.NUCST_ICMS,
-            tbp.NUCFOP,
-            tbp.PERC_OUT,
             tbp.NUCODBARRAS,
             tbp.DSNOME,
-            tbp.STGRADE,
-            tbp.UND,
-            tbp.QTDENTRADA,
-            tbp.QTDCOMERCIALIZADA,
-            tbp.QTDPERDA,
-            tbp.QTDDISPONIVEL,
-            tbp.PERCISS,
-            tbp.PERCPIS,
-            tbp.PERCCOFINS,
-            tbp.COD_CSOSN,
-            tbp.PERCCSOSC,
-            tbp.NUCST_IPI,
-            tbp.NUCST_PIS,
-            tbp.NUCST_COFINS,
-            tbp.PERCIPI,
-            TO_VARCHAR(tbp.DTULTALTERACAO, 'YYYY-MM-DD HH24:MI:SS') AS DTULTALTERACAO,
-            tbp.STPESAVEL,
-            tbp.GRP_MATERIAIS
+            tbp.IDSUBGRUPO
         FROM "VAR_DB_NAME".PRODUTO tbp
             WHERE 1 = ?
     `;
@@ -48,9 +22,6 @@ function fnHandleGet(byId) {
         query = query + ' AND  tbp.IDPRODUTO = \'' + idProduto + '\' ';
     }
     
-    if ( dataUltAtualizacao ) {
-        query = query + ' And  tbp.DTULTALTERACAO >= \'' + dataUltAtualizacao + ' ' + horaUltAtualizacao + '\' ';
-    }
     
     if ( codeBars ) {
         query = query + ' And  tbp.NUCODBARRAS = \'' + codeBars + '\' ';
@@ -96,9 +67,7 @@ function fnHandlePost() {
         return;
     }
     
-    var dataUltAtualizacao = postData.dataUltAtualizacao || $.request.parameters.get("dataUltAtualizacao");
-    var horaUltAtualizacao = postData.horaUltAtualizacao || $.request.parameters.get("horaUltAtualizacao") || '00:00:00';
-    var idEmpresa = postData.idEmpresa || $.request.parameters.get("idEmpresa");
+   
     var codeBars = postData.codeBars || $.request.parameters.get("codeBars");
     var dsProduto = postData.dsProduto || $.request.parameters.get("dsProduto");
     var idProduto = postData.idProduto || $.request.parameters.get("idProduto");
@@ -117,33 +86,13 @@ function fnHandlePost() {
     var query = `
         SELECT DISTINCT
             tbp.IDPRODUTO,
-            tbp.IDGRUPOEMPRESARIAL,
-            tbp.NUNCM,
-            tbp.NUCEST,
-            tbp.NUCST_ICMS,
-            tbp.NUCFOP,
-            tbp.PERC_OUT,
             tbp.NUCODBARRAS,
             tbp.DSNOME,
-            tbp.STGRADE,
-            tbp.UND,
-            tbp.QTDENTRADA,
-            tbp.QTDCOMERCIALIZADA,
-            tbp.QTDPERDA,
-            tbp.QTDDISPONIVEL,
-            tbp.PERCISS,
-            tbp.PERCPIS,
-            tbp.PERCCOFINS,
-            tbp.COD_CSOSN,
-            tbp.PERCCSOSC,
-            tbp.NUCST_IPI,
-            tbp.NUCST_PIS,
-            tbp.NUCST_COFINS,
-            tbp.PERCIPI,
-            TO_VARCHAR(tbp.DTULTALTERACAO, 'YYYY-MM-DD HH24:MI:SS') AS DTULTALTERACAO,
-            tbp.STPESAVEL,
-            tbp.GRP_MATERIAIS
+            tbp.IDSUBGRUPO,
+            tbs.DSSUBGRUPOESTRUTURA,
+            tbs.IDSUBGRUPOESTRUTURA
         FROM "VAR_DB_NAME".PRODUTO tbp
+        INNER JOIN "VAR_DB_NAME".SUBGRUPOESTRUTURA tbs ON tbp.IDSUBGRUPO = tbs.IDSUBGRUPOESTRUTURA
             WHERE 1 = ?
     `;
     
@@ -159,10 +108,6 @@ function fnHandlePost() {
         // Log para debug
        
         query = query + ' AND tbp.IDPRODUTO IN (' + ids + ') ';
-    }
-    
-    if ( dataUltAtualizacao ) {
-        query = query + ' And  tbp.DTULTALTERACAO >= \'' + dataUltAtualizacao + ' ' + horaUltAtualizacao + '\' ';
     }
     
     if ( codeBars ) {

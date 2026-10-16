@@ -182,6 +182,30 @@ function patch(pathUrl, body, session, stReplaceCollections = false){
     return response;
 }
 
+function patchBatch(client, batch, session){
+    let dest = readUrl();
+    
+    let request = new $.net.http.Request($.net.http.PATCH, "/$batch");
+    let { boundary, body } = batch;
+    
+    request.cookies.set('B1SESSION', session);
+    
+    request.headers.set("OData-Version", "3.0");
+    request.headers.set("Content-Type", "multipart/mixed;charset=UTF-8;boundary=" + boundary);
+    request.headers.set("Prefer", "odata.continue-on-error");
+    request.headers.set("Accept", "multipart/mixed");
+    request.headers.set("Connection", "keep-alive");
+    request.headers.set("Accept-Encoding", "gzip");
+    request.headers.set("Content-Encoding", "gzip");
+    
+    request.setBody(body);
+    
+    client.request(request, dest);
+    
+    let response = client.getResponse();
+    
+    return response;
+ }
 
 function put(pathUrl, body, session, stReplaceCollections = false){
    

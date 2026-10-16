@@ -1,0 +1,6 @@
+description = "Unous API";
+host = "tesouradeouro.unous.com.br";
+port = 443;
+useSSL = true;
+sslHostCheck = false;
+sslAuth = anonymous;

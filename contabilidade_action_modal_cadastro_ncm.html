@@ -1,0 +1,81 @@
+<ol class="breadcrumb page-breadcrumb">
+  <li class="breadcrumb-item"><a href="javascript:void(0);">Home</a></li>
+  <li class="breadcrumb-item active">Alvarás Empresas</li>
+  <li class="position-absolute pos-top pos-right d-none d-sm-block dataAtual"></li>
+</ol>
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class='subheader-icon fal fa-building'></i> Alvarás Empresas
+  </h1>
+</div>
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-container show">
+        <div class="panel-content">
+
+          <div class="panel-tag">
+            <div class="row">
+              <div class="col-sm-3 col-xl-1">
+                <label class="form-label" for="ufFilial">UF</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="ufFilial" id="ufFilial"
+                    onchange="carregarFiliaisPorUFMarcaStAtivoAlvaras()">
+                    <option value="">Todas</option>
+                    <option value="DF">DF</option>
+                    <option value="GO">GO</option>
+                    <option value="MG">MG</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="idmarca">Marca</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idmarca" id="idmarca"
+                    onchange="carregarFiliaisPorUFMarcaStAtivoAlvaras()">
+                    <option value="">Todas</option>
+
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idFilial">Filiais</label>
+                <div class="input-group">
+                  <select class="select2 form-control" name="idFilial" id="idFilial">
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-2">
+                <label class="form-label" for="stFilial">Status Filiais</label>
+                <div class="input-group">
+                  <select class="select2 form-control" id="stFilial"
+                    onchange="carregarFiliaisPorUFMarcaStAtivoAlvaras()">
+                    <option value="">Todos</option>
+                    <option value="True">Ativo</option>
+                    <option value="False">Inativo</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-3 col-xl-3">
+                <label class="form-label" for="idSelectAlvara">Alvarás</label>
+                <div class="input-group">
+                  <select class="select2 form-control" id="idSelectAlvara">
+                    <option value="">Todos</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-sm-6 col-xl-12">
+                <br>
+                <button class="btn btn-primary" type="button" onclick="pesquisarEmpresasAlvaras()">
+                  <span class="fal fa-search mr-1"></span>Pesquisar
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="resultado">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

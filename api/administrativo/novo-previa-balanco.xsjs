@@ -1,4 +1,6 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
+let dbNameSAP = "SBO_GTO_TESTE4";
+
 
 function fnHandleGet(byId) {
 
@@ -8,8 +10,8 @@ function fnHandleGet(byId) {
 
     if (pProcessa === "1") {
         var conn = $.db.getConnection();
-        var querySP = "{ CALL \"QUALITY_CONC_HML\".\"SP_PREVIABALANCO\"(?,?) }";
-        var pStmt = conn.prepareCall(querySP);
+        var querySP = '{ CALL "VAR_DB_NAME"."SP_PREVIABALANCO2"(?,?) }';
+        var pStmt = conn.prepareCall(api.replaceDbName(querySP));
         pStmt.setInt(1, parseInt(byId));
         pStmt.setInt(2, parseInt(pIdEmpresa));
         pStmt.execute();
@@ -17,13 +19,47 @@ function fnHandleGet(byId) {
         conn.commit();
     }
     
-    var query = 'SELECT ' +
-        ' pb.IDPREVIABALANCO, pb.IDPRODUTO, pb.IDRESUMOBALANCO, pb.IDEMPRESA, pb.QTD, pb.QTDFINAL, pb.QTDFALTA, pb.QTDSOBRA, pb.PRECOVENDA, pb.TOTALVENDA ' +
-        ' ,IFNULL(p.NUCODBARRAS, (SELECT IFNULL("CodeBars", \'\') FROM "SBO_GTO_PRD"."OITM" WHERE "ItemCode" = pb.IDPRODUTO)) AS NUCODBARRAS ' +
-        ' ,IFNULL(p.DSNOME, (SELECT IFNULL("ItemName", \'\') FROM "SBO_GTO_PRD"."OITM" WHERE "ItemCode" = pb.IDPRODUTO)) AS DSNOME ' + 
-        'FROM "VAR_DB_NAME".PREVIABALANCO pb ' +
-        'LEFT JOIN "VAR_DB_NAME".PRODUTO p ON p.IDPRODUTO = pb.IDPRODUTO ' +
-        'WHERE 1 = ?';
+    let query = `
+        SELECT
+            pb.IDPREVIABALANCO,
+            pb.IDPRODUTO,
+            pb.IDRESUMOBALANCO,
+            pb.IDEMPRESA,
+            pb.QTD,
+            pb.QTDFINAL,
+            pb.QTDFALTA,
+            pb.QTDSOBRA,
+            pb.PRECOVENDA,
+            pb.TOTALVENDA,
+            IFNULL(
+                p.NUCODBARRAS,
+                (
+                    SELECT 
+                        IFNULL("CodeBars", '')
+                    FROM 
+                        ${dbNameSAP}."OITM"
+                    WHERE 
+                        "ItemCode" = pb.IDPRODUTO
+                )
+            ) AS NUCODBARRAS,
+            IFNULL(
+                p.DSNOME,
+                (
+                    SELECT 
+                        IFNULL("ItemName", '')
+                    FROM 
+                        ${dbNameSAP}."OITM"
+                    WHERE 
+                        "ItemCode" = pb.IDPRODUTO
+                )
+            ) AS DSNOME
+        FROM 
+            "VAR_DB_NAME".PREVIABALANCO pb
+        LEFT JOIN "VAR_DB_NAME".PRODUTO p ON
+            p.IDPRODUTO = pb.IDPRODUTO
+        WHERE 
+            1 = ?
+    `;
     
     if ( byId ) {
         query = query + ' AND pb.IDRESUMOBALANCO = \'' + byId + '\' ';
@@ -37,6 +73,8 @@ function fnHandleGet(byId) {
     if ( pDiferenca === "1" ) {
         query = query + ' AND (pb.QTDFALTA <> 0 OR pb.QTDSOBRA <> 0) ';
     }
+    
+    query += ' ORDER BY pb.IDPREVIABALANCO ';
     
     /*$.response.contentType = 'application/json';
 	$.response.setBody(JSON.stringify(query));

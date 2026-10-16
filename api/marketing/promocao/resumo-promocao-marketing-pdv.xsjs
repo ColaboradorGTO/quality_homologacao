@@ -9,6 +9,7 @@ function fnHandleGet(byId) {
     	'   tbrpm."DSPROMOCAOMARKETING", ' +
     	'   TO_VARCHAR(tbrpm.DTHORAINICIO,\'YYYY-MM-DD HH24:MI:SS\') AS DTHORAINICIO, ' +
     	'   TO_VARCHAR(tbrpm.DTHORAFIM,\'YYYY-MM-DD HH24:MI:SS\') AS DTHORAFIM, ' +
+    	'   tbrpm."NUTIPOPROMOCAO", ' +
     	'   tbrpm."TPAPLICADOA", ' +
     	'   tbrpm."TPAPARTIRDE", ' +
     	'   tbrpm."APARTIRDEQTD", ' +
@@ -19,6 +20,7 @@ function fnHandleGet(byId) {
     	'   tbepm."IDEMPRESA", ' +
     	'   tbe."NOFANTASIA", ' +
     	'   tbrpm."VLPRECOPRODUTO" ' +
+        
 		' FROM ' +
 		'   "VAR_DB_NAME".RESUMOPROMOCAOMARKETING tbrpm' +
 		'   INNER JOIN "VAR_DB_NAME".EMPRESAPROMOCAOMARKETING tbepm ON tbepm.IDRESUMOPROMOCAOMARKETING = tbrpm.IDRESUMOPROMOCAOMARKETING' +
@@ -33,7 +35,7 @@ function fnHandleGet(byId) {
 	if(idEmpresa){
 	    query = query + ' And tbepm.IDEMPRESA = \'' + idEmpresa + '\' ';
 	}
-	
+	query = query +' order by tbrpm."NUTIPOPROMOCAO" ';
 
     var request = { 
         page:  $.request.parameters.get("page"),

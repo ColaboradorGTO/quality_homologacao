@@ -211,13 +211,14 @@ function fnHandleGet(byId) {
     api.responseWithQuery(query, request, 1);
 }
 
-function criarResumoAlteracaoPreco(bodyJson, dtHoraResumoAlteracao, agendAlteracao, stExecutado, listEmpresas, conn){
+function criarResumoAlteracaoPreco(bodyJson, dtHoraResumoAlteracao, dtAgendamentoAlteracao, stExecutado, listEmpresas, conn){
     let tipoAlteracao = 'LOJA';
     let idListaPreco = '';
     let idEmpresa = '';
+    let idx = 0;
     
     //Insere ResumoAlteracao
-    let queryId = api.executeScalar('SELECT IFNULL(MAX(TO_INT("IDRESUMOALTERACAOPRECOPRODUTO")), 0) + 1 FROM "VAR_DB_NAME"."RESUMOALTERACAOPRECOPRODUTO" WHERE 1 = ? ', 1);
+    let idResumoAlteracaoPrecoProduto = api.executeScalar('SELECT "VAR_DB_NAME".SEQ_RESUMOALTERACAOPRECOPRODUTO.NEXTVAL FROM DUMMY WHERE 1 = ? ', 1);
     
     let query = `
         INSERT 
@@ -234,7 +235,7 @@ function criarResumoAlteracaoPreco(bodyJson, dtHoraResumoAlteracao, agendAlterac
                      	STCANCELADO,
                      	STEXECUTADO
                     )
-		VALUES(?,?,'${dtHoraResumoAlteracao}',?,?,?,'${agendAlteracao}', 'False', 'False') 
+		VALUES(?,?,?,?,?,?,?, 'False', 'False')
 	`;
     
     let pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -246,18 +247,20 @@ function criarResumoAlteracaoPreco(bodyJson, dtHoraResumoAlteracao, agendAlterac
     
     idEmpresa = bodyJson[0]['IDEMPRESA']
     
-    pStmt.setInt(1, parseInt(queryId));
-	pStmt.setInt(2, parseInt(bodyJson[0].IDUSER));
-    pStmt.setInt(3, (bodyJson.length));
-    pStmt.setString(4, tipoAlteracao);
-    pStmt.setInt(5, parseInt(idListaPreco || idEmpresa));
+    pStmt.setInt(++idx, parseInt(idResumoAlteracaoPrecoProduto));
+	pStmt.setInt(++idx, parseInt(bodyJson[0].IDUSER));
+	pStmt.setDate(++idx, dtHoraResumoAlteracao);
+    pStmt.setInt(++idx, (bodyJson.length));
+    pStmt.setString(++idx, tipoAlteracao);
+    pStmt.setInt(++idx, parseInt(idListaPreco || idEmpresa));
+    pStmt.setDate(++idx, dtAgendamentoAlteracao);
 
     pStmt.execute();
     pStmt.close();
 	
-	IDRESUMOALTERACAOPRECO = queryId;
+	idResumoAlteracaoPrecoProduto = idResumoAlteracaoPrecoProduto;
 
-	criarDetalheAlteracaoPreco(IDRESUMOALTERACAOPRECO, bodyJson, agendAlteracao, stExecutado, listEmpresas, conn);
+	criarDetalheAlteracaoPreco(idResumoAlteracaoPrecoProduto, bodyJson, dtAgendamentoAlteracao, stExecutado, listEmpresas, conn);
 }
 
 function criarDetalheAlteracaoPreco(idResumoAlteracao, bodyJson, agendAlteracao, stExecutado, listEmpresas, conn){
@@ -267,7 +270,7 @@ function criarDetalheAlteracaoPreco(idResumoAlteracao, bodyJson, agendAlteracao,
     let tipoAltercao = '';
     let listaOuEmpresa = true;
     let listProdsFormatada = adicionarQtdEstoqueAoObjeto(bodyJson);
-    let prodsAgrupadosPorPreco = agruparPorPreco(listProdsFormatada);
+    let prodsAgrupadosPorPreco = agruparProdutosPorPreco(listProdsFormatada);
 
     // Insert DetaheAlteracaoPreco e HistoricoProdutoPreco
     prodsAgrupadosPorPreco.map((dados, indice)=>{
@@ -305,7 +308,7 @@ function criarDetalheAlteracaoPreco(idResumoAlteracao, bodyJson, agendAlteracao,
             tipoAltercao = dadoProd.IDLISTAPRECO ? '0' : '1';
             
             // Busca o Preco Atual antes de ser modificado
-            dadosProdComEstoque = tipoAltercao == '0' ? buscaPrecoAtualLista(dadoProd.IDPRODUTO, idListaPrecoProds) : buscaPrecoAtualEmpresa(dadoProd.IDPRODUTO, idListaPrecoProds);
+            dadosProdComEstoque = tipoAltercao == '0' ? buscarPrecoAtualDaListaPreco(dadoProd.IDPRODUTO, idListaPrecoProds) : buscarPrecoAtualDaEmpresa(dadoProd.IDPRODUTO, idListaPrecoProds);
             
             precoAntigo = Number(dadosProdComEstoque.PRECOVENDA);
             
@@ -482,7 +485,7 @@ function criarHistoricoPrecoLista(idResumoAlteracao, idListaPrecoProds, precoNov
                     TBP.IDPRODUTO, TBHP.PRECOVENDA, TBP.PRECOVENDA `}
     `;
     
-    /*let dadosProdLista =  buscaPrecoAtualLista(idProduto, idListaPrecoProds);
+    /*let dadosProdLista =  buscarPrecoAtualDaListaPreco(idProduto, idListaPrecoProds);
     
     precoAntigo = Number(dadosProdLista.PRECOVENDA);
     qtdEstoqueAnterior = Number(dadosProdLista.QTDESTOQUE);
@@ -593,7 +596,7 @@ function criarHistoricoPrecoEmpresa(idResumoAlteracao, idsEmpresas, stExecutado,
         for(let i = 0; i < idsEmpresas.length; i++){
             let idEmpresa =  idsEmpresas[i];
             
-            dadosProdEmp =  buscaPrecoAtualEmpresa(idProduto, idEmpresa);
+            dadosProdEmp =  buscarPrecoAtualDaEmpresa(idProduto, idEmpresa);
             precoAntigo = Number(dadosProdEmp.PRECOVENDA);
             qtdEstoqueAnterior = Number(dadosProdEmp.QTDESTOQUE);
             qtdEstoque = Number(dadosProdEmp.QTDESTOQUE);
@@ -645,7 +648,7 @@ function criarHistoricoPrecoEmpresa(idResumoAlteracao, idsEmpresas, stExecutado,
     } else {
         let idEmpresa =  idsEmpresas;
         
-        dadosProdEmp =  buscaPrecoAtualEmpresa(idProduto, idEmpresa);
+        dadosProdEmp =  buscarPrecoAtualDaEmpresa(idProduto, idEmpresa);
         precoAntigo = Number(dadosProdEmp.PRECOVENDA);
         qtdEstoqueAnterior = Number(dadosProdEmp.QTDESTOQUE);
         qtdEstoque = Number(dadosProdEmp.QTDESTOQUE);
@@ -970,7 +973,7 @@ function atualizarHistoricoProdutoEmpresa(idResumoAlteracao, idProduto, precoNov
             `;
         } else {
             
-            let qtdEstoqueAtual = Number(buscaPrecoAtualEmpresa(registro.IDPRODUTO, registro.IDEMPRESA).QTDESTOQUE);
+            let qtdEstoqueAtual = Number(buscarPrecoAtualDaEmpresa(registro.IDPRODUTO, registro.IDEMPRESA).QTDESTOQUE);
             
             updateHistProdEmpresa = `
                 UPDATE 
@@ -998,7 +1001,7 @@ function atualizarHistoricoProdutoEmpresa(idResumoAlteracao, idProduto, precoNov
 
 function atualizarEstoqueDetalheAlteracao(isLista, idListaOuEmpresa, idProduto, idDetalheAlteracao, conn){
     
-    let qtdEstoqueAtual = isLista == 'True' ? Number(buscaPrecoAtualLista(idProduto, idListaOuEmpresa).QTDESTOQUE) : Number(buscaPrecoAtualEmpresa(idProduto, idListaOuEmpresa).QTDESTOQUE);
+    let qtdEstoqueAtual = isLista == 'True' ? Number(buscarPrecoAtualDaListaPreco(idProduto, idListaOuEmpresa).QTDESTOQUE) : Number(buscarPrecoAtualDaEmpresa(idProduto, idListaOuEmpresa).QTDESTOQUE);
         
     let updateEstoqueDetalhe = `
         UPDATE 
@@ -1017,7 +1020,7 @@ function atualizarEstoqueDetalheAlteracao(isLista, idListaOuEmpresa, idProduto, 
     pStmtUpdateEstoqueDetalhe.close();
 }
 
-function buscaEmpresasDaListaDePreco(idListaPreco){
+function buscarEmpresasDaListaDePreco(idListaPreco){
     let listaEmpresas = '';
     
     let queryEmpsList =`
@@ -1051,7 +1054,7 @@ function buscaEmpresasDaListaDePreco(idListaPreco){
     return false;
 }
 
-function agruparPorPreco (produtos) {
+function agruparProdutosPorPreco (produtos) {
     // Agrupa os Produtos de Acordo com o Preco e retorna um array de arrays com cada lista tendo somente os produtos com o mesmo preco
     const mapaPreco = new Map();
 
@@ -1068,7 +1071,7 @@ function agruparPorPreco (produtos) {
     return Array.from(mapaPreco.values());
 };
 
-function buscaPrecoAtualLista(idProduto, idListaPreco){
+function buscarPrecoAtualDaListaPreco(idProduto, idListaPreco){
     let queryPreco = `
         SELECT
             IFNULL(TBHP.PRECOVENDA, TBP.PRECOVENDA) AS PRECOVENDA,
@@ -1121,7 +1124,7 @@ function buscaPrecoAtualLista(idProduto, idListaPreco){
     return dadosReg[0];
 }
 
-function buscaPrecoAtualEmpresa(idProduto, idEmpresa){
+function buscarPrecoAtualDaEmpresa(idProduto, idEmpresa){
     let queryPreco =`
         SELECT 
             IFNULL(TBPP.IDPRODUTO, TBP.IDPRODUTO) AS IDPRODUTO,
@@ -1266,7 +1269,7 @@ function fnHandlePut() {
                         let idLista = regDetResumo[0].IDGRUPOEMP;
                         
                         if(regDetResumo[0].TPALTERACAO == 'GRUPO'){
-                            listEmpresas = buscaEmpresasDaListaDePreco(`'${idLista}'`);
+                            listEmpresas = buscarEmpresasDaListaDePreco(`'${idLista}'`);
                         } else {
                             listEmpresas = `'${idLista}'`;
                         }
@@ -1427,11 +1430,11 @@ function fnHandlePost() {
         }
         
         //Agrupa produtos por preco
-        prodsAgrupadosPorPreco = agruparPorPreco(bodyJson);
+        prodsAgrupadosPorPreco = agruparProdutosPorPreco(bodyJson);
         
         // Pega todas as empresas da lista de preco
         if(idLista){
-            listEmpresas = buscaEmpresasDaListaDePreco(idLista);
+            listEmpresas = buscarEmpresasDaListaDePreco(idLista);
            
             if(!listEmpresas){
                 return{

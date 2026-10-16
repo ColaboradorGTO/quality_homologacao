@@ -1,0 +1,49 @@
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="idCorEdicao">ID *</label>
+      <div class="input-group">
+        <input type="text" id="idCorEdicao" name="idCorEdicao" class="form-control input" value="" readonly>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-5">
+      <label class="form-label" for="grupoCorEdicao">Grupo Cor *</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="grupoCorEdicao" id="grupoCorEdicao"></select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-7">
+      <label class="form-label" for="descCorEdicao">Descrição *</label>
+      <div class="input-group">
+        <input type="text" id="descCorEdicao" name="descCorEdicao" class="form-control input" value="" autocomplete="off" oninput="formatarCampoElementoSomenteLetrasNormalize(this)">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <label class="form-label" for="siglaCorEdicao">Sigla *</label>
+      <div class="input-group">
+        <input type="text" id="siglaCorEdicao" name="siglaCorEdicao" class="form-control input" value="" autocomplete="off" oninput="formatarCampoElementoSomenteLetrasNormalize(this)">
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+      <label class="form-label" for="stAtivoCorEdicao">Situação *</label>
+      <div class="input-group">
+        <select class="select2 form-control" name="stAtivoCorEdicao" id="stAtivoCorEdicao">
+          <option value="True">ATIVO</option>
+          <option value="False">INATIVO</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="form-group">
+  <div class="row">
+    <div class="col-sm-6 col-xl-12">
+      <label class="form-label" for="vrfat">* Campos Obrigatórios *</label>
+      <div id="tudo"></div>
+    </div>
+  </div>
+</div>

@@ -34,7 +34,7 @@ function execute () {
             UPDATE 
                 "VAR_DB_NAME"."RESUMOPEDIDO" 
             SET 
-                IDANDAMENTO = 5
+                IDANDAMENTO = ?
             WHERE 
                 IDRESUMOPEDIDO =  ?
                 OR IDPEDIDOPRIMARIO = ?
@@ -45,9 +45,9 @@ function execute () {
         for (var i = 0; i < bodyJson.length; i++) {
             let registro = bodyJson[i];
             
-            
-            pStmt.setInt(1, parseInt(registro.IDRESUMOPEDIDO));
+            pStmt.setInt(1, parseInt(registro.IDANDAMENTO || 5));
             pStmt.setInt(2, parseInt(registro.IDRESUMOPEDIDO));
+            pStmt.setInt(3, parseInt(registro.IDRESUMOPEDIDO));
             
             pStmt.execute();
         }

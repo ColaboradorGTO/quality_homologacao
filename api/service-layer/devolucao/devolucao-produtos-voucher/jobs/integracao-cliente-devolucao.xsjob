@@ -1,6 +1,6 @@
 {
     "description": "Alteracao de preco de produtos Quality",
-    "action": "quality.concentrador.api.service-layer.devolucao.devolucao-produtos-voucher.jobs:integracao-cliente-devolucao.xsjs::executeIntegrarClienteDevolucao",
+    "action": "quality.concentrador_homologacao.api.service-layer.devolucao.devolucao-produtos-voucher.jobs:integracao-cliente-devolucao.xsjs::executeIntegrarClienteDevolucao",
     "schedules": [
        {
           "description": "Todo dia as 00:01:00",

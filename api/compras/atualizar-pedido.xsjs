@@ -600,7 +600,7 @@ function fnHandlePut() {
 
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
     var registro = JSON.parse($.request.body.asString()); 
-
+    
     pStmt.setInt(1, registro.IDGRUPOEMPRESARIAL);
     pStmt.setInt(2, registro.IDSUBGRUPOEMPRESARIAL);
     pStmt.setInt(3, registro.IDCOMPRADOR);
@@ -641,7 +641,8 @@ function fnHandlePut() {
 	conn.commit();
 	
 	return {
-	    msg : "Atualização realizada com sucesso!"
+	    msg : "Atualização realizada com sucesso!",
+	    registro: registro
 	};
 }
 

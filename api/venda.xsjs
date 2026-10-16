@@ -1,6 +1,5 @@
 var api = $.import("quality.concentrador_homologacao.api.apiResponse", "int_api");
 
-
 function obterLinhasDoDetalhe(idVenda) {
 
 	var query = ' SELECT IDVENDADETALHE, IDVENDA, NITEM, CPROD, CEAN, XPROD, NCM, CFOP, UCOM, QCOM ' +
@@ -120,6 +119,9 @@ function fnHandleGet(byId) {
     var nnf = $.request.parameters.get("nnf");
     var serie = $.request.parameters.get("serie");
     var idEmpresa = $.request.parameters.get("idEmpresa");
+    var chaveNota = $.request.parameters.get("chaveNota");
+    var dataInicio  = $.request.parameters.get("dataInicio");
+    var dataFim  = $.request.parameters.get("dataFim");
     
 	var query = ' SELECT ' +
 		'   tbv.IDVENDA,' +
@@ -249,6 +251,15 @@ function fnHandleGet(byId) {
 	    query = query + ' And tbv.NFE_INFNFE_IDE_SERIE = \'' + serie + '\' ';
 	    query = query + ' And tbv.IDEMPRESA = \'' + idEmpresa + '\' ';
 	}
+	if(chaveNota){
+	    query = query + ' And tbv.PROTNFE_INFPROT_CHNFE = \'' + chaveNota + '\' ';
+	}
+	if(dataInicio && dataFim){
+	  query = query + ' And dthorafechamento BETWEEN \'' + dataInicio +  ' 00:00:00\' AND \'' + dataFim +' 23:00:00\'';  
+	  //return query;
+	}
+	
+	
 
 	var request = {
 		page: $.request.parameters.get("page"),
@@ -621,6 +632,7 @@ function fnIncluirMovimentoCaixa(conn, lstMov) {
     		pStmt.setInt(3, registro.IDCAIXA);
     		pStmt.setInt(4, registro.IDOPERADOR);
     		setTimestampOrNull(pStmt, 5, registro.DTABERTURA);
+    		
     		pStmt.execute();
     	}
     
