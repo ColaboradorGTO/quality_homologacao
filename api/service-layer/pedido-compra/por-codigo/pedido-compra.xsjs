@@ -230,7 +230,8 @@ function getDadosProdutosPedido(idResumoPedido){
             IDPRODCADASTRO,
             QTDPRODUTO,
             VRCUSTO,
-            CODBARRAS
+            CODBARRAS,
+            IFNULL(VRIPI, 0) AS VRIPI
         FROM 
             "VAR_DB_NAME"."DETALHEPEDIDO" T1
         INNER JOIN "VAR_DB_NAME"."DETALHEPRODUTOPEDIDO" T2 ON 
@@ -321,22 +322,31 @@ function montarJsonDocLines(idResumoPedido, idFilialCliente, usoPrincipal){
     let contador = 1;
     
     for(let dados of detalhesPedido){
-       docLines.push(
-            {
-                "LineNum": contador
-                ,"ItemCode": dados.IDPRODCADASTRO
-                ,"Quantity": dados.QTDPRODUTO
-                ,"UnitPrice": dados.VRCUSTO
-                ,"WarehouseCode": warehouseCode
-                ,"CostingCode": "ALOCREC"
-                ,"ProjectCode": "PDV_SOFTQUALITY"
-                ,"BarCode": dados.CODBARRAS
-                ,"Usage": usoPrincipal
-                ,"U_IdDetalheProdutoPedido": Number(dados.IDDETALHEPRODUTOPEDIDO)
-            }
-        )
-        
-        contador++;
+      let json = {
+          "LineNum": contador
+          ,"ItemCode": dados.IDPRODCADASTRO
+          ,"Quantity": dados.QTDPRODUTO
+          ,"UnitPrice": dados.VRCUSTO
+          ,"WarehouseCode": warehouseCode
+          ,"CostingCode": "ALOCREC"
+          ,"ProjectCode": "PDV_SOFTQUALITY"
+          ,"BarCode": dados.CODBARRAS
+          ,"Usage": usoPrincipal
+          ,"U_IdDetalheProdutoPedido": Number(dados.IDDETALHEPRODUTOPEDIDO)
+      }
+
+      if(dados.VRIPI > 0) {
+        json.LineTaxJurisdictions = [{
+          "LineNumber": contador,
+          "JurisdictionCode": "IP00BT00",
+          "JurisdictionType": 16,
+          "ExternalCalcTaxAmount": dados.VRIPI
+        }]
+      }
+
+      docLines.push(json)
+      
+      contador++;
     }
     
    return docLines;
