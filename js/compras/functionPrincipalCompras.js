@@ -2460,27 +2460,15 @@ async function retornoDetalhesPedido(respostaResumoPedidoLista) {
 
 function atualiza_valor_QtdUnit() {
 
-  if (!$("#descprodI").val().length > 0) {
-    $("#descprodI").val(0);
-  }
-  if (!$("#descprodII").val().length > 0) {
-    $("#descprodII").val(0);
-  }
-  if (!$("#descprodIII").val().length > 0) {
-    $("#descprodIII").val(0);
-  }
-  if (!$("#vrunitbruto").val().length > 0) {
-    $("#vrunitbruto").val(0);
-  }
-  if (!$("#qtdprodpedido").val().length > 0) {
-    $("#qtdprodpedido").val(0);
-  }
-  if (!$("#vrunitsug").val().length > 0) {
-    $("#vrunitsug").val(0);
-  }
-  if (!$("#vrunitsugfixo").val().length > 0) {
-    $("#vrunitsugfixo").val(0);
-  }
+  if (!$("#vrIpi").val().length > 0) $("#vrIpi").val(0);
+  if (!$("#vrEncargos").val().length > 0) $("#vrEncargos").val(0);
+  if (!$("#descprodI").val().length > 0) $("#descprodI").val(0);
+  if (!$("#descprodII").val().length > 0) $("#descprodII").val(0);
+  if (!$("#descprodIII").val().length > 0) $("#descprodIII").val(0);
+  if (!$("#vrunitbruto").val().length > 0) $("#vrunitbruto").val(0);
+  if (!$("#qtdprodpedido").val().length > 0) $("#qtdprodpedido").val(0);
+  if (!$("#vrunitsug").val().length > 0) $("#vrunitsug").val(0);
+  if (!$("#vrunitsugfixo").val().length > 0) $("#vrunitsugfixo").val(0);
 
   var QtdProdPedido = $("#qtdprodpedido").val();
   var VrUnitLiq = $("#vrunitliq").val().replace(/\./g, '').replace(',', '.');
@@ -2516,6 +2504,13 @@ function atualiza_valor_QtdUnit() {
     Desc03 = 0;
   }
   var DESCONTO3 = parseFloat(DESCONTO2 - (DESCONTO2 * (Desc03 / 100)));
+
+  let vrPercIpi = parseFloat($("#vrIpi").val().replace(',', '.')) || 0;
+  let vrPercEncargos = parseFloat($("#vrEncargos").val().replace(',', '.')) || 0;
+  let vrIpi = ((parseFloat(VrUnitBruto) * vrPercIpi) / 100);
+  let vrEncargos = ((parseFloat(VrUnitBruto) * vrPercEncargos) / 100);
+
+  DESCONTO3 = DESCONTO3 + vrIpi + vrEncargos;
 
   $("#vrunitliq").val(DESCONTO3.toLocaleString('pt-br', { style: 'decimal', minimumFractionDigits: 2 }));
 
@@ -2908,13 +2903,12 @@ async function exibirModalAdicionarProduto(respostaUltimoPedido) {
 }
 
 async function montarPayloadProdutoInclusao() {
+
   let IdResumoPedidoProduto = $("#IDResPedidoAtual").val();
   let stPedidoPorIntermediario = $("#chkStPedidoPorIntermediario").prop('checked') ? 'True' : 'False';
-
   let qtdprodpedido = $("#qtdprodpedido").val();
   let qtdcaixa = $("#qtdcaixa").val();
   let refproduto = $("#refproduto").val() || '';
-
   let dsprodpedido = $("#dsprodpedido").val();
   let unidprod = $("#unidprod").val();
   let corprod = $("#corprod").val();
@@ -2928,6 +2922,8 @@ async function montarPayloadProdutoInclusao() {
   let descprodI = $("#descprodI").val().replace(/\./g, '').replace(",", ".");
   let descprodII = $("#descprodII").val().replace(/\./g, '').replace(",", ".");
   let descprodIII = $("#descprodIII").val().replace(/\./g, '').replace(",", ".");
+  let vrPercIpi = $("#vrIpi").val().replace(".", "").replace(",", ".");
+  let vrPercEncargos = $("#vrEncargos").val().replace(".", "").replace(",", ".");
   let vrunitliq = $("#vrunitliq").val().replace(/\./g, '').replace(",", ".");
   let vrunitsug = $("#vrunitsug").val().replace(/\./g, '').replace(",", ".");
   let vrunittotal = $("#vrunittotal").val().replace(/\./g, '').replace(",", ".");
@@ -2943,14 +2939,14 @@ async function montarPayloadProdutoInclusao() {
   let streposicao = $("#streposicao").val();
   let codbarrareposicao = streposicao == 'True' ? $("#codBarrasProdutoReposicao").val() : '';
   let idProdutoReposicao = streposicao == 'True' ? $("#idProdutoReposicao").val() : '';
-
   let estruturaprodlst = estruturaprod.split(':');
   let estruturaprodIdGrupo = estruturaprodlst[0];
   let estruturaprodIdSubGrupo = estruturaprodlst[1];
-
   let idFuncionario = Number((await getCurrentUser())?.user?.id || 0);
-
   let grade = await montarPayloadGradeProduto();
+
+  let vrIpi = ((parseFloat(vrunitbruto)*parseFloat(vrPercIpi))/100);
+  let vrEncargos = ((parseFloat(vrunitbruto)*parseFloat(vrPercEncargos))/100);
 
   return [{
     "IDRESUMOPEDIDO": parseInt(IdResumoPedidoProduto),
@@ -2970,6 +2966,10 @@ async function montarPayloadProdutoInclusao() {
     "DESC01": parseFloat(descprodI),
     "DESC02": parseFloat(descprodII),
     "DESC03": parseFloat(descprodIII),
+    "VRPERCIPI": parseFloat(vrPercIpi),
+    "VRIPI": parseFloat(vrIpi),
+    "VRPERCENCARGOS": parseFloat(vrPercEncargos),
+    "VRENCARGOS": parseFloat(vrEncargos),
     "VRUNITLIQUIDO": parseFloat(vrunitliq),
     "VRVENDA": parseFloat(vrunitsug),
     "VRTOTAL": parseFloat(vrunittotal),
@@ -3525,7 +3525,7 @@ async function preencherDadosProdutoModeloSelecionadoNoModalProdutoPedido(stBloq
       'disabled': stBloquearCampo
     });
 
-    $('#qtdprodpedido, #qtdcaixa, #vrunitbruto, #descprodI, #descprodII, #descprodIII, #vrunitliq, #vrunitsug, #obsprodunit').prop({
+    $('#qtdprodpedido, #qtdcaixa, #vrunitbruto, #descprodI, #descprodII, #descprodIII, #vrunitliq, #vrunitsug, #obsprodunit, #vrIpi, #vrEncargos').prop({
       'readonly': false,
       'disabled': false
     });
@@ -3789,7 +3789,7 @@ async function validarGradeamentoProduto() {
 
 async function validarCamposProdutoPedido() {
   let camposValidar = $('#resulmodaladdprodpedido input, #resulmodaladdprodpedido select').not('input[type="hidden"]').not('.class_grade');
-  let camposIgnorar = $('#pesqrefprodpedido, #listprodpesqped, #vrcustohoje,  #vrvendahoje, #streposicao, #descprodI, #descprodII, #descprodIII, #vrliquidopedido, #VrComissaoPedido, #obsprodunit, #qtdcaixa');
+  let camposIgnorar = $('#pesqrefprodpedido, #listprodpesqped, #vrcustohoje,  #vrvendahoje, #streposicao, #descprodI, #descprodII, #descprodIII, #vrliquidopedido, #VrComissaoPedido, #obsprodunit, #qtdcaixa, #vrIpi, #vrEncargos');
 
   let { errors, elemento } = await validarCamposGenerico(camposValidar, camposIgnorar);
 
@@ -3858,7 +3858,6 @@ async function montarPayloadProdutoEdit() {
   let qtdprodpedido = $("#qtdprodpedido").val();
   let qtdcaixa = $("#qtdcaixa").val();
   let refproduto = $("#refproduto").val();
-
   let dsprodpedido = $("#dsprodpedido").val();
   let unidprod = $("#unidprod").val();
   let corprod = $("#corprod").val();
@@ -3869,6 +3868,8 @@ async function montarPayloadProdutoEdit() {
   let fabprod = $("#fabprod").val();
   let localexpprod = $("#localexp").val();
   let vrunitbruto = $("#vrunitbruto").val().replace(/\./g, '').replace(",", ".");
+  let vrPercIpi = $("#vrIpi").val().replace(".", "").replace(",", ".");
+  let vrPercEncargos = $("#vrEncargos").val().replace(".", "").replace(",", ".");
   let descprodI = $("#descprodI").val().replace(/\./g, '').replace(",", ".");
   let descprodII = $("#descprodII").val().replace(/\./g, '').replace(",", ".");
   let descprodIII = $("#descprodIII").val().replace(/\./g, '').replace(",", ".");
@@ -3887,10 +3888,12 @@ async function montarPayloadProdutoEdit() {
   let codBarrasReposicao = $('#dsprodpedido').attr('codbarras') || '';
   let idProdutoReposicao = $('#dsprodpedido').attr('idproduto') || '';
   let idFuncionario = (await getCurrentUser())?.user?.id;
-
   let estruturaprodlst = estruturaprod.split(':');
   let estruturaprodIdGrupo = estruturaprodlst[0] || "";
   let estruturaprodIdSubGrupo = estruturaprodlst[1];
+
+  let vrIpi = ((parseFloat(vrunitbruto)*parseFloat(vrPercIpi))/100);
+  let vrEncargos = ((parseFloat(vrunitbruto)*parseFloat(vrPercEncargos))/100);
 
   let grade = await montarPayloadGradeProduto();
 
@@ -3909,6 +3912,10 @@ async function montarPayloadProdutoEdit() {
     "NUCAIXA": parseFloat(qtdcaixa),
     "UND": parseInt(unidprod),
     "VRUNITBRUTO": parseFloat(vrunitbruto),
+    "VRPERCIPI": parseFloat(vrPercIpi),
+    "VRIPI": parseFloat(vrIpi),
+    "VRPERCENCARGOS": parseFloat(vrPercEncargos),
+    "VRENCARGOS": parseFloat(vrEncargos),
     "DESC01": parseFloat(descprodI),
     "DESC02": parseFloat(descprodII),
     "DESC03": parseFloat(descprodIII),
@@ -4057,6 +4064,8 @@ async function retornoEditarItemPedido(respostaEditProdPedido) {
     let stEcommerce = dados?.STECOMMERCE;
     let stRedeSocial = dados?.STREDESOCIAL;
     let vrUnitBrutoProdPedido = mascaraValor(parseFloat(dados?.VRUNITBRUTODETALHEPEDIDO).toFixed(2));
+    let vrPercIpi = mascaraValor(parseFloat(dados?.PCIPI).toFixed(2));
+    let vrPercEncargos = mascaraValor(parseFloat(dados?.PCENCARGOS).toFixed(2));
     let vrDesc1ProdPedido = mascaraValor(parseFloat(dados?.DESC01).toFixed(2));
     let vrDesc2ProdPedido = mascaraValor(parseFloat(dados?.DESC02).toFixed(2));
     let vrDesc3ProdPedido = mascaraValor(parseFloat(dados?.DESC03).toFixed(2));
@@ -4078,7 +4087,6 @@ async function retornoEditarItemPedido(respostaEditProdPedido) {
     $('#codBarrasProdutoReposicao').val(codBarrasReposicao);
     $('#idProdutoReposicao').val(idProdutoReposicao);
     $('#stTipoFormulario').val('EDIT');
-
     $('#dsprodpedido').val(descProduto);
     $('#refproduto').val(nuRef);
     $('#vrcustohoje').val(maskValorEmDecimal(vrCustoAtualProdPedido));
@@ -4086,6 +4094,8 @@ async function retornoEditarItemPedido(respostaEditProdPedido) {
     $('#qtdprodpedido').val(qtdTotal);
     $('#qtdcaixa').val(qtdCaixa);
     $('#vrunitbruto').val(vrUnitBrutoProdPedido);
+    $('#vrIpi').val(vrPercIpi);
+    $('#vrEncargos').val(vrPercEncargos);
     $('#descprodI').val(vrDesc1ProdPedido);
     $('#descprodII').val(vrDesc2ProdPedido);
     $('#descprodIII').val(vrDesc3ProdPedido);

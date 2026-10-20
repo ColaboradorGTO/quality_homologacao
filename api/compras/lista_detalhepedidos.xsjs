@@ -178,7 +178,9 @@ function fnHandleGet(byId) {
             IFNULL(TBP.NUNCM, TBDPP.NUNCM) AS NUNCM,
             IFNULL(TBP.IDFONTEPRODUTOFISCAL, TBDPP.IDFONTEPRODUTOFISAL) AS IDFONTEPRODUTOFISAL,
             IFNULL(TBP.IDTIPOPRODUTOFISCAL, TBDPP.IDTIPOPRODUTOFISCAL) AS IDTIPOPRODUTOFISCAL,
-            TBRP.STMIGRADOSAP
+            TBRP.STMIGRADOSAP,
+            TBDP.PCIPI,
+	          TBDP.PCENCARGOS
         FROM
             "VAR_DB_NAME".DETALHEPEDIDO TBDP
         INNER JOIN "VAR_DB_NAME".RESUMOPEDIDO TBRP ON
@@ -600,7 +602,11 @@ function fnEditarDetalhesPedidoSecundario(registro, conn) {
             TBD."IDPRODUTO" = ?,
             TBD."DTATUALIZACAO" = CURRENT_TIMESTAMP,
             TBD."IDRESPATUALIZACAO" = ?,
-            TBD."IDCATEGORIAPEDIDO" = ?
+            TBD."IDCATEGORIAPEDIDO" = ?,
+            TBD.PCIPI = ?,
+            TBD.VRIPI = ?,
+            TBD.PCENCARGOS = ?,
+            TBD.VRENCARGOS = ?
         FROM 
             "VAR_DB_NAME"."DETALHEPEDIDO" TBD 
         INNER JOIN "VAR_DB_NAME"."RESUMOPEDIDO" TBR ON 
@@ -640,7 +646,11 @@ function fnEditarDetalhesPedidoSecundario(registro, conn) {
     setStringOrNull(pStmt, 27, registro.IDPRODUTO);
     pStmt.setInt(28, registro.IDRESPATUALIZACAO);
     pStmt.setInt(29, registro.IDCATEGORIAPEDIDO);
-    pStmt.setInt(30, registro.idDetPedido);
+    pStmt.setFloat(30, registro.VRPERCIPI);
+    pStmt.setFloat(31, registro.VRIPI);
+    pStmt.setFloat(32, registro.VRPERCENCARGOS);
+    pStmt.setFloat(33, registro.VRENCARGOS);
+    pStmt.setInt(34, registro.idDetPedido);
     
     pStmt.execute();
     
@@ -765,7 +775,11 @@ function fnHandlePut() {
             TBD."IDPRODUTO" = ?,
             TBD."DTATUALIZACAO" = CURRENT_TIMESTAMP,
             TBD."IDRESPATUALIZACAO" = ?,
-            TBD."IDCATEGORIAPEDIDO" = ?
+            TBD."IDCATEGORIAPEDIDO" = ?,
+            TBD.PCIPI = ?,
+            TBD.VRIPI = ?,
+            TBD.PCENCARGOS = ?,
+            TBD.VRENCARGOS = ?
         FROM 
             "VAR_DB_NAME"."DETALHEPEDIDO" TBD 
         INNER JOIN "VAR_DB_NAME"."RESUMOPEDIDO" TBR ON 
@@ -809,7 +823,11 @@ function fnHandlePut() {
         setStringOrNull(pStmt, 27, registro.IDPRODUTO);
         pStmt.setInt(28, registro.IDRESPATUALIZACAO);
         pStmt.setInt(29, registro.IDCATEGORIAPEDIDO);
-        pStmt.setInt(30, registro.idDetPedido);
+        pStmt.setFloat(30, registro.VRPERCIPI);
+        pStmt.setFloat(31, registro.VRIPI);
+        pStmt.setFloat(32, registro.VRPERCENCARGOS);
+        pStmt.setFloat(33, registro.VRENCARGOS);
+        pStmt.setInt(34, registro.idDetPedido);
         
         pStmt.execute();
         
@@ -903,9 +921,13 @@ function fnIncluirDetalhesPedidoSecundario(registro, idDetalhePedidoPrimario, co
             "IDPRODUTO",
             "DTCADASTRO",
             "IDRESPCADASTRO",
-            "IDDETALHEPEDIDOPRIMARIO"
+            "IDDETALHEPEDIDOPRIMARIO",
+            "PCIPI",
+            "VRIPI",
+            "PCENCARGOS",
+            "VRENCARGOS"
         )
-		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now(), ?, ?)
+		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now(), ?, ?, ?, ?, ?, ?)
 	`;
 	
 	let queryIdPedidoSecundario = `
@@ -958,6 +980,10 @@ function fnIncluirDetalhesPedidoSecundario(registro, idDetalhePedidoPrimario, co
     setStringOrNull(pStmt, 33, registro.IDPRODUTO);
     pStmt.setInt(34, registro.IDRESPCADASTRO);
     pStmt.setInt(35, parseInt(idDetalhePedidoPrimario));
+    pStmt.setFloat(36, registro.VRPERCIPI);
+    pStmt.setFloat(37, registro.VRIPI);
+    pStmt.setFloat(38, registro.VRPERCENCARGOS);
+    pStmt.setFloat(39, registro.VRENCARGOS);
     
     pStmt.execute();
 	pStmt.close();
@@ -1005,9 +1031,13 @@ function fnHandlePost(){
             "NUCODBARRAS",
             "IDPRODUTO",
             "IDRESPCADASTRO",
-            "DTCADASTRO"
+            "DTCADASTRO",
+            "PCIPI",
+            "VRIPI",
+            "PCENCARGOS",
+            "VRENCARGOS"
         )
-		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now())
+		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, now(), ?, ?, ?, ?)
 	`;
   
     var pStmt = conn.prepareStatement(api.replaceDbName(query));
@@ -1052,6 +1082,10 @@ function fnHandlePost(){
         setStringOrNull(pStmt, 32, registro.NUCODBARRAS);
         setStringOrNull(pStmt, 33, registro.IDPRODUTO);
         pStmt.setInt(34, registro.IDRESPCADASTRO);
+        pStmt.setFloat(35, registro.VRPERCIPI);
+        pStmt.setFloat(36, registro.VRIPI);
+        pStmt.setFloat(37, registro.VRPERCENCARGOS);
+        pStmt.setFloat(37, registro.VRENCARGOS);
         
         pStmt.execute();
         

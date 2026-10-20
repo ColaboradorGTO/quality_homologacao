@@ -206,52 +206,84 @@
       </div>
     </div>
   </div>
-  <div class="form-group">
-    <div class="row">
-      <div class="col-sm-2 col-xl-2">
-        <label class="form-label" for="vrunitbruto">Vr Bruto</label>
-        <div class="input-group">
-          <input type="text" id="vrunitbruto" name="vrunitbruto" class="form-control" value="0"
-            onblur="atualiza_valor_QtdUnit();">
+  
+    <div class="form-group">
+      <div class="row">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-3">
+          <label class="form-label" for="vrunitbruto">Vr Bruto</label>
+          <div class="input-group">
+            <input type="text" id="vrunitbruto" name="vrunitbruto"
+              class="form-control" value="0"
+              onblur="atualiza_valor_QtdUnit();">
+          </div>
         </div>
-      </div>
-      <div class="col-sm-2 col-xl-2">
-        <label class="form-label" for="descprodI">Desconto I (%)</label>
-        <div class="input-group">
-          <input type="text" id="descprodI" name="descprodI" class="form-control" value="0"
-            onblur="atualiza_valor_QtdUnit();">
+
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-3">
+          <label class="form-label" for="vrIpi">IPI %</label>
+          <div class="input-group">
+            <input type="text" id="vrIpi" name="vrIpi"
+              class="form-control" value="0"
+              onblur="atualiza_valor_QtdUnit();">
+          </div>
         </div>
-      </div>
-      <div class="col-sm-2 col-xl-2">
-        <label class="form-label" for="descprodII">Desconto II (%)</label>
-        <div class="input-group">
-          <input type="text" id="descprodII" name="descprodII" class="form-control" value="0"
-            onblur="atualiza_valor_QtdUnit();">
+
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-3">
+          <label class="form-label" for="vrEncargos">Encargos %</label>
+          <div class="input-group">
+            <input type="text" id="vrEncargos" name="vrEncargos"
+              class="form-control" value="0"
+              onblur="atualiza_valor_QtdUnit();">
+          </div>
         </div>
-      </div>
-      <div class="col-sm-2 col-xl-2">
-        <label class="form-label" for="descprodIII">Desconto III (%)</label>
-        <div class="input-group">
-          <input type="text" id="descprodIII" name="descprodIII" class="form-control" value="0"
-            onblur="atualiza_valor_QtdUnit();">
+
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-3">
+          <label class="form-label" for="descprodI">Desconto I (%)</label>
+          <div class="input-group">
+            <input type="text" id="descprodI" name="descprodI"
+              class="form-control" value="0"
+              onblur="atualiza_valor_QtdUnit();">
+          </div>
         </div>
-      </div>
-      <div class="col-sm-2 col-xl-2">
-        <label class="form-label" for="vrunitliq">Vr Liq</label>
-        <div class="input-group">
-          <input type="text" id="vrunitliq" name="vrunitliq" class="form-control" value="0"
-            onblur="atualiza_valor_QtdUnit();">
+
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-3">
+          <label class="form-label" for="descprodII">Desconto II (%)</label>
+          <div class="input-group">
+            <input type="text" id="descprodII" name="descprodII"
+              class="form-control" value="0"
+              onblur="atualiza_valor_QtdUnit();">
+          </div>
         </div>
-      </div>
-      <div class="col-sm-2 col-xl-2">
-        <label class="form-label" for="vrunitsug">Vr Sugerido</label>
-        <div class="input-group">
-          <input type="text" id="vrunitsug" name="vrunitsug" class="form-control" value="0">
-          <input type="hidden" id="vrunitsugfixo" name="vrunitsugfixo" class="form-control" value="0">
+
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-3">
+          <label class="form-label" for="descprodIII">Desconto III (%)</label>
+          <div class="input-group">
+            <input type="text" id="descprodIII" name="descprodIII"
+              class="form-control" value="0"
+              onblur="atualiza_valor_QtdUnit();">
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-3">
+          <label class="form-label" for="vrunitliq">Vr Liq</label>
+          <div class="input-group">
+            <input type="text" id="vrunitliq" name="vrunitliq"
+              class="form-control" value="0"
+              onblur="atualiza_valor_QtdUnit();">
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-3">
+          <label class="form-label" for="vrunitsug">Vr Sugerido</label>
+          <div class="input-group">
+            <input type="text" id="vrunitsug" name="vrunitsug"
+              class="form-control" value="0">
+            <input type="hidden" id="vrunitsugfixo"
+              name="vrunitsugfixo" class="form-control" value="0">
+          </div>
         </div>
       </div>
     </div>
-  </div>
+
   <div class="form-group">
     <div class="row">
       <div class="col-sm-4 col-xl-4">
@@ -296,5 +328,7 @@
     $("#vrunittotal").mask('#.##0,00', { reverse: true });
     $("#vrcustohoje").mask('#.##0,00', { reverse: true });
     $("#vrvendahoje").mask('#.##0,00', { reverse: true });
+    $("#vrIpi").mask('##0,00', { reverse: true });
+    $("#vrEncargos").mask('##0,00', { reverse: true });
   </script>
 </div>

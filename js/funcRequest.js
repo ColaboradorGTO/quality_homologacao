@@ -4,7 +4,7 @@ function ajaxPost(url, jsonData) {
 		function(resolve, reject) {
 
 			$.ajax({
-				url: url,
+				url: 'http://164.152.245.77:8000/quality/concentrador_homologacao/' + url,
 				data: JSON.stringify(jsonData),
 				type: "POST",
 				dataType: 'json',
@@ -29,7 +29,7 @@ function ajaxPut(url, jsonData) {
 		function(resolve, reject) {
 
 			$.ajax({
-				url: url,
+				url: 'http://164.152.245.77:8000/quality/concentrador_homologacao/' + url,
 				data: JSON.stringify(jsonData),
 				type: "PUT",
 				dataType: 'json',
@@ -54,7 +54,7 @@ function ajaxGet(url) {
 		function(resolve, reject) {
 
 			$.ajax({
-				url: url,
+				url: 'http://164.152.245.77:8000/quality/concentrador_homologacao/' + url,
 				type: "GET",
 				dataType: 'json',
 				contentType: 'application/json',
@@ -78,7 +78,7 @@ function ajaxGet2(url) {
 		function(resolve, reject) {
 
 			$.ajax({
-				url: url,
+				url: 'http://164.152.245.77:8000/quality/concentrador_homologacao/' + url,
 				type: "GET",
 				dataType: 'json',
 				contentType: 'application/json',
