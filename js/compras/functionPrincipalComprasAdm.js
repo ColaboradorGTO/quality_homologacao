@@ -946,7 +946,7 @@ function retornoListaFornecedorSelect(respostaListaFornecedorSelect) {
   }
 }
 
-async function pesq_pedidos(numPage) {
+async function pesq_pedidos(idPedido) {
   try {
     let dataPesqInic = $("#parametro_dia_inicio").val();
     let dataPesqFim = $("#parametro_dia_fim").val();
@@ -954,11 +954,11 @@ async function pesq_pedidos(numPage) {
     let idMarcaPesq = Number($("#idmarcaselect").val()) || '';
     let idFabPesq = Number($("#idfabselect").val()) || '';
     let idCompradorPesq = Number($("#idCompradorselect").val()) || '';
-    let NuPedidoPesq = $("#npedio").val();
+    let NuPedidoPesq = $("#npedio").val() || idPedido || '';
     let STSitucaoPedidoPesq = $("#tpsituacao").val();
     let idPedidoPrimario = NuPedidoPesq;
 
-    await ajaxGetAllData('api/compras/lista_pedidos.xsjs?pageSize=1000&page=' + numPage + '&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq + '&idFabPesquisa=' + idFabPesq + '&idCompradorPesquisa=' + idCompradorPesq + '&stSituacaoSAP=' + STSitucaoPedidoPesq + '&idPedidoPrimario=' + idPedidoPrimario)
+    await ajaxGetAllData('api/compras/lista_pedidos.xsjs?pageSize=1000&page=1&dataPesquisaInicio=' + dataPesqInic + '&dataPesquisaFim=' + dataPesqFim + '&idFornPesquisa=' + idFornPesq + '&idMarcaPesquisa=' + idMarcaPesq + '&idpedido=' + NuPedidoPesq + '&idFabPesquisa=' + idFabPesq + '&idCompradorPesquisa=' + idCompradorPesq + '&stSituacaoSAP=' + STSitucaoPedidoPesq + '&idPedidoPrimario=' + idPedidoPrimario)
       .then(retornoListaPedidos)
   } catch (error) {
     console.log(error);
