@@ -869,7 +869,7 @@ async function carregarTelaPrincipal() {
 
     $("#idmarcaselect, #idfornselect, #idfabselect, #idCompradorselect, #tpsituacao").select2();
 
-    $('#npedio, #parametro_dia_inicio, #parametro_dia_fim').on('keypress', (e) => { if (e.keyCode == 13) pesq_pedidos(1) });
+    $('#npedio, #parametro_dia_inicio, #parametro_dia_fim').on('keypress', (e) => { if (e.keyCode == 13) pesq_pedidos() });
 
     await montarSelectBuscaDinamicaFornecedores('idfornselect', 0, false);
     await montarSelectBuscaDinamicaFabricantes('idfabselect');
@@ -3679,7 +3679,7 @@ async function modal_Cancelar_Pedido(id, status) {
 
     await msgSuccess('Cancelamento Realizado Com Sucesso!');
 
-    pesq_pedidos(1);
+    pesq_pedidos(id);
     
   } catch (error) {
     console.log(error);
@@ -3732,7 +3732,7 @@ async function modalReativarPedido(id) {
 
     await msgSuccess('Reativação Realizada Com Sucesso!');
 
-    pesq_pedidos(1);
+    pesq_pedidos(id);
 
   } catch (error) {
     console.log(error);
@@ -3875,7 +3875,7 @@ function funcSucessLog(resposta) {
 function funcSucessCancelaPedido(resposta) {
 
   alerta_cancel_ativa_pedido();
-  pesq_pedidos(1)
+  pesq_pedidos()
 
 }
 
